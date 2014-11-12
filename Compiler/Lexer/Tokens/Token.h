@@ -6,24 +6,17 @@
 //  Copyright (c) 2014 Romain Beguet. All rights reserved.
 //
 
-#ifndef __SFSL__Lexer__
-#define __SFSL__Lexer__
+#ifndef __SFSL__Token__
+#define __SFSL__Token__
 
 namespace sfsl {
 
-namespace lex {
+namespace tok {
 
-    class Lexer {
+    class Token {
     public:
 
-        Lexer(const std::string& input);
-
-        bool hasMore();
-        tok::Token* getNext();
-
     private:
-
-        const std::string& _input;
 
     };
 
