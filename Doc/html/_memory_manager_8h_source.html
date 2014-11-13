@@ -110,12 +110,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00024"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_abstract_memory_manager.html">   24</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classsfsl_1_1common_1_1_abstract_memory_manager.html">AbstractMemoryManager</a> {</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;    <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;        <span class="keyword">virtual</span> <a class="code" href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a56c68a725a7a4063f327d3a166f247f0">~AbstractMemoryManager</a>() = 0;</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;        <span class="keyword">virtual</span> <a class="code" href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a56e4ec6dea82037a1c53acb0eb8f5c9d">~AbstractMemoryManager</a>() = 0;</div>
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span>... Args&gt;</div>
 <div class="line"><a name="l00038"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a66c97b1ecde006d5b2548a644df30473">   38</a></span>&#160;        T* <a class="code" href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a66c97b1ecde006d5b2548a644df30473">New</a>(Args... args) {</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;            T* ptr = <span class="keyword">new</span> T(args...);</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;            push(ptr);</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;            <a class="code" href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a6a1947396a17b642124153bb9fe8a5ac">manage</a>(ptr);</div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;            <span class="keywordflow">return</span> ptr;</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;        }</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
@@ -127,49 +127,51 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    };</div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="keyword">template</span>&lt; <span class="keyword">template</span>&lt;<span class="keyword">typename</span>&gt; <span class="keyword">class </span>Collection_t = std::vector &gt;</div>
-<div class="line"><a name="l00065"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_memory_manager.html">   65</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classsfsl_1_1common_1_1_memory_manager.html">MemoryManager</a> : <span class="keyword">public</span> <a class="code" href="classsfsl_1_1common_1_1_abstract_memory_manager.html">AbstractMemoryManager</a> {</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;</div>
-<div class="line"><a name="l00071"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_memory_manager.html#a21ae4f7e964bccff260c48ff0ba22cde">   71</a></span>&#160;        <a class="code" href="classsfsl_1_1common_1_1_memory_manager.html#a21ae4f7e964bccff260c48ff0ba22cde">MemoryManager</a>() {}</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
-<div class="line"><a name="l00076"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_memory_manager.html#acbcdef8f1f465efaa8b424f89ec73f99">   76</a></span>&#160;        <span class="keyword">virtual</span> <a class="code" href="classsfsl_1_1common_1_1_memory_manager.html#acbcdef8f1f465efaa8b424f89ec73f99">~MemoryManager</a>() { free(); }</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> manage(<a class="code" href="classsfsl_1_1common_1_1_memory_manageable.html">MemoryManageable</a> *ptr) {</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;            _allocated.push_back(ptr);</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;        }</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> free() {</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;            <span class="keywordflow">for</span> (<span class="keyword">auto</span> ptr : _allocated) {</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;                <span class="keyword">delete</span> ptr;</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;            }</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;        }</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;        Collection_t&lt;MemoryManageable*&gt; _allocated;</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    };</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="keyword">template</span>&lt; <span class="keyword">template</span>&lt;<span class="keyword">typename</span>, <span class="keyword">typename</span>&gt; <span class="keyword">class </span>Collection_t = std::vector,</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;              <span class="keyword">class </span>Allocator = std::allocator&lt;MemoryManageable*&gt; &gt;</div>
+<div class="line"><a name="l00066"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_memory_manager.html">   66</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classsfsl_1_1common_1_1_memory_manager.html">MemoryManager</a> : <span class="keyword">public</span> <a class="code" href="classsfsl_1_1common_1_1_abstract_memory_manager.html">AbstractMemoryManager</a> {</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;</div>
+<div class="line"><a name="l00072"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_memory_manager.html#a31644dfdf26e21903951335ba5688344">   72</a></span>&#160;        <a class="code" href="classsfsl_1_1common_1_1_memory_manager.html#a31644dfdf26e21903951335ba5688344">MemoryManager</a>() {}</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;</div>
+<div class="line"><a name="l00077"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_memory_manager.html#a21d5de0d8fbd81dab31cc3b0d4a91840">   77</a></span>&#160;        <span class="keyword">virtual</span> <a class="code" href="classsfsl_1_1common_1_1_memory_manager.html#a21d5de0d8fbd81dab31cc3b0d4a91840">~MemoryManager</a>() { free(); }</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> manage(<a class="code" href="classsfsl_1_1common_1_1_memory_manageable.html">MemoryManageable</a> *ptr) {</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;            _allocated.push_back(ptr);</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;        }</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;        <span class="keyword">virtual</span> <span class="keywordtype">void</span> free() {</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;            <span class="keywordflow">for</span> (<span class="keyword">auto</span> ptr : _allocated) {</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;                <span class="keyword">delete</span> ptr;</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;            }</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        }</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;        std::vector&lt;MemoryManageable*&gt; _allocated;</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;        <span class="comment">//Collection_t&lt;MemoryManageable*, Allocator&gt; _allocated;</span></div>
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;}</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    };</div>
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;</div>
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;}</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_abstract_memory_manager_html_a66c97b1ecde006d5b2548a644df30473"><div class="ttname"><a href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a66c97b1ecde006d5b2548a644df30473">sfsl::common::AbstractMemoryManager::New</a></div><div class="ttdeci">T * New(Args...args)</div><div class="ttdoc">Instantiates and starts managing an object that inherits sfsl::common::MemoryManageable. </div><div class="ttdef"><b>Definition:</b> MemoryManager.h:38</div></div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;}</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_abstract_memory_manager_html_a66c97b1ecde006d5b2548a644df30473"><div class="ttname"><a href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a66c97b1ecde006d5b2548a644df30473">sfsl::common::AbstractMemoryManager::New</a></div><div class="ttdeci">T * New(Args...args)</div><div class="ttdoc">Instantiates and starts managing an object that inherits sfsl::common::MemoryManageable. </div><div class="ttdef"><b>Definition:</b> <a href="_memory_manager_8h_source.html#l00038">MemoryManager.h:38</a></div></div>
 <div class="ttc" id="classsfsl_1_1common_1_1_abstract_memory_manager_html_a6a1947396a17b642124153bb9fe8a5ac"><div class="ttname"><a href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a6a1947396a17b642124153bb9fe8a5ac">sfsl::common::AbstractMemoryManager::manage</a></div><div class="ttdeci">virtual void manage(MemoryManageable *ptr)=0</div><div class="ttdoc">starts managing the given pointer </div></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_abstract_memory_manager_html"><div class="ttname"><a href="classsfsl_1_1common_1_1_abstract_memory_manager.html">sfsl::common::AbstractMemoryManager</a></div><div class="ttdoc">Represents an abstract Memory Manager which is used throughout the compilation process to manage sfsl...</div><div class="ttdef"><b>Definition:</b> MemoryManager.h:24</div></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_abstract_memory_manager_html"><div class="ttname"><a href="classsfsl_1_1common_1_1_abstract_memory_manager.html">sfsl::common::AbstractMemoryManager</a></div><div class="ttdoc">Represents an abstract Memory Manager which is used throughout the compilation process to manage sfsl...</div><div class="ttdef"><b>Definition:</b> <a href="_memory_manager_8h_source.html#l00024">MemoryManager.h:24</a></div></div>
 <div class="ttc" id="classsfsl_1_1common_1_1_abstract_memory_manager_html_a0fa84457d65fe4795441e7181bdaffb2"><div class="ttname"><a href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a0fa84457d65fe4795441e7181bdaffb2">sfsl::common::AbstractMemoryManager::free</a></div><div class="ttdeci">virtual void free()=0</div><div class="ttdoc">frees every managed instances </div></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_memory_manager_html"><div class="ttname"><a href="classsfsl_1_1common_1_1_memory_manager.html">sfsl::common::MemoryManager</a></div><div class="ttdoc">The MemoryManager class Represents a concrete MemoryManager object that uses a collection to be speci...</div><div class="ttdef"><b>Definition:</b> MemoryManager.h:65</div></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_memory_manager_html_acbcdef8f1f465efaa8b424f89ec73f99"><div class="ttname"><a href="classsfsl_1_1common_1_1_memory_manager.html#acbcdef8f1f465efaa8b424f89ec73f99">sfsl::common::MemoryManager::~MemoryManager</a></div><div class="ttdeci">virtual ~MemoryManager()</div><div class="ttdoc">Destroys the MemoryManager and frees every instances that are stored. </div><div class="ttdef"><b>Definition:</b> MemoryManager.h:76</div></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_memory_manager_html_a21ae4f7e964bccff260c48ff0ba22cde"><div class="ttname"><a href="classsfsl_1_1common_1_1_memory_manager.html#a21ae4f7e964bccff260c48ff0ba22cde">sfsl::common::MemoryManager::MemoryManager</a></div><div class="ttdeci">MemoryManager()</div><div class="ttdoc">Creates a MemoryManager with the wanted collection type. </div><div class="ttdef"><b>Definition:</b> MemoryManager.h:71</div></div>
-<div class="ttc" id="namespacesfsl_html"><div class="ttname"><a href="namespacesfsl.html">sfsl</a></div><div class="ttdef"><b>Definition:</b> MemoryManageable.h:12</div></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_abstract_memory_manager_html_a56c68a725a7a4063f327d3a166f247f0"><div class="ttname"><a href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a56c68a725a7a4063f327d3a166f247f0">sfsl::common::AbstractMemoryManager::~AbstractMemoryManager</a></div><div class="ttdeci">virtual ~AbstractMemoryManager()=0</div><div class="ttdoc">~AbstractMemoryManager </div></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_memory_manageable_html"><div class="ttname"><a href="classsfsl_1_1common_1_1_memory_manageable.html">sfsl::common::MemoryManageable</a></div><div class="ttdoc">An interface that represents an object that can be managed by a sfsl::common::MemoryManager. </div><div class="ttdef"><b>Definition:</b> MemoryManageable.h:20</div></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_memory_manager_html"><div class="ttname"><a href="classsfsl_1_1common_1_1_memory_manager.html">sfsl::common::MemoryManager</a></div><div class="ttdoc">The MemoryManager class Represents a concrete MemoryManager object that uses a collection to be speci...</div><div class="ttdef"><b>Definition:</b> <a href="_memory_manager_8h_source.html#l00066">MemoryManager.h:66</a></div></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_memory_manager_html_a31644dfdf26e21903951335ba5688344"><div class="ttname"><a href="classsfsl_1_1common_1_1_memory_manager.html#a31644dfdf26e21903951335ba5688344">sfsl::common::MemoryManager::MemoryManager</a></div><div class="ttdeci">MemoryManager()</div><div class="ttdoc">Creates a MemoryManager with the wanted collection type. </div><div class="ttdef"><b>Definition:</b> <a href="_memory_manager_8h_source.html#l00072">MemoryManager.h:72</a></div></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_memory_manager_html_a21d5de0d8fbd81dab31cc3b0d4a91840"><div class="ttname"><a href="classsfsl_1_1common_1_1_memory_manager.html#a21d5de0d8fbd81dab31cc3b0d4a91840">sfsl::common::MemoryManager::~MemoryManager</a></div><div class="ttdeci">virtual ~MemoryManager()</div><div class="ttdoc">Destroys the MemoryManager and frees every instances that are stored. </div><div class="ttdef"><b>Definition:</b> <a href="_memory_manager_8h_source.html#l00077">MemoryManager.h:77</a></div></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_abstract_memory_manager_html_a56e4ec6dea82037a1c53acb0eb8f5c9d"><div class="ttname"><a href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a56e4ec6dea82037a1c53acb0eb8f5c9d">sfsl::common::AbstractMemoryManager::~AbstractMemoryManager</a></div><div class="ttdeci">virtual ~AbstractMemoryManager()=0</div><div class="ttdoc">~AbstractMemoryManager </div><div class="ttdef"><b>Definition:</b> <a href="_memory_manager_8cpp_source.html#l00015">MemoryManager.cpp:15</a></div></div>
+<div class="ttc" id="namespacesfsl_html"><div class="ttname"><a href="namespacesfsl.html">sfsl</a></div><div class="ttdef"><b>Definition:</b> <a href="_memory_manageable_8h_source.html#l00012">MemoryManageable.h:12</a></div></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_memory_manageable_html"><div class="ttname"><a href="classsfsl_1_1common_1_1_memory_manageable.html">sfsl::common::MemoryManageable</a></div><div class="ttdoc">An interface that represents an object that can be managed by a sfsl::common::MemoryManager. </div><div class="ttdef"><b>Definition:</b> <a href="_memory_manageable_8h_source.html#l00020">MemoryManageable.h:20</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Nov 13 2014 01:51:00 for SFSL by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Nov 13 2014 17:40:43 for SFSL by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

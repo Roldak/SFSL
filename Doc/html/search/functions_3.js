@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['lexer',['Lexer',['../classsfsl_1_1lex_1_1_lexer.html#a2e6bde4826d732936883f33edf286af4',1,'sfsl::lex::Lexer']]]
+  ['identifier',['Identifier',['../classsfsl_1_1tok_1_1_identifier.html#acf2988430e9638b330ab7f30dbf7c845',1,'sfsl::tok::Identifier']]],
+  ['intlitteral',['IntLitteral',['../classsfsl_1_1tok_1_1_int_litteral.html#ad174f49f24be8b8dd752abda65812046',1,'sfsl::tok::IntLitteral']]]
 ];

@@ -44,7 +44,7 @@ namespace src {
     };
 
     /**
-     * @brief A SFSLSource that uses an input stream #std::istream as input for the SFSL datas
+     * @brief A SFSLSource that uses an input stream as input for the SFSL datas
      */
     class SFSLInputStream : public SFSLSource {
     public:

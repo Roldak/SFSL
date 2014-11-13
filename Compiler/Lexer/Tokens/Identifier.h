@@ -21,6 +21,10 @@ namespace tok {
     class Identifier : public Token {
     public:
 
+        /**
+         * @brief Creates an Itentifier Token
+         * @param id the name of the identifier
+         */
         Identifier(const std::string& id);
         virtual ~Identifier();
 

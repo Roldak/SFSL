@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['hasnext',['hasNext',['../classsfsl_1_1lex_1_1_lexer.html#ad8d4d821fdbded700b5e38b311719ae5',1,'sfsl::lex::Lexer']]]
+  ['free',['free',['../classsfsl_1_1common_1_1_abstract_memory_manager.html#a0fa84457d65fe4795441e7181bdaffb2',1,'sfsl::common::AbstractMemoryManager']]]
 ];

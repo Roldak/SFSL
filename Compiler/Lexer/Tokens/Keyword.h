@@ -16,6 +16,9 @@ namespace sfsl {
 
 namespace tok {
 
+    /**
+     * @brief Enumerates every possible Keyword
+     */
     enum KW_TYPE { KW_MODULE };
 
     /**
@@ -24,6 +27,10 @@ namespace tok {
     class Keyword : public Token {
     public:
 
+        /**
+         * @brief Creates a Keyword Token
+         * @param kwType the type of the Keyword
+         */
         Keyword(KW_TYPE kwType);
         virtual ~Keyword();
 
@@ -31,19 +38,19 @@ namespace tok {
         virtual std::string toString() const;
 
         /**
-         * @return the keyword type (#KW_TYPE) of this particular instance
+         * @return the Keyword type of this particular instance
          */
         KW_TYPE getKwType();
 
         /**
-         * @param type the #KW_TYPE to convert
+         * @param type the Keyword type to convert
          * @return the string representation of the keyword type
          */
         static std::string KeywordTypeToString(KW_TYPE type);
 
         /**
          * @param str the string representation of the keyword type
-         * @return the associated #KW_TYPE
+         * @return the associated Keyword type
          */
         static KW_TYPE KeywordTypeFromString(const std::string& str);
 

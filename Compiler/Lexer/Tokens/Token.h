@@ -28,7 +28,7 @@ namespace tok {
     public:
 
         /**
-         * @return the type (#TOK_TYPE) of the token
+         * @return the type of the token
          */
         virtual TOK_TYPE getTokenType() const = 0;
 

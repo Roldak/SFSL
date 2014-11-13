@@ -1,5 +1,8 @@
 var searchData=
 [
-  ['lexer',['Lexer',['../classsfsl_1_1lex_1_1_lexer.html',1,'sfsl::lex']]],
-  ['lexer',['Lexer',['../classsfsl_1_1lex_1_1_lexer.html#a2e6bde4826d732936883f33edf286af4',1,'sfsl::lex::Lexer']]]
+  ['getkwtype',['getKwType',['../classsfsl_1_1tok_1_1_keyword.html#afee3c103b06599d386779a7ce3c4ab6c',1,'sfsl::tok::Keyword']]],
+  ['getnext',['getNext',['../classsfsl_1_1lex_1_1_lexer.html#a3e1767cac50cbb5c622d64ab6eca77cf',1,'sfsl::lex::Lexer::getNext()'],['../classsfsl_1_1src_1_1_s_f_s_l_source.html#a1759960d0ff0f68d6aff96ce67ad40ad',1,'sfsl::src::SFSLSource::getNext()'],['../classsfsl_1_1src_1_1_s_f_s_l_input_stream.html#af6164cd211cf9a1224690fb47d858dc8',1,'sfsl::src::SFSLInputStream::getNext()']]],
+  ['getposition',['getPosition',['../classsfsl_1_1common_1_1_positionnable.html#afd5e1be8f1c7a98b7ae474acca130742',1,'sfsl::common::Positionnable']]],
+  ['getsourcename',['getSourceName',['../classsfsl_1_1common_1_1_positionnable.html#acbe7a4320f7f99de2ec99ae22eda7c6e',1,'sfsl::common::Positionnable::getSourceName()'],['../classsfsl_1_1src_1_1_s_f_s_l_source.html#a8d70e46aef5de38c4b850df10d371c25',1,'sfsl::src::SFSLSource::getSourceName()']]],
+  ['gettokentype',['getTokenType',['../classsfsl_1_1tok_1_1_keyword.html#aeba9a02a19884d64d294f25363787114',1,'sfsl::tok::Keyword::getTokenType()'],['../classsfsl_1_1tok_1_1_int_litteral.html#a2452afddb7fbd06bbab75fe85d11b566',1,'sfsl::tok::IntLitteral::getTokenType()'],['../classsfsl_1_1tok_1_1_real_litteral.html#aeba4abf77feb4e7f5ee8483300819fb8',1,'sfsl::tok::RealLitteral::getTokenType()'],['../classsfsl_1_1tok_1_1_string_litteral.html#a442daf9106222a078739a6b402fd729b',1,'sfsl::tok::StringLitteral::getTokenType()'],['../classsfsl_1_1tok_1_1_e_o_f_token.html#a451988d6f5a5033880086df58b2f09c9',1,'sfsl::tok::EOFToken::getTokenType()'],['../classsfsl_1_1tok_1_1_bad_token.html#aa9d2e78b60e9bc87a366889653c69a10',1,'sfsl::tok::BadToken::getTokenType()'],['../classsfsl_1_1tok_1_1_token.html#af04df36fdcaca4fa4e3b0d59bbf44e65',1,'sfsl::tok::Token::getTokenType()']]]
 ];

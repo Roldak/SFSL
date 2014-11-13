@@ -22,7 +22,7 @@ IntLitteral::~IntLitteral() {
 
 }
 
-TOK_TYPE IntLitteral::getTokenType() {
+TOK_TYPE IntLitteral::getTokenType() const {
     return TOK_INT_LIT;
 }
 
@@ -40,7 +40,7 @@ RealLitteral::~RealLitteral() {
 
 }
 
-TOK_TYPE RealLitteral::getTokenType() {
+TOK_TYPE RealLitteral::getTokenType() const {
     return TOK_REAL_LIT;
 }
 
@@ -58,7 +58,7 @@ StringLitteral::~StringLitteral() {
 
 }
 
-TOK_TYPE StringLitteral::getTokenType() {
+TOK_TYPE StringLitteral::getTokenType() const {
     return TOK_STR_LIT;
 }
 

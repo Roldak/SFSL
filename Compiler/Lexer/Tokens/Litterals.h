@@ -22,10 +22,14 @@ namespace tok {
     class IntLitteral : public Token {
     public:
 
+        /**
+         * @brief Creates an Integer litteral Token
+         * @param value the value of the litteral
+         */
         IntLitteral(sfsl_int_t value);
         virtual ~IntLitteral();
 
-        virtual TOK_TYPE getTokenType();
+        virtual TOK_TYPE getTokenType() const;
         virtual std::string toString() const;
 
     private:
@@ -40,10 +44,14 @@ namespace tok {
     class RealLitteral : public Token {
     public:
 
+        /**
+         * @brief Creates a Real litteral Token
+         * @param value the value of the litteral
+         */
         RealLitteral(sfsl_real_t value);
         virtual ~RealLitteral();
 
-        virtual TOK_TYPE getTokenType();
+        virtual TOK_TYPE getTokenType() const;
         virtual std::string toString() const;
 
     private:
@@ -58,10 +66,14 @@ namespace tok {
     class StringLitteral : public Token {
     public:
 
+        /**
+         * @brief Creates a String litteral
+         * @param value the value of the litteral
+         */
         StringLitteral(const std::string& value);
         virtual ~StringLitteral();
 
-        virtual TOK_TYPE getTokenType();
+        virtual TOK_TYPE getTokenType() const;
         virtual std::string toString() const;
 
     private:

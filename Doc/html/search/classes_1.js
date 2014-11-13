@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['lexer',['Lexer',['../classsfsl_1_1lex_1_1_lexer.html',1,'sfsl::lex']]]
+  ['badtoken',['BadToken',['../classsfsl_1_1tok_1_1_bad_token.html',1,'sfsl::tok']]]
 ];

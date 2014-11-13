@@ -15,11 +15,21 @@ namespace sfsl {
 
 namespace tok {
 
+    /**
+     * @brief Enumerates every possible Operator type
+     */
     enum OPER_TYPE { };
 
+    /**
+     * @brief Represents an Operator Token (e.g. '+', '/', ';', '{')
+     */
     class Operator : public Token {
     public:
 
+        /**
+         * @brief Creates an Operator Token
+         * @param opType the type of the Operator
+         */
         Operator(OPER_TYPE opType);
         virtual ~Operator();
 
