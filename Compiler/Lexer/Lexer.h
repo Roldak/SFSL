@@ -45,11 +45,11 @@ namespace lex {
     private:
 
         void produceNext();
-        common::Positionnable<tok::Token*> getCurrentPosition();
 
         common::AbstractMemoryManager& _mngr;
 
         src::SFSLSource& _source;
+        const std::string _sourceName;
 
         tok::Token* _curToken;
         size_t _curPos;

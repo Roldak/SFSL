@@ -17,7 +17,9 @@ using namespace tok;
 
 namespace lex {
 
-Lexer::Lexer(common::AbstractMemoryManager& mngr, src::SFSLSource& source) : _mngr(mngr), _source(source), _curPos(0) {
+Lexer::Lexer(common::AbstractMemoryManager& mngr, src::SFSLSource& source) :
+    _mngr(mngr), _source(source), _sourceName(source.getSourceName()), _curPos(0) {
+
     produceNext();
 }
 
@@ -40,13 +42,13 @@ void Lexer::produceNext() {
         char c = _source.getNext();
 
         if (c == 'm') {
-            _curToken = _mngr.New<Keyword>(Keyword::KeywordTypeFromString("module"))->setPos(pos, _source.getSourceName());
+            _curToken = _mngr.New<Keyword>(Keyword::KeywordTypeFromString("module"))->setPos(pos, _sourceName);
         } else {
-            _curToken = _mngr.New<BadToken>()->setPos(pos, _source.getSourceName());
+            _curToken = _mngr.New<BadToken>()->setPos(pos, _sourceName);
         }
 
     } else {
-        _curToken = _mngr.New<EOFToken>()->setPos(_curPos, _source.getSourceName());
+        _curToken = _mngr.New<EOFToken>()->setPos(_curPos, _sourceName);
     }
 
 }

@@ -17,20 +17,27 @@ namespace sfsl {
 
 namespace utils {
 
-template<unsigned int size> struct AdaptedType   {
+template<unsigned int size>
+struct AdaptedType   {
     typedef int adapted_int;
     typedef float adapted_real;
 };
-template<>                  struct AdaptedType<4> {
+template<>
+struct AdaptedType<4> {
     typedef int32_t adapted_int;
     typedef float adapted_real;
 };
-template<>                  struct AdaptedType<8> {
+template<>
+struct AdaptedType<8> {
     typedef int64_t adapted_int;
     typedef double adapted_real;
 };
 
 template<typename T>
+/**
+ * @param val The value to convert to String
+ * @return the string representation of the given value
+ */
 inline std::string T_toString(T val) {
     std::ostringstream oss;
     oss << val;
@@ -38,6 +45,10 @@ inline std::string T_toString(T val) {
 }
 
 template<typename T>
+/**
+ * @param val the string to convert into the given type
+ * @return the value parsed from the input string
+ */
 inline T String_toT(const std::string& val) {
     std::istringstream oss(val);
     T res;
@@ -47,7 +58,14 @@ inline T String_toT(const std::string& val) {
 
 }
 
+/**
+ * @brief The Integer type adapted to the host architecture (4 bytes or 8 bytes int)
+ */
 typedef utils::AdaptedType<PTR_SIZE>::adapted_int sfsl_int_t;
+
+/**
+ * @brief The Real type more or less adapted to the host architecture (float for 32bit archs and double for 64 archs)
+ */
 typedef utils::AdaptedType<PTR_SIZE>::adapted_real sfsl_real_t;
 
 }

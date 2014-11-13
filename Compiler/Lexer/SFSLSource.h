@@ -15,14 +15,27 @@ namespace sfsl {
 
 namespace src {
 
+    /**
+     * @brief Represents an abstract source of SFSL data
+     */
     class SFSLSource {
     public:
 
         SFSLSource(const std::string& sourceName);
 
+        /**
+         * @return True if it is still possible to fetch characeters from the input
+         */
         virtual bool hasNext() const = 0;
+
+        /**
+         * @return The next character from the input
+         */
         virtual char getNext() = 0;
 
+        /**
+         * @return The name of the source
+         */
         std::string getSourceName();
 
     private:
@@ -30,6 +43,9 @@ namespace src {
         const std::string _sourceName;
     };
 
+    /**
+     * @brief A SFSLSource that uses an input stream #std::istream as input for the SFSL datas
+     */
     class SFSLInputStream : public SFSLSource {
     public:
 

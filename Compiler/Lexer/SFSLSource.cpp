@@ -23,7 +23,7 @@ std::string SFSLSource::getSourceName() {
 // INPUT STREAM SOURCE
 
 SFSLInputStream::SFSLInputStream(const std::string &sourceName, std::istream &input) : SFSLSource(sourceName), _input(input) {
-
+    produceNext();
 }
 
 bool SFSLInputStream::hasNext() const {

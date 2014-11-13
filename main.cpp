@@ -9,7 +9,7 @@ using namespace sfsl;
 
 int main()
 {
-    std::string source = "module Main{ def main() => { print \"hello world\"; } }";
+    std::string source = "module Main{ def main() => { println(\"hello world\"); } }";
 
     common::MemoryManager<> mem_mngr;
 
