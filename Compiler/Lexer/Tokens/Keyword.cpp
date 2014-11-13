@@ -48,7 +48,13 @@ std::unordered_map<std::string, KW_TYPE> createKeywordsMap() {
 std::unordered_map<std::string, KW_TYPE> Keyword::KEYWORDS = createKeywordsMap();
 
 KW_TYPE Keyword::KeywordTypeFromString(const std::string& str) {
-    return KEYWORDS[str];
+    const auto& it = KEYWORDS.find(str);
+
+    if (it != KEYWORDS.end()) {
+        return (*it).second;
+    } else {
+        return KW_UNKNOWN;
+    }
 }
 
 

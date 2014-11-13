@@ -9,6 +9,7 @@
 #include "Lexer.h"
 
 #include "Tokens/Keyword.h"
+#include "Tokens/Operators.h"
 #include "Tokens/Others.h"
 #include "../../Utils/Utils.h"
 
@@ -37,6 +38,7 @@ Token* Lexer::getNext() {
 void Lexer::produceNext() {
 
     char chr;
+    size_t initPos;
 
     do {
         if (!_source.hasNext()) {
@@ -44,16 +46,39 @@ void Lexer::produceNext() {
             return;
         }
 
-        size_t pos = _source.getPosition();
+        initPos = _source.getPosition();
         chr = _source.getNext();
-        _curCharKind = charKindFromChar(chr);
 
     } while(chrutils::isWhiteSpace(chr));
 
+    std::string soFar(chr, 1);
+
+    CHR_KIND chrKind = charKindFromChar(chr);
+    STR_KIND strKind = strKindFromCharKind(chrKind);
+
+    while (_source.hasNext()) {
+
+        chr = _source.getNext();
+        chrKind = charKindFromChar(chr);
+
+
+
+    }
+
 }
 
-bool Lexer::isStillValid() {
+void Lexer::buildToken() {
 
+}
+
+bool Lexer::isStillValid(STR_KIND strKind, const std::string& soFar, CHR_KIND chrKind, char nextChar) {
+    switch (strKind) {
+    case STR_SYMBOL:    return chrKind == CHR_SYMBOL && isValidSymbol(soFar + nextChar);
+    }
+}
+
+bool Lexer::isValidSymbol(const std::string &str) {
+    return Operator::OperTypeFromString(str) != OPER_UNKNOWN;
 }
 
 Lexer::CHR_KIND Lexer::charKindFromChar(char c) {

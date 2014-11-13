@@ -9,6 +9,7 @@
 #ifndef __SFSL__Operators__
 #define __SFSL__Operators__
 
+#include <unordered_map>
 #include "Token.h"
 
 namespace sfsl {
@@ -18,7 +19,7 @@ namespace tok {
     /**
      * @brief Enumerates every possible Operator type
      */
-    enum OPER_TYPE { };
+    enum OPER_TYPE { OPER_PLUS, OPER_UNKNOWN };
 
     /**
      * @brief Represents an Operator Token (e.g. '+', '/', ';', '{')
@@ -36,7 +37,12 @@ namespace tok {
         virtual TOK_TYPE getTokenType() const;
         virtual std::string toString() const;
 
+        static std::string OperTypeToString(OPER_TYPE type);
+        static OPER_TYPE OperTypeFromString(const std::string& str);
+
     private:
+
+        static std::unordered_map<std::string, OPER_TYPE> OPERATORS;
 
         const OPER_TYPE _opType;
 

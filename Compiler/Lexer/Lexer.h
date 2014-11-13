@@ -26,7 +26,7 @@ namespace lex {
     public:
 
         /**
-         * @brief creates a Lexer object
+         * @brief Creates a Lexer object
          * @param mngr The memory manager used throughout the tokenization process
          * @param source The input source
          */
@@ -49,7 +49,9 @@ namespace lex {
 
         void produceNext();
 
-        bool isStillValid();
+        void buildToken();
+        bool isStillValid(STR_KIND strKind, const std::string& soFar, CHR_KIND chrKind, char nextChar);
+        bool isValidSymbol(const std::string& str);
         CHR_KIND charKindFromChar(char c);
         STR_KIND strKindFromCharKind(CHR_KIND c);
 
@@ -60,9 +62,6 @@ namespace lex {
         src::SFSLSource& _source;
 
         tok::Token* _curToken;
-
-        CHR_KIND _curCharKind;
-        STR_KIND _curStrKind;
 
     };
 
