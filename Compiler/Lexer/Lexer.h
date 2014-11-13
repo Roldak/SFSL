@@ -10,6 +10,7 @@
 #define __SFSL__Lexer__
 
 #include <iostream>
+#include "SFSLSource.h"
 #include "Tokens/Token.h"
 #include "../Common/MemoryManager.h"
 
@@ -27,9 +28,9 @@ namespace lex {
         /**
          * @brief creates a Lexer object
          * @param mngr The memory manager used throughout the tokenization process
-         * @param input The input source
+         * @param source The input source
          */
-        Lexer(common::AbstractMemoryManager& mngr, std::istream& input);
+        Lexer(common::AbstractMemoryManager& mngr, src::SFSLSource& source);
 
         /**
          * @return True if there are more tokens to come, otherwise false
@@ -44,12 +45,14 @@ namespace lex {
     private:
 
         void produceNext();
+        common::Positionnable<tok::Token*> getCurrentPosition();
 
         common::AbstractMemoryManager& _mngr;
 
-        std::istream& _input;
+        src::SFSLSource& _source;
 
-        tok::Token* _nextToken;
+        tok::Token* _curToken;
+        size_t _curPos;
 
     };
 

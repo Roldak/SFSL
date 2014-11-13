@@ -8,37 +8,48 @@
 
 #include "Lexer.h"
 
+#include "Tokens/Keyword.h"
+#include "Tokens/Others.h"
+
 namespace sfsl {
 
 using namespace tok;
 
 namespace lex {
 
-Lexer::Lexer(common::AbstractMemoryManager& mngr, std::istream& input) : _mngr(mngr), _input(input) {
+Lexer::Lexer(common::AbstractMemoryManager& mngr, src::SFSLSource& source) : _mngr(mngr), _source(source), _curPos(0) {
     produceNext();
 }
 
 bool Lexer::hasNext() const {
-    return _nextToken->getTokenType() != TOK_EOF;
+    return _curToken->getTokenType() != TOK_EOF;
 }
 
 Token* Lexer::getNext() {
-    Token* current = _nextToken;
+    Token* current = _curToken;
     produceNext();
     return current;
 }
 
 void Lexer::produceNext() {
 
-    char c;
+    if (_source.hasNext()) {
 
-    if (_input >> c) {
+        size_t pos = _curPos++;
+
+        char c = _source.getNext();
+
+        if (c == 'm') {
+            _curToken = _mngr.New<Keyword>(Keyword::KeywordTypeFromString("module"))->setPos(pos, _source.getSourceName());
+        } else {
+            _curToken = _mngr.New<BadToken>()->setPos(pos, _source.getSourceName());
+        }
 
     } else {
-
+        _curToken = _mngr.New<EOFToken>()->setPos(_curPos, _source.getSourceName());
     }
-}
 
+}
 
 }
 

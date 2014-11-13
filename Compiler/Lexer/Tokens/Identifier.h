@@ -15,6 +15,9 @@ namespace sfsl {
 
 namespace tok {
 
+    /**
+     * @brief Represents an identifier
+     */
     class Identifier : public Token {
     public:
 

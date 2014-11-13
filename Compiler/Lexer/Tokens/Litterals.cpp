@@ -26,7 +26,7 @@ TOK_TYPE IntLitteral::getTokenType() {
     return TOK_INT_LIT;
 }
 
-std::string IntLitteral::toString() {
+std::string IntLitteral::toString() const {
     return utils::T_toString(_value);
 }
 
@@ -44,7 +44,7 @@ TOK_TYPE RealLitteral::getTokenType() {
     return TOK_REAL_LIT;
 }
 
-std::string RealLitteral::toString() {
+std::string RealLitteral::toString() const {
     return utils::T_toString(_value);
 }
 
@@ -62,7 +62,7 @@ TOK_TYPE StringLitteral::getTokenType() {
     return TOK_STR_LIT;
 }
 
-std::string StringLitteral::toString() {
+std::string StringLitteral::toString() const {
     return "\"" + _value + "\"";
 }
 

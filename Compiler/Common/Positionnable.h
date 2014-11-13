@@ -29,10 +29,10 @@ namespace common {
          * @param source the new file name
          * @return this
          */
-        const T& setPos(size_t pos, const std::string& source) {
+        T* setPos(size_t pos, const std::string& source) {
             _pos = pos;
             _source = source;
-            return this;
+            return static_cast<T*>(this);
         }
 
         /**
@@ -40,7 +40,7 @@ namespace common {
          * @param other the Positionnable which contains the position to copy
          * @return this
          */
-        const T& setPos(const Positionnable& other) {
+        T* setPos(const Positionnable& other) {
             return setPos(other._pos, other._source);
         }
 

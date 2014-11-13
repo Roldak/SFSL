@@ -16,6 +16,9 @@ namespace sfsl {
 
 namespace tok {
 
+    /**
+     * @brief Represents an Integer litteral (e.g. 42)
+     */
     class IntLitteral : public Token {
     public:
 
@@ -23,7 +26,7 @@ namespace tok {
         virtual ~IntLitteral();
 
         virtual TOK_TYPE getTokenType();
-        virtual std::string toString();
+        virtual std::string toString() const;
 
     private:
 
@@ -31,6 +34,9 @@ namespace tok {
 
     };
 
+    /**
+     * @brief Represents a Real litteral (e.g. 3.14)
+     */
     class RealLitteral : public Token {
     public:
 
@@ -38,7 +44,7 @@ namespace tok {
         virtual ~RealLitteral();
 
         virtual TOK_TYPE getTokenType();
-        virtual std::string toString();
+        virtual std::string toString() const;
 
     private:
 
@@ -46,6 +52,9 @@ namespace tok {
 
     };
 
+    /**
+     * @brief Represents a String litteral (e.g. "hello world")
+     */
     class StringLitteral : public Token {
     public:
 
@@ -53,7 +62,7 @@ namespace tok {
         virtual ~StringLitteral();
 
         virtual TOK_TYPE getTokenType();
-        virtual std::string toString();
+        virtual std::string toString() const;
 
     private:
 

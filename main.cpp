@@ -13,11 +13,14 @@ int main()
 
     common::MemoryManager<> mem_mngr;
 
-    std::istringstream src(source);
+    std::istringstream input(source);
+    src::SFSLInputStream src("hardcoded", input);
+
     lex::Lexer lexer(mem_mngr, src);
 
-    while (lexer.hasNext())
-        std::cout << lexer.getNext()->toString() << std::endl;
+    while (lexer.hasNext()) {
+        std::cout << lexer.getNext()->toStringDetailed() << std::endl;
+    }
 
 }
 
