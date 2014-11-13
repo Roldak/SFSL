@@ -9,11 +9,17 @@
 #ifndef __SFSL__Token__
 #define __SFSL__Token__
 
+#include "../../Common/MemoryManageable.h"
+#include "../../Common/Positionnable.h"
+
 namespace sfsl {
 
 namespace tok {
 
-    class Token {
+    /**
+     * @brief The Token class
+     */
+    class Token : public common::MemoryManageable, public common::Positionnable<Token> {
     public:
 
     private:
