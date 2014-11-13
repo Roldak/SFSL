@@ -6,5 +6,4 @@
 //  Copyright (c) 2014 Romain Beguet. All rights reserved.
 //
 
-
 #include "MemoryManageable.h"

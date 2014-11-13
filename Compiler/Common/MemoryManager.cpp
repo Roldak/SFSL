@@ -7,3 +7,15 @@
 //
 
 #include "MemoryManager.h"
+
+namespace sfsl {
+
+namespace common {
+
+AbstractMemoryManager::~AbstractMemoryManager() {
+
+}
+
+}
+
+}

@@ -20,6 +20,9 @@ namespace common {
     class MemoryManageable {
     public:
 
+        /**
+         * @brief The destructor
+         */
         virtual ~MemoryManageable() {}
 
     };

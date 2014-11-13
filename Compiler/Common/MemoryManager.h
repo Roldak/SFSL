@@ -37,7 +37,7 @@ namespace common {
          */
         T* New(Args... args) {
             T* ptr = new T(args...);
-            push(ptr);
+            manage(ptr);
             return ptr;
         }
 
@@ -56,7 +56,8 @@ namespace common {
 
     };
 
-    template< template<typename> class Collection_t = std::vector >
+    template< template<typename, typename> class Collection_t = std::vector,
+              class Allocator = std::allocator<MemoryManageable*> >
     /**
      * @brief The MemoryManager class
      * Represents a concrete MemoryManager object that uses a collection to be specified
@@ -87,7 +88,8 @@ namespace common {
             }
         }
 
-        Collection_t<MemoryManageable*> _allocated;
+        std::vector<MemoryManageable*> _allocated;
+        //Collection_t<MemoryManageable*, Allocator> _allocated;
 
     };
 
