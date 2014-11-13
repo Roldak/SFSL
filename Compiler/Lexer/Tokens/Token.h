@@ -17,7 +17,7 @@ namespace sfsl {
 namespace tok {
 
     /**
-     * @brief The Token class
+     * @brief Represents an abstract Token
      */
     class Token : public common::MemoryManageable, public common::Positionnable<Token> {
     public:

@@ -13,6 +13,10 @@ namespace sfsl {
 
 namespace common {
 
+    /**
+     * @brief An interface that represents an object
+     * that can be managed by a #sfsl::common::MemoryManager
+     */
     class MemoryManageable {
     public:
 

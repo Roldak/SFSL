@@ -17,15 +17,24 @@ namespace sfsl {
 namespace common {
 
     /**
-     * @brief The AbstractMemoryManager class
-     *
+     * @brief Represents an abstract Memory Manager which is used throughout the compilation process
+     * to manage #sfsl::common::MemoryManageable objects. Objects instantiated through this class
+     * should be freed when the MemoryManager is destroyed
      */
     class AbstractMemoryManager {
     public:
 
+        /**
+         * @brief ~AbstractMemoryManager
+         */
         virtual ~AbstractMemoryManager() = 0;
 
         template<typename T, typename... Args>
+        /**
+         * @brief Instantiates and starts managing an object that inherits sfsl::common::MemoryManageable
+         * @param args The parameters of class's constructor
+         * @return A pointer to the instance
+         */
         T* New(Args... args) {
             T* ptr = new T(args...);
             push(ptr);
@@ -34,21 +43,41 @@ namespace common {
 
     protected:
 
-        virtual void push(MemoryManageable* ptr) = 0;
+        /**
+         * @brief starts managing the given pointer
+         * @param ptr the pointer on the instance that will be managed
+         */
+        virtual void manage(MemoryManageable* ptr) = 0;
+
+        /**
+         * @brief frees every managed instances
+         */
         virtual void free() = 0;
 
     };
 
     template< template<typename> class Collection_t = std::vector >
+    /**
+     * @brief The MemoryManager class
+     * Represents a concrete MemoryManager object that uses a collection to be specified
+     * in order to store pointer to allocated instances
+     */
     class MemoryManager : public AbstractMemoryManager {
     public:
 
+        /**
+         * @brief Creates a MemoryManager with the wanted collection type
+         */
         MemoryManager() {}
+
+        /**
+         * @brief Destroys the MemoryManager and frees every instances that are stored
+         */
         virtual ~MemoryManager() { free(); }
 
     private:
 
-        virtual void push(MemoryManageable *ptr) {
+        virtual void manage(MemoryManageable *ptr) {
             _allocated.push_back(ptr);
         }
 
