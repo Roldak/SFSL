@@ -97,7 +97,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 
-<p>The <a class="el" href="classsfsl_1_1common_1_1_abstract_memory_manager.html" title="The AbstractMemoryManager class. ">AbstractMemoryManager</a> class.  
+<p>Represents an abstract Memory Manager which is used throughout the compilation process to manage <a class="el" href="classsfsl_1_1common_1_1_memory_manageable.html" title="An interface that represents an object that can be managed by a sfsl::common::MemoryManager. ">sfsl::common::MemoryManageable</a> objects. Objects instantiated through this class should be freed when the <a class="el" href="classsfsl_1_1common_1_1_memory_manager.html" title="The MemoryManager class Represents a concrete MemoryManager object that uses a collection to be speci...">MemoryManager</a> is destroyed.  
  <a href="classsfsl_1_1common_1_1_abstract_memory_manager.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_memory_manager_8h_source.html">MemoryManager.h</a>&gt;</code></p>
@@ -107,35 +107,108 @@ Inheritance diagram for sfsl::common::AbstractMemoryManager:</div>
  <div class="center">
   <img src="classsfsl_1_1common_1_1_abstract_memory_manager.png" usemap="#sfsl::common::AbstractMemoryManager_map" alt=""/>
   <map id="sfsl::common::AbstractMemoryManager_map" name="sfsl::common::AbstractMemoryManager_map">
-<area href="classsfsl_1_1common_1_1_memory_manager.html" alt="sfsl::common::MemoryManager&lt; Collection_t &gt;" shape="rect" coords="0,56,276,80"/>
+<area href="classsfsl_1_1common_1_1_memory_manager.html" title="The MemoryManager class Represents a concrete MemoryManager object that uses a collection to be speci..." alt="sfsl::common::MemoryManager&lt; Collection_t &gt;" shape="rect" coords="0,56,276,80"/>
 </map>
  </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a66c97b1ecde006d5b2548a644df30473"><td class="memTemplParams" colspan="2"><a class="anchor" id="a66c97b1ecde006d5b2548a644df30473"></a>
-template&lt;typename T , typename... Args&gt; </td></tr>
-<tr class="memitem:a66c97b1ecde006d5b2548a644df30473"><td class="memTemplItemLeft" align="right" valign="top">T *&#160;</td><td class="memTemplItemRight" valign="bottom"><b>New</b> (Args...args)</td></tr>
+<tr class="memitem:a56c68a725a7a4063f327d3a166f247f0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a56c68a725a7a4063f327d3a166f247f0"></a>
+virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a56c68a725a7a4063f327d3a166f247f0">~AbstractMemoryManager</a> ()=0</td></tr>
+<tr class="memdesc:a56c68a725a7a4063f327d3a166f247f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">~AbstractMemoryManager <br /></td></tr>
+<tr class="separator:a56c68a725a7a4063f327d3a166f247f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a66c97b1ecde006d5b2548a644df30473"><td class="memTemplParams" colspan="2">template&lt;typename T , typename... Args&gt; </td></tr>
+<tr class="memitem:a66c97b1ecde006d5b2548a644df30473"><td class="memTemplItemLeft" align="right" valign="top">T *&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a66c97b1ecde006d5b2548a644df30473">New</a> (Args...args)</td></tr>
+<tr class="memdesc:a66c97b1ecde006d5b2548a644df30473"><td class="mdescLeft">&#160;</td><td class="mdescRight">Instantiates and starts managing an object that inherits <a class="el" href="classsfsl_1_1common_1_1_memory_manageable.html" title="An interface that represents an object that can be managed by a sfsl::common::MemoryManager. ">sfsl::common::MemoryManageable</a>.  <a href="#a66c97b1ecde006d5b2548a644df30473">More...</a><br /></td></tr>
 <tr class="separator:a66c97b1ecde006d5b2548a644df30473"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:af128fa2b90213e73c87dc81ca8d07309"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af128fa2b90213e73c87dc81ca8d07309"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>push</b> (<a class="el" href="classsfsl_1_1common_1_1_memory_manageable.html">MemoryManageable</a> *ptr)=0</td></tr>
-<tr class="separator:af128fa2b90213e73c87dc81ca8d07309"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a1947396a17b642124153bb9fe8a5ac"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a6a1947396a17b642124153bb9fe8a5ac">manage</a> (<a class="el" href="classsfsl_1_1common_1_1_memory_manageable.html">MemoryManageable</a> *ptr)=0</td></tr>
+<tr class="memdesc:a6a1947396a17b642124153bb9fe8a5ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">starts managing the given pointer  <a href="#a6a1947396a17b642124153bb9fe8a5ac">More...</a><br /></td></tr>
+<tr class="separator:a6a1947396a17b642124153bb9fe8a5ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0fa84457d65fe4795441e7181bdaffb2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0fa84457d65fe4795441e7181bdaffb2"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>free</b> ()=0</td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsfsl_1_1common_1_1_abstract_memory_manager.html#a0fa84457d65fe4795441e7181bdaffb2">free</a> ()=0</td></tr>
+<tr class="memdesc:a0fa84457d65fe4795441e7181bdaffb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">frees every managed instances <br /></td></tr>
 <tr class="separator:a0fa84457d65fe4795441e7181bdaffb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The <a class="el" href="classsfsl_1_1common_1_1_abstract_memory_manager.html" title="The AbstractMemoryManager class. ">AbstractMemoryManager</a> class. </p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+<div class="textblock"><p>Represents an abstract Memory Manager which is used throughout the compilation process to manage <a class="el" href="classsfsl_1_1common_1_1_memory_manageable.html" title="An interface that represents an object that can be managed by a sfsl::common::MemoryManager. ">sfsl::common::MemoryManageable</a> objects. Objects instantiated through this class should be freed when the <a class="el" href="classsfsl_1_1common_1_1_memory_manager.html" title="The MemoryManager class Represents a concrete MemoryManager object that uses a collection to be speci...">MemoryManager</a> is destroyed. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="a6a1947396a17b642124153bb9fe8a5ac"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void sfsl::common::AbstractMemoryManager::manage </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classsfsl_1_1common_1_1_memory_manageable.html">MemoryManageable</a> *&#160;</td>
+          <td class="paramname"><em>ptr</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>starts managing the given pointer </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ptr</td><td>the pointer on the instance that will be managed </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="a66c97b1ecde006d5b2548a644df30473"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T , typename... Args&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">T* sfsl::common::AbstractMemoryManager::New </td>
+          <td>(</td>
+          <td class="paramtype">Args...&#160;</td>
+          <td class="paramname"><em>args</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Instantiates and starts managing an object that inherits <a class="el" href="classsfsl_1_1common_1_1_memory_manageable.html" title="An interface that represents an object that can be managed by a sfsl::common::MemoryManager. ">sfsl::common::MemoryManageable</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">args</td><td>The parameters of class's constructor </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A pointer to the instance </dd></dl>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
 <li>Compiler/Common/<a class="el" href="_memory_manager_8h_source.html">MemoryManager.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Nov 13 2014 01:26:18 for SFSL by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Nov 13 2014 01:51:00 for SFSL by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

@@ -95,7 +95,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 
-<p>The <a class="el" href="classsfsl_1_1tok_1_1_token.html" title="The Token class. ">Token</a> class.  
+<p>Represents an abstract <a class="el" href="classsfsl_1_1tok_1_1_token.html" title="Represents an abstract Token. ">Token</a>.  
  <a href="classsfsl_1_1tok_1_1_token.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_token_8h_source.html">Token.h</a>&gt;</code></p>
@@ -105,7 +105,7 @@ Inheritance diagram for sfsl::tok::Token:</div>
  <div class="center">
   <img src="classsfsl_1_1tok_1_1_token.png" usemap="#sfsl::tok::Token_map" alt=""/>
   <map id="sfsl::tok::Token_map" name="sfsl::tok::Token_map">
-<area href="classsfsl_1_1common_1_1_memory_manageable.html" alt="sfsl::common::MemoryManageable" shape="rect" coords="0,0,222,24"/>
+<area href="classsfsl_1_1common_1_1_memory_manageable.html" title="An interface that represents an object that can be managed by a sfsl::common::MemoryManager. " alt="sfsl::common::MemoryManageable" shape="rect" coords="0,0,222,24"/>
 <area href="classsfsl_1_1common_1_1_positionnable.html" alt="sfsl::common::Positionnable&lt; Token &gt;" shape="rect" coords="232,0,454,24"/>
 </map>
  </div></div>
@@ -113,22 +113,26 @@ Inheritance diagram for sfsl::tok::Token:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pub_methods_classsfsl_1_1common_1_1_positionnable"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classsfsl_1_1common_1_1_positionnable')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classsfsl_1_1common_1_1_positionnable.html">sfsl::common::Positionnable&lt; Token &gt;</a></td></tr>
-<tr class="memitem:abb385535e34b70684842f3b96c42e594 inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abb385535e34b70684842f3b96c42e594"></a>
-const Token &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>setPos</b> (size_t pos, const std::string &amp;file)</td></tr>
+<tr class="memitem:abb385535e34b70684842f3b96c42e594 inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="memItemLeft" align="right" valign="top">const Token &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsfsl_1_1common_1_1_positionnable.html#abb385535e34b70684842f3b96c42e594">setPos</a> (size_t pos, const std::string &amp;file)</td></tr>
+<tr class="memdesc:abb385535e34b70684842f3b96c42e594 inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="mdescLeft">&#160;</td><td class="mdescRight">sets the position of the object to the given parameters  <a href="#abb385535e34b70684842f3b96c42e594">More...</a><br /></td></tr>
 <tr class="separator:abb385535e34b70684842f3b96c42e594 inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8151f3239226e62b6959bd1415b7f852 inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8151f3239226e62b6959bd1415b7f852"></a>
-const Token &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>setPos</b> (const <a class="el" href="classsfsl_1_1common_1_1_positionnable.html">Positionnable</a> &amp;other)</td></tr>
+<tr class="memitem:a8151f3239226e62b6959bd1415b7f852 inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="memItemLeft" align="right" valign="top">const Token &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsfsl_1_1common_1_1_positionnable.html#a8151f3239226e62b6959bd1415b7f852">setPos</a> (const <a class="el" href="classsfsl_1_1common_1_1_positionnable.html">Positionnable</a> &amp;other)</td></tr>
+<tr class="memdesc:a8151f3239226e62b6959bd1415b7f852 inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="mdescLeft">&#160;</td><td class="mdescRight">sets the position of the object to be the same as the Positionnable given in parameter  <a href="#a8151f3239226e62b6959bd1415b7f852">More...</a><br /></td></tr>
 <tr class="separator:a8151f3239226e62b6959bd1415b7f852 inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4fa870a812ad4c14e4e00970235b54f inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsfsl_1_1common_1_1_positionnable.html#ae4fa870a812ad4c14e4e00970235b54f">getPosition</a> ()</td></tr>
+<tr class="separator:ae4fa870a812ad4c14e4e00970235b54f inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a604eeb98d54e630df68d2e45c5026b29 inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsfsl_1_1common_1_1_positionnable.html#a604eeb98d54e630df68d2e45c5026b29">getFileName</a> ()</td></tr>
+<tr class="separator:a604eeb98d54e630df68d2e45c5026b29 inherit pub_methods_classsfsl_1_1common_1_1_positionnable"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>The <a class="el" href="classsfsl_1_1tok_1_1_token.html" title="The Token class. ">Token</a> class. </p>
+<div class="textblock"><p>Represents an abstract <a class="el" href="classsfsl_1_1tok_1_1_token.html" title="Represents an abstract Token. ">Token</a>. </p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>Compiler/Lexer/Tokens/<a class="el" href="_token_8h_source.html">Token.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Nov 13 2014 01:26:18 for SFSL by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Nov 13 2014 01:51:00 for SFSL by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>
