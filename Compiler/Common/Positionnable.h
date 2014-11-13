@@ -47,14 +47,14 @@ namespace common {
         /**
          * @return the position of the Positionnable
          */
-        size_t getPosition() {
+        size_t getPosition() const {
             return _pos;
         }
 
         /**
          * @return the name of the source at the origin of the Positionnable
          */
-        std::string getSourceName() {
+        std::string getSourceName() const {
             return _source;
         }
 

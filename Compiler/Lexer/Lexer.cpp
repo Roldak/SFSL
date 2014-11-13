@@ -10,18 +10,33 @@
 
 namespace sfsl {
 
+using namespace tok;
+
 namespace lex {
 
-Lexer::Lexer(const common::AbstractMemoryManager& mngr, const std::string &input) : _mngr(mngr), _input(input) {
-
+Lexer::Lexer(common::AbstractMemoryManager& mngr, std::istream& input) : _mngr(mngr), _input(input) {
+    produceNext();
 }
 
-bool Lexer::hasNext() {
-
+bool Lexer::hasNext() const {
+    return _nextToken->getTokenType() != TOK_EOF;
 }
 
-tok::Token *Lexer::getNext() {
+Token* Lexer::getNext() {
+    Token* current = _nextToken;
+    produceNext();
+    return current;
+}
 
+void Lexer::produceNext() {
+
+    char c;
+
+    if (_input >> c) {
+
+    } else {
+
+    }
 }
 
 

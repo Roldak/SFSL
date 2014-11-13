@@ -29,12 +29,12 @@ namespace lex {
          * @param mngr The memory manager used throughout the tokenization process
          * @param input The input source
          */
-        Lexer(const common::AbstractMemoryManager& mngr, const std::istream& input);
+        Lexer(common::AbstractMemoryManager& mngr, std::istream& input);
 
         /**
          * @return True if there are more tokens to come, otherwise false
          */
-        bool hasNext();
+        bool hasNext() const;
 
         /**
          * @return The next produced #sfsl::tok::Token
@@ -43,8 +43,13 @@ namespace lex {
 
     private:
 
-        const common::AbstractMemoryManager& _mngr;
-        const std::istream& _input;
+        void produceNext();
+
+        common::AbstractMemoryManager& _mngr;
+
+        std::istream& _input;
+
+        tok::Token* _nextToken;
 
     };
 
