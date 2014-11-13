@@ -88,8 +88,7 @@ namespace common {
             }
         }
 
-        std::vector<MemoryManageable*> _allocated;
-        //Collection_t<MemoryManageable*, Allocator> _allocated;
+        Collection_t<MemoryManageable*, Allocator> _allocated;
 
     };
 

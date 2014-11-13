@@ -6,8 +6,8 @@
 //  Copyright (c) 2014 Romain Beguet. All rights reserved.
 //
 
-#ifndef __SFSL__Lexer__
-#define __SFSL__Lexer__
+#ifndef __SFSL__Utils__
+#define __SFSL__Utils__
 
 #include <sstream>
 
@@ -54,6 +54,51 @@ inline T String_toT(const std::string& val) {
     T res;
     oss >> res;
     return res;
+}
+
+}
+
+namespace chrutils {
+
+inline bool isWhiteSpace(char c) {
+    return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+}
+
+inline bool isNumeric(char c) {
+    return c >= '0' && c <= '9';
+}
+
+inline bool isCharacter(char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+}
+
+inline bool isQuote(char c) {
+    return c == '\"';
+}
+
+inline bool escapedChar(char& c) {
+    switch (c) {
+    case '\'':
+    case '\"':
+    case '\\':
+        break;
+    case 'n':   c = '\n';
+        break;
+    case 't':   c = '\t';
+        break;
+    case '0':   c = '\0';
+        break;
+    default:
+        return false;
+    }
+    return true;
+}
+
+inline bool isSymbol(char c) {
+    return (c == '=' || c == '>' || c == '<' || c == ',' || c == '&' || c == '|' ||
+            c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '^' ||
+            c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']' ||
+            c == '!' || c == ':' || c == ';' || c == '?' || c == '@');
 }
 
 }

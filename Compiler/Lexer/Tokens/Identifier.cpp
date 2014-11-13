@@ -20,11 +20,11 @@ Identifier::~Identifier() {
 
 }
 
-TOK_TYPE Identifier::getTokenType() {
+TOK_TYPE Identifier::getTokenType() const {
     return TOK_ID;
 }
 
-std::string Identifier::toString() {
+std::string Identifier::toString() const {
     return _id;
 }
 

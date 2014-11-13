@@ -10,6 +10,7 @@
 #define __SFSL__SFSLSource__
 
 #include <iostream>
+#include "../Common/Positionnable.h"
 
 namespace sfsl {
 
@@ -34,12 +35,23 @@ namespace src {
         virtual char getNext() = 0;
 
         /**
+         * @return The current position in the source
+         */
+        size_t getPosition();
+
+        /**
          * @return The name of the source
          */
-        std::string getSourceName();
+        const std::string& getSourceName();
 
-    private:
+        /**
+         * @return A Positionnable corresponding to the current position
+         */
+        common::Positionnable currentPos();
 
+    protected:
+
+        size_t _position;
         const std::string _sourceName;
     };
 
@@ -49,6 +61,11 @@ namespace src {
     class SFSLInputStream : public SFSLSource {
     public:
 
+        /**
+         * @brief Creates an SFSLInputStream
+         * @param sourceName the name of the source
+         * @param input
+         */
         SFSLInputStream(const std::string& sourceName, std::istream& input);
 
         virtual bool hasNext() const;

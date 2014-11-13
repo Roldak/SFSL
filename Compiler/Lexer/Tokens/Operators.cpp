@@ -20,11 +20,11 @@ Operator::~Operator() {
 
 }
 
-TOK_TYPE Operator::getTokenType() {
+TOK_TYPE Operator::getTokenType() const {
     return TOK_OPER;
 }
 
-std::string Operator::toString() {
+std::string Operator::toString() const {
     switch (_opType) {
 
     default:

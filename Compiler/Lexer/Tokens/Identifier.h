@@ -28,8 +28,8 @@ namespace tok {
         Identifier(const std::string& id);
         virtual ~Identifier();
 
-        virtual TOK_TYPE getTokenType();
-        virtual std::string toString();
+        virtual TOK_TYPE getTokenType() const;
+        virtual std::string toString() const;
 
     private:
 

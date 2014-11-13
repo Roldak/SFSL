@@ -10,6 +10,7 @@
 
 #include "Tokens/Keyword.h"
 #include "Tokens/Others.h"
+#include "../../Utils/Utils.h"
 
 namespace sfsl {
 
@@ -18,7 +19,7 @@ using namespace tok;
 namespace lex {
 
 Lexer::Lexer(common::AbstractMemoryManager& mngr, src::SFSLSource& source) :
-    _mngr(mngr), _source(source), _sourceName(source.getSourceName()), _curPos(0) {
+    _mngr(mngr), _source(source) {
 
     produceNext();
 }
@@ -35,22 +36,43 @@ Token* Lexer::getNext() {
 
 void Lexer::produceNext() {
 
-    if (_source.hasNext()) {
+    char chr;
 
-        size_t pos = _curPos++;
-
-        char c = _source.getNext();
-
-        if (c == 'm') {
-            _curToken = _mngr.New<Keyword>(Keyword::KeywordTypeFromString("module"))->setPos(pos, _sourceName);
-        } else {
-            _curToken = _mngr.New<BadToken>()->setPos(pos, _sourceName);
+    do {
+        if (!_source.hasNext()) {
+            _curToken = _mngr.New<EOFToken>()->setPos<Token>(_source.currentPos());
+            return;
         }
 
-    } else {
-        _curToken = _mngr.New<EOFToken>()->setPos(_curPos, _sourceName);
-    }
+        size_t pos = _source.getPosition();
+        chr = _source.getNext();
+        _curCharKind = charKindFromChar(chr);
 
+    } while(chrutils::isWhiteSpace(chr));
+
+}
+
+bool Lexer::isStillValid() {
+
+}
+
+Lexer::CHR_KIND Lexer::charKindFromChar(char c) {
+    if (chrutils::isSymbol(c))          return CHR_SYMBOL;
+    else if (chrutils::isCharacter(c))  return CHR_CHARACTER;
+    else if (chrutils::isNumeric(c))    return CHR_DIGIT;
+    else if (chrutils::isWhiteSpace(c)) return CHR_SPACE;
+    else if (chrutils::isQuote(c))      return CHR_QUOTE;
+    else                                return CHR_UNKNOWN;
+}
+
+Lexer::STR_KIND Lexer::strKindFromCharKind(Lexer::CHR_KIND c) {
+    switch (c) {
+    case CHR_SYMBOL:    return STR_SYMBOL;
+    case CHR_CHARACTER: return STR_ID;
+    case CHR_DIGIT:     return STR_INT_LIT;
+    case CHR_QUOTE:     return STR_STRING_LIT;
+    default:            return STR_UNKNOWN;
+    }
 }
 
 }

@@ -24,7 +24,7 @@ namespace tok {
     /**
      * @brief Represents an abstract Token
      */
-    class Token : public common::MemoryManageable, public common::Positionnable<Token> {
+    class Token : public common::MemoryManageable, public common::Positionnable {
     public:
 
         /**

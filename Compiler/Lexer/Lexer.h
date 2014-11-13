@@ -44,15 +44,25 @@ namespace lex {
 
     private:
 
+        enum CHR_KIND { CHR_SYMBOL, CHR_CHARACTER, CHR_DIGIT, CHR_SPACE, CHR_QUOTE, CHR_UNKNOWN };
+        enum STR_KIND { STR_SYMBOL, STR_ID, STR_STRING_LIT, STR_INT_LIT, STR_REAL_LIT, STR_UNKNOWN };
+
         void produceNext();
+
+        bool isStillValid();
+        CHR_KIND charKindFromChar(char c);
+        STR_KIND strKindFromCharKind(CHR_KIND c);
+
+
 
         common::AbstractMemoryManager& _mngr;
 
         src::SFSLSource& _source;
-        const std::string _sourceName;
 
         tok::Token* _curToken;
-        size_t _curPos;
+
+        CHR_KIND _curCharKind;
+        STR_KIND _curStrKind;
 
     };
 
