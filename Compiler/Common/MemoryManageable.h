@@ -1,0 +1,34 @@
+//
+//  MemoryManageable.h
+//  SFSL
+//
+//  Created by Romain Beguet on 12.11.14.
+//  Copyright (c) 2014 Romain Beguet. All rights reserved.
+//
+
+#ifndef __SFSL__MemoryManageable__
+#define __SFSL__MemoryManageable__
+
+namespace sfsl {
+
+namespace common {
+
+    /**
+     * @brief An interface that represents an object
+     * that can be managed by a #sfsl::common::MemoryManager
+     */
+    class MemoryManageable {
+    public:
+
+        /**
+         * @brief The destructor
+         */
+        virtual ~MemoryManageable() {}
+
+    };
+
+}
+
+}
+
+#endif
