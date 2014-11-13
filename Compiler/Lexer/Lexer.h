@@ -18,8 +18,7 @@ namespace sfsl {
 namespace lex {
 
     /**
-     * @brief The Lexer class
-     * Transforms an SFSL source file given as an inputstream into a sequence of #sfsl::tok::Token
+     * @brief Transforms an SFSL source file given as an inputstream into a sequence of #sfsl::tok::Token
      * that are accessible with Lexer#getNext()
      */
     class Lexer {

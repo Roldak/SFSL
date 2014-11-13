@@ -18,7 +18,7 @@ namespace common {
     template<typename T>
     /**
      * @brief An interface that represents an object that is bound
-     * to a position (a position in a file and the name of this file)
+     * to a position (a position in its source and the name of this source)
      */
     class Positionnable {
     public:
@@ -26,12 +26,12 @@ namespace common {
         /**
          * @brief sets the position of the object to the given parameters
          * @param pos the new position
-         * @param file the new file name
+         * @param source the new file name
          * @return this
          */
-        const T& setPos(size_t pos, const std::string& file) {
+        const T& setPos(size_t pos, const std::string& source) {
             _pos = pos;
-            _file = file;
+            _source = source;
             return this;
         }
 
@@ -41,7 +41,7 @@ namespace common {
          * @return this
          */
         const T& setPos(const Positionnable& other) {
-            return setPos(other._pos, other._file);
+            return setPos(other._pos, other._source);
         }
 
         /**
@@ -52,16 +52,16 @@ namespace common {
         }
 
         /**
-         * @return the name of the file at the origin of the Positionnable
+         * @return the name of the source at the origin of the Positionnable
          */
-        std::string getFileName() {
-            return _file;
+        std::string getSourceName() {
+            return _source;
         }
 
     private:
 
         size_t _pos;
-        std::string _file;
+        std::string _source;
 
     };
 
