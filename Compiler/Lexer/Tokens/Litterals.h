@@ -10,6 +10,7 @@
 #define __SFSL__Litterals__
 
 #include "Token.h"
+#include "../../../Utils/Utils.h"
 
 namespace sfsl {
 
@@ -18,7 +19,7 @@ namespace tok {
     class IntLitteral : public Token {
     public:
 
-        IntLitteral(long long value);
+        IntLitteral(sfsl_int_t value);
         virtual ~IntLitteral();
 
         virtual TOK_TYPE getTokenType();
@@ -26,14 +27,14 @@ namespace tok {
 
     private:
 
-        const long long _value;
+        const sfsl_int_t _value;
 
     };
 
     class RealLitteral : public Token {
     public:
 
-        RealLitteral(double value);
+        RealLitteral(sfsl_real_t value);
         virtual ~RealLitteral();
 
         virtual TOK_TYPE getTokenType();
@@ -41,7 +42,7 @@ namespace tok {
 
     private:
 
-        const double _value;
+        const sfsl_real_t _value;
 
     };
 

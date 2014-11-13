@@ -14,7 +14,7 @@ namespace tok {
 
 // INTS
 
-IntLitteral::IntLitteral(long long value)  : _value(value) {
+IntLitteral::IntLitteral(sfsl_int_t value)  : _value(value) {
 
 }
 
@@ -27,12 +27,12 @@ TOK_TYPE IntLitteral::getTokenType() {
 }
 
 std::string IntLitteral::toString() {
-
+    return utils::T_toString(_value);
 }
 
 // REALS
 
-RealLitteral::RealLitteral(double value) : _value(value) {
+RealLitteral::RealLitteral(sfsl_real_t value) : _value(value) {
 
 }
 
@@ -45,7 +45,7 @@ TOK_TYPE RealLitteral::getTokenType() {
 }
 
 std::string RealLitteral::toString() {
-
+    return utils::T_toString(_value);
 }
 
 // STRS
@@ -63,7 +63,7 @@ TOK_TYPE StringLitteral::getTokenType() {
 }
 
 std::string StringLitteral::toString() {
-
+    return "\"" + _value + "\"";
 }
 
 

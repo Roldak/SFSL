@@ -6,6 +6,7 @@ aux_source_directory(./Compiler/ SRC_LIST)
 aux_source_directory(./Compiler/Lexer/ SRC_LIST)
 aux_source_directory(./Compiler/Lexer/Tokens/ SRC_LIST)
 aux_source_directory(./Compiler/Common/ SRC_LIST)
+aux_source_directory(./Utils/ SRC_LIST)
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 
