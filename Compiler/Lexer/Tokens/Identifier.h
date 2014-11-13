@@ -18,11 +18,15 @@ namespace tok {
     class Identifier : public Token {
     public:
 
+        Identifier(const std::string& id);
+        virtual ~Identifier();
+
         virtual TOK_TYPE getTokenType();
         virtual std::string toString();
 
     private:
 
+        const std::string _id;
     };
 
 }

@@ -15,13 +15,20 @@ namespace sfsl {
 
 namespace tok {
 
+    enum OPER_TYPE { };
+
     class Operator : public Token {
     public:
+
+        Operator(OPER_TYPE opType);
+        virtual ~Operator();
 
         virtual TOK_TYPE getTokenType();
         virtual std::string toString();
 
     private:
+
+        const OPER_TYPE _opType;
 
     };
 

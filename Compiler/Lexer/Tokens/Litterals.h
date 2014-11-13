@@ -18,30 +18,45 @@ namespace tok {
     class IntLitteral : public Token {
     public:
 
+        IntLitteral(long long value);
+        virtual ~IntLitteral();
+
         virtual TOK_TYPE getTokenType();
         virtual std::string toString();
 
     private:
+
+        const long long _value;
 
     };
 
     class RealLitteral : public Token {
     public:
 
+        RealLitteral(double value);
+        virtual ~RealLitteral();
+
         virtual TOK_TYPE getTokenType();
         virtual std::string toString();
 
     private:
+
+        const double _value;
 
     };
 
     class StringLitteral : public Token {
     public:
 
+        StringLitteral(const std::string& value);
+        virtual ~StringLitteral();
+
         virtual TOK_TYPE getTokenType();
         virtual std::string toString();
 
     private:
+
+        const std::string _value;
 
     };
 

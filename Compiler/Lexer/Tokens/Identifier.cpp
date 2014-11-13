@@ -7,3 +7,27 @@
 //
 
 #include "Identifier.h"
+
+namespace sfsl {
+
+namespace tok {
+
+Identifier::Identifier(const std::string &id)  : _id(id) {
+
+}
+
+Identifier::~Identifier() {
+
+}
+
+TOK_TYPE Identifier::getTokenType() {
+    return TOK_ID;
+}
+
+std::string Identifier::toString() {
+    return _id;
+}
+
+}
+
+}

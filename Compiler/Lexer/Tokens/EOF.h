@@ -18,10 +18,11 @@ namespace tok {
     class EOFToken : public Token {
     public:
 
+        EOFToken();
+        virtual ~EOFToken();
+
         virtual TOK_TYPE getTokenType();
         virtual std::string toString();
-
-    private:
 
     };
 

@@ -19,7 +19,7 @@ namespace tok {
     /**
      * @brief Enumerates every possible token type
      */
-    enum TOK_TYPE { TOK_OPER, TOK_ID, TOK_KW, TOK_INT_LIT, TOK_REAL_LIT, TOK_EOF };
+    enum TOK_TYPE { TOK_OPER, TOK_ID, TOK_KW, TOK_INT_LIT, TOK_REAL_LIT, TOK_STR_LIT, TOK_EOF };
 
     /**
      * @brief Represents an abstract Token

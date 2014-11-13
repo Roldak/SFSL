@@ -15,13 +15,22 @@ namespace sfsl {
 
 namespace tok {
 
+    enum KW_TYPE {  };
+
     class Keyword : public Token {
     public:
+
+        Keyword(KW_TYPE kwType);
+        virtual ~Keyword();
 
         virtual TOK_TYPE getTokenType();
         virtual std::string toString();
 
+        KW_TYPE getKwType();
+
     private:
+
+        const KW_TYPE _kwType;
 
     };
 

@@ -7,3 +7,27 @@
 //
 
 #include "EOF.h"
+
+namespace sfsl {
+
+namespace tok {
+
+EOFToken::EOFToken() {
+
+}
+
+EOFToken::~EOFToken() {
+
+}
+
+TOK_TYPE EOFToken::getTokenType() {
+    return TOK_EOF;
+}
+
+std::string EOFToken::toString() {
+    return "EOF";
+}
+
+}
+
+}
