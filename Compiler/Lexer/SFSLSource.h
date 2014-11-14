@@ -22,7 +22,7 @@ namespace src {
     class SFSLSource {
     public:
 
-        SFSLSource(const std::string& sourceName);
+        SFSLSource(std::string* sourceName);
 
         /**
          * @return True if it is still possible to fetch characeters from the input
@@ -42,7 +42,7 @@ namespace src {
         /**
          * @return The name of the source
          */
-        const std::string& getSourceName();
+        std::string *getSourceName();
 
         /**
          * @return A Positionnable corresponding to the current position
@@ -52,7 +52,7 @@ namespace src {
     protected:
 
         size_t _position;
-        const std::string _sourceName;
+        std::string* _sourceName;
     };
 
     /**
@@ -66,7 +66,7 @@ namespace src {
          * @param sourceName the name of the source
          * @param input
          */
-        SFSLInputStream(const std::string& sourceName, std::istream& input);
+        SFSLInputStream(std::string* sourceName, std::istream& input);
 
         virtual bool hasNext() const;
         virtual char getNext();

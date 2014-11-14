@@ -12,7 +12,7 @@ namespace sfsl {
 
 namespace src {
 
-SFSLSource::SFSLSource(const std::string &sourceName) : _position(0), _sourceName(sourceName) {
+SFSLSource::SFSLSource(std::string* sourceName) : _position(0), _sourceName(sourceName) {
 
 }
 
@@ -20,7 +20,7 @@ size_t SFSLSource::getPosition() {
     return _position - 1;
 }
 
-const std::string& SFSLSource::getSourceName() {
+std::string* SFSLSource::getSourceName() {
     return _sourceName;
 }
 
@@ -30,7 +30,7 @@ common::Positionnable SFSLSource::currentPos() {
 
 // INPUT STREAM SOURCE
 
-SFSLInputStream::SFSLInputStream(const std::string &sourceName, std::istream &input) : SFSLSource(sourceName), _input(input) {
+SFSLInputStream::SFSLInputStream(std::string* sourceName, std::istream &input) : SFSLSource(sourceName), _input(input) {
     produceNext();
 }
 

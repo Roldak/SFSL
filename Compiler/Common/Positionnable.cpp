@@ -16,7 +16,7 @@ Positionnable::Positionnable() {
 
 }
 
-Positionnable::Positionnable(size_t pos, const std::string &source) : _pos(pos), _source(source) {
+Positionnable::Positionnable(size_t pos, std::string *source) : _pos(pos), _source(source) {
 
 }
 
@@ -24,7 +24,7 @@ size_t Positionnable::getPosition() const{
     return _pos;
 }
 
-const std::string &Positionnable::getSourceName() const {
+std::string* Positionnable::getSourceName() const {
     return _source;
 }
 

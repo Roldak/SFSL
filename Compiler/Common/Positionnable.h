@@ -32,7 +32,7 @@ namespace common {
          * @param pos its position
          * @param source its source name
          */
-        Positionnable(size_t pos, const std::string& source);
+        Positionnable(size_t pos, std::string *source);
 
         template<typename T>
         /**
@@ -41,7 +41,7 @@ namespace common {
          * @param source the new file name
          * @return this
          */
-        T* setPos(size_t pos, const std::string& source) {
+        T* setPos(size_t pos, std::string* source) {
             _pos = pos;
             _source = source;
             return static_cast<T*>(this);
@@ -65,12 +65,12 @@ namespace common {
         /**
          * @return the name of the source at the origin of the Positionnable
          */
-        const std::string& getSourceName() const;
+        std::string* getSourceName() const;
 
     private:
 
         size_t _pos;
-        std::string _source;
+        std::string* _source;
 
     };
 
