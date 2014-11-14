@@ -63,8 +63,7 @@ namespace common {
     template< template<typename, typename> class Collection_t = std::vector,
               class Allocator = std::allocator<MemoryManageable*> >
     /**
-     * @brief The MemoryManager class
-     * Represents a concrete MemoryManager object that uses a collection to be specified
+     * @brief Represents a concrete MemoryManager object that uses a collection to be specified
      * in order to store pointer to allocated instances
      */
     class DynamicMemoryManager : public AbstractMemoryManager {
@@ -100,11 +99,29 @@ namespace common {
 
     };
 
+    /**
+     * @brief Represents a block of memory. It contains a pointer to its parent
+     * so that they are destroyed in chain when the last one is destroyed.
+     */
     class MemoryChunk {
     public:
+        /**
+         * @brief Creates a MemoryChunk
+         * @param size The size that will have each block of memory
+         */
         MemoryChunk(size_t size);
+
         virtual ~MemoryChunk();
 
+        /**
+         * @brief Allocates the desired memory in the chunk given in parameter if it contains enough space,
+         * otherwise creates an new chunk (and modifies the reference given so that it refers to the new one)
+         * and allocates space in this one.
+         *
+         * @param chunk The MemoryChunk from which to allocate memory
+         * @param size The size of the object to be allocated
+         * @return A pointer to the allocated space
+         */
         static void* alloc(MemoryChunk*& chunk, size_t size);
 
     private:
@@ -116,28 +133,27 @@ namespace common {
         MemoryChunk* _parent;
     };
 
+    /**
+     * @brief Represents a concrete MemoryManager object that allocates blocks of memory and
+     */
     class ChunkedMemoryManager : public AbstractMemoryManager {
     public:
 
+        /**
+         * @brief Creates a ChunkedMemoryManager
+         * @param chunksSize The size that will have each chunk of memory
+         */
         ChunkedMemoryManager(size_t chunksSize);
+
         virtual ~ChunkedMemoryManager() { free(); }
 
     private:
 
-        virtual void* alloc(size_t size) {
-            return MemoryChunk::alloc(_lastChunk, size);
-        }
+        virtual void* alloc(size_t size);
 
-        virtual void manage(MemoryManageable *ptr) {
-            _allocated.push_back(ptr);
-        }
+        virtual void manage(MemoryManageable *ptr);
 
-        virtual void free() {
-            for (auto ptr : _allocated) {
-                ptr->~MemoryManageable();
-            }
-            delete _lastChunk;
-        }
+        virtual void free();
 
         MemoryChunk* _lastChunk;
         std::vector<MemoryManageable*> _allocated;

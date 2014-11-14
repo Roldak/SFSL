@@ -47,6 +47,21 @@ ChunkedMemoryManager::ChunkedMemoryManager(size_t chunksSize) : _lastChunk(new M
 
 }
 
+void* ChunkedMemoryManager::alloc(size_t size) {
+    return MemoryChunk::alloc(_lastChunk, size);
+}
+
+void ChunkedMemoryManager::manage(MemoryManageable *ptr) {
+    _allocated.push_back(ptr);
+}
+
+void ChunkedMemoryManager::free() {
+    for (auto ptr : _allocated) {
+        ptr->~MemoryManageable();
+    }
+    delete _lastChunk;
+}
+
 }
 
 }
