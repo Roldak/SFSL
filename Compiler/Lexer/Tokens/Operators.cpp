@@ -70,6 +70,12 @@ std::string Operator::OperTypeToString(OPER_TYPE type) {
     case OPER_COMMA:    return ",";
     case OPER_SEMICOLON:return ";";
 
+        // OTHERS
+
+    case OPER_THIN_ARROW:return "->";
+    case OPER_FAT_ARROW:return "=>";
+    case OPER_DOT_DOT:  return "..";
+
     default:            return "";
     }
 }
@@ -82,7 +88,9 @@ std::unordered_map<std::string, OPER_TYPE> createOperatorsMap() {
     map["/"] = OPER_DIV;
     map["^"] = OPER_POW;
     map["&&"] = OPER_AND;
+    map["and"] = OPER_AND;
     map["||"] = OPER_OR;
+    map["or"] = OPER_OR;
     map["="] = OPER_EQ;
     map["=="] = OPER_EQ_EQ;
     map["<"] = OPER_LT;
@@ -99,6 +107,9 @@ std::unordered_map<std::string, OPER_TYPE> createOperatorsMap() {
     map[":"] = OPER_COLON;
     map[","] = OPER_COMMA;
     map[";"] = OPER_SEMICOLON;
+    map["->"] = OPER_THIN_ARROW;
+    map["=>"] = OPER_FAT_ARROW;
+    map[".."] = OPER_DOT_DOT;
     return map;
 }
 

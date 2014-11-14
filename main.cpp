@@ -9,7 +9,7 @@ using namespace sfsl;
 
 int main()
 {
-    std::string source = "module Main{ def main() => 3.141592653589793 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }";
+    std::string source = "module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }";
 
     common::MemoryManager<> mem_mngr;
 

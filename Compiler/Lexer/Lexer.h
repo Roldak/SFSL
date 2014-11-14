@@ -63,7 +63,9 @@ namespace lex {
         CharInfo readCharInfo();
 
         void produceNext();
+
         tok::Token* buildToken(STR_KIND kind, const std::string& soFar) const;
+        tok::Token* getRightTokenFromIdentifier(const std::string& str) const;
 
         void handleStringLitteral(std::string& soFar);
         bool tryHandleComments(const std::string& soFar);

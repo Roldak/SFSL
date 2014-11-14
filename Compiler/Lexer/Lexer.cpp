@@ -74,7 +74,7 @@ void Lexer::produceNext() {
         }
         else if (strKind == STR_UNKNOWN) {
             // ERROR
-            _curToken = _mngr.New<BadToken>(soFar);
+            _curToken = _mngr.New<BadToken>(soFar)->setPos<Token>(initPos, _source.getSourceName());
             return;
         }
         else {
@@ -107,13 +107,21 @@ Lexer::CharInfo Lexer::readCharInfo() {
 Token* Lexer::buildToken(STR_KIND kind, const std::string &soFar) const {
     switch (kind) {
     case STR_SYMBOL:        return _mngr.New<Operator>(Operator::OperTypeFromString(soFar));
-    case STR_ID:            return isValidKeyword(soFar)
-                                            ?   static_cast<Token*>(_mngr.New<Keyword>(Keyword::KeywordTypeFromString(soFar)))
-                                            :   static_cast<Token*>(_mngr.New<Identifier>(soFar));
+    case STR_ID:            return getRightTokenFromIdentifier(soFar);
     case STR_INT_LIT:       return _mngr.New<IntLitteral>(utils::String_toT<sfsl_int_t>(soFar));
     case STR_REAL_LIT:      return _mngr.New<RealLitteral>(utils::String_toT<sfsl_real_t>(soFar));
     case STR_STRING_LIT:    return _mngr.New<StringLitteral>(soFar);
     default:                return _mngr.New<BadToken>(soFar);
+    }
+}
+
+Token* Lexer::getRightTokenFromIdentifier(const std::string &str) const{
+    if (isValidKeyword(str)) {
+        return _mngr.New<Keyword>(Keyword::KeywordTypeFromString(str));
+    } else if (isValidSymbol(str)) {
+        return _mngr.New<Operator>(Operator::OperTypeFromString(str));
+    } else {
+        return _mngr.New<Identifier>(str);
     }
 }
 
