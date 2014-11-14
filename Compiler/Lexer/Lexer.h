@@ -55,6 +55,7 @@ namespace lex {
 
         static bool isStillValid(STR_KIND strKind, const std::string& soFar, CHR_KIND chrKind, char nextChar);
         static bool isValidSymbol(const std::string& str);
+        static bool isValidKeyword(const std::string& str);
 
         static CHR_KIND charKindFromChar(char c);
         static STR_KIND strKindFromCharKind(CHR_KIND c);
@@ -64,6 +65,10 @@ namespace lex {
         void produceNext();
         tok::Token* buildToken(STR_KIND kind, const std::string& soFar) const;
 
+        void handleStringLitteral(std::string& soFar);
+        bool tryHandleComments(const std::string& soFar);
+        void handleMultiLineComment();
+        void handleSingleLineComment();
 
         common::AbstractMemoryManager& _mngr;
         src::SFSLSource& _source;

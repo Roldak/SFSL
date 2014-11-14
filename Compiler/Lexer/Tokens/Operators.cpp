@@ -34,7 +34,42 @@ OPER_TYPE Operator::getOpType() const {
 
 std::string Operator::OperTypeToString(OPER_TYPE type) {
     switch (type) {
+
+        // BINARY OPERATORS
+
     case OPER_PLUS:     return "+";
+    case OPER_MINUS:    return "-";
+    case OPER_TIMES:    return "*";
+    case OPER_DIV:      return "/";
+    case OPER_POW:      return "^";
+    case OPER_AND:      return "&&";
+    case OPER_OR:       return "||";
+    case OPER_EQ:       return "=";
+
+        // COMPARISON BINARY OPERATORS
+
+    case OPER_EQ_EQ:    return "==";
+    case OPER_LT:       return "<";
+    case OPER_GT:       return ">";
+    case OPER_LE:       return "<=";
+    case OPER_GE:       return ">=";
+
+        // BRACKETS
+
+    case OPER_L_PAREN:  return "(";
+    case OPER_R_PAREN:  return ")";
+    case OPER_L_BRACKET:return "[";
+    case OPER_R_BRACKET:return "]";
+    case OPER_L_BRACE:  return "{";
+    case OPER_R_BRACE:  return "}";
+
+        // SYMBOLS
+
+    case OPER_DOT:      return ".";
+    case OPER_COLON:    return ":";
+    case OPER_COMMA:    return ",";
+    case OPER_SEMICOLON:return ";";
+
     default:            return "";
     }
 }
@@ -42,6 +77,28 @@ std::string Operator::OperTypeToString(OPER_TYPE type) {
 std::unordered_map<std::string, OPER_TYPE> createOperatorsMap() {
     std::unordered_map<std::string, OPER_TYPE> map;
     map["+"] = OPER_PLUS;
+    map["-"] = OPER_MINUS;
+    map["*"] = OPER_TIMES;
+    map["/"] = OPER_DIV;
+    map["^"] = OPER_POW;
+    map["&&"] = OPER_AND;
+    map["||"] = OPER_OR;
+    map["="] = OPER_EQ;
+    map["=="] = OPER_EQ_EQ;
+    map["<"] = OPER_LT;
+    map[">"] = OPER_GT;
+    map["<="] = OPER_LE;
+    map[">="] = OPER_GE;
+    map["("] = OPER_L_PAREN;
+    map[")"] = OPER_R_PAREN;
+    map["["] = OPER_L_BRACKET;
+    map["]"] = OPER_R_BRACKET;
+    map["{"] = OPER_L_BRACE;
+    map["}"] = OPER_R_BRACE;
+    map["."] = OPER_DOT;
+    map[":"] = OPER_COLON;
+    map[","] = OPER_COMMA;
+    map[";"] = OPER_SEMICOLON;
     return map;
 }
 

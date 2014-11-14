@@ -35,6 +35,7 @@ KW_TYPE Keyword::getKwType() {
 std::string Keyword::KeywordTypeToString(KW_TYPE type) {
     switch (type) {
     case KW_MODULE:     return "module";
+    case KW_DEF:        return "def";
     default:            return "";
     }
 }
@@ -42,6 +43,7 @@ std::string Keyword::KeywordTypeToString(KW_TYPE type) {
 std::unordered_map<std::string, KW_TYPE> createKeywordsMap() {
     std::unordered_map<std::string, KW_TYPE> map;
     map["module"] = KW_MODULE;
+    map["def"] = KW_DEF;
     return map;
 }
 

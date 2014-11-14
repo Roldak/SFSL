@@ -60,11 +60,28 @@ void Lexer::produceNext() {
 
         _lastChar = readCharInfo();
 
-        if (isStillValid(strKind, soFar, _lastChar.kind, _lastChar.chr)) {
+        if (tryHandleComments(soFar + _lastChar.chr)){
+            _lastChar.kind = CHR_EMPTY;
+            produceNext();
+            return;
+        }
+        else if (isStillValid(strKind, soFar, _lastChar.kind, _lastChar.chr)) {
             soFar += _lastChar.chr;
-        } else if (strKind == STR_STRING_LIT) {
-
-        } else {
+        }
+        else if (strKind == STR_INT_LIT && _lastChar.chr == '.') {
+            strKind = STR_REAL_LIT;
+            soFar += _lastChar.chr;
+        }
+        else if (strKind == STR_UNKNOWN) {
+            // ERROR
+            _curToken = _mngr.New<BadToken>(soFar);
+            return;
+        }
+        else {
+            if (strKind == STR_STRING_LIT) {
+                handleStringLitteral(soFar);
+                _lastChar.kind = CHR_EMPTY;
+            }
             _curToken = buildToken(strKind, soFar)->setPos<Token>(initPos, _source.getSourceName());
             return;
         }
@@ -90,7 +107,9 @@ Lexer::CharInfo Lexer::readCharInfo() {
 Token* Lexer::buildToken(STR_KIND kind, const std::string &soFar) const {
     switch (kind) {
     case STR_SYMBOL:        return _mngr.New<Operator>(Operator::OperTypeFromString(soFar));
-    case STR_ID:            return _mngr.New<Identifier>(soFar);
+    case STR_ID:            return isValidKeyword(soFar)
+                                            ?   static_cast<Token*>(_mngr.New<Keyword>(Keyword::KeywordTypeFromString(soFar)))
+                                            :   static_cast<Token*>(_mngr.New<Identifier>(soFar));
     case STR_INT_LIT:       return _mngr.New<IntLitteral>(utils::String_toT<sfsl_int_t>(soFar));
     case STR_REAL_LIT:      return _mngr.New<RealLitteral>(utils::String_toT<sfsl_real_t>(soFar));
     case STR_STRING_LIT:    return _mngr.New<StringLitteral>(soFar);
@@ -99,20 +118,70 @@ Token* Lexer::buildToken(STR_KIND kind, const std::string &soFar) const {
 }
 
 void Lexer::handleStringLitteral(std::string &soFar) {
+    soFar = "";
+    soFar += _lastChar.chr;
+
+    bool escaping = false;
+
     for(;;) {
         if (!_source.hasNext()) {
+            // ERROR
             exit(1);
         }
 
         char c = _source.getNext();
 
+        if (escaping) {
+            escaping = false;
+            if (chrutils::escapedChar(c)) {
+                soFar += c;
+            } else {
+                // ERROR
+                exit(1);
+            }
+            continue;
+        }
+
         if (c == '\"') {
             return;
         } else if (c == '\\') {
-
+            escaping = true;
         } else if (c != '\n' && c != '\r') {
             soFar += c;
         }
+    }
+}
+
+bool Lexer::tryHandleComments(const std::string &soFar) {
+    if (soFar == "//")
+        handleSingleLineComment();
+    else if (soFar == "/*")
+        handleMultiLineComment();
+    else
+        return false;
+
+    return true;
+}
+
+void Lexer::handleMultiLineComment() {
+    char oldChr = 0;
+    char chr = 0;
+
+    while (oldChr != '*' && chr != '/') {
+        if (!_source.hasNext()) {
+            // ERROR
+            exit(1);
+        }
+
+        oldChr = chr;
+        chr = _source.getNext();
+    }
+}
+
+void Lexer::handleSingleLineComment() {
+    char chr = 0;
+    while (_source.hasNext() && chr != '\n' && chr != '\r') {
+        chr = _source.getNext();
     }
 }
 
@@ -129,6 +198,10 @@ bool Lexer::isStillValid(STR_KIND strKind, const std::string& soFar, CHR_KIND ch
 
 bool Lexer::isValidSymbol(const std::string &str) {
     return Operator::OperTypeFromString(str) != OPER_UNKNOWN;
+}
+
+bool Lexer::isValidKeyword(const std::string &str) {
+    return Keyword::KeywordTypeFromString(str) != KW_UNKNOWN;
 }
 
 Lexer::CHR_KIND Lexer::charKindFromChar(char c) {
