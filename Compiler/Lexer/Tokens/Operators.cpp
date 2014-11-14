@@ -28,6 +28,10 @@ std::string Operator::toString() const {
     return OperTypeToString(_opType);
 }
 
+OPER_TYPE Operator::getOpType() const {
+    return _opType;
+}
+
 std::string Operator::OperTypeToString(OPER_TYPE type) {
     switch (type) {
     case OPER_PLUS:     return "+";

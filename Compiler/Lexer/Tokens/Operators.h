@@ -37,7 +37,23 @@ namespace tok {
         virtual TOK_TYPE getTokenType() const;
         virtual std::string toString() const;
 
+        /**
+         * @return The OPER_TYPE of this instance
+         */
+        OPER_TYPE getOpType() const;
+
+        /**
+         * @brief Converts an OPER_TYPE to its string representation
+         * @param type The OPER_TYPE to convert
+         * @return The string representation of the given OPER_TYPE
+         */
         static std::string OperTypeToString(OPER_TYPE type);
+
+        /**
+         * @brief Converts a string into an OPER_TYPE
+         * @param str The string to convert
+         * @return The associated OPER_TYPE
+         */
         static OPER_TYPE OperTypeFromString(const std::string& str);
 
     private:

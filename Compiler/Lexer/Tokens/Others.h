@@ -21,6 +21,9 @@ namespace tok {
     class EOFToken : public Token {
     public:
 
+        /**
+         * @brief Creates an EOF Token
+         */
         EOFToken();
         virtual ~EOFToken();
 
@@ -35,12 +38,19 @@ namespace tok {
     class BadToken : public Token {
     public:
 
-        BadToken();
+        /**
+         * @brief Creates a BAD Token
+         */
+        BadToken(const std::string& str);
+
         virtual ~BadToken();
 
         virtual TOK_TYPE getTokenType() const;
         virtual std::string toString() const;
 
+    private:
+
+        const std::string _str;
     };
 
 }

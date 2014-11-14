@@ -32,7 +32,7 @@ std::string EOFToken::toString() const {
 
 // BAD
 
-BadToken::BadToken() {
+BadToken::BadToken(const std::string& str) : _str(str) {
 
 }
 
@@ -45,7 +45,7 @@ TOK_TYPE BadToken::getTokenType() const {
 }
 
 std::string BadToken::toString() const {
-    return "BAD";
+    return _str;
 }
 
 }

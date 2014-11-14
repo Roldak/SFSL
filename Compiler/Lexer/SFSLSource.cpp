@@ -46,7 +46,8 @@ char SFSLInputStream::getNext() {
 
 void SFSLInputStream::produceNext() {
     ++_position;
-    _hasNext = (_input >> _curChar);
+    _curChar = _input.get();
+    _hasNext = _curChar != std::char_traits<char>::eof();
 }
 
 }

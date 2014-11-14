@@ -8,8 +8,10 @@
 
 #include "Lexer.h"
 
+#include "Tokens/Identifier.h"
 #include "Tokens/Keyword.h"
 #include "Tokens/Operators.h"
+#include "Tokens/Litterals.h"
 #include "Tokens/Others.h"
 #include "../../Utils/Utils.h"
 
@@ -22,6 +24,7 @@ namespace lex {
 Lexer::Lexer(common::AbstractMemoryManager& mngr, src::SFSLSource& source) :
     _mngr(mngr), _source(source) {
 
+    _lastChar.kind = CHR_EMPTY;
     produceNext();
 }
 
@@ -37,43 +40,90 @@ Token* Lexer::getNext() {
 
 void Lexer::produceNext() {
 
-    char chr;
-    size_t initPos;
-
-    do {
+    while (_lastChar.kind == CHR_EMPTY || _lastChar.kind == CHR_SPACE) {
         if (!_source.hasNext()) {
             _curToken = _mngr.New<EOFToken>()->setPos<Token>(_source.currentPos());
             return;
         }
 
-        initPos = _source.getPosition();
-        chr = _source.getNext();
+        _lastChar = readCharInfo();
+    }
 
-    } while(chrutils::isWhiteSpace(chr));
+    size_t initPos = _lastChar.pos;
 
-    std::string soFar(chr, 1);
+    std::string soFar;
+    soFar += _lastChar.chr;
 
-    CHR_KIND chrKind = charKindFromChar(chr);
-    STR_KIND strKind = strKindFromCharKind(chrKind);
+    STR_KIND strKind = strKindFromCharKind(_lastChar.kind);
 
     while (_source.hasNext()) {
 
-        chr = _source.getNext();
-        chrKind = charKindFromChar(chr);
+        _lastChar = readCharInfo();
 
+        if (isStillValid(strKind, soFar, _lastChar.kind, _lastChar.chr)) {
+            soFar += _lastChar.chr;
+        } else if (strKind == STR_STRING_LIT) {
 
+        } else {
+            _curToken = buildToken(strKind, soFar)->setPos<Token>(initPos, _source.getSourceName());
+            return;
+        }
 
     }
 
+    _lastChar.kind = CHR_EMPTY;
+    _curToken = buildToken(strKind, soFar)->setPos<Token>(initPos, _source.getSourceName());
 }
 
-void Lexer::buildToken() {
+Lexer::CharInfo Lexer::readCharInfo() {
+    size_t pos = _source.getPosition();
+    char chr = _source.getNext();
+    CHR_KIND kind = charKindFromChar(chr);
 
+    return CharInfo{
+        .chr = chr,
+        .pos = pos,
+        .kind = kind
+    };
+}
+
+Token* Lexer::buildToken(STR_KIND kind, const std::string &soFar) const {
+    switch (kind) {
+    case STR_SYMBOL:        return _mngr.New<Operator>(Operator::OperTypeFromString(soFar));
+    case STR_ID:            return _mngr.New<Identifier>(soFar);
+    case STR_INT_LIT:       return _mngr.New<IntLitteral>(utils::String_toT<sfsl_int_t>(soFar));
+    case STR_REAL_LIT:      return _mngr.New<RealLitteral>(utils::String_toT<sfsl_real_t>(soFar));
+    case STR_STRING_LIT:    return _mngr.New<StringLitteral>(soFar);
+    default:                return _mngr.New<BadToken>(soFar);
+    }
+}
+
+void Lexer::handleStringLitteral(std::string &soFar) {
+    for(;;) {
+        if (!_source.hasNext()) {
+            exit(1);
+        }
+
+        char c = _source.getNext();
+
+        if (c == '\"') {
+            return;
+        } else if (c == '\\') {
+
+        } else if (c != '\n' && c != '\r') {
+            soFar += c;
+        }
+    }
 }
 
 bool Lexer::isStillValid(STR_KIND strKind, const std::string& soFar, CHR_KIND chrKind, char nextChar) {
     switch (strKind) {
     case STR_SYMBOL:    return chrKind == CHR_SYMBOL && isValidSymbol(soFar + nextChar);
+    case STR_ID:        return chrKind == CHR_CHARACTER || chrKind == CHR_DIGIT;
+    case STR_INT_LIT:   return chrKind == CHR_DIGIT;
+    case STR_REAL_LIT:  return chrKind == CHR_DIGIT;
+    case STR_STRING_LIT:return false;
+    default:            return false;
     }
 }
 

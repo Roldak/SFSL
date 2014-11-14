@@ -44,24 +44,33 @@ namespace lex {
 
     private:
 
-        enum CHR_KIND { CHR_SYMBOL, CHR_CHARACTER, CHR_DIGIT, CHR_SPACE, CHR_QUOTE, CHR_UNKNOWN };
+        enum CHR_KIND { CHR_SYMBOL, CHR_CHARACTER, CHR_DIGIT, CHR_SPACE, CHR_QUOTE, CHR_EMPTY, CHR_UNKNOWN };
         enum STR_KIND { STR_SYMBOL, STR_ID, STR_STRING_LIT, STR_INT_LIT, STR_REAL_LIT, STR_UNKNOWN };
 
+        struct CharInfo {
+            char chr;
+            size_t pos;
+            CHR_KIND kind;
+        };
+
+        static bool isStillValid(STR_KIND strKind, const std::string& soFar, CHR_KIND chrKind, char nextChar);
+        static bool isValidSymbol(const std::string& str);
+
+        static CHR_KIND charKindFromChar(char c);
+        static STR_KIND strKindFromCharKind(CHR_KIND c);
+
+        CharInfo readCharInfo();
+
         void produceNext();
-
-        void buildToken();
-        bool isStillValid(STR_KIND strKind, const std::string& soFar, CHR_KIND chrKind, char nextChar);
-        bool isValidSymbol(const std::string& str);
-        CHR_KIND charKindFromChar(char c);
-        STR_KIND strKindFromCharKind(CHR_KIND c);
-
+        tok::Token* buildToken(STR_KIND kind, const std::string& soFar) const;
 
 
         common::AbstractMemoryManager& _mngr;
-
         src::SFSLSource& _source;
 
         tok::Token* _curToken;
+
+        CharInfo _lastChar;
 
     };
 
