@@ -21,8 +21,8 @@ using namespace tok;
 
 namespace lex {
 
-Lexer::Lexer(common::AbstractMemoryManager& mngr, src::SFSLSource& source) :
-    _mngr(mngr), _source(source) {
+Lexer::Lexer(std::shared_ptr<common::CompilationContext> &ctx, src::SFSLSource& source) :
+    _ctx(ctx), _source(source) {
 
     _lastChar.kind = CHR_EMPTY;
     produceNext();
@@ -42,7 +42,7 @@ void Lexer::produceNext() {
 
     while (_lastChar.kind == CHR_EMPTY || _lastChar.kind == CHR_SPACE) {
         if (!_source.hasNext()) {
-            _curToken = _mngr.New<EOFToken>()->setPos<Token>(_source.currentPos());
+            _curToken = _ctx->memoryManager().New<EOFToken>()->setPos<Token>(_source.currentPos());
             return;
         }
 
@@ -73,8 +73,8 @@ void Lexer::produceNext() {
             soFar += _lastChar.chr;
         }
         else if (strKind == STR_UNKNOWN) {
-            // ERROR
-            _curToken = _mngr.New<BadToken>(soFar)->setPos<Token>(initPos, _source.getSourceName());
+            _ctx->reporter().error(_source.currentPos(), "unknown symbol " + soFar);
+            _curToken = _ctx->memoryManager().New<BadToken>(soFar)->setPos<Token>(initPos, _source.getSourceName());
             return;
         }
         else {
@@ -106,22 +106,22 @@ Lexer::CharInfo Lexer::readCharInfo() {
 
 Token* Lexer::buildToken(STR_KIND kind, const std::string &soFar) const {
     switch (kind) {
-    case STR_SYMBOL:        return _mngr.New<Operator>(Operator::OperTypeFromString(soFar));
+    case STR_SYMBOL:        return _ctx->memoryManager().New<Operator>(Operator::OperTypeFromString(soFar));
     case STR_ID:            return getRightTokenFromIdentifier(soFar);
-    case STR_INT_LIT:       return _mngr.New<IntLitteral>(utils::String_toT<sfsl_int_t>(soFar));
-    case STR_REAL_LIT:      return _mngr.New<RealLitteral>(utils::String_toT<sfsl_real_t>(soFar));
-    case STR_STRING_LIT:    return _mngr.New<StringLitteral>(soFar);
-    default:                return _mngr.New<BadToken>(soFar);
+    case STR_INT_LIT:       return _ctx->memoryManager().New<IntLitteral>(utils::String_toT<sfsl_int_t>(soFar));
+    case STR_REAL_LIT:      return _ctx->memoryManager().New<RealLitteral>(utils::String_toT<sfsl_real_t>(soFar));
+    case STR_STRING_LIT:    return _ctx->memoryManager().New<StringLitteral>(soFar);
+    default:                return _ctx->memoryManager().New<BadToken>(soFar);
     }
 }
 
 Token* Lexer::getRightTokenFromIdentifier(const std::string &str) const{
     if (isValidKeyword(str)) {
-        return _mngr.New<Keyword>(Keyword::KeywordTypeFromString(str));
+        return _ctx->memoryManager().New<Keyword>(Keyword::KeywordTypeFromString(str));
     } else if (isValidSymbol(str)) {
-        return _mngr.New<Operator>(Operator::OperTypeFromString(str));
+        return _ctx->memoryManager().New<Operator>(Operator::OperTypeFromString(str));
     } else {
-        return _mngr.New<Identifier>(str);
+        return _ctx->memoryManager().New<Identifier>(str);
     }
 }
 

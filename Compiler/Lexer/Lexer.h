@@ -12,7 +12,7 @@
 #include <iostream>
 #include "SFSLSource.h"
 #include "Tokens/Token.h"
-#include "../Common/MemoryManager.h"
+#include "../Common/CompilationContext.h"
 
 namespace sfsl {
 
@@ -30,7 +30,7 @@ namespace lex {
          * @param mngr The memory manager used throughout the tokenization process
          * @param source The input source
          */
-        Lexer(common::AbstractMemoryManager& mngr, src::SFSLSource& source);
+        Lexer(std::shared_ptr<common::CompilationContext>& ctx, src::SFSLSource& source);
 
         /**
          * @return True if there are more tokens to come, otherwise false
@@ -72,7 +72,7 @@ namespace lex {
         void handleMultiLineComment();
         void handleSingleLineComment();
 
-        common::AbstractMemoryManager& _mngr;
+        std::shared_ptr<common::CompilationContext> _ctx;
         src::SFSLSource& _source;
 
         tok::Token* _curToken;

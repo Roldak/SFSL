@@ -2,6 +2,7 @@
 #include <sstream>
 #include <vector>
 #include <ctime>
+#include <memory.h>
 #include "Compiler/Lexer/Lexer.h"
 
 using namespace std;
@@ -9,36 +10,26 @@ using namespace sfsl;
 
 int main()
 {
-    std::string source = "module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }module Main{ def main() => 3.141592653589793 and 4.5 || 12 * 5 -(3, 5) / 5.6 { /* helloasdasd njndf \n asdasd*/ print $\\ ln(\"hello world\" + 12); // } }";
-
-    size_t total = 0;
-    size_t count = 0;
+    std::string source = "module Main { def main() => { $ println(\"hello world\" + 12.4); } }";
 
     clock_t exec = clock();
 
-    std::string* src_str = new std::string("hardcoded");
+    std::shared_ptr<std::string> src_str(new std::string("hardcoded"));
 
-    while (true) {
-        common::ChunkedMemoryManager mem_mngr(2048);
-        std::istringstream input(source);
+    auto ctx = common::CompilationContext::DefaultCompilationContext();
+    std::istringstream input(source);
 
-        src::SFSLInputStream src(src_str, input);
+    src::SFSLInputStream src(src_str.get(), input);
 
-        lex::Lexer lexer(mem_mngr, src);
+    lex::Lexer lexer(ctx, src);
 
-        while (lexer.hasNext()) {
-            lexer.getNext();
-            ++count;
-        }
-
-        if (count > 10000000) {
-            total += count;
-            count = 0;
-            break;
-        }
+    while (lexer.hasNext()) {
+        lexer.getNext();
+        //cout << lexer.getNext()->toStringDetailed() << endl;
     }
 
-    cout << total << std::endl;
-    cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
+    ctx->reporter().info(*lexer.getNext(), "hello");
+
+    cerr << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
 }
 
