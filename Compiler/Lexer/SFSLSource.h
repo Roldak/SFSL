@@ -64,7 +64,7 @@ namespace src {
         /**
          * @brief Creates an SFSLInputStream
          * @param sourceName the name of the source
-         * @param input
+         * @param input the std::istream input
          */
         SFSLInputStream(std::string* sourceName, std::istream& input);
 
@@ -84,9 +84,17 @@ namespace src {
 
     };
 
+    /**
+     * @brief A SFSLSource that uses a string as input for the SFSL datas
+     */
     class SFSLInputString : public SFSLSource {
     public:
 
+        /**
+         * @brief Creates a SFSLInputString
+         * @param sourceName the name of the source
+         * @param source the std::string input
+         */
         SFSLInputString(std::string* sourceName, const std::string& source);
 
         virtual bool hasNext() const;

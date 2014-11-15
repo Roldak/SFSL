@@ -45,16 +45,21 @@ namespace common {
 
     protected:
 
+        /**
+         * @brief Allocates a space of size given in parameter by the desired way
+         * @param size The size to allocate
+         * @return A pointer to the free space
+         */
         virtual void* alloc(size_t size) = 0;
 
         /**
-         * @brief starts managing the given pointer
-         * @param ptr the pointer on the instance that will be managed
+         * @brief Starts managing the given pointer
+         * @param ptr The pointer on the instance that will be managed
          */
         virtual void manage(MemoryManageable* ptr) = 0;
 
         /**
-         * @brief frees every managed instances
+         * @brief Frees every managed instances
          */
         virtual void free() = 0;
 
