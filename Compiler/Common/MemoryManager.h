@@ -18,15 +18,15 @@ namespace sfsl {
 namespace common {
 
     /**
-     * @brief Represents an abstract Memory Manager which is used throughout the compilation process
+     * @brief Abstract class Representing a Memory Manager which is used throughout the compilation process
      * to manage #sfsl::common::MemoryManageable objects. Objects instantiated through this class
-     * should be freed when the MemoryManager is destroyed
+     * will be freed when the MemoryManager is destroyed (if well implemented)
      */
     class AbstractMemoryManager {
     public:
 
         /**
-         * @brief ~AbstractMemoryManager
+         * @brief Destructor. Implementations should call #free()
          */
         virtual ~AbstractMemoryManager() = 0;
 

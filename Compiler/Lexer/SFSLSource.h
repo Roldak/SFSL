@@ -17,7 +17,7 @@ namespace sfsl {
 namespace src {
 
     /**
-     * @brief Represents an abstract source of SFSL data
+     * @brief Abstract class representing a source of SFSL data
      */
     class SFSLSource {
     public:
