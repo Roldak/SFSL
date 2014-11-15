@@ -44,10 +44,27 @@ char SFSLInputStream::getNext() {
     return next;
 }
 
+const int SFSLInputStream::CHAR_EOF = std::char_traits<char>::eof();
+
 void SFSLInputStream::produceNext() {
     ++_position;
     _curChar = _input.get();
-    _hasNext = _curChar != std::char_traits<char>::eof();
+    _hasNext = (_curChar != CHAR_EOF);
+}
+
+// INPUT STRING SOURCE
+
+SFSLInputString::SFSLInputString(std::string *sourceName, const std::string &source)
+    : SFSLSource(sourceName), _input(source), _size(source.size()), _curIndex(0) {
+
+}
+
+bool SFSLInputString::hasNext() const {
+    return _curIndex < _size;
+}
+
+char SFSLInputString::getNext() {
+    return _input[_curIndex++];
 }
 
 }

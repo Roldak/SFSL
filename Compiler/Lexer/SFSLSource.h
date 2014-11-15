@@ -73,12 +73,31 @@ namespace src {
 
     private:
 
+        static const int CHAR_EOF;
+
         void produceNext();
 
         std::istream& _input;
 
         bool _hasNext;
         char _curChar;
+
+    };
+
+    class SFSLInputString : public SFSLSource {
+    public:
+
+        SFSLInputString(std::string* sourceName, const std::string& source);
+
+        virtual bool hasNext() const;
+        virtual char getNext();
+
+    private:
+
+        const std::string _input;
+
+        size_t _size;
+        size_t _curIndex;
 
     };
 

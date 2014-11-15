@@ -161,14 +161,18 @@ void Lexer::handleStringLitteral(std::string &soFar) {
 }
 
 bool Lexer::tryHandleComments(const std::string &soFar) {
-    if (soFar == "//")
-        handleSingleLineComment();
-    else if (soFar == "/*")
-        handleMultiLineComment();
-    else
-        return false;
+    if (soFar.size() >= 2) {
+        size_t beforeLast = soFar.size() - 2;
 
-    return true;
+        if (soFar[beforeLast] == '/') {
+            switch (soFar[beforeLast + 1]) {
+            case '*':   handleMultiLineComment(); return true;
+            case '/':   handleSingleLineComment(); return true;
+            default:    return false;
+            }
+        }
+    }
+    return false;
 }
 
 void Lexer::handleMultiLineComment() {

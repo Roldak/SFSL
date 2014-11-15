@@ -19,7 +19,7 @@ int main()
     std::string* src_str = new std::string("hardcoded");
 
     while (true) {
-        common::ChunkedMemoryManager mem_mngr(1024);
+        common::ChunkedMemoryManager mem_mngr(2048);
         std::istringstream input(source);
 
         src::SFSLInputStream src(src_str, input);
