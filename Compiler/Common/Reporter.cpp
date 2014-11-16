@@ -16,8 +16,12 @@ AbstractReporter::~AbstractReporter() {
 
 }
 
-StandartErrReporter::StandartErrReporter() {
+size_t AbstractReporter::getErrorCount() {
+    return _errorCount;
+}
 
+StandartErrReporter::StandartErrReporter() {
+    _errorCount = 0;
 }
 
 StandartErrReporter::~StandartErrReporter() {
@@ -34,10 +38,12 @@ void StandartErrReporter::warning(const Positionnable &pos, const std::string &m
 
 void StandartErrReporter::error(const Positionnable &pos, const std::string &msg) {
     reportMessage("error", pos, msg);
+    ++_errorCount;
 }
 
 void StandartErrReporter::fatal(const Positionnable &pos, const std::string &msg) {
     reportMessage("fatal", pos, msg);
+    ++_errorCount;
     throw CompilationFatalError(msg);
 }
 

@@ -10,7 +10,7 @@ using namespace sfsl;
 
 int main()
 {
-    std::string source = "module Main { def main() => { $ println(\"hello world\" + 12.4); \n } }";
+    std::string source = "module Main { def main() => { println(\"hello  world\" + 12.4); } }";
 
     clock_t exec = clock();
 

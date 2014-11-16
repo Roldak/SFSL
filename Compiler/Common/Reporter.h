@@ -55,6 +55,15 @@ namespace common {
          * @param msg The message describing the fatal error
          */
         virtual void fatal(const Positionnable& pos, const std::string& msg) = 0;
+
+        /**
+         * @return the count of errors so far
+         */
+        size_t getErrorCount();
+
+    protected:
+
+        size_t _errorCount;
     };
 
     /**
