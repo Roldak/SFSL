@@ -7,6 +7,8 @@ aux_source_directory(./Compiler/Lexer/ SRC_LIST)
 aux_source_directory(./Compiler/Lexer/Tokens/ SRC_LIST)
 aux_source_directory(./Compiler/Parser/ SRC_LIST)
 aux_source_directory(./Compiler/AST/ SRC_LIST)
+aux_source_directory(./Compiler/AST/Nodes/ SRC_LIST)
+aux_source_directory(./Compiler/AST/Visitors/ SRC_LIST)
 aux_source_directory(./Compiler/Common/ SRC_LIST)
 aux_source_directory(./Utils/ SRC_LIST)
 
