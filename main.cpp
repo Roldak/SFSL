@@ -10,7 +10,7 @@ using namespace sfsl;
 
 int main()
 {
-    std::string source = "module Main { def main() => { $ println(\"hello world\" + 12.4); } }";
+    std::string source = "module Main { def main() => { $ println(\"hello world\" + 12.4); \n } }";
 
     clock_t exec = clock();
 
@@ -24,8 +24,7 @@ int main()
     lex::Lexer lexer(ctx, src);
 
     while (lexer.hasNext()) {
-        lexer.getNext();
-        //cout << lexer.getNext()->toStringDetailed() << endl;
+        cerr << lexer.getNext()->toStringDetailed() << endl;
     }
 
     ctx->reporter().info(*lexer.getNext(), "hello");

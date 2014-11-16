@@ -73,7 +73,7 @@ void Lexer::produceNext() {
             soFar += _lastChar.chr;
         }
         else if (strKind == STR_UNKNOWN) {
-            _ctx->reporter().error(_source.currentPos(), "unknown symbol " + soFar);
+            _ctx->reporter().error(common::Positionnable(initPos, _source.getSourceName()), "unknown symbol '" + soFar + "'");
             _curToken = _ctx->memoryManager().New<BadToken>(soFar)->setPos<Token>(initPos, _source.getSourceName());
             return;
         }
@@ -133,8 +133,7 @@ void Lexer::handleStringLitteral(std::string &soFar) {
 
     for(;;) {
         if (!_source.hasNext()) {
-            // ERROR
-            exit(1);
+            _ctx->reporter().fatal(_source.currentPos(), "unfinished string litteral");
         }
 
         char c = _source.getNext();
@@ -144,8 +143,7 @@ void Lexer::handleStringLitteral(std::string &soFar) {
             if (chrutils::escapedChar(c)) {
                 soFar += c;
             } else {
-                // ERROR
-                exit(1);
+                _ctx->reporter().error(_source.currentPos(), std::string("unknown escape sequence '\\") + c + "'");
             }
             continue;
         }
@@ -181,8 +179,7 @@ void Lexer::handleMultiLineComment() {
 
     while (oldChr != '*' && chr != '/') {
         if (!_source.hasNext()) {
-            // ERROR
-            exit(1);
+            _ctx->reporter().fatal(_source.currentPos(), "unfinished multiline comment");
         }
 
         oldChr = chr;

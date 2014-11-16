@@ -38,6 +38,7 @@ void StandartErrReporter::error(const Positionnable &pos, const std::string &msg
 
 void StandartErrReporter::fatal(const Positionnable &pos, const std::string &msg) {
     reportMessage("fatal", pos, msg);
+    throw CompilationFatalError(msg);
 }
 
 void StandartErrReporter::reportMessage(const std::string &prefix, const Positionnable& pos, const std::string &msg) {

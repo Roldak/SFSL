@@ -10,6 +10,7 @@
 #define __SFSL__Reporter__
 
 #include <iostream>
+#include <stdexcept>
 #include "Positionnable.h"
 
 namespace sfsl {
@@ -56,9 +57,16 @@ namespace common {
         virtual void fatal(const Positionnable& pos, const std::string& msg) = 0;
     };
 
+    /**
+     * @brief An implementation of AbstractReporter that uses the standart output (std::cerr)
+     * to report errors. #StandartErrorReporter.fatal throws an exception of type #CompilationFatalError.
+     */
     class StandartErrReporter : public AbstractReporter {
     public:
 
+        /**
+         * @brief Creates a StandartErrReporter
+         */
         StandartErrReporter();
         virtual ~StandartErrReporter();
 
@@ -74,6 +82,19 @@ namespace common {
 
         void reportMessage(const std::string& prefix, const Positionnable& pos, const std::string& msg);
 
+    };
+
+    /**
+     * @brief Is thrown when an error happens during the compilation such that
+     * the compilation process cannot continue
+     */
+    class CompilationFatalError : public std::runtime_error {
+    public:
+        /**
+         * @brief Creates a CompilationFatalError
+         * @param what the message describing the error
+         */
+        explicit CompilationFatalError(const std::string& what) : std::runtime_error(what) {}
     };
 
 }
