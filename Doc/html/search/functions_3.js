@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['identifier',['Identifier',['../classsfsl_1_1tok_1_1_identifier.html#acf2988430e9638b330ab7f30dbf7c845',1,'sfsl::tok::Identifier']]],
-  ['intlitteral',['IntLitteral',['../classsfsl_1_1tok_1_1_int_litteral.html#ad174f49f24be8b8dd752abda65812046',1,'sfsl::tok::IntLitteral']]]
+  ['defaultcompilationcontext',['DefaultCompilationContext',['../classsfsl_1_1common_1_1_compilation_context.html#a703489b1513d31bcc25903a0f78d2509',1,'sfsl::common::CompilationContext']]],
+  ['dynamicmemorymanager',['DynamicMemoryManager',['../classsfsl_1_1common_1_1_dynamic_memory_manager.html#a0d4cb72c7681f73700ea393e9c823174',1,'sfsl::common::DynamicMemoryManager']]]
 ];

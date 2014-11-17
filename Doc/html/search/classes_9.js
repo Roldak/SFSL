@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['reallitteral',['RealLitteral',['../classsfsl_1_1tok_1_1_real_litteral.html',1,'sfsl::tok']]]
+  ['operator',['Operator',['../classsfsl_1_1tok_1_1_operator.html',1,'sfsl::tok']]]
 ];

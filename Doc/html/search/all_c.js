@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['positionnable',['Positionnable',['../classsfsl_1_1common_1_1_positionnable.html',1,'sfsl::common']]],
-  ['positionnable_3c_20token_20_3e',['Positionnable&lt; Token &gt;',['../classsfsl_1_1common_1_1_positionnable.html',1,'sfsl::common']]]
+  ['new',['New',['../classsfsl_1_1common_1_1_abstract_memory_manager.html#a66c97b1ecde006d5b2548a644df30473',1,'sfsl::common::AbstractMemoryManager']]]
 ];

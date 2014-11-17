@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['positionnable',['Positionnable',['../classsfsl_1_1common_1_1_positionnable.html',1,'sfsl::common']]],
-  ['positionnable_3c_20token_20_3e',['Positionnable&lt; Token &gt;',['../classsfsl_1_1common_1_1_positionnable.html',1,'sfsl::common']]]
+  ['memorychunk',['MemoryChunk',['../classsfsl_1_1common_1_1_memory_chunk.html',1,'sfsl::common']]],
+  ['memorymanageable',['MemoryManageable',['../classsfsl_1_1common_1_1_memory_manageable.html',1,'sfsl::common']]],
+  ['moduledecl',['ModuleDecl',['../classsfsl_1_1ast_1_1_module_decl.html',1,'sfsl::ast']]]
 ];

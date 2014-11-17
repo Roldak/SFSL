@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['hasnext',['hasNext',['../classsfsl_1_1lex_1_1_lexer.html#a85e39449192c32eb32771292ed61345f',1,'sfsl::lex::Lexer::hasNext()'],['../classsfsl_1_1src_1_1_s_f_s_l_source.html#a1c06df7edd192a3e0d4e64cbbbd68ec6',1,'sfsl::src::SFSLSource::hasNext()'],['../classsfsl_1_1src_1_1_s_f_s_l_input_stream.html#a1fd52ba441f0b9cbca4e88d71244eac4',1,'sfsl::src::SFSLInputStream::hasNext()']]]
+  ['fatal',['fatal',['../classsfsl_1_1common_1_1_abstract_reporter.html#a5c48239babec32d3aebdc46b5ae1d3c4',1,'sfsl::common::AbstractReporter::fatal()'],['../classsfsl_1_1common_1_1_standart_err_reporter.html#a3d81571cbbb502c54fdda46953be73d9',1,'sfsl::common::StandartErrReporter::fatal()']]],
+  ['free',['free',['../classsfsl_1_1common_1_1_abstract_memory_manager.html#a0fa84457d65fe4795441e7181bdaffb2',1,'sfsl::common::AbstractMemoryManager']]]
 ];

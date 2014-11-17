@@ -112,8 +112,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;        <a class="code" href="classsfsl_1_1tok_1_1_identifier.html#acf2988430e9638b330ab7f30dbf7c845">Identifier</a>(<span class="keyword">const</span> std::string&amp; <span class="keywordtype">id</span>);</div>
 <div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;        <span class="keyword">virtual</span> ~<a class="code" href="classsfsl_1_1tok_1_1_identifier.html">Identifier</a>();</div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;        <span class="keyword">virtual</span> TOK_TYPE getTokenType();</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;        <span class="keyword">virtual</span> std::string toString();</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;        <span class="keyword">virtual</span> TOK_TYPE <a class="code" href="classsfsl_1_1tok_1_1_identifier.html#a7bb4f8ef7bae3433d5657b455a57faa2">getTokenType</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;        <span class="keyword">virtual</span> std::string <a class="code" href="classsfsl_1_1tok_1_1_identifier.html#aaf2a84f72dc464c068c3dec8601b3bf5">toString</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;</div>
 <div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    <span class="keyword">private</span>:</div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;</div>
@@ -125,14 +125,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;}</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="ttc" id="classsfsl_1_1tok_1_1_identifier_html_acf2988430e9638b330ab7f30dbf7c845"><div class="ttname"><a href="classsfsl_1_1tok_1_1_identifier.html#acf2988430e9638b330ab7f30dbf7c845">sfsl::tok::Identifier::Identifier</a></div><div class="ttdeci">Identifier(const std::string &amp;id)</div><div class="ttdoc">Creates an Itentifier Token. </div><div class="ttdef"><b>Definition:</b> <a href="_identifier_8cpp_source.html#l00015">Identifier.cpp:15</a></div></div>
-<div class="ttc" id="classsfsl_1_1tok_1_1_token_html"><div class="ttname"><a href="classsfsl_1_1tok_1_1_token.html">sfsl::tok::Token</a></div><div class="ttdoc">Represents an abstract Token. </div><div class="ttdef"><b>Definition:</b> <a href="_token_8h_source.html#l00027">Token.h:27</a></div></div>
-<div class="ttc" id="classsfsl_1_1tok_1_1_identifier_html"><div class="ttname"><a href="classsfsl_1_1tok_1_1_identifier.html">sfsl::tok::Identifier</a></div><div class="ttdoc">Represents an identifier. </div><div class="ttdef"><b>Definition:</b> <a href="_identifier_8h_source.html#l00021">Identifier.h:21</a></div></div>
-<div class="ttc" id="namespacesfsl_html"><div class="ttname"><a href="namespacesfsl.html">sfsl</a></div><div class="ttdef"><b>Definition:</b> <a href="_memory_manageable_8h_source.html#l00012">MemoryManageable.h:12</a></div></div>
+<div class="ttc" id="classsfsl_1_1tok_1_1_identifier_html_acf2988430e9638b330ab7f30dbf7c845"><div class="ttname"><a href="classsfsl_1_1tok_1_1_identifier.html#acf2988430e9638b330ab7f30dbf7c845">sfsl::tok::Identifier::Identifier</a></div><div class="ttdeci">Identifier(const std::string &amp;id)</div><div class="ttdoc">Creates an Itentifier Token. </div><div class="ttdef"><b>Definition:</b> Identifier.cpp:15</div></div>
+<div class="ttc" id="classsfsl_1_1tok_1_1_identifier_html_aaf2a84f72dc464c068c3dec8601b3bf5"><div class="ttname"><a href="classsfsl_1_1tok_1_1_identifier.html#aaf2a84f72dc464c068c3dec8601b3bf5">sfsl::tok::Identifier::toString</a></div><div class="ttdeci">virtual std::string toString() const </div><div class="ttdef"><b>Definition:</b> Identifier.cpp:27</div></div>
+<div class="ttc" id="classsfsl_1_1tok_1_1_identifier_html_a7bb4f8ef7bae3433d5657b455a57faa2"><div class="ttname"><a href="classsfsl_1_1tok_1_1_identifier.html#a7bb4f8ef7bae3433d5657b455a57faa2">sfsl::tok::Identifier::getTokenType</a></div><div class="ttdeci">virtual TOK_TYPE getTokenType() const </div><div class="ttdef"><b>Definition:</b> Identifier.cpp:23</div></div>
+<div class="ttc" id="classsfsl_1_1tok_1_1_token_html"><div class="ttname"><a href="classsfsl_1_1tok_1_1_token.html">sfsl::tok::Token</a></div><div class="ttdoc">Represents an abstract Token. </div><div class="ttdef"><b>Definition:</b> Token.h:27</div></div>
+<div class="ttc" id="classsfsl_1_1tok_1_1_identifier_html"><div class="ttname"><a href="classsfsl_1_1tok_1_1_identifier.html">sfsl::tok::Identifier</a></div><div class="ttdoc">Represents an identifier. </div><div class="ttdef"><b>Definition:</b> Identifier.h:21</div></div>
+<div class="ttc" id="namespacesfsl_html"><div class="ttname"><a href="namespacesfsl.html">sfsl</a></div><div class="ttdef"><b>Definition:</b> ASTNode.cpp:11</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Nov 13 2014 17:40:43 for SFSL by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Nov 17 2014 23:17:10 for SFSL by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

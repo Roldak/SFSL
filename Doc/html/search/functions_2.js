@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['hasnext',['hasNext',['../classsfsl_1_1lex_1_1_lexer.html#a85e39449192c32eb32771292ed61345f',1,'sfsl::lex::Lexer::hasNext()'],['../classsfsl_1_1src_1_1_s_f_s_l_source.html#a1c06df7edd192a3e0d4e64cbbbd68ec6',1,'sfsl::src::SFSLSource::hasNext()'],['../classsfsl_1_1src_1_1_s_f_s_l_input_stream.html#a1fd52ba441f0b9cbca4e88d71244eac4',1,'sfsl::src::SFSLInputStream::hasNext()']]]
+  ['chunkedmemorymanager',['ChunkedMemoryManager',['../classsfsl_1_1common_1_1_chunked_memory_manager.html#a7c3604edb3f353b412ec758281ab3c04',1,'sfsl::common::ChunkedMemoryManager']]],
+  ['compilationfatalerror',['CompilationFatalError',['../classsfsl_1_1common_1_1_compilation_fatal_error.html#aed84e533ea7329d80798e141d4acd972',1,'sfsl::common::CompilationFatalError']]],
+  ['currentpos',['currentPos',['../classsfsl_1_1src_1_1_s_f_s_l_source.html#aeceea85a335451ade6ce9e997c95ae2d',1,'sfsl::src::SFSLSource']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['operator',['Operator',['../classsfsl_1_1tok_1_1_operator.html',1,'sfsl::tok']]]
+  ['lexer',['Lexer',['../classsfsl_1_1lex_1_1_lexer.html',1,'sfsl::lex']]]
 ];

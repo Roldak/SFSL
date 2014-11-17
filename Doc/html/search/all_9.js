@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['manage',['manage',['../classsfsl_1_1common_1_1_abstract_memory_manager.html#a6a1947396a17b642124153bb9fe8a5ac',1,'sfsl::common::AbstractMemoryManager']]],
-  ['memorymanageable',['MemoryManageable',['../classsfsl_1_1common_1_1_memory_manageable.html',1,'sfsl::common']]],
-  ['memorymanager',['MemoryManager',['../classsfsl_1_1common_1_1_memory_manager.html#a31644dfdf26e21903951335ba5688344',1,'sfsl::common::MemoryManager']]],
-  ['memorymanager',['MemoryManager',['../classsfsl_1_1common_1_1_memory_manager.html',1,'sfsl::common']]]
+  ['keyword',['Keyword',['../classsfsl_1_1tok_1_1_keyword.html',1,'sfsl::tok']]],
+  ['keyword',['Keyword',['../classsfsl_1_1tok_1_1_keyword.html#abed676ccb8936c470ed474befad3b376',1,'sfsl::tok::Keyword']]],
+  ['keywordtypefromstring',['KeywordTypeFromString',['../classsfsl_1_1tok_1_1_keyword.html#a2ad79e9d39e0f7a081bf63dfac83f47c',1,'sfsl::tok::Keyword']]],
+  ['keywordtypetostring',['KeywordTypeToString',['../classsfsl_1_1tok_1_1_keyword.html#ae7a088d8a0f57a7742d1192d3a10da5b',1,'sfsl::tok::Keyword']]]
 ];

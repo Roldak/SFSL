@@ -1,5 +1,8 @@
 var searchData=
 [
-  ['reallitteral',['RealLitteral',['../classsfsl_1_1tok_1_1_real_litteral.html',1,'sfsl::tok']]],
-  ['reallitteral',['RealLitteral',['../classsfsl_1_1tok_1_1_real_litteral.html#acea78339a57349620134a34d99f9185a',1,'sfsl::tok::RealLitteral']]]
+  ['onvisit',['onVisit',['../classsfsl_1_1ast_1_1_a_s_t_node.html#a49daf745260952bd7c40093dc40356a3',1,'sfsl::ast::ASTNode']]],
+  ['operator',['Operator',['../classsfsl_1_1tok_1_1_operator.html',1,'sfsl::tok']]],
+  ['operator',['Operator',['../classsfsl_1_1tok_1_1_operator.html#ad1ce68987da6211948005b899a9558c9',1,'sfsl::tok::Operator']]],
+  ['opertypefromstring',['OperTypeFromString',['../classsfsl_1_1tok_1_1_operator.html#a1a1af12f495165613881363b1d777a15',1,'sfsl::tok::Operator']]],
+  ['opertypetostring',['OperTypeToString',['../classsfsl_1_1tok_1_1_operator.html#a8b23dc55e2b932b736b9e2a582ca5ea7',1,'sfsl::tok::Operator']]]
 ];

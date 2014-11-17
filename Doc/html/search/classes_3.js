@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['identifier',['Identifier',['../classsfsl_1_1tok_1_1_identifier.html',1,'sfsl::tok']]],
-  ['intlitteral',['IntLitteral',['../classsfsl_1_1tok_1_1_int_litteral.html',1,'sfsl::tok']]]
+  ['definedecl',['DefineDecl',['../classsfsl_1_1ast_1_1_define_decl.html',1,'sfsl::ast']]],
+  ['dynamicmemorymanager',['DynamicMemoryManager',['../classsfsl_1_1common_1_1_dynamic_memory_manager.html',1,'sfsl::common']]]
 ];

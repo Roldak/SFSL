@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['new',['New',['../classsfsl_1_1common_1_1_abstract_memory_manager.html#a66c97b1ecde006d5b2548a644df30473',1,'sfsl::common::AbstractMemoryManager']]]
+  ['lexer',['Lexer',['../classsfsl_1_1lex_1_1_lexer.html',1,'sfsl::lex']]],
+  ['lexer',['Lexer',['../classsfsl_1_1lex_1_1_lexer.html#a72d9ce96f7b10fdcb47bd3076f02d55d',1,'sfsl::lex::Lexer']]]
 ];

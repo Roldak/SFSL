@@ -19,15 +19,35 @@ namespace sfsl {
 
 namespace common {
 
+/**
+ * @brief Contains the set of parameters given by the user that have to be used
+ * during the compilation to :
+ *  - allocate memory
+ *  - report errors
+ *
+ * Instances of this class can be created via the static methods
+ */
 class CompilationContext {
 public:
 
     CompilationContext(const CompilationContext& other) = delete;
     virtual ~CompilationContext();
 
+    /**
+     * @return The memory manager
+     */
     AbstractMemoryManager& memoryManager();
+
+    /**
+     * @return The info/warning/error reporter
+     */
     AbstractReporter& reporter();
 
+    /**
+     * @return Creates the default CompilationContext, which uses :
+     *  - ChunkedMemoryManager as the memory manager.
+     *  - StandartErrReporter as the error reporter.
+     */
     static std::shared_ptr<CompilationContext> DefaultCompilationContext();
 
 private:

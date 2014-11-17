@@ -106,50 +106,52 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;</div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="keyword">namespace </span>common {</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;</div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;    <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00023"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_positionnable.html">   23</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classsfsl_1_1common_1_1_positionnable.html">Positionnable</a> {</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;</div>
-<div class="line"><a name="l00032"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_positionnable.html#a09917d54d464b73bf18184b7707ae3ed">   32</a></span>&#160;        T* <a class="code" href="classsfsl_1_1common_1_1_positionnable.html#a09917d54d464b73bf18184b7707ae3ed">setPos</a>(<span class="keywordtype">size_t</span> pos, <span class="keyword">const</span> std::string&amp; source) {</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;            _pos = pos;</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;            _source = source;</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;            <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>T*<span class="keyword">&gt;</span>(<span class="keyword">this</span>);</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;        }</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;</div>
-<div class="line"><a name="l00043"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_positionnable.html#adf6a52b876772212e927672b671ff07d">   43</a></span>&#160;        T* <a class="code" href="classsfsl_1_1common_1_1_positionnable.html#adf6a52b876772212e927672b671ff07d">setPos</a>(<span class="keyword">const</span> <a class="code" href="classsfsl_1_1common_1_1_positionnable.html">Positionnable</a>&amp; other) {</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;            <span class="keywordflow">return</span> <a class="code" href="classsfsl_1_1common_1_1_positionnable.html#a09917d54d464b73bf18184b7707ae3ed">setPos</a>(other._pos, other._source);</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        }</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
-<div class="line"><a name="l00050"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_positionnable.html#afd5e1be8f1c7a98b7ae474acca130742">   50</a></span>&#160;        <span class="keywordtype">size_t</span> <a class="code" href="classsfsl_1_1common_1_1_positionnable.html#afd5e1be8f1c7a98b7ae474acca130742">getPosition</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;            <span class="keywordflow">return</span> _pos;</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;        }</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;</div>
-<div class="line"><a name="l00057"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_positionnable.html#acbe7a4320f7f99de2ec99ae22eda7c6e">   57</a></span>&#160;        std::string <a class="code" href="classsfsl_1_1common_1_1_positionnable.html#acbe7a4320f7f99de2ec99ae22eda7c6e">getSourceName</a>()<span class="keyword"> const </span>{</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;            <span class="keywordflow">return</span> _source;</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;        }</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;        <span class="keywordtype">size_t</span> _pos;</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        std::string _source;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    };</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;}</div>
+<div class="line"><a name="l00022"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_positionnable.html">   22</a></span>&#160;    <span class="keyword">class </span><a class="code" href="classsfsl_1_1common_1_1_positionnable.html">Positionnable</a> {</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;        <a class="code" href="classsfsl_1_1common_1_1_positionnable.html#a44386b18880ed83a3543442a59f314f0">Positionnable</a>();</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;        <a class="code" href="classsfsl_1_1common_1_1_positionnable.html#a44386b18880ed83a3543442a59f314f0">Positionnable</a>(<span class="keywordtype">size_t</span> pos, std::string *source);</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00044"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_positionnable.html#a37c72e018099f9b8119d5c7d27f010a7">   44</a></span>&#160;        T* <a class="code" href="classsfsl_1_1common_1_1_positionnable.html#a37c72e018099f9b8119d5c7d27f010a7">setPos</a>(<span class="keywordtype">size_t</span> pos, std::string* source) {</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;            _pos = pos;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;            _source = source;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;            <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>T*<span class="keyword">&gt;</span>(<span class="keyword">this</span>);</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;        }</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;        <span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00056"></a><span class="lineno"><a class="line" href="classsfsl_1_1common_1_1_positionnable.html#ad57a3b8056f43712c7ef5962af3cc0cd">   56</a></span>&#160;        T* <a class="code" href="classsfsl_1_1common_1_1_positionnable.html#ad57a3b8056f43712c7ef5962af3cc0cd">setPos</a>(<span class="keyword">const</span> <a class="code" href="classsfsl_1_1common_1_1_positionnable.html">Positionnable</a>&amp; other) {</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;            <span class="keywordflow">return</span> setPos&lt;T&gt;(other._pos, other._source);</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;        }</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;        <span class="keywordtype">size_t</span> <a class="code" href="classsfsl_1_1common_1_1_positionnable.html#a42a5bbf5f5acf157491a5ef1fcd38415">getPosition</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        std::string* <a class="code" href="classsfsl_1_1common_1_1_positionnable.html#a36a7ae438eb4918677d0e184019d0424">getSourceName</a>() <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;}</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    <span class="keyword">private</span>:</div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_positionnable_html_adf6a52b876772212e927672b671ff07d"><div class="ttname"><a href="classsfsl_1_1common_1_1_positionnable.html#adf6a52b876772212e927672b671ff07d">sfsl::common::Positionnable::setPos</a></div><div class="ttdeci">T * setPos(const Positionnable &amp;other)</div><div class="ttdoc">sets the position of the object to be the same as the Positionnable given in parameter ...</div><div class="ttdef"><b>Definition:</b> <a href="_positionnable_8h_source.html#l00043">Positionnable.h:43</a></div></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_positionnable_html_a09917d54d464b73bf18184b7707ae3ed"><div class="ttname"><a href="classsfsl_1_1common_1_1_positionnable.html#a09917d54d464b73bf18184b7707ae3ed">sfsl::common::Positionnable::setPos</a></div><div class="ttdeci">T * setPos(size_t pos, const std::string &amp;source)</div><div class="ttdoc">sets the position of the object to the given parameters </div><div class="ttdef"><b>Definition:</b> <a href="_positionnable_8h_source.html#l00032">Positionnable.h:32</a></div></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_positionnable_html_afd5e1be8f1c7a98b7ae474acca130742"><div class="ttname"><a href="classsfsl_1_1common_1_1_positionnable.html#afd5e1be8f1c7a98b7ae474acca130742">sfsl::common::Positionnable::getPosition</a></div><div class="ttdeci">size_t getPosition() const </div><div class="ttdef"><b>Definition:</b> <a href="_positionnable_8h_source.html#l00050">Positionnable.h:50</a></div></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_positionnable_html_acbe7a4320f7f99de2ec99ae22eda7c6e"><div class="ttname"><a href="classsfsl_1_1common_1_1_positionnable.html#acbe7a4320f7f99de2ec99ae22eda7c6e">sfsl::common::Positionnable::getSourceName</a></div><div class="ttdeci">std::string getSourceName() const </div><div class="ttdef"><b>Definition:</b> <a href="_positionnable_8h_source.html#l00057">Positionnable.h:57</a></div></div>
-<div class="ttc" id="classsfsl_1_1common_1_1_positionnable_html"><div class="ttname"><a href="classsfsl_1_1common_1_1_positionnable.html">sfsl::common::Positionnable</a></div><div class="ttdoc">An interface that represents an object that is bound to a position (a position in its source and the ...</div><div class="ttdef"><b>Definition:</b> <a href="_positionnable_8h_source.html#l00023">Positionnable.h:23</a></div></div>
-<div class="ttc" id="namespacesfsl_html"><div class="ttname"><a href="namespacesfsl.html">sfsl</a></div><div class="ttdef"><b>Definition:</b> <a href="_memory_manageable_8h_source.html#l00012">MemoryManageable.h:12</a></div></div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;        <span class="keywordtype">size_t</span> _pos;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;        std::string* _source;</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    };</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;}</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;}</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_positionnable_html_a44386b18880ed83a3543442a59f314f0"><div class="ttname"><a href="classsfsl_1_1common_1_1_positionnable.html#a44386b18880ed83a3543442a59f314f0">sfsl::common::Positionnable::Positionnable</a></div><div class="ttdeci">Positionnable()</div><div class="ttdoc">Creates a Positionnable. </div><div class="ttdef"><b>Definition:</b> Positionnable.cpp:15</div></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_positionnable_html_a37c72e018099f9b8119d5c7d27f010a7"><div class="ttname"><a href="classsfsl_1_1common_1_1_positionnable.html#a37c72e018099f9b8119d5c7d27f010a7">sfsl::common::Positionnable::setPos</a></div><div class="ttdeci">T * setPos(size_t pos, std::string *source)</div><div class="ttdoc">sets the position of the object to the given parameters </div><div class="ttdef"><b>Definition:</b> Positionnable.h:44</div></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_positionnable_html"><div class="ttname"><a href="classsfsl_1_1common_1_1_positionnable.html">sfsl::common::Positionnable</a></div><div class="ttdoc">An interface that represents an object that is bound to a position (a position in its source and the ...</div><div class="ttdef"><b>Definition:</b> Positionnable.h:22</div></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_positionnable_html_a36a7ae438eb4918677d0e184019d0424"><div class="ttname"><a href="classsfsl_1_1common_1_1_positionnable.html#a36a7ae438eb4918677d0e184019d0424">sfsl::common::Positionnable::getSourceName</a></div><div class="ttdeci">std::string * getSourceName() const </div><div class="ttdef"><b>Definition:</b> Positionnable.cpp:27</div></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_positionnable_html_ad57a3b8056f43712c7ef5962af3cc0cd"><div class="ttname"><a href="classsfsl_1_1common_1_1_positionnable.html#ad57a3b8056f43712c7ef5962af3cc0cd">sfsl::common::Positionnable::setPos</a></div><div class="ttdeci">T * setPos(const Positionnable &amp;other)</div><div class="ttdoc">sets the position of the object to be the same as the Positionnable given in parameter ...</div><div class="ttdef"><b>Definition:</b> Positionnable.h:56</div></div>
+<div class="ttc" id="namespacesfsl_html"><div class="ttname"><a href="namespacesfsl.html">sfsl</a></div><div class="ttdef"><b>Definition:</b> ASTNode.cpp:11</div></div>
+<div class="ttc" id="classsfsl_1_1common_1_1_positionnable_html_a42a5bbf5f5acf157491a5ef1fcd38415"><div class="ttname"><a href="classsfsl_1_1common_1_1_positionnable.html#a42a5bbf5f5acf157491a5ef1fcd38415">sfsl::common::Positionnable::getPosition</a></div><div class="ttdeci">size_t getPosition() const </div><div class="ttdef"><b>Definition:</b> Positionnable.cpp:23</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Nov 13 2014 17:40:43 for SFSL by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Nov 17 2014 23:17:10 for SFSL by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>
