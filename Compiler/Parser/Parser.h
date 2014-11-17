@@ -11,11 +11,15 @@
 
 #include <iostream>
 #include <memory>
-#include "../AST/Nodes/ProgramNode.h"
+
 #include "../Lexer/Lexer.h"
 #include "../Lexer/Tokens/Keyword.h"
 #include "../Lexer/Tokens/Operators.h"
+#include "../Lexer/Tokens/Identifier.h"
 #include "../Common/CompilationContext.h"
+
+#include "../AST/Nodes/Program.h"
+#include "../AST/Nodes/Identifier.h"
 
 namespace sfsl {
 
@@ -43,6 +47,7 @@ private:
 
     bool isType(tok::TOK_TYPE type);
 
+    bool accept(tok::TOK_TYPE type);
     bool accept(tok::OPER_TYPE type);
     bool accept(tok::KW_TYPE type);
     void accept();
@@ -50,10 +55,15 @@ private:
     template<typename T>
     bool expect(T type, const std::string& expected, bool fatal = false);
 
+    template<typename T>
+    T* as();
+
     // Parsing
 
+    ast::Identifier* parseIdentifier(const std::string& errMsg);
+
     ast::ASTNode* parseProgram();
-    ast::ModuleNode* parseModule();
+    ast::Module* parseModule();
 
     // Members
 
@@ -66,18 +76,23 @@ private:
 };
 
 template<typename T>
-bool Parser::expect(T type, const std::string& expected, bool fatal){
-   tok::Token* lastPos = _currentToken;
+bool Parser::expect(T type, const std::string& expected, bool fatal) {
+   tok::Token* lastTok = _currentToken;
 
    if (!accept(type)) {
        if (fatal) {
-           _ctx->reporter().fatal(*lastPos, "expected '" + expected + "'; got '" + _currentToken->toString() + "'");
+           _ctx->reporter().fatal(*lastTok, "expected " + expected + "; got " + lastTok->toString());
        } else {
-           _ctx->reporter().error(*lastPos, "expected '" + expected + "'; got '" + _currentToken->toString() + "'");
+           _ctx->reporter().error(*lastTok, "expected " + expected + "; got " + lastTok->toString());
        }
        return false;
    }
    return true;
+}
+
+template<typename T>
+T* Parser::as() {
+    return static_cast<T*>(_currentToken);
 }
 
 }

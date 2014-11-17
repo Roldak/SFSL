@@ -1,27 +1,27 @@
 //
-//  ProgramNode.cpp
+//  Module.cpp
 //  SFSL
 //
 //  Created by Romain Beguet on 16.11.14.
 //  Copyright (c) 2014 Romain Beguet. All rights reserved.
 //
 
-#include "ProgramNode.h"
+#include "Module.h"
 #include "../Visitors/ASTVisitor.h"
 
 namespace sfsl {
 
 namespace ast {
 
-ProgramNode::ProgramNode(const std::vector<ModuleNode*> &modules) : _modules(modules) {
+Module::Module(Identifier *name) : _name(name) {
 
 }
 
-ProgramNode::~ProgramNode() {
+Module::~Module() {
 
 }
 
-SFSL_AST_ON_VISIT_CPP(ProgramNode)
+SFSL_AST_ON_VISIT_CPP(Module)
 
 }
 

@@ -1,34 +1,34 @@
 //
-//  ProgramNode.h
+//  Program.h
 //  SFSL
 //
 //  Created by Romain Beguet on 16.11.14.
 //  Copyright (c) 2014 Romain Beguet. All rights reserved.
 //
 
-#ifndef __SFSL__ProgramNode__
-#define __SFSL__ProgramNode__
+#ifndef __SFSL__Program__
+#define __SFSL__Program__
 
 #include <iostream>
 #include <vector>
 #include "ASTNode.h"
-#include "ModuleNode.h"
+#include "Module.h"
 
 namespace sfsl {
 
 namespace ast {
 
-class ProgramNode : public ASTNode {
+class Program : public ASTNode {
 public:
 
-    ProgramNode(const std::vector<ModuleNode*>& modules);
-    virtual ~ProgramNode();
+    Program(const std::vector<Module*>& modules);
+    virtual ~Program();
 
     SFSL_AST_ON_VISIT_H
 
 private:
 
-    std::vector<ModuleNode*> _modules;
+    std::vector<Module*> _modules;
 };
 
 }

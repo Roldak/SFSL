@@ -30,6 +30,10 @@ std::string IntLitteral::toString() const {
     return utils::T_toString(_value);
 }
 
+sfsl_int_t IntLitteral::getValue() const {
+    return _value;
+}
+
 // REALS
 
 RealLitteral::RealLitteral(sfsl_real_t value) : _value(value) {
@@ -48,6 +52,10 @@ std::string RealLitteral::toString() const {
     return utils::T_toString(_value);
 }
 
+sfsl_real_t RealLitteral::getValue() const {
+    return _value;
+}
+
 // STRS
 
 StringLitteral::StringLitteral(const std::string &value) : _value(value) {
@@ -64,6 +72,10 @@ TOK_TYPE StringLitteral::getTokenType() const {
 
 std::string StringLitteral::toString() const {
     return "\"" + _value + "\"";
+}
+
+std::string StringLitteral::getValue() const {
+    return _value;
 }
 
 

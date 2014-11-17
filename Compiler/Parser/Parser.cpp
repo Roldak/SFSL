@@ -10,7 +10,6 @@
 
 namespace sfsl {
 
-using namespace tok;
 using namespace ast;
 
 Parser::Parser(std::shared_ptr<common::CompilationContext>& ctx, lex::Lexer &lexer)
@@ -25,18 +24,24 @@ ASTNode* Parser::parse() {
 
 // Utils
 
-bool Parser::isType(TOK_TYPE type) {
+bool Parser::isType(tok::TOK_TYPE type) {
     return _currentToken->getTokenType() == type;
 }
 
-bool Parser::accept(OPER_TYPE type) {
-    bool toRet = isType(TOK_OPER) && ((Operator*)_currentToken)->getOpType() == type;
+bool Parser::accept(tok::TOK_TYPE type) {
+    bool toRet = isType(type);
     accept();
     return toRet;
 }
 
-bool Parser::accept(KW_TYPE type) {
-    bool toRet = isType(TOK_KW) && ((Keyword*)_currentToken)->getKwType() == type;
+bool Parser::accept(tok::OPER_TYPE type) {
+    bool toRet = isType(tok::TOK_OPER) && ((tok::Operator*)_currentToken)->getOpType() == type;
+    accept();
+    return toRet;
+}
+
+bool Parser::accept(tok::KW_TYPE type) {
+    bool toRet = isType(tok::TOK_KW) && ((tok::Keyword*)_currentToken)->getKwType() == type;
     accept();
     return toRet;
 }
@@ -45,27 +50,42 @@ void Parser::accept() {
     _currentToken = _lex.getNext();
 }
 
+Identifier *Parser::parseIdentifier(const std::string &errMsg) {
+    std::string name;
+
+    if (isType(tok::TOK_ID)) {
+        name = as<tok::Identifier>()->toString();
+    } else {
+        expect<tok::TOK_TYPE>(tok::TOK_ID, "Identifier");
+    }
+
+    return _mngr.New<Identifier>(name);
+}
+
 // Parsing
 
 ASTNode* Parser::parseProgram() {
-    std::vector<ModuleNode*> modules;
+    std::vector<Module*> modules;
 
     while (_lex.hasNext()) {
-        expect<KW_TYPE>(KW_MODULE, "module", true);
+        expect<tok::KW_TYPE>(tok::KW_MODULE, "'module'", true);
         modules.push_back(parseModule());
     }
 
-    return new ProgramNode(modules);
+    return new Program(modules);
 }
 
-ModuleNode* Parser::parseModule() {
-    expect<OPER_TYPE>(OPER_L_BRACE, "{");
+Module *Parser::parseModule() {
+
+    Identifier* moduleName = parseIdentifier("expected module name");
+
+    expect<tok::OPER_TYPE>(tok::OPER_L_BRACE, "'{'");
 
 
 
-    expect<OPER_TYPE>(OPER_R_BRACE, "}");
+    expect<tok::OPER_TYPE>(tok::OPER_R_BRACE, "'}'");
 
-    return _mngr.New<ModuleNode>();
+    return _mngr.New<Module>(moduleName);
 }
 
 

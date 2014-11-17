@@ -32,6 +32,11 @@ namespace tok {
         virtual TOK_TYPE getTokenType() const;
         virtual std::string toString() const;
 
+        /**
+         * @return this litteral's int value
+         */
+        sfsl_int_t getValue() const;
+
     private:
 
         const sfsl_int_t _value;
@@ -54,6 +59,11 @@ namespace tok {
         virtual TOK_TYPE getTokenType() const;
         virtual std::string toString() const;
 
+        /**
+         * @return this litteral's real value
+         */
+        sfsl_real_t getValue() const;
+
     private:
 
         const sfsl_real_t _value;
@@ -75,6 +85,11 @@ namespace tok {
 
         virtual TOK_TYPE getTokenType() const;
         virtual std::string toString() const;
+
+        /**
+         * @return this litteral's string value
+         */
+        std::string getValue() const;
 
     private:
 
