@@ -47,6 +47,10 @@ void ASTPrinter::visit(IntLitteral *intlit) {
     std::cout << intlit->getValue();
 }
 
+void ASTPrinter::visit(RealLitteral *reallit) {
+    std::cout << reallit->getValue();
+}
+
 }
 
 }

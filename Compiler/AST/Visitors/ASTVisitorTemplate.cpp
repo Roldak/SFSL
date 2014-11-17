@@ -36,6 +36,10 @@ void ASTVisitorTemplate::visit(IntLitteral *intlit) {
 
 }
 
+void ASTVisitorTemplate::visit(RealLitteral *intlit) {
+
+}
+
 
 
 }

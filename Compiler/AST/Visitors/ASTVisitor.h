@@ -43,6 +43,7 @@ public:
 
     virtual void visit(Identifier* ident);
     virtual void visit(IntLitteral* intlit);
+    virtual void visit(RealLitteral* reallit);
 
 private:
 
