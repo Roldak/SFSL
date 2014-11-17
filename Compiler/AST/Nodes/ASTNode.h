@@ -9,7 +9,8 @@
 #ifndef __SFSL__ASTNode__
 #define __SFSL__ASTNode__
 
-#define SFSL_AST_ON_VISIT virtual void onVisit(ASTVisitor* visitor) { visitor->visit(this); }
+#define SFSL_AST_ON_VISIT_H virtual void onVisit(ASTVisitor* visitor);
+#define SFSL_AST_ON_VISIT_CPP(clss) void clss::onVisit(ASTVisitor* visitor) { visitor->visit(this); }
 
 #include <iostream>
 #include "../../Common/MemoryManageable.h"
@@ -25,7 +26,7 @@ class ASTVisitor;
  * @brief An abstract class that represents a node of the Abstract Syntax Tree.
  * This class must be extended by every AST node.
  */
-class ASTNode : public common::Positionnable, common::MemoryManageable {
+class ASTNode : public common::Positionnable, public common::MemoryManageable {
 public:
 
     /**

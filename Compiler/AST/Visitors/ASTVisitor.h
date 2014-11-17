@@ -22,8 +22,11 @@ namespace ast {
 class ASTVisitor {
 public:
 
-    virtual void visit(ASTNode* node) = 0;
-
+    /**
+     * @brief Should never be called.
+     * @param node The visited node
+     */
+    virtual void visit(ASTNode* node);
 };
 
 }
