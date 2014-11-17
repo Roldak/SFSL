@@ -19,6 +19,12 @@ namespace ast {
 
 class DefineDecl;
 
+/**
+ * @brief The Module AST
+ * Contains :
+ *  - This module's name
+ *  - All the declarations inside this module
+ */
 class ModuleDecl : public ASTNode {
 public:
 
@@ -27,7 +33,14 @@ public:
 
     SFSL_AST_ON_VISIT_H
 
+    /**
+     * @return All the declarations that were made inside this module
+     */
     const std::vector<ASTNode*>& getDeclarations() const;
+
+    /**
+     * @return The name of this module
+     */
     Identifier* getName() const;
 
 private:
@@ -37,6 +50,12 @@ private:
 
 };
 
+/**
+ * @brief The Define Declaration AST
+ * Contains :
+ *  - This definition's name
+ *  - The value associated to this definition
+ */
 class DefineDecl : public ASTNode {
 public:
 
@@ -45,7 +64,14 @@ public:
 
     SFSL_AST_ON_VISIT_H
 
+    /**
+     * @return The name of this definition
+     */
     Identifier* getName() const;
+
+    /**
+     * @return The value associated to this definition
+     */
     ASTNode* getValue() const;
 
 private:

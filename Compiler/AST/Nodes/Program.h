@@ -18,6 +18,10 @@ namespace sfsl {
 
 namespace ast {
 
+/**
+ * @brief Represents the root of the program.
+ * Contains all the modules declared in the global scope
+ */
 class Program : public ASTNode {
 public:
 
@@ -26,6 +30,9 @@ public:
 
     SFSL_AST_ON_VISIT_H
 
+    /**
+     * @return All the modules declared in the program scope
+     */
     const std::vector<ModuleDecl*>& getModules() const;
 
 private:

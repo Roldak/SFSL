@@ -17,16 +17,25 @@ namespace sfsl {
 
 namespace ast {
 
+/**
+ * @brief A superclass that represents an expression.
+ * Cannot be constructed. This class is there just to provide
+ * a lower upper bound for all the expressions than ASTNode
+ */
 class Expression : public ASTNode {
 public:
+    Expression() = delete;
 
-    Expression();
     virtual ~Expression();
 
     SFSL_AST_ON_VISIT_H
 
 };
 
+/**
+ * @brief Represents an Identifier, which
+ * refers to a symbol.
+ */
 class Identifier : public Expression {
 public:
 
@@ -35,6 +44,9 @@ public:
 
     SFSL_AST_ON_VISIT_H
 
+    /**
+     * @return The name of the identifier
+     */
     const std::string& getValue() const;
 
 private:
@@ -43,6 +55,9 @@ private:
 
 };
 
+/**
+ * @brief Represents an Integer litteral.
+ */
 class IntLitteral : public Expression {
 public:
 
@@ -51,6 +66,9 @@ public:
 
     SFSL_AST_ON_VISIT_H
 
+    /**
+     * @return The value of the litteral
+     */
     sfsl_int_t getValue() const;
 
 private:
@@ -58,6 +76,9 @@ private:
     const sfsl_int_t _value;
 };
 
+/**
+ * @brief Represents a Real litteral
+ */
 class RealLitteral : public Expression {
 public:
 
@@ -66,6 +87,9 @@ public:
 
     SFSL_AST_ON_VISIT_H
 
+    /**
+     * @return The value of the litteral
+     */
     sfsl_real_t getValue() const;
 
 private:

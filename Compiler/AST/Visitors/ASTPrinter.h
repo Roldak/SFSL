@@ -16,6 +16,10 @@ namespace sfsl {
 
 namespace ast {
 
+/**
+ * @brief An ASTVisitor that prints the AST into a readable form.
+ * (parsing its output again should give the same AST as the original one)
+ */
 class ASTPrinter : public ASTVisitor {
 public:
 

@@ -16,6 +16,9 @@ namespace sfsl {
 
 namespace ast {
 
+/**
+ * @brief Provides a basic template for future ASTVisitors implementations
+ */
 class ASTVisitorTemplate : public ASTVisitor {
 public:
 
