@@ -10,7 +10,9 @@
 #define __SFSL__ASTVisitor__
 
 #include <iostream>
-#include "../Nodes/ASTNode.h"
+#include "../Nodes/Program.h"
+#include "../Nodes/Expressions.h"
+#include "../../Common/CompilationContext.h"
 
 namespace sfsl {
 
@@ -23,10 +25,28 @@ class ASTVisitor {
 public:
 
     /**
+     * @brief Creates an ASTVisitor
+     * @param ctx the compilation context that will be used throughout the visits
+     */
+    ASTVisitor(std::shared_ptr<common::CompilationContext>& ctx);
+
+    /**
      * @brief Should never be called.
      * @param node The visited node
      */
     virtual void visit(ASTNode* node);
+
+    virtual void visit(Program* prog);
+
+    virtual void visit(ModuleDecl* module);
+    virtual void visit(DefineDecl* decl);
+
+    virtual void visit(Identifier* ident);
+    virtual void visit(IntLitteral* intlit);
+
+private:
+
+    std::shared_ptr<common::CompilationContext> _ctx;
 };
 
 }

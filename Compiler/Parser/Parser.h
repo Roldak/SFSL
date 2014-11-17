@@ -19,7 +19,7 @@
 #include "../Common/CompilationContext.h"
 
 #include "../AST/Nodes/Program.h"
-#include "../AST/Nodes/Identifier.h"
+#include "../AST/Nodes/Expressions.h"
 
 namespace sfsl {
 
@@ -60,10 +60,17 @@ private:
 
     // Parsing
 
-    ast::Identifier* parseIdentifier(const std::string& errMsg);
+    ast::Identifier* parseIdentifier(const std::string& errMsg = "");
 
     ast::ASTNode* parseProgram();
-    ast::Module* parseModule();
+    ast::ModuleDecl* parseModule();
+    ast::DefineDecl* parseDef();
+
+        // expressions
+
+    ast::Expression* parseExpression();
+    ast::Expression* parseBinary(ast::Expression* left, int precedence);
+    ast::Expression* parsePrimary();
 
     // Members
 
@@ -74,6 +81,8 @@ private:
     tok::Token* _currentToken;
 
 };
+
+// Template methods implementations
 
 template<typename T>
 bool Parser::expect(T type, const std::string& expected, bool fatal) {
@@ -87,6 +96,7 @@ bool Parser::expect(T type, const std::string& expected, bool fatal) {
        }
        return false;
    }
+
    return true;
 }
 

@@ -5,13 +5,14 @@
 #include <memory.h>
 #include "Compiler/Lexer/Lexer.h"
 #include "Compiler/Parser/Parser.h"
+#include "Compiler/AST/Visitors/ASTPrinter.h"
 
 using namespace std;
 using namespace sfsl;
 
 int main()
 {
-    std::string source = "module Main { def main() => { println(\"hello  world\" + 12.4); } }";
+    std::string source = "module Main { def main = 2 }";
 
     clock_t exec = clock();
 
@@ -25,7 +26,11 @@ int main()
     lex::Lexer lexer(ctx, src);
     Parser parser(ctx, lexer);
 
-    parser.parse();
+    ast::ASTNode* node = parser.parse();
+
+    ast::ASTPrinter printer(ctx);
+
+    node->onVisit(&printer);
 
     cerr << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
 }

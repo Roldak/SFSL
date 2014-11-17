@@ -13,8 +13,37 @@ namespace sfsl {
 
 namespace ast {
 
+ASTVisitor::ASTVisitor(std::shared_ptr<common::CompilationContext> &ctx) : _ctx(ctx) {
+
+}
+
 void ASTVisitor::visit(ASTNode *node) {
     throw common::CompilationFatalError("unimplemented visitor");
+}
+
+void ASTVisitor::visit(Program *prog) {
+    for (ModuleDecl* module : prog->getModules()) {
+        module->onVisit(this);
+    }
+}
+
+void ASTVisitor::visit(ModuleDecl *module) {
+    for (ASTNode* decl : module->getDeclarations()) {
+        decl->onVisit(this);
+    }
+}
+
+void ASTVisitor::visit(DefineDecl* decl) {
+    decl->getName()->onVisit(this);
+    decl->getValue()->onVisit(this);
+}
+
+void ASTVisitor::visit(Identifier* ident) {
+
+}
+
+void ASTVisitor::visit(IntLitteral* intlit) {
+
 }
 
 

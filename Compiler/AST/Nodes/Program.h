@@ -12,7 +12,7 @@
 #include <iostream>
 #include <vector>
 #include "ASTNode.h"
-#include "Module.h"
+#include "Declarations.h"
 
 namespace sfsl {
 
@@ -21,14 +21,16 @@ namespace ast {
 class Program : public ASTNode {
 public:
 
-    Program(const std::vector<Module*>& modules);
+    Program(const std::vector<ModuleDecl*>& modules);
     virtual ~Program();
 
     SFSL_AST_ON_VISIT_H
 
+    const std::vector<ModuleDecl*>& getModules() const;
+
 private:
 
-    std::vector<Module*> _modules;
+    std::vector<ModuleDecl*> _modules;
 };
 
 }

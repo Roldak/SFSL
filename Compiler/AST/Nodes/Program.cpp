@@ -13,12 +13,16 @@ namespace sfsl {
 
 namespace ast {
 
-Program::Program(const std::vector<Module*> &modules) : _modules(modules) {
+Program::Program(const std::vector<ModuleDecl*> &modules) : _modules(modules) {
 
 }
 
 Program::~Program() {
 
+}
+
+const std::vector<ModuleDecl*>& Program::getModules() const {
+    return _modules;
 }
 
 SFSL_AST_ON_VISIT_CPP(Program)
