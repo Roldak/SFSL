@@ -10,12 +10,15 @@
 #define __SFSL__Expressions__
 
 #include <iostream>
+#include <vector>
 #include "../../../Utils/Utils.h"
 #include "ASTNode.h"
 
 namespace sfsl {
 
 namespace ast {
+
+class Identifier;
 
 /**
  * @brief A superclass that represents an expression.
@@ -24,11 +27,58 @@ namespace ast {
  */
 class Expression : public ASTNode {
 public:
-    Expression() = delete;
 
     virtual ~Expression();
 
     SFSL_AST_ON_VISIT_H
+
+};
+
+class BinaryExpression : public Expression {
+public:
+
+    BinaryExpression(Expression* lhs, Expression* rhs, Identifier* oper);
+    virtual ~BinaryExpression();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The left hand side of the binary expression
+     */
+    Expression* getLhs() const;
+
+    /**
+     * @return The right hand side of the binary expression
+     */
+    Expression* getRhs() const;
+
+    /**
+     * @return The operator of the binary expression
+     */
+    Identifier* getOperator() const;
+
+private:
+
+    Expression* _lhs;
+    Expression* _rhs;
+    Identifier* _oper;
+};
+
+class FunctionCall : public Expression {
+public:
+
+    FunctionCall(Expression* callee, const std::vector<Expression*>& args);
+    virtual ~FunctionCall();
+
+    SFSL_AST_ON_VISIT_H
+
+    Expression* getCallee() const;
+    const std::vector<Expression*>& getArgs() const;
+
+private:
+
+    Expression* _callee;
+    const std::vector<Expression*> _args;
 
 };
 

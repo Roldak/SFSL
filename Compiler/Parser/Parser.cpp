@@ -32,19 +32,19 @@ bool Parser::isType(tok::TOK_TYPE type) {
 
 bool Parser::accept(tok::TOK_TYPE type) {
     bool toRet = isType(type);
-    accept();
+    if (toRet) accept();
     return toRet;
 }
 
 bool Parser::accept(tok::OPER_TYPE type) {
     bool toRet = isType(tok::TOK_OPER) && ((tok::Operator*)_currentToken)->getOpType() == type;
-    accept();
+    if (toRet) accept();
     return toRet;
 }
 
 bool Parser::accept(tok::KW_TYPE type) {
     bool toRet = isType(tok::TOK_KW) && ((tok::Keyword*)_currentToken)->getKwType() == type;
-    accept();
+    if (toRet) accept();
     return toRet;
 }
 
@@ -59,7 +59,7 @@ Identifier* Parser::parseIdentifier(const std::string& errMsg) {
         name = as<tok::Identifier>()->toString();
         accept();
     } else {
-        expect<tok::TOK_TYPE>(tok::TOK_ID, "identifier");
+        expect(tok::TOK_ID, "identifier");
     }
 
     return _mngr.New<Identifier>(name);
@@ -71,7 +71,7 @@ ASTNode* Parser::parseProgram() {
     std::vector<ModuleDecl*> modules;
 
     while (_lex.hasNext()) {
-        expect<tok::KW_TYPE>(tok::KW_MODULE, "`module`", true);
+        expect(tok::KW_MODULE, "`module`", true);
         modules.push_back(parseModule());
     }
 
@@ -83,22 +83,22 @@ ModuleDecl* Parser::parseModule() {
     Identifier* moduleName = parseIdentifier("expected module name");
     std::vector<ASTNode*> decls;
 
-    expect<tok::OPER_TYPE>(tok::OPER_L_BRACE, "`{`");
+    expect(tok::OPER_L_BRACE, "`{`");
 
     if (accept(tok::KW_DEF)) {
         decls.push_back(parseDef());
     }
 
-    expect<tok::OPER_TYPE>(tok::OPER_R_BRACE, "`}`");
+    expect(tok::OPER_R_BRACE, "`}`");
 
     return _mngr.New<ModuleDecl>(moduleName, decls);
 }
 
-DefineDecl *Parser::parseDef() {
+DefineDecl* Parser::parseDef() {
 
     Identifier* defName = parseIdentifier("expected definition name");
 
-    expect<tok::OPER_TYPE>(tok::OPER_EQ, "`=`");
+    expect(tok::OPER_EQ, "`=`");
 
     Expression* expr = parseExpression();
 
@@ -107,10 +107,44 @@ DefineDecl *Parser::parseDef() {
 }
 
 Expression* Parser::parseExpression() {
-    return parsePrimary();
+    return parseBinary(parsePrimary(), 0);
 }
 
-Expression *Parser::parsePrimary() {
+Expression* Parser::parseBinary(Expression* left, int precedence) {
+    while (isType(tok::TOK_OPER)) {
+        tok::Operator* oper = as<tok::Operator>();
+        int newOpPrec = oper->getPrecedence();
+
+        if (newOpPrec >= precedence) {
+
+            if (Expression* expr = parseSpecialBinaryContinuity(left)) {
+                left = expr;
+                continue;
+            } else {
+
+                accept();
+                Expression* right = parseBinary(parsePrimary(), newOpPrec);
+
+                while (isType(tok::TOK_OPER)) {
+                    if (as<tok::Operator>()->getPrecedence() > newOpPrec) {
+                        right = parseBinary(right, as<tok::Operator>()->getPrecedence());
+                    } else {
+                        break;
+                    }
+                }
+
+                left = _mngr.New<BinaryExpression>(left, right, _mngr.New<Identifier>(oper->toString()));
+            }
+
+        } else {
+            break;
+        }
+    }
+
+    return left;
+}
+
+Expression* Parser::parsePrimary() {
     Expression* toRet;
 
     switch (_currentToken->getTokenType()) {
@@ -130,6 +164,13 @@ Expression *Parser::parsePrimary() {
         toRet = parseIdentifier();
         break;
 
+    case tok::TOK_OPER:
+        if (accept(tok::OPER_L_PAREN)) {
+            toRet = parseExpression();
+            expect(tok::OPER_R_PAREN, "`)`");
+        }
+        break;
+
     case tok::TOK_KW:
 
     default:
@@ -139,6 +180,23 @@ Expression *Parser::parsePrimary() {
     }
 
     return toRet;
+}
+
+Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
+    if (accept(tok::OPER_L_PAREN)) {
+        std::vector<Expression*> args;
+
+        do {
+            Expression* arg = parseExpression();
+            args.push_back(arg);
+        } while (accept(tok::OPER_COMMA));
+
+        expect(tok::OPER_R_PAREN, "`)`");
+
+        return _mngr.New<FunctionCall>(left, args);
+    }
+
+    return nullptr;
 }
 
 

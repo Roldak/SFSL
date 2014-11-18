@@ -38,11 +38,29 @@ void ASTVisitor::visit(DefineDecl* decl) {
     decl->getValue()->onVisit(this);
 }
 
+void ASTVisitor::visit(BinaryExpression *bin) {
+    bin->getLhs()->onVisit(this);
+    bin->getOperator()->onVisit(this);
+    bin->getRhs()->onVisit(this);
+}
+
+void ASTVisitor::visit(FunctionCall *call) {
+    call->getCallee()->onVisit(this);
+
+    for (auto arg : call->getArgs()) {
+        arg->onVisit(this);
+    }
+}
+
 void ASTVisitor::visit(Identifier* ident) {
 
 }
 
 void ASTVisitor::visit(IntLitteral* intlit) {
+
+}
+
+void ASTVisitor::visit(RealLitteral *reallit) {
 
 }
 

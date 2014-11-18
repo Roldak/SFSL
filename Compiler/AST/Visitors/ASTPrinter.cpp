@@ -38,6 +38,32 @@ void ASTPrinter::visit(DefineDecl *decl) {
     std::cout << std::endl;
 }
 
+void ASTPrinter::visit(BinaryExpression *exp) {
+    std::cout << "(";
+    exp->getLhs()->onVisit(this);
+    std::cout << " ";
+    exp->getOperator()->onVisit(this);
+    std::cout << " ";
+    exp->getRhs()->onVisit(this);
+    std::cout << ")";
+}
+
+void ASTPrinter::visit(FunctionCall *call) {
+    call->getCallee()->onVisit(this);
+    std::cout << "(";
+
+    const std::vector<Expression*>& args(call->getArgs());
+
+    for (size_t i = 0, e = args.size(); i < e; ++i) {
+        args[i]->onVisit(this);
+
+        if (i != e - 1) {
+            std::cout << ", ";
+        }
+    }
+
+    std::cout << ")";
+}
 
 void ASTPrinter::visit(Identifier *ident) {
     std::cout << ident->getValue();

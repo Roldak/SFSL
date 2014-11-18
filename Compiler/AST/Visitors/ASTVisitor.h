@@ -41,6 +41,8 @@ public:
     virtual void visit(ModuleDecl* module);
     virtual void visit(DefineDecl* decl);
 
+    virtual void visit(BinaryExpression* bin);
+    virtual void visit(FunctionCall* call);
     virtual void visit(Identifier* ident);
     virtual void visit(IntLitteral* intlit);
     virtual void visit(RealLitteral* reallit);

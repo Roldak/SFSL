@@ -15,15 +15,58 @@ namespace ast {
 
 // EXPRESSION
 
-Expression::Expression() {
-
-}
-
 Expression::~Expression() {
 
 }
 
 SFSL_AST_ON_VISIT_CPP(Expression)
+
+// BINARY EXPRESSION
+
+BinaryExpression::BinaryExpression(Expression *lhs, Expression *rhs, Identifier *oper)
+    : _lhs(lhs), _rhs(rhs), _oper(oper) {
+
+}
+
+BinaryExpression::~BinaryExpression() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(BinaryExpression)
+
+Expression* BinaryExpression::getLhs() const {
+    return _lhs;
+}
+
+Expression* BinaryExpression::getRhs() const {
+    return _rhs;
+}
+
+Identifier* BinaryExpression::getOperator() const {
+    return _oper;
+}
+
+
+// FUNCTION CALL
+
+FunctionCall::FunctionCall(Expression *callee, const std::vector<Expression *> &args)
+    : _callee(callee), _args(args) {
+
+}
+
+FunctionCall::~FunctionCall() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(FunctionCall)
+
+Expression* FunctionCall::getCallee() const {
+    return _callee;
+}
+
+const std::vector<Expression*>& FunctionCall::getArgs() const {
+    return _args;
+}
 
 // IDENTIFIER
 

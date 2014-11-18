@@ -9,6 +9,7 @@
 #ifndef __SFSL__Operators__
 #define __SFSL__Operators__
 
+#include <vector>
 #include <unordered_map>
 #include "Token.h"
 
@@ -20,8 +21,8 @@ namespace tok {
      * @brief Enumerates every possible Operator type
      */
     enum OPER_TYPE {
-        OPER_PLUS, OPER_MINUS, OPER_TIMES, OPER_DIV, OPER_POW, OPER_AND, OPER_OR, OPER_EQ, // BINARY OPERATORS
-        OPER_EQ_EQ, OPER_LT, OPER_GT, OPER_LE, OPER_GE, // COMPARISON OPERATORS
+        OPER_PLUS = 0, OPER_MINUS, OPER_TIMES, OPER_DIV, OPER_MOD, OPER_POW, OPER_AND, OPER_OR, OPER_EQ, // BINARY OPERATORS
+        OPER_EQ_EQ, OPER_NOT_EQ, OPER_LT, OPER_GT, OPER_LE, OPER_GE, // COMPARISON OPERATORS
         OPER_L_PAREN, OPER_R_PAREN, OPER_L_BRACKET, OPER_R_BRACKET, OPER_L_BRACE, OPER_R_BRACE, // BRACKETS
         OPER_DOT, OPER_COLON, OPER_COMMA, OPER_SEMICOLON, // SYMBOLS
         OPER_THIN_ARROW, OPER_FAT_ARROW, OPER_DOT_DOT, // OTHERS
@@ -49,6 +50,11 @@ namespace tok {
         OPER_TYPE getOpType() const;
 
         /**
+         * @return The precedence of this operator
+         */
+        int getPrecedence() const;
+
+        /**
          * @brief Converts an OPER_TYPE to its string representation
          * @param type The OPER_TYPE to convert
          * @return The string representation of the given OPER_TYPE
@@ -65,6 +71,7 @@ namespace tok {
     private:
 
         static std::unordered_map<std::string, OPER_TYPE> OPERATORS;
+        static std::vector<int> PRECEDENCE;
 
         const OPER_TYPE _opType;
 

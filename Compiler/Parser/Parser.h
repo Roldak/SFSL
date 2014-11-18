@@ -72,6 +72,8 @@ private:
     ast::Expression* parseBinary(ast::Expression* left, int precedence);
     ast::Expression* parsePrimary();
 
+    ast::Expression* parseSpecialBinaryContinuity(ast::Expression* left);
+
     // Members
 
     std::shared_ptr<common::CompilationContext> _ctx;
