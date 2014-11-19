@@ -19,13 +19,14 @@ namespace sfsl {
 namespace ast {
 
 class Identifier;
+class Statement;
 
 /**
  * @brief A superclass that represents an expression.
  * Cannot be constructed. This class is there just to provide
  * a lower upper bound for all the expressions than ASTNode
  */
-class Expression : public ASTNode {
+class Expression : virtual public ASTNode {
 public:
 
     virtual ~Expression();
@@ -34,6 +35,30 @@ public:
 
 };
 
+/**
+ * @brief Represents a block, aka a list of statements
+ */
+class Block : public Expression {
+public:
+    Block(const std::vector<Statement*>& stats);
+    virtual ~Block();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The list of statements contained in the block
+     */
+    const std::vector<Statement*>& getStatements() const;
+
+private:
+
+    const std::vector<Statement*> _stats;
+
+};
+
+/**
+ * @brief Represents a binary expression, aka lhs oper rhs.
+ */
 class BinaryExpression : public Expression {
 public:
 
@@ -64,21 +89,112 @@ private:
     Identifier* _oper;
 };
 
+/**
+ * @brief Represent a member access (with a dot operation, e.g. `point.x`)
+ */
+class MemberAccess : public Expression {
+public:
+
+    MemberAccess(Expression* accessed, Identifier* member);
+    virtual ~MemberAccess();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The accessed part (the left side)
+     */
+    Expression* getAccessed() const;
+
+    /**
+     * @return The member part (the right side)
+     */
+    Identifier* getMember() const;
+
+private:
+
+    Expression* _accessed;
+    Identifier* _member;
+};
+
+/**
+ * @brief Represents a tuple
+ */
+class Tuple : public Expression {
+public:
+
+    Tuple(const std::vector<Expression*>& exprs);
+    virtual ~Tuple();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The sequence of expressions that compose the tuple
+     */
+    const std::vector<Expression*>& getExpressions();
+
+private:
+
+    const std::vector<Expression*> _exprs;
+
+};
+
+/**
+ * @brief Represents a function creation, e.g. `(x) => 2 * x`
+ */
+class FunctionCreation : public Expression {
+public:
+
+    FunctionCreation(Expression* args, Expression* body);
+    virtual ~FunctionCreation();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The tuple of arguments
+     */
+    Expression* getArgs() const;
+
+    /**
+     * @return The body of the function
+     */
+    Expression* getBody() const;
+
+private:
+
+    Expression* _args;
+    Expression* _body;
+};
+
+/**
+ * @brief Represents a function call.
+ */
 class FunctionCall : public Expression {
 public:
 
-    FunctionCall(Expression* callee, const std::vector<Expression*>& args);
+    FunctionCall(Expression* callee, Tuple* args);
     virtual ~FunctionCall();
 
     SFSL_AST_ON_VISIT_H
 
+    /**
+     * @return The expression to which is applied the parentheses operator
+     */
     Expression* getCallee() const;
+
+    /**
+     * @return The sequence of arguments which are applied to the callee
+     */
+    Tuple* getArgsTuple() const;
+
+    /**
+     * @return The arguments by extracting them directly from the tuple
+     */
     const std::vector<Expression*>& getArgs() const;
 
 private:
 
     Expression* _callee;
-    const std::vector<Expression*> _args;
+    Tuple* _args;
 
 };
 

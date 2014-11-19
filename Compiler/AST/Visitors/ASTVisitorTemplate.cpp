@@ -28,7 +28,31 @@ void ASTVisitorTemplate::visit(DefineDecl *module) {
 
 }
 
+void ASTVisitorTemplate::visit(ExpressionStatement *exp) {
+
+}
+
 void ASTVisitorTemplate::visit(BinaryExpression *exp) {
+
+}
+
+void ASTVisitorTemplate::visit(Block *block) {
+
+}
+
+void ASTVisitorTemplate::visit(IfExpression *ifexpr) {
+
+}
+
+void ASTVisitorTemplate::visit(MemberAccess *dot) {
+
+}
+
+void ASTVisitorTemplate::visit(Tuple *tuple) {
+
+}
+
+void ASTVisitorTemplate::visit(FunctionCreation *func) {
 
 }
 

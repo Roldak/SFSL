@@ -98,12 +98,30 @@ DefineDecl* Parser::parseDef() {
 
     Identifier* defName = parseIdentifier("expected definition name");
 
-    expect(tok::OPER_EQ, "`=`");
+    accept(tok::OPER_EQ);
 
     Expression* expr = parseExpression();
 
     return _mngr.New<DefineDecl>(defName, expr);
 
+}
+
+Statement* Parser::parseStatement() {
+    if (isType(tok::TOK_KW)) {
+        tok::KW_TYPE kw = as<tok::Keyword>()->getKwType();
+        accept();
+
+        switch (kw) {
+        case tok::KW_DEF:   return parseDef();
+        case tok::KW_IF:    return parseIf(true);
+        default:            return nullptr;
+        }
+
+    } else {
+        ExpressionStatement* expr = _mngr.New<ExpressionStatement>(parseExpression());
+        expect(tok::OPER_SEMICOLON, "`;`");
+        return expr;
+    }
 }
 
 Expression* Parser::parseExpression() {
@@ -145,7 +163,7 @@ Expression* Parser::parseBinary(Expression* left, int precedence) {
 }
 
 Expression* Parser::parsePrimary() {
-    Expression* toRet;
+    Expression* toRet = nullptr;
 
     switch (_currentToken->getTokenType()) {
     case tok::TOK_INT_LIT:
@@ -166,12 +184,25 @@ Expression* Parser::parsePrimary() {
 
     case tok::TOK_OPER:
         if (accept(tok::OPER_L_PAREN)) {
-            toRet = parseExpression();
-            expect(tok::OPER_R_PAREN, "`)`");
+            Tuple* tuple = parseTuple();
+
+            if (tuple->getExpressions().size() == 1) {
+                return tuple->getExpressions()[0];
+            } else {
+                return tuple;
+            }
+        }
+        else if (accept(tok::OPER_L_BRACE)) {
+            return parseBlock();
+        } else {
+            _ctx->reporter().error(*_currentToken, "unexpected token `;`");
         }
         break;
 
     case tok::TOK_KW:
+        if (accept(tok::KW_IF)) {
+            return parseIf(false);
+        }
 
     default:
         _ctx->reporter().error(*_currentToken,
@@ -182,21 +213,74 @@ Expression* Parser::parsePrimary() {
     return toRet;
 }
 
+Expression* Parser::parseBlock() {
+    std::vector<Statement*> stats;
+
+    while (!accept(tok::OPER_R_BRACE)) {
+        stats.push_back(parseStatement());
+    }
+
+    return _mngr.New<Block>(stats);
+}
+
+IfExpression* Parser::parseIf(bool asStatement) {
+    expect(tok::OPER_L_PAREN, "`(`");
+
+    Expression* cond = parseExpression();
+    if (asStatement)
+
+    expect(tok::OPER_R_PAREN, "`)`");
+
+    Expression* then = parseExpression();
+    Expression* els = nullptr;
+
+    if (accept(tok::KW_ELSE)) {
+         els = parseExpression();
+    }
+
+    return _mngr.New<IfExpression>(cond, then, els);
+}
+
 Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     if (accept(tok::OPER_L_PAREN)) {
-        std::vector<Expression*> args;
-
-        do {
-            Expression* arg = parseExpression();
-            args.push_back(arg);
-        } while (accept(tok::OPER_COMMA));
-
-        expect(tok::OPER_R_PAREN, "`)`");
-
-        return _mngr.New<FunctionCall>(left, args);
+        return _mngr.New<FunctionCall>(left, parseTuple());
+    } else if (accept(tok::OPER_FAT_ARROW)) {
+        return _mngr.New<FunctionCreation>(static_cast<Tuple*>(left), parseExpression());
+    } else if (accept(tok::OPER_DOT)) {
+        return parseDotOperation(left);
     }
 
     return nullptr;
+}
+
+Tuple* Parser::parseTuple() {
+    std::vector<Expression*> exprs;
+    return parseTuple(exprs);
+}
+
+ast::Tuple* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
+    do {
+        if (Expression* arg = parseExpression()){
+            exprs.push_back(arg);
+        }
+    } while (accept(tok::OPER_COMMA));
+
+    expect(tok::OPER_R_PAREN, "`)`");
+
+    return _mngr.New<Tuple>(exprs);
+}
+
+Expression* Parser::parseDotOperation(Expression* left) {
+    Identifier* ident = parseIdentifier("expected attribute / method name");
+
+    if (accept(tok::OPER_L_PAREN)) {
+        std::vector<Expression*> exprs(1);
+        exprs[0] = left;
+        return _mngr.New<FunctionCall>(ident, parseTuple(exprs));
+    } else {
+        return _mngr.New<MemberAccess>(left, ident);
+    }
+
 }
 
 

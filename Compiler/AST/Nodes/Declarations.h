@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <vector>
-#include "Expressions.h"
+#include "Statements.h"
 
 namespace sfsl {
 
@@ -56,7 +56,7 @@ private:
  *  - This definition's name
  *  - The value associated to this definition
  */
-class DefineDecl : public ASTNode {
+class DefineDecl : public Statement {
 public:
 
     DefineDecl(Identifier* name, ASTNode* value);

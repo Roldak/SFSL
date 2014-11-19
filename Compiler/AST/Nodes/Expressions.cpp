@@ -21,6 +21,22 @@ Expression::~Expression() {
 
 SFSL_AST_ON_VISIT_CPP(Expression)
 
+// BLOCK
+
+Block::Block(const std::vector<Statement *> &stats) : _stats(stats) {
+
+}
+
+Block::~Block() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(Block)
+
+const std::vector<Statement*>& Block::getStatements() const {
+    return _stats;
+}
+
 // BINARY EXPRESSION
 
 BinaryExpression::BinaryExpression(Expression *lhs, Expression *rhs, Identifier *oper)
@@ -46,10 +62,65 @@ Identifier* BinaryExpression::getOperator() const {
     return _oper;
 }
 
+// MEMBER ACCESS
+
+MemberAccess::MemberAccess(Expression* accessed, Identifier* member) : _accessed(accessed), _member(member) {
+
+}
+
+MemberAccess::~MemberAccess() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(MemberAccess)
+
+Expression* MemberAccess::getAccessed() const {
+    return _accessed;
+}
+
+Identifier* MemberAccess::getMember() const {
+    return _member;
+}
+
+// TUPLE
+
+Tuple::Tuple(const std::vector<Expression *> &exprs) : _exprs(exprs) {
+
+}
+
+Tuple::~Tuple() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(Tuple)
+
+const std::vector<Expression*>& Tuple::getExpressions() {
+    return _exprs;
+}
+
+// FUNCTION CREATION
+
+FunctionCreation::FunctionCreation(Expression *args, Expression* body) : _args(args), _body(body) {
+
+}
+
+FunctionCreation::~FunctionCreation() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(FunctionCreation)
+
+Expression *FunctionCreation::getArgs() const {
+    return _args;
+}
+
+Expression* FunctionCreation::getBody() const {
+    return _body;
+}
 
 // FUNCTION CALL
 
-FunctionCall::FunctionCall(Expression *callee, const std::vector<Expression *> &args)
+FunctionCall::FunctionCall(Expression* callee, Tuple* args)
     : _callee(callee), _args(args) {
 
 }
@@ -65,6 +136,10 @@ Expression* FunctionCall::getCallee() const {
 }
 
 const std::vector<Expression*>& FunctionCall::getArgs() const {
+    return _args->getExpressions();
+}
+
+Tuple* FunctionCall::getArgsTuple() const {
     return _args;
 }
 

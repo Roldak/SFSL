@@ -12,7 +12,7 @@ using namespace sfsl;
 
 int main()
 {
-    std::string source = "module Main { def main = 2 * x(5) + 4 }";
+    std::string source = "module Main { def main(args) => { println(args); if (f(args)) println(1) else println(2); println(if (true) 1 else 2); } }";
 
     clock_t exec = clock();
 

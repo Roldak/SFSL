@@ -38,18 +38,50 @@ void ASTVisitor::visit(DefineDecl* decl) {
     decl->getValue()->onVisit(this);
 }
 
+void ASTVisitor::visit(ExpressionStatement *exp) {
+    exp->getExpression()->onVisit(this);
+}
+
 void ASTVisitor::visit(BinaryExpression *bin) {
     bin->getLhs()->onVisit(this);
     bin->getOperator()->onVisit(this);
     bin->getRhs()->onVisit(this);
 }
 
-void ASTVisitor::visit(FunctionCall *call) {
-    call->getCallee()->onVisit(this);
+void ASTVisitor::visit(Block *block) {
+    for (auto stat : block->getStatements()) {
+        stat->onVisit(this);
+    }
+}
 
-    for (auto arg : call->getArgs()) {
+void ASTVisitor::visit(IfExpression *ifexpr) {
+    ifexpr->getCondition()->onVisit(this);
+    ifexpr->getThen()->onVisit(this);
+
+    if (ifexpr->getElse()) {
+        ifexpr->getElse()->onVisit(this);
+    }
+}
+
+void ASTVisitor::visit(MemberAccess *dot) {
+    dot->getAccessed()->onVisit(this);
+    dot->getMember()->onVisit(this);
+}
+
+void ASTVisitor::visit(Tuple *tuple) {
+    for (auto arg : tuple->getExpressions()) {
         arg->onVisit(this);
     }
+}
+
+void ASTVisitor::visit(FunctionCreation* func) {
+    func->getArgs()->onVisit(this);
+    func->getBody()->onVisit(this);
+}
+
+void ASTVisitor::visit(FunctionCall *call) {
+    call->getCallee()->onVisit(this);
+    call->getArgsTuple()->onVisit(this);
 }
 
 void ASTVisitor::visit(Identifier* ident) {

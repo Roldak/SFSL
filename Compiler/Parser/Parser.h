@@ -19,7 +19,7 @@
 #include "../Common/CompilationContext.h"
 
 #include "../AST/Nodes/Program.h"
-#include "../AST/Nodes/Expressions.h"
+#include "../AST/Nodes/Statements.h"
 
 namespace sfsl {
 
@@ -66,13 +66,23 @@ private:
     ast::ModuleDecl* parseModule();
     ast::DefineDecl* parseDef();
 
+        // statements
+
+    ast::Statement* parseStatement();
+
         // expressions
 
     ast::Expression* parseExpression();
     ast::Expression* parseBinary(ast::Expression* left, int precedence);
     ast::Expression* parsePrimary();
 
+    ast::Expression* parseBlock();
+    ast::IfExpression* parseIf(bool asStatement);
+
     ast::Expression* parseSpecialBinaryContinuity(ast::Expression* left);
+    ast::Tuple* parseTuple();
+    ast::Tuple* parseTuple(std::vector<ast::Expression*>& exprs);
+    ast::Expression* parseDotOperation(ast::Expression* left);
 
     // Members
 

@@ -12,21 +12,30 @@ namespace sfsl {
 
 namespace ast {
 
-ASTPrinter::ASTPrinter(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx) {
+ASTPrinter::ASTPrinter(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx), _indentCount(0) {
 
 }
 
 void ASTPrinter::visit(ModuleDecl *module) {
+    printIndents();
     std::cout << "module " << module->getName()->getValue() << " {" << std::endl;
 
+    ++_indentCount;
+
     for (ASTNode* decl : module->getDeclarations()) {
+        printIndents();
         decl->onVisit(this);
+        std::cout << std::endl;
     }
 
-    std::cout << std::endl << "}" << std::endl;
+    --_indentCount;
+
+    printIndents();
+    std::cout << "}" << std::endl;
 }
 
 void ASTPrinter::visit(DefineDecl *decl) {
+
     std::cout << "def ";
 
     decl->getName()->onVisit(this);
@@ -34,8 +43,11 @@ void ASTPrinter::visit(DefineDecl *decl) {
     std::cout << " = ";
 
     decl->getValue()->onVisit(this);
+}
 
-    std::cout << std::endl;
+void ASTPrinter::visit(ExpressionStatement *exp) {
+    exp->getExpression()->onVisit(this);
+    std::cout << ";";
 }
 
 void ASTPrinter::visit(BinaryExpression *exp) {
@@ -48,11 +60,48 @@ void ASTPrinter::visit(BinaryExpression *exp) {
     std::cout << ")";
 }
 
-void ASTPrinter::visit(FunctionCall *call) {
-    call->getCallee()->onVisit(this);
+void ASTPrinter::visit(Block *block) {
+    std::cout << "{" << std::endl;
+    ++_indentCount;
+
+    for (auto stat : block->getStatements()) {
+        printIndents();
+        stat->onVisit(this);
+        std::cout << std::endl;
+    }
+
+    --_indentCount;
+    printIndents();
+    std::cout << "}";
+}
+
+void ASTPrinter::visit(IfExpression *ifexpr) {
+    std::cout << "if (";
+
+    ifexpr->getCondition()->onVisit(this);
+
+    std::cout << ") ";
+
+    ifexpr->getThen()->onVisit(this);
+
+    if (ifexpr->getElse()) {
+        std::cout << " else ";
+        ifexpr->getElse()->onVisit(this);
+    }
+}
+
+void ASTPrinter::visit(MemberAccess *dot) {
+    std::cout << "(";
+    dot->getAccessed()->onVisit(this);
+    std::cout << ".";
+    dot->getMember()->onVisit(this);
+    std::cout << ")";
+}
+
+void ASTPrinter::visit(Tuple *tuple) {
     std::cout << "(";
 
-    const std::vector<Expression*>& args(call->getArgs());
+    const std::vector<Expression*>& args(tuple->getExpressions());
 
     for (size_t i = 0, e = args.size(); i < e; ++i) {
         args[i]->onVisit(this);
@@ -65,6 +114,12 @@ void ASTPrinter::visit(FunctionCall *call) {
     std::cout << ")";
 }
 
+void ASTPrinter::visit(FunctionCreation *func) {
+    func->getArgs()->onVisit(this);
+    std::cout << " => ";
+    func->getBody()->onVisit(this);
+}
+
 void ASTPrinter::visit(Identifier *ident) {
     std::cout << ident->getValue();
 }
@@ -75,6 +130,12 @@ void ASTPrinter::visit(IntLitteral *intlit) {
 
 void ASTPrinter::visit(RealLitteral *reallit) {
     std::cout << reallit->getValue();
+}
+
+void ASTPrinter::printIndents() {
+    for (size_t i = 0; i < _indentCount; ++i) {
+        std::cout << "    ";
+    }
 }
 
 }
