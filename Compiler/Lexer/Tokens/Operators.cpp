@@ -143,8 +143,9 @@ std::vector<int> createOperatorsPrecedenceTable() {
     prec[OPER_L_PAREN] = 100;
     prec[OPER_L_BRACKET] = 100;
     prec[OPER_DOT] = 70;
-    prec[OPER_COLON] = 70;
+    prec[OPER_COLON] = 65;
     prec[OPER_FAT_ARROW] = 80;
+    prec[OPER_THIN_ARROW] = 100;
     return prec;
 }
 

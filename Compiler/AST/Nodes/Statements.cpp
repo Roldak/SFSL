@@ -37,11 +37,26 @@ Expression *ExpressionStatement::getExpression() const {
     return _expr;
 }
 
+// BLOCK
+
+Block::Block(const std::vector<Statement *> &stats) : _stats(stats) {
+
+}
+
+Block::~Block() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(Block)
+
+const std::vector<Statement*>& Block::getStatements() const {
+    return _stats;
+}
 
 // IF EXPRESSION
 
 
-IfExpression::IfExpression(Expression *cond, Expression *then, Expression *els)
+IfExpression::IfExpression(Expression* cond, ASTNode* then, ASTNode* els)
     : _cond(cond), _then(then), _else(els) {
 
 }
@@ -54,11 +69,11 @@ Expression *IfExpression::getCondition() const {
     return _cond;
 }
 
-Expression *IfExpression::getThen() const {
+ASTNode* IfExpression::getThen() const {
     return _then;
 }
 
-Expression *IfExpression::getElse() const {
+ASTNode* IfExpression::getElse() const {
     return _else;
 }
 

@@ -36,27 +36,6 @@ public:
 };
 
 /**
- * @brief Represents a block, aka a list of statements
- */
-class Block : public Expression {
-public:
-    Block(const std::vector<Statement*>& stats);
-    virtual ~Block();
-
-    SFSL_AST_ON_VISIT_H
-
-    /**
-     * @return The list of statements contained in the block
-     */
-    const std::vector<Statement*>& getStatements() const;
-
-private:
-
-    const std::vector<Statement*> _stats;
-
-};
-
-/**
  * @brief Represents a binary expression, aka lhs oper rhs.
  */
 class BinaryExpression : public Expression {

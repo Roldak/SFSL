@@ -76,7 +76,7 @@ private:
     ast::Expression* parseBinary(ast::Expression* left, int precedence);
     ast::Expression* parsePrimary();
 
-    ast::Expression* parseBlock();
+    ast::Block* parseBlock();
     ast::IfExpression* parseIf(bool asStatement);
 
     ast::Expression* parseSpecialBinaryContinuity(ast::Expression* left);
@@ -102,9 +102,9 @@ bool Parser::expect(T type, const std::string& expected, bool fatal) {
 
    if (!accept(type)) {
        if (fatal) {
-           _ctx->reporter().fatal(*lastTok, "expected " + expected + "; got " + lastTok->toString());
+           _ctx->reporter().fatal(*lastTok, "expected " + expected + "; got `" + lastTok->toString() + "`");
        } else {
-           _ctx->reporter().error(*lastTok, "expected " + expected + "; got " + lastTok->toString());
+           _ctx->reporter().error(*lastTok, "expected " + expected + "; got `" + lastTok->toString() + "`");
        }
        return false;
    }

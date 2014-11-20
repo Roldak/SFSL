@@ -85,7 +85,7 @@ ModuleDecl* Parser::parseModule() {
 
     expect(tok::OPER_L_BRACE, "`{`");
 
-    if (accept(tok::KW_DEF)) {
+    while (accept(tok::KW_DEF)) {
         decls.push_back(parseDef());
     }
 
@@ -98,7 +98,8 @@ DefineDecl* Parser::parseDef() {
 
     Identifier* defName = parseIdentifier("expected definition name");
 
-    accept(tok::OPER_EQ);
+    if (!(isType(tok::TOK_OPER) && as<tok::Operator>()->getOpType() == tok::OPER_L_PAREN))
+        expect(tok::OPER_EQ, "`=`");
 
     Expression* expr = parseExpression();
 
@@ -117,6 +118,8 @@ Statement* Parser::parseStatement() {
         default:            return nullptr;
         }
 
+    } else if (accept(tok::OPER_L_BRACE)) {
+        return parseBlock();
     } else {
         ExpressionStatement* expr = _mngr.New<ExpressionStatement>(parseExpression());
         expect(tok::OPER_SEMICOLON, "`;`");
@@ -195,7 +198,7 @@ Expression* Parser::parsePrimary() {
         else if (accept(tok::OPER_L_BRACE)) {
             return parseBlock();
         } else {
-            _ctx->reporter().error(*_currentToken, "unexpected token `;`");
+            _ctx->reporter().error(*_currentToken, "unexpected token `"+ _currentToken->toString() +"`");
         }
         break;
 
@@ -203,6 +206,7 @@ Expression* Parser::parsePrimary() {
         if (accept(tok::KW_IF)) {
             return parseIf(false);
         }
+        break;
 
     default:
         _ctx->reporter().error(*_currentToken,
@@ -213,7 +217,7 @@ Expression* Parser::parsePrimary() {
     return toRet;
 }
 
-Expression* Parser::parseBlock() {
+Block* Parser::parseBlock() {
     std::vector<Statement*> stats;
 
     while (!accept(tok::OPER_R_BRACE)) {
@@ -227,15 +231,14 @@ IfExpression* Parser::parseIf(bool asStatement) {
     expect(tok::OPER_L_PAREN, "`(`");
 
     Expression* cond = parseExpression();
-    if (asStatement)
 
     expect(tok::OPER_R_PAREN, "`)`");
 
-    Expression* then = parseExpression();
-    Expression* els = nullptr;
+    ASTNode* then = asStatement ? (ASTNode*)parseStatement() : (ASTNode*)parseExpression();
+    ASTNode* els = nullptr;
 
     if (accept(tok::KW_ELSE)) {
-         els = parseExpression();
+         els = asStatement ? (ASTNode*)parseStatement() : (ASTNode*)parseExpression();
     }
 
     return _mngr.New<IfExpression>(cond, then, els);
@@ -259,13 +262,16 @@ Tuple* Parser::parseTuple() {
 }
 
 ast::Tuple* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
-    do {
-        if (Expression* arg = parseExpression()){
-            exprs.push_back(arg);
-        }
-    } while (accept(tok::OPER_COMMA));
 
-    expect(tok::OPER_R_PAREN, "`)`");
+    if (!accept(tok::OPER_R_PAREN)) {
+        do {
+            if (Expression* arg = parseExpression()){
+                exprs.push_back(arg);
+            }
+        } while (accept(tok::OPER_COMMA));
+
+        expect(tok::OPER_R_PAREN, "`)`");
+    }
 
     return _mngr.New<Tuple>(exprs);
 }

@@ -21,22 +21,6 @@ Expression::~Expression() {
 
 SFSL_AST_ON_VISIT_CPP(Expression)
 
-// BLOCK
-
-Block::Block(const std::vector<Statement *> &stats) : _stats(stats) {
-
-}
-
-Block::~Block() {
-
-}
-
-SFSL_AST_ON_VISIT_CPP(Block)
-
-const std::vector<Statement*>& Block::getStatements() const {
-    return _stats;
-}
-
 // BINARY EXPRESSION
 
 BinaryExpression::BinaryExpression(Expression *lhs, Expression *rhs, Identifier *oper)

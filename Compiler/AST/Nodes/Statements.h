@@ -52,6 +52,26 @@ private:
 
 };
 
+/**
+ * @brief Represents a block, aka a list of statements
+ */
+class Block : public Expression, public Statement {
+public:
+    Block(const std::vector<Statement*>& stats);
+    virtual ~Block();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The list of statements contained in the block
+     */
+    const std::vector<Statement*>& getStatements() const;
+
+private:
+
+    const std::vector<Statement*> _stats;
+
+};
 
 /**
  * @brief Represents an If expression, e.g. if (1 + 1 == 2) println("hi") else println("salut")
@@ -59,7 +79,7 @@ private:
 class IfExpression : public Expression, public Statement {
 public:
 
-    IfExpression(Expression* cond, Expression* then, Expression* els);
+    IfExpression(Expression* cond, ASTNode* then, ASTNode* els);
     virtual ~IfExpression();
 
     SFSL_AST_ON_VISIT_H
@@ -72,18 +92,18 @@ public:
     /**
      * @return The then-part expression
      */
-    Expression* getThen() const;
+    ASTNode* getThen() const;
 
     /**
      * @return The else-part expression, potentially null
      */
-    Expression* getElse() const;
+    ASTNode* getElse() const;
 
 private:
 
     Expression* _cond;
-    Expression* _then;
-    Expression* _else;
+    ASTNode* _then;
+    ASTNode* _else;
 
 };
 
