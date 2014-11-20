@@ -115,9 +115,11 @@ void ASTPrinter::visit(Tuple *tuple) {
 }
 
 void ASTPrinter::visit(FunctionCreation *func) {
+    std::cout << "(";
     func->getArgs()->onVisit(this);
     std::cout << " => ";
     func->getBody()->onVisit(this);
+    std::cout << ")";
 }
 
 void ASTPrinter::visit(Identifier *ident) {

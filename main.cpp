@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <vector>
 #include <ctime>
@@ -12,11 +13,15 @@ using namespace sfsl;
 
 int main()
 {
-    std::string source = "module Main { def main(args) => { println(args); if (f(args)) println(1) else println(2); println(if (true) 1 else 2); } }";
+    std::string source;
+
+    std::ifstream f("Examples\\test.sfsl");
+    while (f.good())
+        source += f.get();
 
     clock_t exec = clock();
 
-    std::shared_ptr<std::string> src_str(new std::string("hardcoded"));
+    std::shared_ptr<std::string> src_str(new std::string("Examples\\test.sfsl"));
 
     auto ctx = common::CompilationContext::DefaultCompilationContext();
     std::istringstream input(source);
@@ -32,6 +37,5 @@ int main()
 
     node->onVisit(&printer);
 
-    cerr << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
+    cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
 }
-
