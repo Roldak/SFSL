@@ -59,7 +59,7 @@ Identifier* Parser::parseIdentifier(const std::string& errMsg) {
         name = as<tok::Identifier>()->toString();
         accept();
     } else {
-        expect(tok::TOK_ID, "identifier");
+        _ctx->reporter().error(*_currentToken, errMsg);
     }
 
     return _mngr.New<Identifier>(name);
@@ -172,15 +172,15 @@ Expression* Parser::parsePrimary() {
     case tok::TOK_INT_LIT:
         toRet = new IntLitteral(as<tok::IntLitteral>()->getValue());
         accept();
-
         break;
+
     case tok::TOK_REAL_LIT:
         toRet = new RealLitteral(as<tok::RealLitteral>()->getValue());
         accept();
         break;
 
     case tok::TOK_STR_LIT:
-
+        break;
     case tok::TOK_ID:
         toRet = parseIdentifier();
         break;
@@ -248,7 +248,7 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     if (accept(tok::OPER_L_PAREN)) {
         return _mngr.New<FunctionCall>(left, parseTuple());
     } else if (accept(tok::OPER_FAT_ARROW)) {
-        return _mngr.New<FunctionCreation>(static_cast<Tuple*>(left), parseExpression());
+        return _mngr.New<FunctionCreation>(left, parseExpression());
     } else if (accept(tok::OPER_DOT)) {
         return parseDotOperation(left);
     }
