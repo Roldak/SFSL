@@ -25,14 +25,14 @@ namespace src {
         SFSLSource(std::string* sourceName);
 
         /**
-         * @return True if it is still possible to fetch characeters from the input
+         * @brief Fills the buffer with maxBufferSize characters (or less, if the end of this input
+         * was reached before getting to that number)
+         *
+         * @param buffer The buffer in which to fill the next characters
+         * @param maxBufferSize The maximum number of character to fill the buffer with
+         * @return The number of characters which the buffer could be filled with
          */
-        virtual bool hasNext() const = 0;
-
-        /**
-         * @return The next character from the input
-         */
-        virtual char getNext() = 0;
+        virtual size_t getNexts(char* buffer, size_t maxBufferSize) = 0;
 
         /**
          * @return The current position in the source
@@ -42,7 +42,7 @@ namespace src {
         /**
          * @return The name of the source
          */
-        std::string *getSourceName();
+        std::string* getSourceName();
 
         /**
          * @return A Positionnable corresponding to the current position
@@ -68,8 +68,7 @@ namespace src {
          */
         SFSLInputStream(std::string* sourceName, std::istream& input);
 
-        virtual bool hasNext() const;
-        virtual char getNext();
+        virtual size_t getNexts(char *buffer, size_t maxBufferSize);
 
     private:
 
@@ -97,8 +96,7 @@ namespace src {
          */
         SFSLInputString(std::string* sourceName, const std::string& source);
 
-        virtual bool hasNext() const;
-        virtual char getNext();
+        virtual size_t getNexts(char *buffer, size_t maxBufferSize);
 
     private:
 
