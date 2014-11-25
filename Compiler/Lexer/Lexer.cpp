@@ -119,7 +119,7 @@ Token* Lexer::buildToken(STR_KIND kind, const std::string &soFar) const {
 Token* Lexer::getRightTokenFromIdentifier(const std::string &str) const{
     if (isValidKeyword(str)) {
         return _ctx->memoryManager().New<Keyword>(Keyword::KeywordTypeFromString(str));
-    } else if (isValidSymbol(str)) {
+    } else if (Operator::OperTypeFromIdentifierString(str) != OPER_UNKNOWN) {
         return _ctx->memoryManager().New<Operator>(Operator::OperTypeFromString(str));
     } else {
         return _ctx->memoryManager().New<Identifier>(str);

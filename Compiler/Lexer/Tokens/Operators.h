@@ -68,6 +68,14 @@ namespace tok {
          */
         static OPER_TYPE OperTypeFromString(const std::string& str);
 
+        /**
+         * @brief Converts a string which holds an identifier kind of content
+         * into an OPER_TYPE, e.g. "and", "or", "not"
+         * @param id The string to convert
+         * @return The associated OPER_TYPE
+         */
+        static OPER_TYPE OperTypeFromIdentifierString(const std::string& id);
+
     private:
 
         static std::unordered_map<std::string, OPER_TYPE> OPERATORS;

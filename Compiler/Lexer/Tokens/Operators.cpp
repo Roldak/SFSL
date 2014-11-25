@@ -161,6 +161,12 @@ OPER_TYPE Operator::OperTypeFromString(const std::string &str) {
     }
 }
 
+OPER_TYPE Operator::OperTypeFromIdentifierString(const std::string &id) {
+    if (id == "and") return OPER_AND;
+    else if (id == "or") return OPER_OR;
+    else return OPER_UNKNOWN;
+}
+
 }
 
 
