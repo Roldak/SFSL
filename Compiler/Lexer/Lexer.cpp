@@ -21,8 +21,8 @@ using namespace tok;
 
 namespace lex {
 
-Lexer::Lexer(std::shared_ptr<common::CompilationContext> &ctx, src::SFSLSource& source) :
-    _ctx(ctx), _source(source) {
+Lexer::Lexer(std::shared_ptr<common::CompilationContext> &ctx, src::SFSLSource& source, size_t sourceBufferSize) :
+    _ctx(ctx), _source(source, sourceBufferSize) {
 
     _lastChar.kind = CHR_EMPTY;
     produceNext();
@@ -60,17 +60,18 @@ void Lexer::produceNext() {
 
         _lastChar = readCharInfo();
 
-        if (tryHandleComments(soFar + _lastChar.chr)){
-            _lastChar.kind = CHR_EMPTY;
-            produceNext();
-            return;
-        }
-        else if (isStillValid(strKind, soFar, _lastChar.kind, _lastChar.chr)) {
+
+        if (isStillValid(strKind, soFar, _lastChar.kind, _lastChar.chr)) {
             soFar += _lastChar.chr;
         }
         else if (strKind == STR_INT_LIT && _lastChar.chr == '.') {
             strKind = STR_REAL_LIT;
             soFar += _lastChar.chr;
+        }
+        else if (tryHandleComments(soFar, _lastChar.chr)){
+            _lastChar.kind = CHR_EMPTY;
+            produceNext();
+            return;
         }
         else if (strKind == STR_UNKNOWN) {
             _ctx->reporter().error(common::Positionnable(initPos, _source.getSourceName()), "unknown symbol '" + soFar + "'");
@@ -158,12 +159,10 @@ void Lexer::handleStringLitteral(std::string &soFar) {
     }
 }
 
-bool Lexer::tryHandleComments(const std::string &soFar) {
-    if (soFar.size() >= 2) {
-        size_t beforeLast = soFar.size() - 2;
-
-        if (soFar[beforeLast] == '/') {
-            switch (soFar[beforeLast + 1]) {
+bool Lexer::tryHandleComments(const std::string &soFar, char next) {
+    if (soFar.size() >= 1) {
+        if (soFar[soFar.size() - 1] == '/') {
+            switch (next) {
             case '*':   handleMultiLineComment(); return true;
             case '/':   handleSingleLineComment(); return true;
             default:    return false;

@@ -16,7 +16,6 @@ namespace sfsl {
 
 namespace src {
 
-template<size_t BUFFER_SIZE>
 /**
  * @brief A SFSL Source overlay that uses a buffer of a constant size
  * to store the next characters of the input.
@@ -28,11 +27,14 @@ public:
      * @brief Creates a BufferedSFSLSource from the input source
      * @param source The input source from which to fetch the data
      */
-    BufferedSFSLSource(SFSLSource& source) : _source(source) {
+    BufferedSFSLSource(SFSLSource& source, size_t maxBufferSize)
+        : _source(source), _maxBufferSize(maxBufferSize), _buffer(new char[maxBufferSize]) {
         produceNext();
     }
 
-    ~BufferedSFSLSource() {}
+    ~BufferedSFSLSource() {
+        delete _buffer;
+    }
 
     /**
      * @return True if it is still possible to fetch characeters from the input
@@ -79,12 +81,14 @@ private:
 
     void produceNext() {
         _index = 0;
-        _buffSize = _source.getNexts(_buffer, BUFFER_SIZE);
+        _buffSize = _source.getNexts(_buffer, _maxBufferSize);
     }
 
     SFSLSource& _source;
 
-    char _buffer[BUFFER_SIZE];
+    size_t _maxBufferSize;
+    char* _buffer;
+
     size_t _index;
     size_t _buffSize;
 };

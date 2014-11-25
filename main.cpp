@@ -30,7 +30,7 @@ clock_t exec = clock();
 
         src::SFSLInputStream src(src_str.get(), input);
 
-        lex::Lexer lexer(ctx, src);
+        lex::Lexer lexer(ctx, src, 1024);
 
         while (lexer.hasNext()) {
             lexer.getNext();

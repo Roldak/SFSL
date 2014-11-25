@@ -9,10 +9,6 @@
 #ifndef __SFSL__Lexer__
 #define __SFSL__Lexer__
 
-#ifndef SRC_INPUT_BUFFER_SIZE
-#define SRC_INPUT_BUFFER_SIZE 128
-#endif
-
 #include <iostream>
 #include "BufferedSFSLSource.h"
 #include "Tokens/Token.h"
@@ -36,8 +32,9 @@ namespace lex {
          * @brief Creates a Lexer object
          * @param mngr The memory manager used throughout the tokenization process
          * @param source The input source
+         * @param sourceBufferSize The size of the buffer used by the source reader
          */
-        Lexer(std::shared_ptr<common::CompilationContext>& ctx, src::SFSLSource& source);
+        Lexer(std::shared_ptr<common::CompilationContext>& ctx, src::SFSLSource& source, size_t sourceBufferSize = 128);
 
         /**
          * @return True if there are more tokens to come, otherwise false
@@ -75,12 +72,12 @@ namespace lex {
         tok::Token* getRightTokenFromIdentifier(const std::string& str) const;
 
         void handleStringLitteral(std::string& soFar);
-        bool tryHandleComments(const std::string& soFar);
+        bool tryHandleComments(const std::string& soFar, char next);
         void handleMultiLineComment();
         void handleSingleLineComment();
 
         std::shared_ptr<common::CompilationContext> _ctx;
-        src::BufferedSFSLSource<SRC_INPUT_BUFFER_SIZE> _source;
+        src::BufferedSFSLSource _source;
 
         tok::Token* _curToken;
 
