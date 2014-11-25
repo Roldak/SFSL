@@ -32,9 +32,12 @@ clock_t exec = clock();
 
         lex::Lexer lexer(ctx, src);
 
-        Parser parser(ctx, lexer);
+        while (lexer.hasNext()) {
+            lexer.getNext();
+        }
+        //Parser parser(ctx, lexer);
 
-        ast::ASTNode* node = parser.parse();
+        //ast::ASTNode* node = parser.parse();
 
         cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
     }
