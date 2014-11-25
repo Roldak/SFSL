@@ -10,15 +10,22 @@
 #define __SFSL__Symbols__
 
 #include "../../Common/MemoryManageable.h"
+#include "../../Common/Positionnable.h"
 #include <iostream>
+#include <map>
 
 namespace sfsl {
 
 namespace sym {
 
-    enum SYM_TYPE{SYM_MODULE, SYM_CLASS, SYM_FUNC, SYMC_VAR};
+    enum SYM_TYPE{SYM_MODULE, SYM_CLASS, SYM_FUNC, SYM_VAR};
 
-    class Symbol : public common::MemoryManageable {
+    class ModuleSymbol;
+    class ClassSymbol;
+    class FunctionSymbol;
+    class VariableSymbol;
+
+    class Symbol : public common::MemoryManageable, public common::Positionnable {
     public:
 
         Symbol(const std::string& name);
@@ -39,6 +46,20 @@ namespace sym {
         virtual ~ModuleSymbol();
 
         virtual SYM_TYPE getSymbolType() const;
+
+        void addModule(ModuleSymbol* moduleSym);
+        void addClass(ClassSymbol* classSym);
+        void addFunction(FunctionSymbol* funcSym);
+
+        ModuleSymbol* getModule(const std::string& name) const;
+        ClassSymbol* getClass(const std::string& name) const;
+        FunctionSymbol* getFunction(const std::string& name) const;
+
+    private:
+
+        std::map<std::string, ModuleSymbol*> _modules;
+        std::map<std::string, ClassSymbol*> _classes;
+        std::map<std::string, FunctionSymbol*> _functions;
     };
 
     class ClassSymbol : public Symbol {
@@ -47,6 +68,10 @@ namespace sym {
         virtual ~ClassSymbol();
 
         virtual SYM_TYPE getSymbolType() const;
+
+        void addClass(ClassSymbol* classSym);
+        void addFunction(FunctionSymbol* funcSym);
+        void addAttribute(VariableSymbol* varSym);
     };
 
     class FunctionSymbol : public Symbol {
@@ -55,8 +80,14 @@ namespace sym {
         virtual ~FunctionSymbol();
 
         virtual SYM_TYPE getSymbolType() const;
+    };
 
+    class VariableSymbol : public Symbol {
+    public:
+        VariableSymbol(const std::string& name);
+        virtual ~VariableSymbol();
 
+        virtual SYM_TYPE getSymbolType() const;
     };
 
 }

@@ -42,7 +42,7 @@ namespace src {
         /**
          * @return The name of the source
          */
-        std::string *getSourceName();
+        std::string* getSourceName();
 
         /**
          * @return A Positionnable corresponding to the current position

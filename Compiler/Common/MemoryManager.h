@@ -37,10 +37,7 @@ namespace common {
          * @return A pointer to the instance
          */
         T* New(Args... args) {
-            void* mem_ptr = alloc(sizeof(T));
-            T* ptr = new(mem_ptr) T(args...);
-            manage(ptr);
-            return ptr;
+            return new(alloc(sizeof(T))) T(args...);
         }
 
     protected:
@@ -50,13 +47,7 @@ namespace common {
          * @param size The size to allocate
          * @return A pointer to the free space
          */
-        virtual void* alloc(size_t size) = 0;
-
-        /**
-         * @brief Starts managing the given pointer
-         * @param ptr The pointer on the instance that will be managed
-         */
-        virtual void manage(MemoryManageable* ptr) = 0;
+        virtual MemoryManageable* alloc(size_t size) = 0;
 
         /**
          * @brief Frees every managed instances
@@ -86,12 +77,10 @@ namespace common {
 
     private:
 
-        virtual void* alloc(size_t size) {
-            return static_cast<void*>(new char[size]);
-        }
-
-        virtual void manage(MemoryManageable *ptr) {
+        virtual MemoryManageable* alloc(size_t size) {
+            MemoryManageable* ptr = reinterpret_cast<MemoryManageable*>(new char[size]);
             _allocated.push_back(ptr);
+            return ptr;
         }
 
         virtual void free() {
@@ -113,8 +102,9 @@ namespace common {
         /**
          * @brief Creates a MemoryChunk
          * @param size The size that will have each block of memory
+         * @param parent The parent of this chunk
          */
-        MemoryChunk(size_t size);
+        MemoryChunk(size_t size, MemoryChunk* parent);
 
         virtual ~MemoryChunk();
 
@@ -154,9 +144,7 @@ namespace common {
 
     private:
 
-        virtual void* alloc(size_t size);
-
-        virtual void manage(MemoryManageable *ptr);
+        virtual MemoryManageable* alloc(size_t size);
 
         virtual void free();
 

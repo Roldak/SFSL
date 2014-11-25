@@ -75,7 +75,7 @@ ASTNode* Parser::parseProgram() {
         modules.push_back(parseModule());
     }
 
-    return new Program(modules);
+    return _mngr.New<Program>(modules);
 }
 
 ModuleDecl* Parser::parseModule() {
@@ -170,12 +170,12 @@ Expression* Parser::parsePrimary() {
 
     switch (_currentToken->getTokenType()) {
     case tok::TOK_INT_LIT:
-        toRet = new IntLitteral(as<tok::IntLitteral>()->getValue());
+        toRet = _mngr.New<IntLitteral>(as<tok::IntLitteral>()->getValue());
         accept();
         break;
 
     case tok::TOK_REAL_LIT:
-        toRet = new RealLitteral(as<tok::RealLitteral>()->getValue());
+        toRet = _mngr.New<RealLitteral>(as<tok::RealLitteral>()->getValue());
         accept();
         break;
 

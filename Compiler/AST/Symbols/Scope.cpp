@@ -24,7 +24,7 @@ void Scope::setSymbol(const std::string &name, Symbol *sym) {
     _symbols[name] = sym;
 }
 
-Symbol* Scope::_getSymbol(const std::string &name) {
+Symbol* Scope::_getSymbol(const std::string &name) const {
     const auto it = _symbols.find(name);
 
     if (it != _symbols.end()) {
@@ -36,7 +36,7 @@ Symbol* Scope::_getSymbol(const std::string &name) {
     }
 }
 
-Symbol* Scope::_getSymbol(const std::string &name, SYM_TYPE symType) {
+Symbol* Scope::_getSymbol(const std::string &name, SYM_TYPE symType) const {
     const auto it = _symbols.find(name);
 
     if (it != _symbols.end() && it->second->getSymbolType() == symType) {

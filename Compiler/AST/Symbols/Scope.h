@@ -24,15 +24,17 @@ namespace sym {
         Scope(Scope* parent);
         virtual ~Scope();
 
+        void setSymbol(const std::string& name, Symbol* sym);
+
         template<typename T>
-        T* getSymbol(const std::string &name) {
+        T* getSymbol(const std::string &name) const {
             return nullptr;
         }
 
     private:
 
-        Symbol* _getSymbol(const std::string& name);
-        Symbol* _getSymbol(const std::string& name, SYM_TYPE symType);
+        Symbol* _getSymbol(const std::string& name) const;
+        Symbol* _getSymbol(const std::string& name, SYM_TYPE symType) const;
 
         Scope* _parent;
 
@@ -41,18 +43,28 @@ namespace sym {
     };
 
     template<>
-    Symbol* Scope::getSymbol(const std::string& name) {
+    Symbol* Scope::getSymbol(const std::string& name) const {
         return _getSymbol(name);
     }
 
     template<>
-    ModuleSymbol* Scope::getSymbol(const std::string& name) {
+    ModuleSymbol* Scope::getSymbol(const std::string& name) const {
         return static_cast<ModuleSymbol*>(_getSymbol(name, SYM_MODULE));
     }
 
     template<>
-    FunctionSymbol* Scope::getSymbol(const std::string& name) {
+    ClassSymbol* Scope::getSymbol(const std::string& name) const {
+        return static_cast<ClassSymbol*>(_getSymbol(name, SYM_CLASS));
+    }
+
+    template<>
+    FunctionSymbol* Scope::getSymbol(const std::string& name) const {
         return static_cast<FunctionSymbol*>(_getSymbol(name, SYM_FUNC));
+    }
+
+    template<>
+    VariableSymbol* Scope::getSymbol(const std::string& name) const {
+        return static_cast<VariableSymbol*>(_getSymbol(name, SYM_VAR));
     }
 
 }
