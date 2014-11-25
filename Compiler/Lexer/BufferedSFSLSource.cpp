@@ -7,13 +7,3 @@
 //
 
 #include "BufferedSFSLSource.h"
-
-namespace sfsl {
-
-namespace src {
-
-
-
-}
-
-}

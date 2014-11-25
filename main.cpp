@@ -35,6 +35,7 @@ clock_t exec = clock();
         while (lexer.hasNext()) {
             lexer.getNext();
         }
+
         //Parser parser(ctx, lexer);
 
         //ast::ASTNode* node = parser.parse();

@@ -9,8 +9,12 @@
 #ifndef __SFSL__Lexer__
 #define __SFSL__Lexer__
 
+#ifndef SRC_INPUT_BUFFER_SIZE
+#define SRC_INPUT_BUFFER_SIZE 128
+#endif
+
 #include <iostream>
-#include "SFSLSource.h"
+#include "BufferedSFSLSource.h"
 #include "Tokens/Token.h"
 #include "../Common/CompilationContext.h"
 
@@ -20,7 +24,10 @@ namespace lex {
 
     /**
      * @brief Transforms an SFSL source file given as an inputstream into a sequence of #sfsl::tok::Token
-     * that are accessible with Lexer#getNext()
+     * that are accessible with Lexer#getNext().
+     *
+     * Note that one has to recompile the library in order to change the default buffer size of the source input
+     * (SRC_INPUT_BUFFER_SIZE)
      */
     class Lexer {
     public:
@@ -73,7 +80,7 @@ namespace lex {
         void handleSingleLineComment();
 
         std::shared_ptr<common::CompilationContext> _ctx;
-        src::SFSLSource& _source;
+        src::BufferedSFSLSource<SRC_INPUT_BUFFER_SIZE> _source;
 
         tok::Token* _curToken;
 

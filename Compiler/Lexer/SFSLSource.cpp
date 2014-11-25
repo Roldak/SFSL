@@ -34,14 +34,15 @@ SFSLInputStream::SFSLInputStream(std::string* sourceName, std::istream &input) :
     produceNext();
 }
 
-bool SFSLInputStream::hasNext() const {
-    return _hasNext;
-}
+size_t SFSLInputStream::getNexts(char *buffer, size_t maxBufferSize) {
+    size_t i = 0;
 
-char SFSLInputStream::getNext() {
-    char next = _curChar;
-    produceNext();
-    return next;
+    while (_hasNext && i < maxBufferSize) {
+        buffer[i++] = _curChar;
+        produceNext();
+    }
+
+    return i;
 }
 
 const int SFSLInputStream::CHAR_EOF = std::char_traits<char>::eof();
@@ -59,12 +60,14 @@ SFSLInputString::SFSLInputString(std::string *sourceName, const std::string &sou
 
 }
 
-bool SFSLInputString::hasNext() const {
-    return _curIndex < _size;
-}
+size_t SFSLInputString::getNexts(char *buffer, size_t maxBufferSize) {
+    size_t i = 0;
 
-char SFSLInputString::getNext() {
-    return _input[_curIndex++];
+    while (_curIndex < _size && i < maxBufferSize) {
+        buffer[i++] = _input[_curIndex++];
+    }
+
+    return i;
 }
 
 }
