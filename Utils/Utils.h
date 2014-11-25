@@ -60,8 +60,12 @@ inline T String_toT(const std::string& val) {
 
 namespace chrutils {
 
+inline bool isNewLine(char c) {
+    return c == '\n' || c == '\r';
+}
+
 inline bool isWhiteSpace(char c) {
-    return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
 inline bool isNumeric(char c) {

@@ -60,7 +60,6 @@ void Lexer::produceNext() {
 
         _lastChar = readCharInfo();
 
-
         if (isStillValid(strKind, soFar, _lastChar.kind, _lastChar.chr)) {
             soFar += _lastChar.chr;
         }
@@ -153,7 +152,7 @@ void Lexer::handleStringLitteral(std::string &soFar) {
             return;
         } else if (c == '\\') {
             escaping = true;
-        } else if (c != '\n' && c != '\r') {
+        } else if (!chrutils::isNewLine(c)) {
             soFar += c;
         }
     }
@@ -188,7 +187,7 @@ void Lexer::handleMultiLineComment() {
 
 void Lexer::handleSingleLineComment() {
     char chr = 0;
-    while (_source.hasNext() && chr != '\n' && chr != '\r') {
+    while (_source.hasNext() && !chrutils::isNewLine(chr)) {
         chr = _source.getNext();
     }
 }
