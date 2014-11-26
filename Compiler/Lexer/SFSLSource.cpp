@@ -16,15 +16,15 @@ SFSLSource::SFSLSource(std::string* sourceName) : _position(0), _sourceName(sour
 
 }
 
-size_t SFSLSource::getPosition() {
+size_t SFSLSource::getPosition() const {
     return _position - 1;
 }
 
-std::string* SFSLSource::getSourceName() {
+std::string* SFSLSource::getSourceName() const {
     return _sourceName;
 }
 
-common::Positionnable SFSLSource::currentPos() {
+common::Positionnable SFSLSource::currentPos() const {
     return *common::Positionnable().setPos<common::Positionnable>(getPosition(), getSourceName());
 }
 

@@ -37,17 +37,17 @@ namespace src {
         /**
          * @return The current position in the source
          */
-        size_t getPosition();
+        size_t getPosition() const;
 
         /**
          * @return The name of the source
          */
-        std::string* getSourceName();
+        std::string* getSourceName() const;
 
         /**
          * @return A Positionnable corresponding to the current position
          */
-        common::Positionnable currentPos();
+        common::Positionnable currentPos() const;
 
     protected:
 
