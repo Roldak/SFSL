@@ -60,26 +60,48 @@ inline T String_toT(const std::string& val) {
 
 namespace chrutils {
 
+/**
+ * @return True if c is a new line ('\n' or '\r')
+ */
 inline bool isNewLine(char c) {
     return c == '\n' || c == '\r';
 }
 
+/**
+ * @return True if c is a white space or equivalent
+ */
 inline bool isWhiteSpace(char c) {
     return c == ' ' || c == '\t' || c == '\n' || c == '\r';
 }
 
+/**
+ * @return True if c is a digit
+ */
 inline bool isNumeric(char c) {
     return c >= '0' && c <= '9';
 }
 
+/**
+ * @return True if c is a simple character (no special symbols)
+ */
 inline bool isCharacter(char c) {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
+/**
+ * @return True if c is a quote symbol ('\"')
+ */
 inline bool isQuote(char c) {
     return c == '\"';
 }
 
+/**
+ * @brief Maps the character given in parameter into its equivalent escaped,
+ * e.g. if c = 'n', escapedChar('n') will yield c = '\n'
+ *
+ * @param c The character to escape (without the '\'). Will be modified by the function
+ * @return True if the conversion was successful (c was a valid character that could be escaped)
+ */
 inline bool escapedChar(char& c) {
     switch (c) {
     case '\'':
@@ -98,6 +120,9 @@ inline bool escapedChar(char& c) {
     return true;
 }
 
+/**
+ * @return True if c is a new line symbol ('+', '*', ';', '(', etc.)
+ */
 inline bool isSymbol(char c) {
     return (c == '=' || c == '>' || c == '<' || c == ',' || c == '&' || c == '|' ||
             c == '+' || c == '-' || c == '%' || c == '*' || c == '/' || c == '^' ||
