@@ -1,5 +1,5 @@
 //
-//  ProgramNode.cpp
+//  Program.cpp
 //  SFSL
 //
 //  Created by Romain Beguet on 16.11.14.
@@ -17,12 +17,12 @@ Program::Program(const std::vector<ModuleDecl*> &modules) : _modules(modules) {
 
 }
 
-Program::~Program() {
-
-}
-
 const std::vector<ModuleDecl*>& Program::getModules() const {
     return _modules;
+}
+
+Program::~Program() {
+
 }
 
 SFSL_AST_ON_VISIT_CPP(Program)

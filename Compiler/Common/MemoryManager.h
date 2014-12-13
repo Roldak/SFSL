@@ -85,7 +85,6 @@ namespace common {
         }
 
         Collection_t<MemoryManageable*, Allocator> _allocated;
-
     };
 
     /**
@@ -143,7 +142,6 @@ namespace common {
 
         MemoryChunk* _lastChunk;
         std::vector<MemoryManageable*> _allocated;
-
     };
 
 }

@@ -34,7 +34,7 @@ SFSLInputStream::SFSLInputStream(std::string* sourceName, std::istream &input) :
     produceNext();
 }
 
-size_t SFSLInputStream::getNexts(char *buffer, size_t maxBufferSize) {
+size_t SFSLInputStream::getNexts(char* buffer, size_t maxBufferSize) {
     size_t i = 0;
 
     while (_hasNext && i < maxBufferSize) {
@@ -60,7 +60,7 @@ SFSLInputString::SFSLInputString(std::string *sourceName, const std::string &sou
 
 }
 
-size_t SFSLInputString::getNexts(char *buffer, size_t maxBufferSize) {
+size_t SFSLInputString::getNexts(char* buffer, size_t maxBufferSize) {
     size_t i = 0;
 
     while (_curIndex < _size && i < maxBufferSize) {

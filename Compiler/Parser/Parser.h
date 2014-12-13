@@ -23,6 +23,8 @@
 
 namespace sfsl {
 
+namespace ast {
+
 /**
  * @brief The Parser is used to transform a sequence of tokens into an Abstract Syntax Tree
  */
@@ -31,7 +33,7 @@ public:
 
     /**
      * @brief Creates a Parser object
-     * @param ctx The compilation context used throughout the parsing to report errors or allocate memory
+     * @param ctx The compilation context used throughout the parsing to report errors and allocate memory
      * @param lexer The lexer from which to fetch the tokens during the parsing
      */
     Parser(std::shared_ptr<common::CompilationContext>& ctx, lex::Lexer& lexer);
@@ -115,6 +117,8 @@ bool Parser::expect(T type, const std::string& expected, bool fatal) {
 template<typename T>
 T* Parser::as() {
     return static_cast<T*>(_currentToken);
+}
+
 }
 
 }

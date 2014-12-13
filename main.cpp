@@ -16,37 +16,26 @@ int main()
     std::string source;
 
     std::ifstream f("Examples\\test.sfsl");
-    while (f.good())
+    while (f.good()) {
         source += f.get();
-
-
+    }
 
     std::shared_ptr<std::string> src_str(new std::string("Examples\\test.sfsl"));
 
-    while (true) {
-clock_t exec = clock();
-        auto ctx = common::CompilationContext::DefaultCompilationContext();
-        std::istringstream input(source);
+    clock_t exec = clock();
 
-        src::SFSLInputStream src(src_str.get(), input);
+    auto ctx = common::CompilationContext::DefaultCompilationContext();
+    std::istringstream input(source);
 
-        lex::Lexer lexer(ctx, src, 1024);
+    src::SFSLInputStream src(src_str.get(), input);
 
-        while (lexer.hasNext()) {
-            lexer.getNext();
-        }
+    lex::Lexer lexer(ctx, src, 1024);
+    ast::Parser parser(ctx, lexer);
 
-        //Parser parser(ctx, lexer);
-
-        //ast::ASTNode* node = parser.parse();
-
-        cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
-    }
-/*    std::cout << ((ast::Program*)node)->getModules().size() << std::endl;
-
+    ast::ASTNode* node = parser.parse();
     ast::ASTPrinter printer(ctx);
 
     node->onVisit(&printer);
 
-    cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;*/
+    cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
 }

@@ -12,7 +12,7 @@ namespace sfsl {
 
 namespace sym {
 
-Scope::Scope(Scope *parent) : _parent(parent) {
+Scope::Scope(Scope *parent, bool isDefScope) : _parent(parent), _isDefScope(isDefScope) {
 
 }
 
@@ -37,6 +37,10 @@ Symbol* Scope::_getSymbol(const std::string &name) const {
 }
 
 Symbol* Scope::_getSymbol(const std::string &name, SYM_TYPE symType) const {
+    if (_isDefScope && symType == SYM_VAR) {
+        return nullptr;
+    }
+
     const auto it = _symbols.find(name);
 
     if (it != _symbols.end() && it->second->getSymbolType() == symType) {

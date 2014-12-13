@@ -39,7 +39,7 @@ size_t BufferedSFSLSource::getPosition() const {
     return _source.getPosition();
 }
 
-std::string *BufferedSFSLSource::getSourceName() const {
+std::string* BufferedSFSLSource::getSourceName() const {
     return _source.getSourceName();
 }
 
