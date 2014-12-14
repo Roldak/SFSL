@@ -11,7 +11,7 @@
 
 namespace sfsl {
 
-namespace ast {
+namespace sym {
 
 template<typename Symbol_Type>
 /**

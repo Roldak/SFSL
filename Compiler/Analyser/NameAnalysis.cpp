@@ -7,29 +7,78 @@
 //
 
 #include "NameAnalysis.h"
+#include "../AST/Symbols/Scope.h"
+#include "../AST/Symbols/Symbols.h"
 
 namespace sfsl {
 
 namespace ast {
 
-ScopeGeneration::ScopeGeneration(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx) {
+ScopeGeneration::ScopeGeneration(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx), _curScope(nullptr) {
 
 }
 
 void ScopeGeneration::visit(Program *prog) {
+    pushScope();
 
+    for (ModuleDecl* mod : prog->getModules()) {
+        const std::string& name = mod->getName()->getValue();
+        sym::ModuleSymbol* modsym = _mngr.New<sym::ModuleSymbol>(name);
+
+        mod->setSymbol(modsym);
+        _curScope->addSymbol(name, modsym);
+    }
+
+    prog->onVisit(this);
+
+    popScope();
 }
 
 void ScopeGeneration::visit(ModuleDecl *module) {
+    pushScope(module->getSymbol());
 
+    for (ModuleDecl* submod : module->getSubModules()) {
+        const std::string& name = decl->getName()->getValue();
+        sym::ModuleSymbol* submodsym = _mngr.New<sym::ModuleSymbol>(name);
+
+        submod->setSymbol(submodsym);
+        _curScope->addSymbol(name, submodsym);
+    }
+
+    for (DefineDecl* decl : module->getDeclarations()) {
+        const std::string& name = decl->getName()->getValue();
+        sym::DefinitionSymbol* def = _mngr.New<sym::DefinitionSymbol>(name);
+
+        decl->setSymbol(def);
+        _curScope->addSymbol(name, def);
+    }
+
+    ASTVisitor.visit(module);
+
+    popScope();
 }
 
-void ScopeGeneration::visit(DefineDecl *module) {
+void ScopeGeneration::visit(DefineDecl *def) {
 
 }
 
 void ScopeGeneration::visit(Block *block) {
 
+}
+
+void ScopeGeneration::visit(FunctionCreation *func) {
+
+}
+
+void ScopeGeneration::pushScope(sym::Scoped *scoped, bool isDefScope) {
+    _curScope = _mngr.New<sym::Scope>(_curScope, isDefScope);
+    if (scoped != nullptr) {
+        scoped->setScope(_curScope);
+    }
+}
+
+void ScopeGeneration::popScope() {
+    _curScope = _curScope->getParent();
 }
 
 }

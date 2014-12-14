@@ -12,7 +12,8 @@
 #include <iostream>
 #include <vector>
 #include "Statements.h"
-#include "../Symbols/Scoped.h"
+#include "../Symbols/Symbols.h"
+#include "../Symbols/Symbolic.h"
 
 namespace sfsl {
 
@@ -26,18 +27,23 @@ class DefineDecl;
  *  - This module's name
  *  - All the declarations inside this module
  */
-class ModuleDecl : public ASTNode, public sym::Scoped {
+class ModuleDecl : public ASTNode, public sym::Symbolic<sym::ModuleSymbol> {
 public:
 
-    ModuleDecl(Identifier* name, const std::vector<ASTNode*>& decls);
+    ModuleDecl(Identifier* name, const std::vector<ModuleDecl*>& mods, const std::vector<DefineDecl*> decls);
     virtual ~ModuleDecl();
 
     SFSL_AST_ON_VISIT_H
 
     /**
+     * @return All the sub modules declarations that were made inside this module
+     */
+    const std::vector<ModuleDecl*>& getSubModules() const;
+
+    /**
      * @return All the declarations that were made inside this module
      */
-    const std::vector<ASTNode*>& getDeclarations() const;
+    const std::vector<DefineDecl*>& getDeclarations() const;
 
     /**
      * @return The name of this module
@@ -47,8 +53,8 @@ public:
 private:
 
     Identifier* _name;
-    const std::vector<ASTNode*> _decls;
-
+    const std::vector<ModuleDecl*> _mods;
+    const std::vector<DefineDecl*> _decls;
 };
 
 /**
@@ -57,7 +63,7 @@ private:
  *  - This definition's name
  *  - The value associated to this definition
  */
-class DefineDecl : public Statement, public sym::Scoped {
+class DefineDecl : public Statement, public sym::Symbolic<sym::DefinitionSymbol> {
 public:
 
     DefineDecl(Identifier* name, ASTNode* value);

@@ -20,8 +20,13 @@ Scope::~Scope() {
 
 }
 
-void Scope::setSymbol(const std::string &name, Symbol *sym) {
+void Scope::addSymbol(const std::string &name, Symbol *sym) {
     _symbols[name] = sym;
+}
+
+
+Scope* Scope::getParent() const {
+    return _parent;
 }
 
 Symbol* Scope::_getSymbol(const std::string &name) const {

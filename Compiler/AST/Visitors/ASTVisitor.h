@@ -54,9 +54,10 @@ public:
     virtual void visit(IntLitteral* intlit);
     virtual void visit(RealLitteral* reallit);
 
-private:
+protected:
 
     std::shared_ptr<common::CompilationContext> _ctx;
+    common::AbstractMemoryManager& _mngr;
 };
 
 }

@@ -22,7 +22,13 @@ void ASTPrinter::visit(ModuleDecl *module) {
 
     ++_indentCount;
 
-    for (ASTNode* decl : module->getDeclarations()) {
+    for (ModuleDecl* mod : module->getSubModules()) {
+        printIndents();
+        mod->onVisit(this);
+        std::cout << std::endl;
+    }
+
+    for (DefineDecl* decl : module->getDeclarations()) {
         printIndents();
         decl->onVisit(this);
         std::cout << std::endl;

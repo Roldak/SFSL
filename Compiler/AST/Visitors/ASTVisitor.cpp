@@ -13,7 +13,7 @@ namespace sfsl {
 
 namespace ast {
 
-ASTVisitor::ASTVisitor(std::shared_ptr<common::CompilationContext> &ctx) : _ctx(ctx) {
+ASTVisitor::ASTVisitor(std::shared_ptr<common::CompilationContext> &ctx) : _ctx(ctx), _mngr(ctx.get()->memoryManager()) {
 
 }
 
@@ -28,7 +28,10 @@ void ASTVisitor::visit(Program *prog) {
 }
 
 void ASTVisitor::visit(ModuleDecl *module) {
-    for (ASTNode* decl : module->getDeclarations()) {
+    for (ModuleDecl* mod : module->getSubModules()) {
+        mod->onVisit(this);
+    }
+    for (DefineDecl* decl : module->getDeclarations()) {
         decl->onVisit(this);
     }
 }

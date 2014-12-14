@@ -30,8 +30,12 @@ public:
     virtual void visit(DefineDecl* decl);
 
     virtual void visit(Block* block);
+    virtual void visit(FunctionCreation* func);
 
 private:
+
+    void pushScope(sym::Scoped* scoped = nullptr, bool isDefScope = false);
+    void popScope();
 
     sym::Scope* _curScope;
 };

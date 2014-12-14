@@ -24,12 +24,14 @@ namespace sym {
         Scope(Scope* parent, bool isDefScope = false);
         virtual ~Scope();
 
-        void setSymbol(const std::string& name, Symbol* sym);
+        void addSymbol(const std::string& name, Symbol* sym);
 
         template<typename T>
         T* getSymbol(const std::string &name) const {
             return nullptr;
         }
+
+        Scope* getParent() const;
 
     private:
 
@@ -59,8 +61,8 @@ namespace sym {
     }
 
     template<>
-    inline FunctionSymbol* Scope::getSymbol(const std::string& name) const {
-        return static_cast<FunctionSymbol*>(_getSymbol(name, SYM_FUNC));
+    inline DefinitionSymbol* Scope::getSymbol(const std::string& name) const {
+        return static_cast<DefinitionSymbol*>(_getSymbol(name, SYM_DEF));
     }
 
     template<>

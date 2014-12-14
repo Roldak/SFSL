@@ -54,16 +54,18 @@ SYM_TYPE ClassSymbol::getSymbolType() const {
     return SYM_CLASS;
 }
 
-FunctionSymbol::FunctionSymbol(const std::string &name) : Symbol(name) {
+// DEFINITION SYMBOL
+
+DefinitionSymbol::DefinitionSymbol(const std::string &name) : Symbol(name) {
 
 }
 
-FunctionSymbol::~FunctionSymbol() {
+DefinitionSymbol::~DefinitionSymbol() {
 
 }
 
-SYM_TYPE FunctionSymbol::getSymbolType() const {
-    return SYM_FUNC;
+SYM_TYPE DefinitionSymbol::getSymbolType() const {
+    return SYM_DEF;
 }
 
 // VARIABLE SYMBOL

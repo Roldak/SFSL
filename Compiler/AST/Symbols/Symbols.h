@@ -19,11 +19,11 @@ namespace sfsl {
 
 namespace sym {
 
-    enum SYM_TYPE{SYM_MODULE, SYM_CLASS, SYM_FUNC, SYM_VAR};
+    enum SYM_TYPE{SYM_MODULE, SYM_CLASS, SYM_DEF, SYM_VAR};
 
     class ModuleSymbol;
     class ClassSymbol;
-    class FunctionSymbol;
+    class DefinitionSymbol;
     class VariableSymbol;
 
     class Symbol : public common::MemoryManageable, public common::Positionnable {
@@ -50,7 +50,7 @@ namespace sym {
 
         ModuleSymbol* getModule(const std::string& name) const;
         ClassSymbol* getClass(const std::string& name) const;
-        FunctionSymbol* getFunction(const std::string& name) const;
+        DefinitionSymbol* getDefinition(const std::string& name) const;
     };
 
     class ClassSymbol : public Symbol {
@@ -61,10 +61,10 @@ namespace sym {
         virtual SYM_TYPE getSymbolType() const;
     };
 
-    class FunctionSymbol : public Symbol {
+    class DefinitionSymbol : public Symbol {
     public:
-        FunctionSymbol(const std::string& name);
-        virtual ~FunctionSymbol();
+        DefinitionSymbol(const std::string& name);
+        virtual ~DefinitionSymbol();
 
         virtual SYM_TYPE getSymbolType() const;
     };

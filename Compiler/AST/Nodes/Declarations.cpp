@@ -15,7 +15,8 @@ namespace ast {
 
 // MODULE DECLARATION
 
-ModuleDecl::ModuleDecl(Identifier *name, const std::vector<ASTNode*>& decls) : _name(name), _decls(decls) {
+ModuleDecl::ModuleDecl(Identifier *name, const std::vector<ModuleDecl*>& mods, const std::vector<DefineDecl*> decls)
+    : _name(name), _mods(mods), _decls(decls) {
 
 }
 
@@ -23,7 +24,11 @@ ModuleDecl::~ModuleDecl() {
 
 }
 
-const std::vector<ASTNode *> &ModuleDecl::getDeclarations() const {
+const std::vector<ModuleDecl*>& ModuleDecl::getSubModules() const {
+    return _mods;
+}
+
+const std::vector<DefineDecl*>& ModuleDecl::getDeclarations() const {
     return _decls;
 }
 

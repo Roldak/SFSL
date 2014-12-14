@@ -81,17 +81,23 @@ ASTNode* Parser::parseProgram() {
 ModuleDecl* Parser::parseModule() {
 
     Identifier* moduleName = parseIdentifier("expected module name");
-    std::vector<ASTNode*> decls;
+    std::vector<ModuleDecl*> mods;
+    std::vector<DefineDecl*> decls;
 
     expect(tok::OPER_L_BRACE, "`{`");
 
-    while (accept(tok::KW_DEF)) {
-        decls.push_back(parseDef());
+    while (!accept(tok::OPER_R_BRACE)) {
+        if (accept(tok::KW_MODULE)) {
+            mods.push_back(parseModule());
+        } else if (accept(tok::KW_DEF)) {
+            decls.push_back(parseDef());
+        } else {
+            expect(tok::OPER_R_BRACE, "`}`");
+            break;
+        }
     }
 
-    expect(tok::OPER_R_BRACE, "`}`");
-
-    return _mngr.New<ModuleDecl>(moduleName, decls);
+    return _mngr.New<ModuleDecl>(moduleName, mods, decls);
 }
 
 DefineDecl* Parser::parseDef() {
