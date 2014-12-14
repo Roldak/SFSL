@@ -30,7 +30,7 @@ common::Positionnable SFSLSource::currentPos() const {
 
 // INPUT STREAM SOURCE
 
-SFSLInputStream::SFSLInputStream(std::string* sourceName, std::istream &input) : SFSLSource(sourceName), _input(input) {
+SFSLInputStream::SFSLInputStream(std::string* sourceName, std::istream& input) : SFSLSource(sourceName), _input(input) {
     produceNext();
 }
 

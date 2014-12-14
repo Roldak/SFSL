@@ -12,6 +12,74 @@ namespace sfsl {
 
 namespace sym {
 
+// SYMBOL
+
+Symbol::Symbol(const std::string &name) : _name(name) {
+
+}
+
+Symbol::~Symbol() {
+
+}
+
+const std::string& Symbol::getName() const {
+    return _name;
+}
+
+// MODULE SYMBOL
+
+ModuleSymbol::ModuleSymbol(const std::string &name) : Symbol(name) {
+
+}
+
+ModuleSymbol::~ModuleSymbol() {
+
+}
+
+SYM_TYPE ModuleSymbol::getSymbolType() const {
+    return SYM_MODULE;
+}
+
+// CLASS SYMBOL
+
+ClassSymbol::ClassSymbol(const std::string &name) : Symbol(name) {
+
+}
+
+ClassSymbol::~ClassSymbol() {
+
+}
+
+SYM_TYPE ClassSymbol::getSymbolType() const {
+    return SYM_CLASS;
+}
+
+FunctionSymbol::FunctionSymbol(const std::string &name) : Symbol(name) {
+
+}
+
+FunctionSymbol::~FunctionSymbol() {
+
+}
+
+SYM_TYPE FunctionSymbol::getSymbolType() const {
+    return SYM_FUNC;
+}
+
+// VARIABLE SYMBOL
+
+VariableSymbol::VariableSymbol(const std::string &name) : Symbol(name) {
+
+}
+
+VariableSymbol::~VariableSymbol() {
+
+}
+
+SYM_TYPE VariableSymbol::getSymbolType() const {
+    return SYM_VAR;
+}
+
 }
 
 }

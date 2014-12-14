@@ -13,6 +13,7 @@
 #include <vector>
 #include "ASTNode.h"
 #include "Declarations.h"
+#include "../Symbols/Scoped.h"
 
 namespace sfsl {
 
@@ -22,7 +23,7 @@ namespace ast {
  * @brief Represents the root of the program.
  * Contains all the modules declared in the global scope
  */
-class Program : public ASTNode {
+class Program : public ASTNode, public sym::Scoped {
 public:
 
     Program(const std::vector<ModuleDecl*>& modules);

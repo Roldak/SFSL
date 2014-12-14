@@ -13,6 +13,7 @@
 #include <vector>
 #include "../../../Utils/Utils.h"
 #include "../Symbols/Symbolic.h"
+#include "../Symbols/Scoped.h"
 #include "ASTNode.h"
 
 namespace sfsl {

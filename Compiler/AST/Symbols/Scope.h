@@ -21,7 +21,7 @@ namespace sym {
     class Scope : public common::MemoryManageable {
     public:
 
-        Scope(Scope* parent);
+        Scope(Scope* parent, bool isDefScope = false);
         virtual ~Scope();
 
         void setSymbol(const std::string& name, Symbol* sym);
@@ -37,33 +37,34 @@ namespace sym {
         Symbol* _getSymbol(const std::string& name, SYM_TYPE symType) const;
 
         Scope* _parent;
+        bool _isDefScope;
 
         std::map<std::string, Symbol*> _symbols;
 
     };
 
     template<>
-    Symbol* Scope::getSymbol(const std::string& name) const {
+    inline Symbol* Scope::getSymbol(const std::string& name) const {
         return _getSymbol(name);
     }
 
     template<>
-    ModuleSymbol* Scope::getSymbol(const std::string& name) const {
+    inline ModuleSymbol* Scope::getSymbol(const std::string& name) const {
         return static_cast<ModuleSymbol*>(_getSymbol(name, SYM_MODULE));
     }
 
     template<>
-    ClassSymbol* Scope::getSymbol(const std::string& name) const {
+    inline ClassSymbol* Scope::getSymbol(const std::string& name) const {
         return static_cast<ClassSymbol*>(_getSymbol(name, SYM_CLASS));
     }
 
     template<>
-    FunctionSymbol* Scope::getSymbol(const std::string& name) const {
+    inline FunctionSymbol* Scope::getSymbol(const std::string& name) const {
         return static_cast<FunctionSymbol*>(_getSymbol(name, SYM_FUNC));
     }
 
     template<>
-    VariableSymbol* Scope::getSymbol(const std::string& name) const {
+    inline VariableSymbol* Scope::getSymbol(const std::string& name) const {
         return static_cast<VariableSymbol*>(_getSymbol(name, SYM_VAR));
     }
 

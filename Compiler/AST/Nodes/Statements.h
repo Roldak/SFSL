@@ -55,7 +55,7 @@ private:
 /**
  * @brief Represents a block, aka a list of statements
  */
-class Block : public Expression, public Statement {
+class Block : public Expression, public Statement, public sym::Scoped {
 public:
     Block(const std::vector<Statement*>& stats);
     virtual ~Block();

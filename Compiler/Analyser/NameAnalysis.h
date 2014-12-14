@@ -19,28 +19,21 @@ namespace ast {
 /**
  * @brief
  */
-class SymbolRegistration : public ASTVisitor {
+class ScopeGeneration : public ASTVisitor {
 public:
 
-    SymbolRegistration(std::shared_ptr<common::CompilationContext>& ctx);
+    ScopeGeneration(std::shared_ptr<common::CompilationContext>& ctx);
 
     virtual void visit(Program* prog);
 
     virtual void visit(ModuleDecl* module);
     virtual void visit(DefineDecl* decl);
 
-    virtual void visit(ExpressionStatement* exp);
-
-    virtual void visit(BinaryExpression* exp);
     virtual void visit(Block* block);
-    virtual void visit(IfExpression* ifexpr);
-    virtual void visit(MemberAccess* dot);
-    virtual void visit(Tuple* tuple);
-    virtual void visit(FunctionCreation* func);
-    virtual void visit(FunctionCall* call);
-    virtual void visit(Identifier* ident);
-    virtual void visit(IntLitteral* intlit);
-    virtual void visit(RealLitteral* reallit);
+
+private:
+
+    sym::Scope* _curScope;
 };
 
 }

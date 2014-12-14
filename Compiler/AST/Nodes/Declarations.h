@@ -12,6 +12,7 @@
 #include <iostream>
 #include <vector>
 #include "Statements.h"
+#include "../Symbols/Scoped.h"
 
 namespace sfsl {
 
@@ -25,7 +26,7 @@ class DefineDecl;
  *  - This module's name
  *  - All the declarations inside this module
  */
-class ModuleDecl : public ASTNode {
+class ModuleDecl : public ASTNode, public sym::Scoped {
 public:
 
     ModuleDecl(Identifier* name, const std::vector<ASTNode*>& decls);
@@ -56,7 +57,7 @@ private:
  *  - This definition's name
  *  - The value associated to this definition
  */
-class DefineDecl : public Statement {
+class DefineDecl : public Statement, public sym::Scoped {
 public:
 
     DefineDecl(Identifier* name, ASTNode* value);
