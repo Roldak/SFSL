@@ -7,6 +7,7 @@
 #include "Compiler/Lexer/Lexer.h"
 #include "Compiler/Parser/Parser.h"
 #include "Compiler/AST/Visitors/ASTPrinter.h"
+#include "Compiler/Analyser/NameAnalysis.h"
 
 using namespace std;
 using namespace sfsl;
@@ -33,9 +34,14 @@ int main()
     ast::Parser parser(ctx, lexer);
 
     ast::ASTNode* node = parser.parse();
-    ast::ASTPrinter printer(ctx);
 
+    ast::ASTPrinter printer(ctx);
     node->onVisit(&printer);
+
+    ast::ScopeGeneration scopeGen(ctx);
+    node->onVisit(&scopeGen);
+
+    cout << ((ast::Program*)node)->getModules()[0]->getSymbol()->getDefinition("test") << endl;
 
     cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
 }

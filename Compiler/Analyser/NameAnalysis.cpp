@@ -29,7 +29,7 @@ void ScopeGeneration::visit(Program *prog) {
         _curScope->addSymbol(name, modsym);
     }
 
-    prog->onVisit(this);
+    ASTVisitor::visit(prog);
 
     popScope();
 }
@@ -38,7 +38,7 @@ void ScopeGeneration::visit(ModuleDecl *module) {
     pushScope(module->getSymbol());
 
     for (ModuleDecl* submod : module->getSubModules()) {
-        const std::string& name = decl->getName()->getValue();
+        const std::string& name = submod->getName()->getValue();
         sym::ModuleSymbol* submodsym = _mngr.New<sym::ModuleSymbol>(name);
 
         submod->setSymbol(submodsym);
@@ -53,21 +53,33 @@ void ScopeGeneration::visit(ModuleDecl *module) {
         _curScope->addSymbol(name, def);
     }
 
-    ASTVisitor.visit(module);
+    ASTVisitor::visit(module);
 
     popScope();
 }
 
 void ScopeGeneration::visit(DefineDecl *def) {
+    pushScope(nullptr, true);
 
+
+
+    popScope();
 }
 
 void ScopeGeneration::visit(Block *block) {
+    pushScope();
 
+
+
+    popScope();
 }
 
 void ScopeGeneration::visit(FunctionCreation *func) {
+    pushScope();
 
+
+
+    popScope();
 }
 
 void ScopeGeneration::pushScope(sym::Scoped *scoped, bool isDefScope) {
