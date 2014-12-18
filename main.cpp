@@ -41,7 +41,7 @@ int main()
     ast::ScopeGeneration scopeGen(ctx);
     node->onVisit(&scopeGen);
 
-    cout << ((ast::Program*)node)->getModules()[0]->getSymbol()->getDefinition("test") << endl;
+    //cout << ((ast::Program*)node)->getModules()[0]->getSymbol()->getDefinition("test") << endl;
 
     cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
 }

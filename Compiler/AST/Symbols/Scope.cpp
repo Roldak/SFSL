@@ -20,10 +20,10 @@ Scope::~Scope() {
 
 }
 
-void Scope::addSymbol(const std::string &name, Symbol *sym) {
-    _symbols[name] = sym;
+Symbol* Scope::addSymbol(Symbol *sym) {
+    auto res = _symbols.insert(std::map<std::string, Symbol*>::value_type(sym->getName(), sym));
+    return res.second ? nullptr : (*res.first).second;
 }
-
 
 Scope* Scope::getParent() const {
     return _parent;

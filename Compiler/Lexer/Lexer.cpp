@@ -42,7 +42,8 @@ void Lexer::produceNext() {
 
     while (_lastChar.kind == CHR_EMPTY || _lastChar.kind == CHR_SPACE) {
         if (!_source.hasNext()) {
-            _curToken = _ctx->memoryManager().New<EOFToken>()->setPos<Token>(_source.currentPos());
+            _curToken = _ctx->memoryManager().New<EOFToken>();
+            _curToken->setPos(_source.currentPos());
             return;
         }
 
@@ -74,7 +75,8 @@ void Lexer::produceNext() {
         }
         else if (strKind == STR_UNKNOWN) {
             _ctx->reporter().error(common::Positionnable(initPos, _source.getSourceName()), "unknown symbol '" + soFar + "'");
-            _curToken = _ctx->memoryManager().New<BadToken>(soFar)->setPos<Token>(initPos, _source.getSourceName());
+            _curToken = _ctx->memoryManager().New<BadToken>(soFar);
+            _curToken->setPos(initPos, _source.getSourceName());
             return;
         }
         else {
@@ -82,14 +84,16 @@ void Lexer::produceNext() {
                 handleStringLitteral(soFar);
                 _lastChar.kind = CHR_EMPTY;
             }
-            _curToken = buildToken(strKind, soFar)->setPos<Token>(initPos, _source.getSourceName());
+            _curToken = buildToken(strKind, soFar);
+            _curToken->setPos(initPos, _source.getSourceName());
             return;
         }
 
     }
 
     _lastChar.kind = CHR_EMPTY;
-    _curToken = buildToken(strKind, soFar)->setPos<Token>(initPos, _source.getSourceName());
+    _curToken = buildToken(strKind, soFar);
+    _curToken->setPos(initPos, _source.getSourceName());
 }
 
 Lexer::CharInfo Lexer::readCharInfo() {

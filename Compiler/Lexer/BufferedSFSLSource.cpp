@@ -36,7 +36,7 @@ char BufferedSFSLSource::getNext()  {
 }
 
 size_t BufferedSFSLSource::getPosition() const {
-    return _source.getPosition();
+    return _source.getPosition() - _buffSize + _index;
 }
 
 std::string* BufferedSFSLSource::getSourceName() const {

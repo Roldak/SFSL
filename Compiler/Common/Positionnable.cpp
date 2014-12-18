@@ -20,6 +20,19 @@ Positionnable::Positionnable(size_t pos, std::string *source) : _pos(pos), _sour
 
 }
 
+Positionnable::~Positionnable() {
+
+}
+
+void Positionnable::setPos(size_t pos, std::string* source) {
+    _pos = pos;
+    _source = source;
+}
+
+void Positionnable::setPos(const Positionnable& other) {
+    setPos(other._pos, other._source);
+}
+
 size_t Positionnable::getPosition() const{
     return _pos;
 }

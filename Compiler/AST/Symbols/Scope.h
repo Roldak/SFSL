@@ -24,7 +24,14 @@ namespace sym {
         Scope(Scope* parent, bool isDefScope = false);
         virtual ~Scope();
 
-        void addSymbol(const std::string& name, Symbol* sym);
+        /**
+         * @brief Adds the symbol in this scope unless a symbol of the same name
+         * was already defined, in which case this symbol is returned
+         *
+         * @param sym The symbol to add
+         * @return The symbol of the same name in the current scope if any, otherwise nullptr
+         */
+        Symbol* addSymbol(Symbol* sym);
 
         template<typename T>
         T* getSymbol(const std::string &name) const {

@@ -94,7 +94,7 @@ FunctionCreation::~FunctionCreation() {
 
 SFSL_AST_ON_VISIT_CPP(FunctionCreation)
 
-Expression *FunctionCreation::getArgs() const {
+Expression* FunctionCreation::getArgs() const {
     return _args;
 }
 

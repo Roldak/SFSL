@@ -66,7 +66,7 @@ private:
 
     ast::ASTNode* parseProgram();
     ast::ModuleDecl* parseModule();
-    ast::DefineDecl* parseDef();
+    ast::DefineDecl* parseDef(bool asStatement);
 
         // statements
 

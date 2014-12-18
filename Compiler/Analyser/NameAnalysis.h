@@ -37,6 +37,11 @@ private:
     void pushScope(sym::Scoped* scoped = nullptr, bool isDefScope = false);
     void popScope();
 
+    template<typename T, typename U>
+    T* createSymbol(U* node);
+
+    void tryAddSymbol(sym::Symbol* sym);
+
     sym::Scope* _curScope;
 };
 

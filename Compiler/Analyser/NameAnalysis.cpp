@@ -21,37 +21,15 @@ ScopeGeneration::ScopeGeneration(std::shared_ptr<common::CompilationContext> &ct
 void ScopeGeneration::visit(Program *prog) {
     pushScope();
 
-    for (ModuleDecl* mod : prog->getModules()) {
-        const std::string& name = mod->getName()->getValue();
-        sym::ModuleSymbol* modsym = _mngr.New<sym::ModuleSymbol>(name);
-
-        mod->setSymbol(modsym);
-        _curScope->addSymbol(name, modsym);
-    }
-
     ASTVisitor::visit(prog);
 
     popScope();
 }
 
 void ScopeGeneration::visit(ModuleDecl *module) {
+    createSymbol<sym::ModuleSymbol>(module);
+
     pushScope(module->getSymbol());
-
-    for (ModuleDecl* submod : module->getSubModules()) {
-        const std::string& name = submod->getName()->getValue();
-        sym::ModuleSymbol* submodsym = _mngr.New<sym::ModuleSymbol>(name);
-
-        submod->setSymbol(submodsym);
-        _curScope->addSymbol(name, submodsym);
-    }
-
-    for (DefineDecl* decl : module->getDeclarations()) {
-        const std::string& name = decl->getName()->getValue();
-        sym::DefinitionSymbol* def = _mngr.New<sym::DefinitionSymbol>(name);
-
-        decl->setSymbol(def);
-        _curScope->addSymbol(name, def);
-    }
 
     ASTVisitor::visit(module);
 
@@ -59,9 +37,11 @@ void ScopeGeneration::visit(ModuleDecl *module) {
 }
 
 void ScopeGeneration::visit(DefineDecl *def) {
+    createSymbol<sym::DefinitionSymbol>(def);
+
     pushScope(nullptr, true);
 
-
+    ASTVisitor::visit(def);
 
     popScope();
 }
@@ -69,7 +49,7 @@ void ScopeGeneration::visit(DefineDecl *def) {
 void ScopeGeneration::visit(Block *block) {
     pushScope();
 
-
+    ASTVisitor::visit(block);
 
     popScope();
 }
@@ -77,7 +57,7 @@ void ScopeGeneration::visit(Block *block) {
 void ScopeGeneration::visit(FunctionCreation *func) {
     pushScope();
 
-
+    ASTVisitor::visit(func);
 
     popScope();
 }
@@ -91,6 +71,26 @@ void ScopeGeneration::pushScope(sym::Scoped *scoped, bool isDefScope) {
 
 void ScopeGeneration::popScope() {
     _curScope = _curScope->getParent();
+}
+
+void ScopeGeneration::tryAddSymbol(sym::Symbol *sym) {
+    if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
+        _ctx.get()->reporter().error(*sym,
+                                     std::string("Multiple definitions of symbol '") + sym->getName() +
+                                     "' were found. First instance here : " +
+                                     *oldSymbol->getSourceName() + ":" + utils::T_toString(oldSymbol->getPosition()));
+    }
+}
+
+template<typename T, typename U>
+T* ScopeGeneration::createSymbol(U* node) {
+    T* sym = _mngr.New<T>(node->getName()->getValue());
+    sym->setPos(*node);
+
+    node->setSymbol(sym);
+    tryAddSymbol(sym);
+
+    return sym;
 }
 
 }

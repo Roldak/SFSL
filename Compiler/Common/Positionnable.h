@@ -23,39 +23,31 @@ namespace common {
     public:
 
         /**
-         * @brief Creates a Positionnable
+         * @brief Creates a BasePositionnable
          */
         Positionnable();
 
         /**
-         * @brief Creates a Positionnable
+         * @brief Creates a BasePositionnable
          * @param pos its position
          * @param source its source name
          */
         Positionnable(size_t pos, std::string *source);
 
-        template<typename T>
+        virtual ~Positionnable();
+
         /**
          * @brief sets the position of the object to the given parameters
          * @param pos the new position
          * @param source the new file name
-         * @return this
          */
-        T* setPos(size_t pos, std::string* source) {
-            _pos = pos;
-            _source = source;
-            return static_cast<T*>(this);
-        }
+        void setPos(size_t pos, std::string* source);
 
-        template<typename T>
         /**
          * @brief sets the position of the object to be the same as the Positionnable given in parameter
          * @param other the Positionnable which contains the position to copy
-         * @return this
          */
-        T* setPos(const Positionnable& other) {
-            return setPos<T>(other._pos, other._source);
-        }
+        void setPos(const Positionnable& other);
 
         /**
          * @return the position of the Positionnable

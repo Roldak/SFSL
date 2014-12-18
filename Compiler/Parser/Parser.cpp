@@ -10,6 +10,8 @@
 
 #include "../Lexer/Tokens/Litterals.h"
 
+#define SAVE_POS(ident) const common::Positionnable ident = *_currentToken;
+
 namespace sfsl {
 
 using namespace ast;
@@ -55,6 +57,8 @@ void Parser::accept() {
 Identifier* Parser::parseIdentifier(const std::string& errMsg) {
     std::string name;
 
+    SAVE_POS(startPos)
+
     if (isType(tok::TOK_ID)) {
         name = as<tok::Identifier>()->toString();
         accept();
@@ -62,7 +66,9 @@ Identifier* Parser::parseIdentifier(const std::string& errMsg) {
         _ctx->reporter().error(*_currentToken, errMsg);
     }
 
-    return _mngr.New<Identifier>(name);
+    Identifier* id = _mngr.New<Identifier>(name);
+    id->setPos(startPos);
+    return id;
 }
 
 // Parsing
@@ -70,12 +76,16 @@ Identifier* Parser::parseIdentifier(const std::string& errMsg) {
 ASTNode* Parser::parseProgram() {
     std::vector<ModuleDecl*> modules;
 
+    SAVE_POS(startPos)
+
     while (_lex.hasNext()) {
         expect(tok::KW_MODULE, "`module`", true);
         modules.push_back(parseModule());
     }
 
-    return _mngr.New<Program>(modules);
+    Program* prog = _mngr.New<Program>(modules);
+    prog->setPos(startPos);
+    return prog;
 }
 
 ModuleDecl* Parser::parseModule() {
@@ -90,26 +100,34 @@ ModuleDecl* Parser::parseModule() {
         if (accept(tok::KW_MODULE)) {
             mods.push_back(parseModule());
         } else if (accept(tok::KW_DEF)) {
-            decls.push_back(parseDef());
+            decls.push_back(parseDef(false));
         } else {
             expect(tok::OPER_R_BRACE, "`}`");
             break;
         }
     }
 
-    return _mngr.New<ModuleDecl>(moduleName, mods, decls);
+    ModuleDecl* modDecl = _mngr.New<ModuleDecl>(moduleName, mods, decls);
+    modDecl->setPos(*moduleName);
+    return modDecl;
 }
 
-DefineDecl* Parser::parseDef() {
+DefineDecl* Parser::parseDef(bool asStatement) {
 
     Identifier* defName = parseIdentifier("expected definition name");
 
     if (!(isType(tok::TOK_OPER) && as<tok::Operator>()->getOpType() == tok::OPER_L_PAREN))
         expect(tok::OPER_EQ, "`=`");
 
-    Expression* expr = parseExpression();
+    Expression* stat = parseExpression();
 
-    return _mngr.New<DefineDecl>(defName, expr);
+    if (asStatement) {
+        expect(tok::OPER_SEMICOLON, "`;`");
+    }
+
+    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, stat);
+    defDecl->setPos(*defName);
+    return defDecl;
 
 }
 
@@ -119,7 +137,7 @@ Statement* Parser::parseStatement() {
         accept();
 
         switch (kw) {
-        case tok::KW_DEF:   return parseDef();
+        case tok::KW_DEF:   return parseDef(true);
         case tok::KW_IF:    return parseIf(true);
         default:            return nullptr;
         }
@@ -127,7 +145,9 @@ Statement* Parser::parseStatement() {
     } else if (accept(tok::OPER_L_BRACE)) {
         return parseBlock();
     } else {
+        SAVE_POS(startPos)
         ExpressionStatement* expr = _mngr.New<ExpressionStatement>(parseExpression());
+        expr->setPos(startPos);
         expect(tok::OPER_SEMICOLON, "`;`");
         return expr;
     }
@@ -160,7 +180,9 @@ Expression* Parser::parseBinary(Expression* left, int precedence) {
                     }
                 }
 
+                common::Positionnable& leftPos = *left;
                 left = _mngr.New<BinaryExpression>(left, right, _mngr.New<Identifier>(oper->toString()));
+                left->setPos(leftPos);
             }
 
         } else {
@@ -177,11 +199,13 @@ Expression* Parser::parsePrimary() {
     switch (_currentToken->getTokenType()) {
     case tok::TOK_INT_LIT:
         toRet = _mngr.New<IntLitteral>(as<tok::IntLitteral>()->getValue());
+        toRet->setPos(*_currentToken);
         accept();
         break;
 
     case tok::TOK_REAL_LIT:
         toRet = _mngr.New<RealLitteral>(as<tok::RealLitteral>()->getValue());
+        toRet->setPos(*_currentToken);
         accept();
         break;
 
@@ -226,14 +250,19 @@ Expression* Parser::parsePrimary() {
 Block* Parser::parseBlock() {
     std::vector<Statement*> stats;
 
+    SAVE_POS(startPos)
+
     while (!accept(tok::OPER_R_BRACE)) {
         stats.push_back(parseStatement());
     }
-
-    return _mngr.New<Block>(stats);
+    Block* block = _mngr.New<Block>(stats);
+    block->setPos(startPos);
+    return block;
 }
 
 IfExpression* Parser::parseIf(bool asStatement) {
+    SAVE_POS(startPos)
+
     expect(tok::OPER_L_PAREN, "`(`");
 
     Expression* cond = parseExpression();
@@ -247,14 +276,20 @@ IfExpression* Parser::parseIf(bool asStatement) {
          els = asStatement ? (ASTNode*)parseStatement() : (ASTNode*)parseExpression();
     }
 
-    return _mngr.New<IfExpression>(cond, then, els);
+    IfExpression* ifexpr = _mngr.New<IfExpression>(cond, then, els);
+    ifexpr->setPos(startPos);
+    return ifexpr;
 }
 
 Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     if (accept(tok::OPER_L_PAREN)) {
-        return _mngr.New<FunctionCall>(left, parseTuple());
+        FunctionCall* fcall = _mngr.New<FunctionCall>(left, parseTuple());
+        fcall->setPos(*left);
+        return fcall;
     } else if (accept(tok::OPER_FAT_ARROW)) {
-        return _mngr.New<FunctionCreation>(left, parseExpression());
+        FunctionCreation* fcall = _mngr.New<FunctionCreation>(left, parseExpression());
+        fcall->setPos(*left);
+        return fcall;
     } else if (accept(tok::OPER_DOT)) {
         return parseDotOperation(left);
     }
@@ -269,6 +304,8 @@ Tuple* Parser::parseTuple() {
 
 ast::Tuple* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
 
+    SAVE_POS(startPos)
+
     if (!accept(tok::OPER_R_PAREN)) {
         do {
             if (Expression* arg = parseExpression()){
@@ -279,7 +316,9 @@ ast::Tuple* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
         expect(tok::OPER_R_PAREN, "`)`");
     }
 
-    return _mngr.New<Tuple>(exprs);
+    Tuple* tuple = _mngr.New<Tuple>(exprs);
+    tuple->setPos(startPos);
+    return tuple;
 }
 
 Expression* Parser::parseDotOperation(Expression* left) {
@@ -290,7 +329,9 @@ Expression* Parser::parseDotOperation(Expression* left) {
         exprs[0] = left;
         return _mngr.New<FunctionCall>(ident, parseTuple(exprs));
     } else {
-        return _mngr.New<MemberAccess>(left, ident);
+        MemberAccess* maccess = _mngr.New<MemberAccess>(left, ident);
+        maccess->setPos(*ident);
+        return maccess;
     }
 
 }
