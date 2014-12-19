@@ -33,15 +33,15 @@ int main()
     lex::Lexer lexer(ctx, src, 1024);
     ast::Parser parser(ctx, lexer);
 
-    ast::ASTNode* node = parser.parse();
+    ast::ASTNode* prog = parser.parse();
 
     ast::ASTPrinter printer(ctx);
-    node->onVisit(&printer);
+    prog->onVisit(&printer);
 
     ast::ScopeGeneration scopeGen(ctx);
-    node->onVisit(&scopeGen);
+    prog->onVisit(&scopeGen);
 
-    //cout << ((ast::Program*)node)->getModules()[0]->getSymbol()->getDefinition("test") << endl;
+    cout << prog->positionStr() << endl;
 
     cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
 }

@@ -25,7 +25,7 @@ std::string* SFSLSource::getSourceName() const {
 }
 
 common::Positionnable SFSLSource::currentPos() const {
-    return common::Positionnable(getPosition(), getSourceName());
+    return common::Positionnable(getPosition(), getPosition() + 1, getSourceName());
 }
 
 // INPUT STREAM SOURCE

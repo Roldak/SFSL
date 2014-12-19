@@ -41,7 +41,7 @@ public:
     /**
      * @brief Start the parsing process
      */
-    ast::ASTNode* parse();
+    ast::Program* parse();
 
 private:
 
@@ -64,7 +64,7 @@ private:
 
     ast::Identifier* parseIdentifier(const std::string& errMsg = "");
 
-    ast::ASTNode* parseProgram();
+    ast::Program* parseProgram();
     ast::ModuleDecl* parseModule();
     ast::DefineDecl* parseDef(bool asStatement);
 
@@ -92,6 +92,7 @@ private:
     common::AbstractMemoryManager& _mngr;
     lex::Lexer& _lex;
 
+    size_t _lastTokenEndPos;
     tok::Token* _currentToken;
 
 };

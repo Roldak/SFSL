@@ -17,11 +17,11 @@ namespace sfsl {
 using namespace ast;
 
 Parser::Parser(std::shared_ptr<common::CompilationContext>& ctx, lex::Lexer &lexer)
-    : _ctx(ctx), _mngr(ctx->memoryManager()), _lex(lexer), _currentToken(nullptr) {
+    : _ctx(ctx), _mngr(ctx->memoryManager()), _lex(lexer), _lastTokenEndPos(0), _currentToken(nullptr) {
 
 }
 
-ASTNode* Parser::parse() {
+Program* Parser::parse() {
     _currentToken = _lex.getNext();
     return parseProgram();
 }
@@ -51,6 +51,7 @@ bool Parser::accept(tok::KW_TYPE type) {
 }
 
 void Parser::accept() {
+    _lastTokenEndPos = _currentToken->getEndPosition();
     _currentToken = _lex.getNext();
 }
 
@@ -73,7 +74,7 @@ Identifier* Parser::parseIdentifier(const std::string& errMsg) {
 
 // Parsing
 
-ASTNode* Parser::parseProgram() {
+Program* Parser::parseProgram() {
     std::vector<ModuleDecl*> modules;
 
     SAVE_POS(startPos)
@@ -85,6 +86,7 @@ ASTNode* Parser::parseProgram() {
 
     Program* prog = _mngr.New<Program>(modules);
     prog->setPos(startPos);
+    prog->setEndPos(_lastTokenEndPos);
     return prog;
 }
 
@@ -109,6 +111,8 @@ ModuleDecl* Parser::parseModule() {
 
     ModuleDecl* modDecl = _mngr.New<ModuleDecl>(moduleName, mods, decls);
     modDecl->setPos(*moduleName);
+    modDecl->setEndPos(_lastTokenEndPos);
+
     return modDecl;
 }
 
@@ -119,14 +123,15 @@ DefineDecl* Parser::parseDef(bool asStatement) {
     if (!(isType(tok::TOK_OPER) && as<tok::Operator>()->getOpType() == tok::OPER_L_PAREN))
         expect(tok::OPER_EQ, "`=`");
 
-    Expression* stat = parseExpression();
+    Expression* expr = parseExpression();
 
     if (asStatement) {
         expect(tok::OPER_SEMICOLON, "`;`");
     }
 
-    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, stat);
+    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, expr);
     defDecl->setPos(*defName);
+    defDecl->setEndPos(_lastTokenEndPos);
     return defDecl;
 
 }
@@ -183,6 +188,7 @@ Expression* Parser::parseBinary(Expression* left, int precedence) {
                 common::Positionnable& leftPos = *left;
                 left = _mngr.New<BinaryExpression>(left, right, _mngr.New<Identifier>(oper->toString()));
                 left->setPos(leftPos);
+                left->setEndPos(_lastTokenEndPos);
             }
 
         } else {
@@ -257,6 +263,8 @@ Block* Parser::parseBlock() {
     }
     Block* block = _mngr.New<Block>(stats);
     block->setPos(startPos);
+    block->setEndPos(_lastTokenEndPos);
+
     return block;
 }
 
@@ -278,6 +286,8 @@ IfExpression* Parser::parseIf(bool asStatement) {
 
     IfExpression* ifexpr = _mngr.New<IfExpression>(cond, then, els);
     ifexpr->setPos(startPos);
+    ifexpr->setEndPos(_lastTokenEndPos);
+
     return ifexpr;
 }
 
@@ -285,10 +295,12 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     if (accept(tok::OPER_L_PAREN)) {
         FunctionCall* fcall = _mngr.New<FunctionCall>(left, parseTuple());
         fcall->setPos(*left);
+        fcall->setEndPos(_lastTokenEndPos);
         return fcall;
     } else if (accept(tok::OPER_FAT_ARROW)) {
         FunctionCreation* fcall = _mngr.New<FunctionCreation>(left, parseExpression());
         fcall->setPos(*left);
+        fcall->setEndPos(_lastTokenEndPos);
         return fcall;
     } else if (accept(tok::OPER_DOT)) {
         return parseDotOperation(left);
@@ -318,6 +330,7 @@ ast::Tuple* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
 
     Tuple* tuple = _mngr.New<Tuple>(exprs);
     tuple->setPos(startPos);
+    tuple->setEndPos(_lastTokenEndPos);
     return tuple;
 }
 
@@ -327,10 +340,14 @@ Expression* Parser::parseDotOperation(Expression* left) {
     if (accept(tok::OPER_L_PAREN)) {
         std::vector<Expression*> exprs(1);
         exprs[0] = left;
-        return _mngr.New<FunctionCall>(ident, parseTuple(exprs));
+        FunctionCall* funcCall = _mngr.New<FunctionCall>(ident, parseTuple(exprs));
+        funcCall->setPos(*ident);
+        funcCall->setEndPos(_lastTokenEndPos);
+        return funcCall;
     } else {
         MemberAccess* maccess = _mngr.New<MemberAccess>(left, ident);
         maccess->setPos(*ident);
+        maccess->setEndPos(_lastTokenEndPos);
         return maccess;
     }
 

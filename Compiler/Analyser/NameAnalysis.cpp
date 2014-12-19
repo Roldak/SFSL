@@ -78,7 +78,7 @@ void ScopeGeneration::tryAddSymbol(sym::Symbol *sym) {
         _ctx.get()->reporter().error(*sym,
                                      std::string("Multiple definitions of symbol '") + sym->getName() +
                                      "' were found. First instance here : " +
-                                     *oldSymbol->getSourceName() + ":" + utils::T_toString(oldSymbol->getPosition()));
+                                     oldSymbol->positionStr());
     }
 }
 

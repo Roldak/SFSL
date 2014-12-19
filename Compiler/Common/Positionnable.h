@@ -29,39 +29,62 @@ namespace common {
 
         /**
          * @brief Creates a BasePositionnable
-         * @param pos its position
-         * @param source its source name
+         * @param pos Its position
+         * @param source Its source name
          */
-        Positionnable(size_t pos, std::string *source);
+        Positionnable(size_t startPos, size_t endPos, std::string* source);
 
         virtual ~Positionnable();
 
         /**
-         * @brief sets the position of the object to the given parameters
-         * @param pos the new position
-         * @param source the new file name
+         * @brief Sets the position of the object to the given parameters
+         * @param pos The new position
+         * @param source The new file name
          */
-        void setPos(size_t pos, std::string* source);
+        void setPos(size_t startPos, size_t endPos, std::string* source);
 
         /**
-         * @brief sets the position of the object to be the same as the Positionnable given in parameter
-         * @param other the Positionnable which contains the position to copy
+         * @brief Sets the position of the object to be the same as the Positionnable given in parameter
+         * @param other The Positionnable which contains the position to copy
          */
         void setPos(const Positionnable& other);
 
         /**
-         * @return the position of the Positionnable
+         * @brief Sets the start position
+         * @param startPos The new position
          */
-        size_t getPosition() const;
+        void setStartPos(size_t startPos);
 
         /**
-         * @return the name of the source at the origin of the Positionnable
+         * @brief Sets the end position
+         * @param startPos The new position
+         */
+        void setEndPos(size_t endPos);
+
+        /**
+         * @return The start position of the Positionnable
+         */
+        size_t getStartPosition() const;
+
+        /**
+         * @return The end position of the Positionnable
+         */
+        size_t getEndPosition() const;
+
+        /**
+         * @return The name of the source at the origin of the Positionnable
          */
         std::string* getSourceName() const;
 
+        /**
+         * @return A readable representation of the position
+         */
+        std::string positionStr() const;
+
     private:
 
-        size_t _pos;
+        size_t _startPos;
+        size_t _endPos;
         std::string* _source;
 
     };
