@@ -53,12 +53,15 @@ public:
     virtual void visit(DefineDecl* decl);
 
     virtual void visit(BinaryExpression* exp);
+    virtual void visit(MemberAccess* mac);
     virtual void visit(Block* block);
     virtual void visit(FunctionCreation* func);
 
     virtual void visit(Identifier* id);
 
 private:
+
+    sym::Symbol* extractSymbolFromExpr(Expression* exp);
 
     sym::Scope* _curScope;
 

@@ -9,6 +9,7 @@
 #include "NameAnalysis.h"
 #include "../AST/Symbols/Scope.h"
 #include "../AST/Symbols/Symbols.h"
+#include "../AST/Visitors/ASTTypeIdentifier.h"
 
 namespace sfsl {
 
@@ -123,6 +124,24 @@ void SymbolAssignation::visit(BinaryExpression* exp) {
     exp->getRhs()->onVisit(this);
 }
 
+void SymbolAssignation::visit(MemberAccess* mac) {
+    mac->getAccessed()->onVisit(this);
+    if (sym::Symbol* sym = extractSymbolFromExpr(mac->getAccessed())) {
+        if (sym->getSymbolType() == sym::SYM_MODULE) {
+            sym::Scope* scope = ((sym::ModuleSymbol*)sym)->getScope();
+            const std::string& id = mac->getMember()->getValue();
+
+            if (sym::Symbol* resSymbol = scope->getSymbol<sym::Symbol>(id, false)) {
+                mac->setSymbol(resSymbol);
+            } else {
+                _ctx.get()->reporter().error(
+                            *(mac->getMember()),
+                            std::string("No member named '") + id + "' in module '" + sym->getName() + "'");
+            }
+        }
+    }
+}
+
 void SymbolAssignation::visit(Block* block) {
     _curScope = block->getScope();
     ASTVisitor::visit(block);
@@ -139,6 +158,18 @@ void SymbolAssignation::visit(Identifier* id) {
     } else {
         _ctx.get()->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
     }
+}
+
+sym::Symbol* SymbolAssignation::extractSymbolFromExpr(Expression* exp) {
+    sym::Symbolic<sym::Symbol>* sym = nullptr;
+
+    if (getIfNodeIsOfType<Identifier>(exp, _ctx)) {
+        sym = static_cast<Identifier*>(exp);
+    } else if (getIfNodeIsOfType<MemberAccess>(exp, _ctx)) {
+        sym = static_cast<MemberAccess*>(exp);
+    }
+
+    return sym == nullptr ? nullptr : sym->getSymbol();
 }
 
 }

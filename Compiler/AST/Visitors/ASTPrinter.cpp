@@ -17,7 +17,6 @@ ASTPrinter::ASTPrinter(std::shared_ptr<common::CompilationContext> &ctx) : ASTVi
 }
 
 void ASTPrinter::visit(ModuleDecl *module) {
-    printIndents();
     std::cout << "module " << module->getName()->getValue() << " {" << std::endl;
 
     ++_indentCount;

@@ -99,7 +99,7 @@ private:
 /**
 // * @brief Represents a member access (with a dot operation, e.g. `point.x`)
  */
-class MemberAccess : public Expression {
+class MemberAccess : public Expression, public sym::Symbolic<sym::Symbol> {
 public:
 
     MemberAccess(Expression* accessed, Identifier* member);
