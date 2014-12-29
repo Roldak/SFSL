@@ -41,29 +41,6 @@ namespace ast {
 
         type::Type* _type;
     };
-
-    /**
-     * @brief Abstract class representing a type node.
-     * Is the base of every node describing types, such as
-     * Int, (Int)->Unit, List[Int], etc.
-     */
-    class TypeNode : public ASTNode {
-    public:
-        virtual ~TypeNode();
-        virtual type::Type* createType(common::CompilationContext& ctx) = 0;
-    };
-
-    class IdentifierType : public TypeNode {
-    public:
-        IdentifierType(const std::string& id);
-        virtual ~IdentifierType();
-
-        virtual type::Type* createType(common::CompilationContext& ctx);
-
-    private:
-
-        const std::string _id;
-    };
 }
 
 }

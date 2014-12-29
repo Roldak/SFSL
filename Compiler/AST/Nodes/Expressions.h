@@ -75,7 +75,7 @@ private:
  */
 class TypeSpecifier : public Expression {
 public:
-    TypeSpecifier(Expression* specified, TypeNode* type);
+    TypeSpecifier(Expression* specified, Expression* type);
     virtual ~TypeSpecifier();
 
     SFSL_AST_ON_VISIT_H
@@ -88,12 +88,12 @@ public:
     /**
      * @return The type part
      */
-    TypeNode* getTypeNode() const;
+    Expression* getTypeNode() const;
 
 private:
 
     Expression* _specified;
-    TypeNode* _type;
+    Expression* _type;
 };
 
 /**
@@ -148,7 +148,7 @@ private:
 /**
  * @brief Represents a function creation, e.g. `(x) => 2 * x`
  */
-class FunctionCreation : public Expression {
+class FunctionCreation : public Expression, public sym::Scoped {
 public:
 
     FunctionCreation(Expression* args, Expression* body);
@@ -209,7 +209,7 @@ private:
  * @brief Represents an Identifier, which
  * refers to a symbol.
  */
-class Identifier : public Expression {
+class Identifier : public Expression, public sym::Symbolic<sym::Symbol> {
 public:
 
     Identifier(const std::string& name);

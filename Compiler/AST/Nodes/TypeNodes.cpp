@@ -27,26 +27,6 @@ type::Type* Typed::type() {
     return _type;
 }
 
-// TYPE NODE
-
-TypeNode::~TypeNode() {
-
-}
-
-// IDENTIFER TYPE
-
-IdentifierType::IdentifierType(const std::string &id) {
-
-}
-
-IdentifierType::~IdentifierType() {
-
-}
-
-type::Type* IdentifierType::createType(common::CompilationContext& ctx) {
-
-}
-
 }
 
 }

@@ -45,6 +45,25 @@ private:
     sym::Scope* _curScope;
 };
 
+class SymbolAssignation : public ASTVisitor {
+public:
+
+    SymbolAssignation(std::shared_ptr<common::CompilationContext>& ctx);
+
+    virtual void visit(DefineDecl* decl);
+
+    virtual void visit(BinaryExpression* exp);
+    virtual void visit(Block* block);
+    virtual void visit(FunctionCreation* func);
+
+    virtual void visit(Identifier* id);
+
+private:
+
+    sym::Scope* _curScope;
+
+};
+
 }
 
 }

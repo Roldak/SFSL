@@ -64,13 +64,14 @@ int main(int argc, char** argv) {
 
         ast::ScopeGeneration scopeGen(ctx);
         prog->onVisit(&scopeGen);
+
+        ast::SymbolAssignation symAssign(ctx);
+        prog->onVisit(&symAssign);
     }
 
     if (compileOnly) {
         return 0;
     }
-
-
 
     cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
 }

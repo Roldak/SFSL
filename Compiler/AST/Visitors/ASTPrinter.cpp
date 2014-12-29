@@ -66,6 +66,14 @@ void ASTPrinter::visit(BinaryExpression *exp) {
     std::cout << ")";
 }
 
+void ASTPrinter::visit(TypeSpecifier *tps) {
+    std::cout << "(";
+    tps->getSpecified()->onVisit(this);
+    std::cout << " : ";
+    tps->getTypeNode()->onVisit(this);
+    std::cout << ")";
+}
+
 void ASTPrinter::visit(Block *block) {
     std::cout << "{" << std::endl;
     ++_indentCount;

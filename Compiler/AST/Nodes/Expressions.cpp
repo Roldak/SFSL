@@ -48,7 +48,7 @@ Identifier* BinaryExpression::getOperator() const {
 
 // TYPE SPECIFIER
 
-TypeSpecifier::TypeSpecifier(Expression* specified, TypeNode* type) : _specified(specified), _type(type) {
+TypeSpecifier::TypeSpecifier(Expression* specified, Expression* type) : _specified(specified), _type(type) {
 
 }
 
@@ -62,7 +62,7 @@ Expression* TypeSpecifier::getSpecified() const {
     return _specified;
 }
 
-TypeNode* TypeSpecifier::getTypeNode() const {
+Expression* TypeSpecifier::getTypeNode() const {
     return _type;
 }
 

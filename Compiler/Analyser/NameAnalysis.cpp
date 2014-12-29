@@ -14,55 +14,69 @@ namespace sfsl {
 
 namespace ast {
 
+// SCOPE GENERATION
+
 ScopeGeneration::ScopeGeneration(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx), _curScope(nullptr) {
 
 }
 
-void ScopeGeneration::visit(Program *prog) {
-    pushScope();
+void ScopeGeneration::visit(Program* prog) {
+    pushScope(prog);
 
     ASTVisitor::visit(prog);
 
     popScope();
 }
 
-void ScopeGeneration::visit(ModuleDecl *module) {
-    createSymbol<sym::ModuleSymbol>(module);
+void ScopeGeneration::visit(ModuleDecl* module) {
+    if (sym::ModuleSymbol* mod = _curScope->getSymbol<sym::ModuleSymbol>(module->getName()->getValue(), false)) {
+        module->setSymbol(mod);
 
-    pushScope(module->getSymbol());
+        sym::Scope* last = _curScope;
+        _curScope = mod->getScope();
 
-    ASTVisitor::visit(module);
+        ASTVisitor::visit(module);
 
-    popScope();
+        _curScope = last;
+
+    } else {
+        createSymbol<sym::ModuleSymbol>(module);
+
+        pushScope(module->getSymbol());
+
+        ASTVisitor::visit(module);
+
+        popScope();
+    }
 }
 
-void ScopeGeneration::visit(DefineDecl *def) {
+void ScopeGeneration::visit(DefineDecl* def) {
     createSymbol<sym::DefinitionSymbol>(def);
 
-    pushScope(nullptr, true);
+    pushScope(def->getSymbol(), true);
 
     ASTVisitor::visit(def);
 
     popScope();
 }
 
-void ScopeGeneration::visit(Block *block) {
-    pushScope();
+void ScopeGeneration::visit(Block* block) {
+    pushScope(block);
 
     ASTVisitor::visit(block);
 
     popScope();
 }
 
-void ScopeGeneration::visit(FunctionCreation *func) {
-    pushScope();
+void ScopeGeneration::visit(FunctionCreation* func) {
+    pushScope(func);
 
     ASTVisitor::visit(func);
 
     popScope();
 }
 
-void ScopeGeneration::pushScope(sym::Scoped *scoped, bool isDefScope) {
+void ScopeGeneration::pushScope(sym::Scoped* scoped, bool isDefScope) {
     _curScope = _mngr.New<sym::Scope>(_curScope, isDefScope);
     if (scoped != nullptr) {
         scoped->setScope(_curScope);
@@ -73,7 +87,7 @@ void ScopeGeneration::popScope() {
     _curScope = _curScope->getParent();
 }
 
-void ScopeGeneration::tryAddSymbol(sym::Symbol *sym) {
+void ScopeGeneration::tryAddSymbol(sym::Symbol* sym) {
     if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
         _ctx.get()->reporter().error(*sym,
                                      std::string("Multiple definitions of symbol '") + sym->getName() +
@@ -91,6 +105,40 @@ T* ScopeGeneration::createSymbol(U* node) {
     tryAddSymbol(sym);
 
     return sym;
+}
+
+// SYMBOL ASSIGNATION
+
+SymbolAssignation::SymbolAssignation(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx) {
+
+}
+
+void SymbolAssignation::visit(DefineDecl* def) {
+    _curScope = def->getSymbol()->getScope();
+    ASTVisitor::visit(def);
+}
+
+void SymbolAssignation::visit(BinaryExpression* exp) {
+    exp->getLhs()->onVisit(this);
+    exp->getRhs()->onVisit(this);
+}
+
+void SymbolAssignation::visit(Block* block) {
+    _curScope = block->getScope();
+    ASTVisitor::visit(block);
+}
+
+void SymbolAssignation::visit(FunctionCreation* func) {
+    _curScope = func->getScope();
+    ASTVisitor::visit(func);
+}
+
+void SymbolAssignation::visit(Identifier* id) {
+    if (sym::Symbol* symbol = _curScope->getSymbol<sym::Symbol>(id->getValue())) {
+        id->setSymbol(symbol);
+    } else {
+        _ctx.get()->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
+    }
 }
 
 }

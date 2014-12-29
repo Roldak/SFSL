@@ -34,7 +34,16 @@ namespace sym {
         Symbol* addSymbol(Symbol* sym);
 
         template<typename T>
-        T* getSymbol(const std::string &name) const {
+        /**
+         * @brief Tries to retrieve the symbol with the given name in the current scope
+         * and in the parent scopes with the recursive option. The type parameter
+         * can be set to look for a specific Symbol type, or for any Symbol
+         *
+         * @param name The name of the Symbol to retrieve
+         * @param recursive Sets whether or not to recursively look in the parents scope
+         * @return The Symbol that matched the given arguments, or nullptr if none was found
+         */
+        T* getSymbol(const std::string &name, bool recursive = true) const {
             return nullptr;
         }
 
@@ -42,8 +51,7 @@ namespace sym {
 
     private:
 
-        Symbol* _getSymbol(const std::string& name) const;
-        Symbol* _getSymbol(const std::string& name, SYM_TYPE symType) const;
+        Symbol* _getSymbol(const std::string& name, SYM_TYPE symType, bool recursive) const;
 
         Scope* _parent;
         bool _isDefScope;
@@ -53,28 +61,28 @@ namespace sym {
     };
 
     template<>
-    inline Symbol* Scope::getSymbol(const std::string& name) const {
-        return _getSymbol(name);
+    inline Symbol* Scope::getSymbol(const std::string& name, bool recursive) const {
+        return _getSymbol(name, (SYM_TYPE)-1, recursive);
     }
 
     template<>
-    inline ModuleSymbol* Scope::getSymbol(const std::string& name) const {
-        return static_cast<ModuleSymbol*>(_getSymbol(name, SYM_MODULE));
+    inline ModuleSymbol* Scope::getSymbol(const std::string& name, bool recursive) const {
+        return static_cast<ModuleSymbol*>(_getSymbol(name, SYM_MODULE, recursive));
     }
 
     template<>
-    inline ClassSymbol* Scope::getSymbol(const std::string& name) const {
-        return static_cast<ClassSymbol*>(_getSymbol(name, SYM_CLASS));
+    inline ClassSymbol* Scope::getSymbol(const std::string& name, bool recursive) const {
+        return static_cast<ClassSymbol*>(_getSymbol(name, SYM_CLASS, recursive));
     }
 
     template<>
-    inline DefinitionSymbol* Scope::getSymbol(const std::string& name) const {
-        return static_cast<DefinitionSymbol*>(_getSymbol(name, SYM_DEF));
+    inline DefinitionSymbol* Scope::getSymbol(const std::string& name, bool recursive) const {
+        return static_cast<DefinitionSymbol*>(_getSymbol(name, SYM_DEF, recursive));
     }
 
     template<>
-    inline VariableSymbol* Scope::getSymbol(const std::string& name) const {
-        return static_cast<VariableSymbol*>(_getSymbol(name, SYM_VAR));
+    inline VariableSymbol* Scope::getSymbol(const std::string& name, bool recursive) const {
+        return static_cast<VariableSymbol*>(_getSymbol(name, SYM_VAR, recursive));
     }
 
 }

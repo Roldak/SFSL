@@ -32,6 +32,7 @@ public:
     virtual void visit(ExpressionStatement* exp);
 
     virtual void visit(BinaryExpression* exp);
+    virtual void visit(TypeSpecifier* tps);
     virtual void visit(Block* block);
     virtual void visit(IfExpression* ifexpr);
     virtual void visit(MemberAccess* dot);

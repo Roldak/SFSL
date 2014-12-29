@@ -89,7 +89,6 @@ private:
         // others
 
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
-    ast::TypeNode* parseType();
 
     // Members
 

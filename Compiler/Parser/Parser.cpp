@@ -295,7 +295,7 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     } else if (accept(tok::OPER_DOT)) {
         return parseDotOperation(left);
     } else if (accept(tok::OPER_COLON)) {
-        res = _mngr.New<TypeSpecifier>(left, parseType());
+        res = _mngr.New<TypeSpecifier>(left, parseExpression());
     }
 
     if (res) {
@@ -363,11 +363,6 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
     res->setEndPos(_lastTokenEndPos);
     return res;
 }
-
-TypeNode* Parser::parseType() {
-
-}
-
 
 
 }
