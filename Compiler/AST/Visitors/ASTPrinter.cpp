@@ -82,11 +82,11 @@ void ASTPrinter::visit(Block *block) {
 }
 
 void ASTPrinter::visit(IfExpression *ifexpr) {
-    std::cout << "if (";
+    std::cout << "if ";
 
     ifexpr->getCondition()->onVisit(this);
 
-    std::cout << ") ";
+    std::cout << " ";
 
     ifexpr->getThen()->onVisit(this);
 

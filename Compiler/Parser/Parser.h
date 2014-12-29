@@ -86,6 +86,11 @@ private:
     ast::Tuple* parseTuple(std::vector<ast::Expression*>& exprs);
     ast::Expression* parseDotOperation(ast::Expression* left);
 
+        // others
+
+    ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
+    ast::TypeNode* parseType();
+
     // Members
 
     std::shared_ptr<common::CompilationContext> _ctx;
@@ -105,9 +110,9 @@ bool Parser::expect(T type, const std::string& expected, bool fatal) {
 
    if (!accept(type)) {
        if (fatal) {
-           _ctx->reporter().fatal(*lastTok, "expected " + expected + "; got `" + lastTok->toString() + "`");
+           _ctx->reporter().fatal(*lastTok, "expected " + expected + " but got `" + lastTok->toString() + "`");
        } else {
-           _ctx->reporter().error(*lastTok, "expected " + expected + "; got `" + lastTok->toString() + "`");
+           _ctx->reporter().error(*lastTok, "expected " + expected + " but got `" + lastTok->toString() + "`");
        }
        return false;
    }

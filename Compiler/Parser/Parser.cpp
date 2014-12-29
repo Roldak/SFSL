@@ -146,7 +146,6 @@ Statement* Parser::parseStatement() {
         case tok::KW_IF:    return parseIf(true);
         default:            return nullptr;
         }
-
     } else if (accept(tok::OPER_L_BRACE)) {
         return parseBlock();
     } else {
@@ -185,10 +184,9 @@ Expression* Parser::parseBinary(Expression* left, int precedence) {
                     }
                 }
 
-                common::Positionnable& leftPos = *left;
-                left = _mngr.New<BinaryExpression>(left, right, _mngr.New<Identifier>(oper->toString()));
-                left->setPos(leftPos);
-                left->setEndPos(_lastTokenEndPos);
+                if (left != nullptr) {
+                    left = makeBinary(left, right, oper);
+                }
             }
 
         } else {
@@ -271,11 +269,7 @@ Block* Parser::parseBlock() {
 IfExpression* Parser::parseIf(bool asStatement) {
     SAVE_POS(startPos)
 
-    expect(tok::OPER_L_PAREN, "`(`");
-
     Expression* cond = parseExpression();
-
-    expect(tok::OPER_R_PAREN, "`)`");
 
     ASTNode* then = asStatement ? (ASTNode*)parseStatement() : (ASTNode*)parseExpression();
     ASTNode* els = nullptr;
@@ -292,21 +286,24 @@ IfExpression* Parser::parseIf(bool asStatement) {
 }
 
 Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
+    Expression* res = nullptr;
+
     if (accept(tok::OPER_L_PAREN)) {
-        FunctionCall* fcall = _mngr.New<FunctionCall>(left, parseTuple());
-        fcall->setPos(*left);
-        fcall->setEndPos(_lastTokenEndPos);
-        return fcall;
+        res = _mngr.New<FunctionCall>(left, parseTuple());
     } else if (accept(tok::OPER_FAT_ARROW)) {
-        FunctionCreation* fcall = _mngr.New<FunctionCreation>(left, parseExpression());
-        fcall->setPos(*left);
-        fcall->setEndPos(_lastTokenEndPos);
-        return fcall;
+        res = _mngr.New<FunctionCreation>(left, parseExpression());
     } else if (accept(tok::OPER_DOT)) {
         return parseDotOperation(left);
+    } else if (accept(tok::OPER_COLON)) {
+        res = _mngr.New<TypeSpecifier>(left, parseType());
     }
 
-    return nullptr;
+    if (res) {
+        res->setPos(*left);
+        res->setEndPos(_lastTokenEndPos);
+    }
+
+    return res;
 }
 
 Tuple* Parser::parseTuple() {
@@ -350,6 +347,24 @@ Expression* Parser::parseDotOperation(Expression* left) {
         maccess->setEndPos(_lastTokenEndPos);
         return maccess;
     }
+
+}
+
+Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operator* oper) {
+    Expression* res;
+
+    switch (oper->getOpType()) {
+    default:
+        res = _mngr.New<BinaryExpression>(left, right, _mngr.New<Identifier>(oper->toString()));
+        break;
+    }
+
+    res->setPos(*left);
+    res->setEndPos(_lastTokenEndPos);
+    return res;
+}
+
+TypeNode* Parser::parseType() {
 
 }
 

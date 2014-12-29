@@ -1,8 +1,8 @@
 //
-//  ASTVisitorTemplate.cpp
+//  NameAnalysis.cpp
 //  SFSL
 //
-//  Created by Romain Beguet on 17.11.14.
+//  Created by Romain Beguet on 13.12.14.
 //  Copyright (c) 2014 Romain Beguet. All rights reserved.
 //
 

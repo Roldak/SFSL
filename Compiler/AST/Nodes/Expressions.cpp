@@ -46,6 +46,26 @@ Identifier* BinaryExpression::getOperator() const {
     return _oper;
 }
 
+// TYPE SPECIFIER
+
+TypeSpecifier::TypeSpecifier(Expression* specified, TypeNode* type) : _specified(specified), _type(type) {
+
+}
+
+TypeSpecifier::~TypeSpecifier() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeSpecifier)
+
+Expression* TypeSpecifier::getSpecified() const {
+    return _specified;
+}
+
+TypeNode* TypeSpecifier::getTypeNode() const {
+    return _type;
+}
+
 // MEMBER ACCESS
 
 MemberAccess::MemberAccess(Expression* accessed, Identifier* member) : _accessed(accessed), _member(member) {

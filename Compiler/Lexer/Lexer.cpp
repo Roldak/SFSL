@@ -84,6 +84,7 @@ void Lexer::produceNext() {
                 handleStringLitteral(soFar);
                 _lastChar.kind = CHR_EMPTY;
             }
+
             _curToken = buildToken(strKind, soFar);
             _curToken->setPos(initPos, initPos + soFar.size(), _source.getSourceName());
             return;

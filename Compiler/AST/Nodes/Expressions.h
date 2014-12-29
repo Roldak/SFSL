@@ -14,7 +14,7 @@
 #include "../../../Utils/Utils.h"
 #include "../Symbols/Symbols.h"
 #include "../Symbols/Symbolic.h"
-#include "ASTNode.h"
+#include "TypeNodes.h"
 
 namespace sfsl {
 
@@ -71,7 +71,33 @@ private:
 };
 
 /**
- * @brief Represent a member access (with a dot operation, e.g. `point.x`)
+ * @brief Represents a type specifying expression, e.g `x: int`
+ */
+class TypeSpecifier : public Expression {
+public:
+    TypeSpecifier(Expression* specified, TypeNode* type);
+    virtual ~TypeSpecifier();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The specified part
+     */
+    Expression* getSpecified() const;
+
+    /**
+     * @return The type part
+     */
+    TypeNode* getTypeNode() const;
+
+private:
+
+    Expression* _specified;
+    TypeNode* _type;
+};
+
+/**
+// * @brief Represents a member access (with a dot operation, e.g. `point.x`)
  */
 class MemberAccess : public Expression {
 public:
