@@ -15,9 +15,35 @@ namespace sfsl {
 
 namespace ast {
 
+// SCOPE POSSESSOR VISITOR
+
+ScopePossessorVisitor::ScopePossessorVisitor(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx), _curScope(nullptr) {
+
+}
+
+void ScopePossessorVisitor::tryAddSymbol(sym::Symbol* sym) {
+    if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
+        _ctx.get()->reporter().error(*sym,
+                                     std::string("Multiple definitions of symbol '") + sym->getName() +
+                                     "' were found. First instance here : " +
+                                     oldSymbol->positionStr());
+    }
+}
+
+template<typename T, typename U>
+T* ScopePossessorVisitor::createSymbol(U* node) {
+    T* sym = _mngr.New<T>(node->getName()->getValue());
+    sym->setPos(*node);
+
+    node->setSymbol(sym);
+    tryAddSymbol(sym);
+
+    return sym;
+}
+
 // SCOPE GENERATION
 
-ScopeGeneration::ScopeGeneration(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx), _curScope(nullptr) {
+ScopeGeneration::ScopeGeneration(std::shared_ptr<common::CompilationContext> &ctx) : ScopePossessorVisitor(ctx) {
 
 }
 
@@ -88,32 +114,12 @@ void ScopeGeneration::popScope() {
     _curScope = _curScope->getParent();
 }
 
-void ScopeGeneration::tryAddSymbol(sym::Symbol* sym) {
-    if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
-        _ctx.get()->reporter().error(*sym,
-                                     std::string("Multiple definitions of symbol '") + sym->getName() +
-                                     "' were found. First instance here : " +
-                                     oldSymbol->positionStr());
-    }
-}
-
-template<typename T, typename U>
-T* ScopeGeneration::createSymbol(U* node) {
-    T* sym = _mngr.New<T>(node->getName()->getValue());
-    sym->setPos(*node);
-
-    node->setSymbol(sym);
-    tryAddSymbol(sym);
-
-    return sym;
-}
-
 // SYMBOL ASSIGNATION
 
 #define SAVE_SCOPE  sym::Scope* last = _curScope;
 #define RESTORE_SCOPE _curScope = last;
 
-SymbolAssignation::SymbolAssignation(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx) {
+SymbolAssignation::SymbolAssignation(std::shared_ptr<common::CompilationContext> &ctx) : ScopePossessorVisitor(ctx) {
 
 }
 
@@ -164,6 +170,39 @@ void SymbolAssignation::visit(FunctionCreation* func) {
     SAVE_SCOPE
 
     _curScope = func->getScope();
+
+    Expression* expr = func->getArgs();
+    std::vector<Expression*> args;
+
+    if (getIfNodeIsOfType<Tuple>(expr, _ctx)) { // form is `() => ...`, `(exp, exp) => ...`
+        Tuple* tuple = static_cast<Tuple*>(expr);
+        args = tuple->getExpressions();
+    } else { // form is `exp => ...`
+        args.push_back(expr);
+    }
+
+    for (Expression* expr : args) {
+        Identifier* id = nullptr;
+
+        if (getIfNodeIsOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
+            id = static_cast<Identifier*>(expr);
+        } else if(getIfNodeIsOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
+            TypeSpecifier* tps = static_cast<TypeSpecifier*>(expr);
+
+            if (!getIfNodeIsOfType<Identifier>(tps->getSpecified(), _ctx)) {
+                _ctx.get()->reporter().error(*tps->getSpecified(), "Argument should be an identifier");
+                continue;
+            }
+
+            id = static_cast<Identifier*>(tps->getSpecified());
+        }
+
+        sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(id->getValue());
+        arg->setPos(*id);
+        id->setSymbol(arg);
+
+        tryAddSymbol(arg);
+    }
 
     ASTVisitor::visit(func);
 

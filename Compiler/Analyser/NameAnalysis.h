@@ -16,10 +16,22 @@ namespace sfsl {
 
 namespace ast {
 
+class ScopePossessorVisitor : public ASTVisitor {
+protected:
+    ScopePossessorVisitor(std::shared_ptr<common::CompilationContext>& ctx);
+
+    template<typename T, typename U>
+    T* createSymbol(U* node);
+
+    void tryAddSymbol(sym::Symbol* sym);
+
+    sym::Scope* _curScope;
+};
+
 /**
  * @brief
  */
-class ScopeGeneration : public ASTVisitor {
+class ScopeGeneration : public ScopePossessorVisitor {
 public:
 
     ScopeGeneration(std::shared_ptr<common::CompilationContext>& ctx);
@@ -36,16 +48,9 @@ private:
 
     void pushScope(sym::Scoped* scoped = nullptr, bool isDefScope = false);
     void popScope();
-
-    template<typename T, typename U>
-    T* createSymbol(U* node);
-
-    void tryAddSymbol(sym::Symbol* sym);
-
-    sym::Scope* _curScope;
 };
 
-class SymbolAssignation : public ASTVisitor {
+class SymbolAssignation : public ScopePossessorVisitor {
 public:
 
     SymbolAssignation(std::shared_ptr<common::CompilationContext>& ctx);
@@ -62,8 +67,6 @@ public:
 private:
 
     sym::Symbol* extractSymbolFromExpr(Expression* exp);
-
-    sym::Scope* _curScope;
 
 };
 
