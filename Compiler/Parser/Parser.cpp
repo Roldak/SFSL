@@ -333,21 +333,10 @@ ast::Tuple* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
 
 Expression* Parser::parseDotOperation(Expression* left) {
     Identifier* ident = parseIdentifier("expected attribute / method name");
-
-    if (accept(tok::OPER_L_PAREN)) {
-        std::vector<Expression*> exprs(1);
-        exprs[0] = left;
-        FunctionCall* funcCall = _mngr.New<FunctionCall>(ident, parseTuple(exprs));
-        funcCall->setPos(*ident);
-        funcCall->setEndPos(_lastTokenEndPos);
-        return funcCall;
-    } else {
-        MemberAccess* maccess = _mngr.New<MemberAccess>(left, ident);
-        maccess->setPos(*ident);
-        maccess->setEndPos(_lastTokenEndPos);
-        return maccess;
-    }
-
+    MemberAccess* maccess = _mngr.New<MemberAccess>(left, ident);
+    maccess->setPos(*ident);
+    maccess->setEndPos(_lastTokenEndPos);
+    return maccess;
 }
 
 Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operator* oper) {

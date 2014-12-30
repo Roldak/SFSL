@@ -110,13 +110,21 @@ T* ScopeGeneration::createSymbol(U* node) {
 
 // SYMBOL ASSIGNATION
 
+#define SAVE_SCOPE  sym::Scope* last = _curScope;
+#define RESTORE_SCOPE _curScope = last;
+
 SymbolAssignation::SymbolAssignation(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx) {
 
 }
 
 void SymbolAssignation::visit(DefineDecl* def) {
+    SAVE_SCOPE
+
     _curScope = def->getSymbol()->getScope();
+
     ASTVisitor::visit(def);
+
+    RESTORE_SCOPE
 }
 
 void SymbolAssignation::visit(BinaryExpression* exp) {
@@ -128,6 +136,7 @@ void SymbolAssignation::visit(MemberAccess* mac) {
     mac->getAccessed()->onVisit(this);
     if (sym::Symbol* sym = extractSymbolFromExpr(mac->getAccessed())) {
         if (sym->getSymbolType() == sym::SYM_MODULE) {
+
             sym::Scope* scope = ((sym::ModuleSymbol*)sym)->getScope();
             const std::string& id = mac->getMember()->getValue();
 
@@ -143,13 +152,22 @@ void SymbolAssignation::visit(MemberAccess* mac) {
 }
 
 void SymbolAssignation::visit(Block* block) {
+    SAVE_SCOPE
+
     _curScope = block->getScope();
     ASTVisitor::visit(block);
+
+    RESTORE_SCOPE
 }
 
 void SymbolAssignation::visit(FunctionCreation* func) {
+    SAVE_SCOPE
+
     _curScope = func->getScope();
+
     ASTVisitor::visit(func);
+
+    RESTORE_SCOPE
 }
 
 void SymbolAssignation::visit(Identifier* id) {
