@@ -16,6 +16,10 @@ ASTPrinter::ASTPrinter(std::shared_ptr<common::CompilationContext> &ctx) : ASTVi
 
 }
 
+ASTPrinter::~ASTPrinter() {
+
+}
+
 void ASTPrinter::visit(ModuleDecl *module) {
     std::cout << "module " << module->getName()->getValue() << " {" << std::endl;
 

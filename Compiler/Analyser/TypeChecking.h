@@ -21,6 +21,8 @@ namespace ast {
 
         TypeAssignation(std::shared_ptr<common::CompilationContext>& ctx);
 
+        virtual void visit(ASTNode*);
+
         virtual void visit(ModuleDecl* mod);
         virtual void visit(ClassDecl* clss);
         virtual void visit(DefineDecl* decl);

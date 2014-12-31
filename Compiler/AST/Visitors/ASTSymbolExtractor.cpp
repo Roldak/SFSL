@@ -16,6 +16,10 @@ ASTSymbolExtractor::ASTSymbolExtractor(std::shared_ptr<common::CompilationContex
 
 }
 
+ASTSymbolExtractor::~ASTSymbolExtractor() {
+
+}
+
 void ASTSymbolExtractor::visit(ASTNode*) {
     _sym = nullptr;
 }

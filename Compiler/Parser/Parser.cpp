@@ -373,7 +373,7 @@ ast::Tuple* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
 Expression* Parser::parseDotOperation(Expression* left) {
     Identifier* ident = parseIdentifier("expected attribute / method name");
     MemberAccess* maccess = _mngr.New<MemberAccess>(left, ident);
-    maccess->setPos(*ident);
+    maccess->setPos(*left);
     maccess->setEndPos(_lastTokenEndPos);
     return maccess;
 }

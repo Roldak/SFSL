@@ -17,6 +17,10 @@ ASTVisitor::ASTVisitor(std::shared_ptr<common::CompilationContext> &ctx) : _ctx(
 
 }
 
+ASTVisitor::~ASTVisitor() {
+
+}
+
 void ASTVisitor::visit(ASTNode* node) {
     throw common::CompilationFatalError("unimplemented visitor");
 }

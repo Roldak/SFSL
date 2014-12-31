@@ -30,6 +30,8 @@ public:
      */
     ASTVisitor(std::shared_ptr<common::CompilationContext>& ctx);
 
+    virtual ~ASTVisitor();
+
     /**
      * @brief Should never be called.
      * @param node The visited node

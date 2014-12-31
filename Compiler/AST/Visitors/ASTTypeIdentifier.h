@@ -29,6 +29,8 @@ public:
      */
     ASTTypeIdentifier(std::shared_ptr<common::CompilationContext>& ctx) : ASTVisitor(ctx) {}
 
+    virtual ~ASTTypeIdentifier() {}
+
     virtual void visit(ASTNode*) {
         setIfSame<ASTNode>();
     }

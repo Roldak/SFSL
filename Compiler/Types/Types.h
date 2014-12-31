@@ -10,6 +10,7 @@
 #define __SFSL__Types__
 
 #include <iostream>
+#include "../Common/MemoryManageable.h"
 
 namespace sfsl {
 
@@ -21,7 +22,7 @@ namespace type {
 
 enum TYPE_KIND { TYPE_NYD, TYPE_OBJECT };
 
-class Type {
+class Type : public common::MemoryManageable {
 public:
     virtual ~Type();
 

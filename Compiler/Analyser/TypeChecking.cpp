@@ -8,7 +8,7 @@
 
 #include "TypeChecking.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
-#include "../AST/Visitors/ASTSymbolExtractor.h"
+#include "../AST/Visitors/ASTTypeCreator.h"
 
 namespace sfsl {
 
@@ -18,6 +18,10 @@ namespace ast {
 #define RESTORE_SCOPE _curScope = last;
 
 TypeAssignation::TypeAssignation(std::shared_ptr<common::CompilationContext>& ctx) : ASTVisitor(ctx), _curScope(nullptr) {
+
+}
+
+void TypeAssignation::visit(ASTNode*) {
 
 }
 
@@ -67,16 +71,10 @@ void TypeAssignation::visit(FunctionCreation* func) {
 }
 
 void TypeAssignation::visit(TypeSpecifier* tps) {
-    ASTVisitor::visit(tps);
+    tps->getSpecified()->onVisit(this);
 
-    if (isNodeOfType<Identifier>(tps->getSpecified(), _ctx)) {
-        Identifier* id = static_cast<Identifier*>(tps->getSpecified());
-
-        if (sym::Symbol* sym = extractSymbol(tps->getTypeNode(), _ctx)) {
-            if (sym->getSymbolType() == sym::SYM_CLASS) {
-
-            }
-        }
+    if (type::Type* tpe = createType(tps->getTypeNode(), _ctx)) {
+        std::cout << tpe->toString() << std::endl;
     }
 }
 

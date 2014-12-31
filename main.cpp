@@ -9,6 +9,7 @@
 #include "Compiler/Parser/Parser.h"
 #include "Compiler/AST/Visitors/ASTPrinter.h"
 #include "Compiler/Analyser/NameAnalysis.h"
+#include "Compiler/Analyser/TypeChecking.h"
 
 using namespace std;
 using namespace sfsl;
@@ -67,6 +68,9 @@ int main(int argc, char** argv) {
 
         ast::SymbolAssignation symAssign(ctx);
         prog->onVisit(&symAssign);
+
+        ast::TypeAssignation typeAssign(ctx);
+        prog->onVisit(&typeAssign);
     }
 
     if (compileOnly) {

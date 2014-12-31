@@ -25,6 +25,8 @@ public:
 
     ASTPrinter(std::shared_ptr<common::CompilationContext>& ctx);
 
+    virtual ~ASTPrinter();
+
     virtual void visit(ModuleDecl* module);
     virtual void visit(ClassDecl* clss);
     virtual void visit(DefineDecl* decl);

@@ -28,7 +28,9 @@ public:
      */
     ASTSymbolExtractor(std::shared_ptr<common::CompilationContext>& ctx);
 
-    virtual void visit(ASTNode*);
+    virtual ~ASTSymbolExtractor();
+
+    virtual void visit(ASTNode* node);
 
     virtual void visit(ModuleDecl* mod);
     virtual void visit(ClassDecl* clss);
