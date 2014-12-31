@@ -69,7 +69,7 @@ namespace sym {
     /**
      * @brief Represents the symbol associated to a class
      */
-    class ClassSymbol : public Symbol {
+    class ClassSymbol : public Symbol, public Scoped {
     public:
         ClassSymbol(const std::string& name);
         virtual ~ClassSymbol();

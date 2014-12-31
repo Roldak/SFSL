@@ -19,7 +19,7 @@ namespace sym {
 
 namespace type {
 
-enum TYPE_KIND { TYPE_OBJECT };
+enum TYPE_KIND { TYPE_NYD, TYPE_OBJECT };
 
 class Type {
 public:
@@ -28,6 +28,8 @@ public:
     virtual TYPE_KIND getTypeKind() = 0;
     virtual bool isSubTypeOf(Type* other) = 0;
     virtual std::string toString() = 0;
+
+    static Type* NotYetDefined;
 };
 
 class ObjectType : public Type {

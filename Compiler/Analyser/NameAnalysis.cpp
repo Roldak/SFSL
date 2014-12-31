@@ -10,6 +10,7 @@
 #include "../AST/Symbols/Scope.h"
 #include "../AST/Symbols/Symbols.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
+#include "../AST/Visitors/ASTSymbolExtractor.h"
 
 namespace sfsl {
 
@@ -77,6 +78,16 @@ void ScopeGeneration::visit(ModuleDecl* module) {
     }
 }
 
+void ScopeGeneration::visit(ClassDecl* clss) {
+    createSymbol<sym::ClassSymbol>(clss);
+
+    pushScope(clss->getSymbol(), true);
+
+    ASTVisitor::visit(clss);
+
+    popScope();
+}
+
 void ScopeGeneration::visit(DefineDecl* def) {
     createSymbol<sym::DefinitionSymbol>(def);
 
@@ -123,6 +134,36 @@ SymbolAssignation::SymbolAssignation(std::shared_ptr<common::CompilationContext>
 
 }
 
+void SymbolAssignation::visit(ModuleDecl* mod) {
+    SAVE_SCOPE
+
+    _curScope = mod->getSymbol()->getScope();
+
+    ASTVisitor::visit(mod);
+
+    RESTORE_SCOPE
+}
+
+void SymbolAssignation::visit(ClassDecl *clss) {
+    SAVE_SCOPE
+
+    _curScope = clss->getSymbol()->getScope();
+
+    for (TypeSpecifier* field : clss->getFields()) {
+        Identifier* fieldName = static_cast<Identifier*>(field->getSpecified());
+        sym::VariableSymbol* fieldSym = _mngr.New<sym::VariableSymbol>(fieldName->getValue());
+
+        fieldSym->setPos(*fieldName);
+        fieldName->setSymbol(fieldSym);
+
+        tryAddSymbol(fieldSym);
+    }
+
+    ASTVisitor::visit(clss);
+
+    RESTORE_SCOPE
+}
+
 void SymbolAssignation::visit(DefineDecl* def) {
     SAVE_SCOPE
 
@@ -140,7 +181,7 @@ void SymbolAssignation::visit(BinaryExpression* exp) {
 
 void SymbolAssignation::visit(MemberAccess* mac) {
     mac->getAccessed()->onVisit(this);
-    if (sym::Symbol* sym = extractSymbolFromExpr(mac->getAccessed())) {
+    if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
         if (sym->getSymbolType() == sym::SYM_MODULE) {
 
             sym::Scope* scope = ((sym::ModuleSymbol*)sym)->getScope();
@@ -174,7 +215,7 @@ void SymbolAssignation::visit(FunctionCreation* func) {
     Expression* expr = func->getArgs();
     std::vector<Expression*> args;
 
-    if (getIfNodeIsOfType<Tuple>(expr, _ctx)) { // form is `() => ...`, `(exp, exp) => ...`
+    if (isNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...`, `(exp, exp) => ...`
         Tuple* tuple = static_cast<Tuple*>(expr);
         args = tuple->getExpressions();
     } else { // form is `exp => ...`
@@ -184,12 +225,12 @@ void SymbolAssignation::visit(FunctionCreation* func) {
     for (Expression* expr : args) {
         Identifier* id = nullptr;
 
-        if (getIfNodeIsOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
+        if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
             id = static_cast<Identifier*>(expr);
-        } else if(getIfNodeIsOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
+        } else if(isNodeOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
             TypeSpecifier* tps = static_cast<TypeSpecifier*>(expr);
 
-            if (!getIfNodeIsOfType<Identifier>(tps->getSpecified(), _ctx)) {
+            if (!isNodeOfType<Identifier>(tps->getSpecified(), _ctx)) {
                 _ctx.get()->reporter().error(*tps->getSpecified(), "Argument should be an identifier");
                 continue;
             }
@@ -215,18 +256,6 @@ void SymbolAssignation::visit(Identifier* id) {
     } else {
         _ctx.get()->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
     }
-}
-
-sym::Symbol* SymbolAssignation::extractSymbolFromExpr(Expression* exp) {
-    sym::Symbolic<sym::Symbol>* sym = nullptr;
-
-    if (getIfNodeIsOfType<Identifier>(exp, _ctx)) {
-        sym = static_cast<Identifier*>(exp);
-    } else if (getIfNodeIsOfType<MemberAccess>(exp, _ctx)) {
-        sym = static_cast<MemberAccess*>(exp);
-    }
-
-    return sym == nullptr ? nullptr : sym->getSymbol();
 }
 
 }

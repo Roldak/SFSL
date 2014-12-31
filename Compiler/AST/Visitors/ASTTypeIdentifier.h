@@ -41,6 +41,10 @@ public:
         setIfSame<ModuleDecl>();
     }
 
+    virtual void visit(ClassDecl*) {
+        setIfSame<ClassDecl>();
+    }
+
     virtual void visit(DefineDecl*) {
         setIfSame<DefineDecl>();
     }
@@ -96,7 +100,7 @@ public:
     /**
      * @return True if the node is well of type T
      */
-    bool matches() {
+    bool matches() const {
         return _res;
     }
 
@@ -119,7 +123,7 @@ template<typename T>
  * @param ctx The compilation context
  * @return True if the type matches, else false
  */
-bool getIfNodeIsOfType(ASTNode* node, std::shared_ptr<common::CompilationContext>& ctx) {
+bool isNodeOfType(ASTNode* node, std::shared_ptr<common::CompilationContext>& ctx) {
     ASTTypeIdentifier<T> identifier(ctx);
     node->onVisit(&identifier);
     return identifier.matches();

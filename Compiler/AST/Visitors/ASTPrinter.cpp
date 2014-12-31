@@ -27,7 +27,38 @@ void ASTPrinter::visit(ModuleDecl *module) {
         std::cout << std::endl;
     }
 
+    for (ClassDecl* clss : module->getClasses()) {
+        printIndents();
+        clss->onVisit(this);
+        std::cout << std::endl;
+    }
+
     for (DefineDecl* decl : module->getDeclarations()) {
+        printIndents();
+        decl->onVisit(this);
+        std::cout << std::endl;
+    }
+
+    --_indentCount;
+
+    printIndents();
+    std::cout << "}" << std::endl;
+}
+
+void ASTPrinter::visit(ClassDecl *clss) {
+    std::cout << "class " << clss->getName()->getValue() << " {" << std::endl;
+
+    ++_indentCount;
+
+    for (TypeSpecifier* field : clss->getFields()) {
+        printIndents();
+        Identifier* fieldName = static_cast<Identifier*>(field->getSpecified());
+        std::cout << fieldName->getValue() << " : ";
+        field->getTypeNode()->onVisit(this);
+        std::cout << ";" << std::endl;
+    }
+
+    for (DefineDecl* decl : clss->getDefs()) {
         printIndents();
         decl->onVisit(this);
         std::cout << std::endl;

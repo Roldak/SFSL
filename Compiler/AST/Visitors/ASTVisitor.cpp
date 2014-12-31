@@ -28,11 +28,27 @@ void ASTVisitor::visit(Program* prog) {
 }
 
 void ASTVisitor::visit(ModuleDecl* module) {
+    module->getName()->onVisit(this);
+
     for (ModuleDecl* mod : module->getSubModules()) {
         mod->onVisit(this);
     }
+    for (ClassDecl* clss : module->getClasses()) {
+        clss->onVisit(this);
+    }
     for (DefineDecl* decl : module->getDeclarations()) {
         decl->onVisit(this);
+    }
+}
+
+void ASTVisitor::visit(ClassDecl *clss) {
+    clss->getName()->onVisit(this);
+
+    for (TypeSpecifier* field : clss->getFields()) {
+        field->onVisit(this);
+    }
+    for (DefineDecl* def : clss->getDefs()) {
+        def->onVisit(this);
     }
 }
 

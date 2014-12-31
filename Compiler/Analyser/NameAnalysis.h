@@ -39,6 +39,7 @@ public:
     virtual void visit(Program* prog);
 
     virtual void visit(ModuleDecl* module);
+    virtual void visit(ClassDecl* clss);
     virtual void visit(DefineDecl* decl);
 
     virtual void visit(Block* block);
@@ -55,6 +56,8 @@ public:
 
     SymbolAssignation(std::shared_ptr<common::CompilationContext>& ctx);
 
+    virtual void visit(ModuleDecl* mod);
+    virtual void visit(ClassDecl* clss);
     virtual void visit(DefineDecl* decl);
 
     virtual void visit(BinaryExpression* exp);
@@ -65,9 +68,6 @@ public:
     virtual void visit(Identifier* id);
 
 private:
-
-    sym::Symbol* extractSymbolFromExpr(Expression* exp);
-
 };
 
 }

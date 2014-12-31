@@ -13,9 +13,31 @@ namespace sfsl {
 
 namespace type {
 
+class TypeNotYetDefined : public Type {
+public:
+
+    TypeNotYetDefined() {}
+
+    virtual ~TypeNotYetDefined() {}
+
+    virtual TYPE_KIND getTypeKind() {
+        return TYPE_NYD;
+    }
+
+    virtual bool isSubTypeOf(Type *other) {
+        return false;
+    }
+
+    virtual std::string toString() {
+        return "<not yet defined>";
+    }
+};
+
 Type::~Type() {
 
 }
+
+Type* Type::NotYetDefined = new TypeNotYetDefined();
 
 ObjectType::ObjectType(sym::ClassSymbol *clss) : _class(clss) {
 
