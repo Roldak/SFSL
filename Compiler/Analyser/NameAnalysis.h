@@ -16,6 +16,9 @@ namespace sfsl {
 
 namespace ast {
 
+/**
+ * @brief
+ */
 class ScopePossessorVisitor : public ASTVisitor {
 protected:
     ScopePossessorVisitor(std::shared_ptr<common::CompilationContext>& ctx);
@@ -51,6 +54,9 @@ private:
     void popScope();
 };
 
+/**
+ * @brief
+ */
 class SymbolAssignation : public ScopePossessorVisitor {
 public:
 

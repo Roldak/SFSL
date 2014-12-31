@@ -121,7 +121,7 @@ inline bool escapedChar(char& c) {
 }
 
 /**
- * @return True if c is a new line symbol ('+', '*', ';', '(', etc.)
+ * @return True if c is a symbol ('+', '*', ';', '(', etc.)
  */
 inline bool isSymbol(char c) {
     return (c == '=' || c == '>' || c == '<' || c == ',' || c == '&' || c == '|' ||

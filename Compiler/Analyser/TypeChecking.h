@@ -16,6 +16,9 @@ namespace sfsl {
 
 namespace ast {
 
+    /**
+     * @brief
+     */
     class TypeAssignation : public ASTVisitor {
     public:
 
