@@ -7,25 +7,12 @@
 //
 
 #include "TypeNodes.h"
-#include "../Visitors/ASTVisitor.h"
 
 namespace sfsl {
 
 namespace ast {
 
-// TYPED
 
-Typed::~Typed() {
-
-}
-
-void Typed::setType(type::Type *type) {
-    _type = type;
-}
-
-type::Type* Typed::type() {
-    return _type;
-}
 
 }
 

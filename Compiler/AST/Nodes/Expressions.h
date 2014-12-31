@@ -11,10 +11,10 @@
 
 #include <iostream>
 #include <vector>
+#include "ASTNode.h"
 #include "../../../Utils/Utils.h"
 #include "../Symbols/Symbols.h"
 #include "../Symbols/Symbolic.h"
-#include "TypeNodes.h"
 
 namespace sfsl {
 

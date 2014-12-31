@@ -48,6 +48,29 @@ private:
     sym::ClassSymbol* _class;
 };
 
+/**
+ * @brief Interface that represents a node that has a type,
+ * like a binary expression, an identifier, etc.
+ */
+class Typed {
+public:
+    virtual ~Typed();
+
+    /**
+     * @param type The type to set
+     */
+    void setType(type::Type* type);
+
+    /**
+     * @return The type of the object
+     */
+    type::Type* type() const;
+
+protected:
+
+    type::Type* _type;
+};
+
 template<typename T>
 inline T* getIf(Type* t) {
     return nullptr;

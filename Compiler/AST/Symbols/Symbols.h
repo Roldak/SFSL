@@ -14,6 +14,7 @@
 #include "../../Common/MemoryManageable.h"
 #include "../../Common/Positionnable.h"
 #include "Scoped.h"
+#include "../../Types/Types.h"
 
 namespace sfsl {
 
@@ -91,7 +92,7 @@ namespace sym {
     /**
      * @brief Represents the symbol associated to a variable
      */
-    class VariableSymbol : public Symbol {
+    class VariableSymbol : public Symbol, public type::Typed {
     public:
         VariableSymbol(const std::string& name);
         virtual ~VariableSymbol();

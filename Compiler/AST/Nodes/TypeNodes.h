@@ -11,36 +11,12 @@
 
 #include <iostream>
 #include <vector>
-#include "../../Common/CompilationContext.h"
-#include "ASTNode.h"
-#include "../../Types/Types.h"
 
 namespace sfsl {
 
 namespace ast {
 
-    /**
-     * @brief Interface that represents a node that has a type,
-     * like a binary expression, an identifier, etc.
-     */
-    class Typed {
-    public:
-        virtual ~Typed();
 
-        /**
-         * @param type The type to set
-         */
-        void setType(type::Type* type);
-
-        /**
-         * @return The type of the object
-         */
-        virtual type::Type* type();
-
-    protected:
-
-        type::Type* _type;
-    };
 }
 
 }

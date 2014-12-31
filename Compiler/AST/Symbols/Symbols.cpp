@@ -71,7 +71,7 @@ SYM_TYPE DefinitionSymbol::getSymbolType() const {
 // VARIABLE SYMBOL
 
 VariableSymbol::VariableSymbol(const std::string &name) : Symbol(name) {
-
+    setType(type::Type::NotYetDefined);
 }
 
 VariableSymbol::~VariableSymbol() {

@@ -74,7 +74,16 @@ void TypeAssignation::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
 
     if (type::Type* tpe = createType(tps->getTypeNode(), _ctx)) {
-        std::cout << tpe->toString() << std::endl;
+        if (isNodeOfType<Identifier>(tps->getSpecified(), _ctx)) {
+            Identifier* id = static_cast<Identifier*>(tps->getSpecified());
+            type::Typed* tped = nullptr;
+
+            if (id->getSymbol()->getSymbolType() == sym::SYM_VAR) {
+                tped = static_cast<sym::VariableSymbol*>(id->getSymbol());
+            }
+
+            tped->setType(tpe);
+        }
     }
 }
 

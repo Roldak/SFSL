@@ -39,7 +39,7 @@ Type::~Type() {
 
 Type* Type::NotYetDefined = new TypeNotYetDefined();
 
-ObjectType::ObjectType(sym::ClassSymbol *clss) : _class(clss) {
+ObjectType::ObjectType(sym::ClassSymbol* clss) : _class(clss) {
 
 }
 
@@ -49,7 +49,7 @@ ObjectType::~ObjectType() {
 
 TYPE_KIND ObjectType::getTypeKind() { return TYPE_OBJECT; }
 
-bool ObjectType::isSubTypeOf(Type *other) {
+bool ObjectType::isSubTypeOf(Type* other) {
     if (ObjectType* objother = getIf<ObjectType>(other)) {
         return _class == objother->_class;
     }
@@ -58,6 +58,20 @@ bool ObjectType::isSubTypeOf(Type *other) {
 
 std::string ObjectType::toString() {
     return _class->getName();
+}
+
+// TYPED
+
+Typed::~Typed() {
+
+}
+
+void Typed::setType(type::Type* type) {
+    _type = type;
+}
+
+type::Type* Typed::type() const {
+    return _type;
 }
 
 }

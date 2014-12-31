@@ -20,8 +20,8 @@ ASTTypeCreator::~ASTTypeCreator() {
 
 }
 
-void ASTTypeCreator::visit(ASTNode *node) {
-    _created = nullptr;
+void ASTTypeCreator::visit(ASTNode* node) {
+    // do not thrown an exception
 }
 
 void ASTTypeCreator::visit(MemberAccess* mac) {
