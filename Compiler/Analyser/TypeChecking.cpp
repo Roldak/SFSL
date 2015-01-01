@@ -17,6 +17,8 @@ namespace ast {
 #define SAVE_SCOPE  sym::Scope* last = _curScope;
 #define RESTORE_SCOPE _curScope = last;
 
+// TYPE ASSIGNATION
+
 TypeAssignation::TypeAssignation(std::shared_ptr<common::CompilationContext>& ctx) : ASTVisitor(ctx), _curScope(nullptr) {
 
 }
@@ -86,6 +88,20 @@ void TypeAssignation::visit(TypeSpecifier* tps) {
     } else {
         _ctx.get()->reporter().error(*tps->getTypeNode(), "Expression is not a type");
     }
+}
+
+// TYPE CHECK
+
+TypeCheck::TypeCheck(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx) {
+
+}
+
+void TypeCheck::visit(Statement* stmt) {
+
+}
+
+void TypeCheck::visit(MemberAccess* mac) {
+
 }
 
 

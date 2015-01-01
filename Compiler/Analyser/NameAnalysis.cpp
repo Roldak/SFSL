@@ -136,7 +136,6 @@ SymbolAssignation::SymbolAssignation(std::shared_ptr<common::CompilationContext>
 
 void SymbolAssignation::visit(ModuleDecl* mod) {
     SAVE_SCOPE
-
     _curScope = mod->getSymbol()->getScope();
 
     ASTVisitor::visit(mod);
@@ -146,7 +145,6 @@ void SymbolAssignation::visit(ModuleDecl* mod) {
 
 void SymbolAssignation::visit(ClassDecl *clss) {
     SAVE_SCOPE
-
     _curScope = clss->getSymbol()->getScope();
 
     ASTVisitor::visit(clss);
@@ -156,7 +154,6 @@ void SymbolAssignation::visit(ClassDecl *clss) {
 
 void SymbolAssignation::visit(DefineDecl* def) {
     SAVE_SCOPE
-
     _curScope = def->getSymbol()->getScope();
 
     ASTVisitor::visit(def);
@@ -190,8 +187,8 @@ void SymbolAssignation::visit(MemberAccess* mac) {
 
 void SymbolAssignation::visit(Block* block) {
     SAVE_SCOPE
-
     _curScope = block->getScope();
+
     ASTVisitor::visit(block);
 
     RESTORE_SCOPE
@@ -199,7 +196,6 @@ void SymbolAssignation::visit(Block* block) {
 
 void SymbolAssignation::visit(FunctionCreation* func) {
     SAVE_SCOPE
-
     _curScope = func->getScope();
 
     Expression* expr = func->getArgs();

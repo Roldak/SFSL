@@ -53,30 +53,34 @@ int main(int argc, char** argv) {
 
     src::SFSLInputStream src(src_str.get(), input);
 
-    lex::Lexer lexer(ctx, src, 1024);
+    try {
+        lex::Lexer lexer(ctx, src, 1024);
 
-    ast::Parser parser(ctx, lexer);
+        ast::Parser parser(ctx, lexer);
 
-    ast::Program* prog = parser.parse();
+        ast::Program* prog = parser.parse();
 
-    if (ctx.get()->reporter().getErrorCount() != 0) {
-        return 1;
-    }
+        if (ctx.get()->reporter().getErrorCount() != 0) {
+            return 1;
+        }
 
-    ast::ASTPrinter printer(ctx);
-    prog->onVisit(&printer);
+        ast::ASTPrinter printer(ctx);
+        prog->onVisit(&printer);
 
-    ast::ScopeGeneration scopeGen(ctx);
-    prog->onVisit(&scopeGen);
+        ast::ScopeGeneration scopeGen(ctx);
+        prog->onVisit(&scopeGen);
 
-    ast::SymbolAssignation symAssign(ctx);
-    prog->onVisit(&symAssign);
+        ast::SymbolAssignation symAssign(ctx);
+        prog->onVisit(&symAssign);
 
-    ast::TypeAssignation typeAssign(ctx);
-    prog->onVisit(&typeAssign);
+        ast::TypeAssignation typeAssign(ctx);
+        prog->onVisit(&typeAssign);
 
-    if (ctx.get()->reporter().getErrorCount() != 0) {
-        return 1;
+        if (ctx.get()->reporter().getErrorCount() != 0) {
+            return 1;
+        }
+    } catch(const sfsl::common::CompilationFatalError& ex) {
+        std::cerr << ex.what() << std::endl;
     }
 
     if (compileOnly) {

@@ -41,6 +41,21 @@ namespace ast {
 
     };
 
+    /**
+     * @brief
+     */
+    class TypeCheck : public ASTVisitor {
+    public:
+
+        TypeCheck(std::shared_ptr<common::CompilationContext>& ctx);
+
+        virtual void visit(Statement* stmt);
+
+        virtual void visit(MemberAccess* mac);
+
+    private:
+
+    };
 }
 
 }

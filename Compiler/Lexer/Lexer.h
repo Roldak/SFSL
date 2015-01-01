@@ -53,7 +53,6 @@ namespace lex {
 
         struct CharInfo {
             char chr;
-            size_t pos;
             CHR_KIND kind;
         };
 

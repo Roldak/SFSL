@@ -256,7 +256,7 @@ Expression* Parser::parsePrimary() {
         break;
     case tok::TOK_ID:
         toRet = parseIdentifier();
-        if (accept(tok::OPER_COLON)) {
+        if (isType(tok::TOK_OPER) && as<tok::Operator>()->getOpType() == tok::OPER_COLON) {
             toRet = parseTypeSpecifier(static_cast<Identifier*>(toRet));
         }
         break;
@@ -294,7 +294,8 @@ Expression* Parser::parsePrimary() {
 }
 
 TypeSpecifier* Parser::parseTypeSpecifier(Identifier* id) {
-    TypeSpecifier* spec = _mngr.New<TypeSpecifier>(id, parseExpression());
+    Expression* expr = parseBinary(id, tok::Operator(tok::OPER_COLON).getPrecedence());
+    TypeSpecifier* spec = _mngr.New<TypeSpecifier>(id, static_cast<BinaryExpression*>(expr)->getRhs());
     spec->setPos(*id);
     spec->setEndPos(_lastTokenEndPos);
     return spec;
