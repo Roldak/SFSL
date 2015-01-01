@@ -75,7 +75,7 @@ private:
  */
 class TypeSpecifier : public Expression {
 public:
-    TypeSpecifier(Expression* specified, Expression* type);
+    TypeSpecifier(Identifier* specified, Expression* type);
     virtual ~TypeSpecifier();
 
     SFSL_AST_ON_VISIT_H
@@ -83,7 +83,7 @@ public:
     /**
      * @return The specified part
      */
-    Expression* getSpecified() const;
+    Identifier* getSpecified() const;
 
     /**
      * @return The type part
@@ -92,7 +92,7 @@ public:
 
 private:
 
-    Expression* _specified;
+    Identifier* _specified;
     Expression* _type;
 };
 

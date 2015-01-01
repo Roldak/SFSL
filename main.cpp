@@ -59,18 +59,24 @@ int main(int argc, char** argv) {
 
     ast::Program* prog = parser.parse();
 
-    if (ctx.get()->reporter().getErrorCount() == 0) {
-        ast::ASTPrinter printer(ctx);
-        prog->onVisit(&printer);
+    if (ctx.get()->reporter().getErrorCount() != 0) {
+        return 1;
+    }
 
-        ast::ScopeGeneration scopeGen(ctx);
-        prog->onVisit(&scopeGen);
+    ast::ASTPrinter printer(ctx);
+    prog->onVisit(&printer);
 
-        ast::SymbolAssignation symAssign(ctx);
-        prog->onVisit(&symAssign);
+    ast::ScopeGeneration scopeGen(ctx);
+    prog->onVisit(&scopeGen);
 
-        ast::TypeAssignation typeAssign(ctx);
-        prog->onVisit(&typeAssign);
+    ast::SymbolAssignation symAssign(ctx);
+    prog->onVisit(&symAssign);
+
+    ast::TypeAssignation typeAssign(ctx);
+    prog->onVisit(&typeAssign);
+
+    if (ctx.get()->reporter().getErrorCount() != 0) {
+        return 1;
     }
 
     if (compileOnly) {

@@ -71,9 +71,12 @@ public:
     virtual void visit(Block* block);
     virtual void visit(FunctionCreation* func);
 
+    virtual void visit(TypeSpecifier* tps);
     virtual void visit(Identifier* id);
 
 private:
+
+    void createVar(Identifier* id);
 };
 
 }

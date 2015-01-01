@@ -78,6 +78,7 @@ private:
     ast::Expression* parseExpression();
     ast::Expression* parseBinary(ast::Expression* left, int precedence);
     ast::Expression* parsePrimary();
+    ast::TypeSpecifier* parseTypeSpecifier(ast::Identifier* id);
 
     ast::Block* parseBlock();
     ast::IfExpression* parseIf(bool asStatement);

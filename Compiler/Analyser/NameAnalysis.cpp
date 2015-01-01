@@ -149,16 +149,6 @@ void SymbolAssignation::visit(ClassDecl *clss) {
 
     _curScope = clss->getSymbol()->getScope();
 
-    for (TypeSpecifier* field : clss->getFields()) {
-        Identifier* fieldName = static_cast<Identifier*>(field->getSpecified());
-        sym::VariableSymbol* fieldSym = _mngr.New<sym::VariableSymbol>(fieldName->getValue());
-
-        fieldSym->setPos(*fieldName);
-        fieldName->setSymbol(fieldSym);
-
-        tryAddSymbol(fieldSym);
-    }
-
     ASTVisitor::visit(clss);
 
     RESTORE_SCOPE
@@ -223,31 +213,21 @@ void SymbolAssignation::visit(FunctionCreation* func) {
     }
 
     for (Expression* expr : args) {
-        Identifier* id = nullptr;
-
         if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
-            id = static_cast<Identifier*>(expr);
-        } else if(isNodeOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
-            TypeSpecifier* tps = static_cast<TypeSpecifier*>(expr);
-
-            if (!isNodeOfType<Identifier>(tps->getSpecified(), _ctx)) {
-                _ctx.get()->reporter().error(*tps->getSpecified(), "Argument should be an identifier");
-                continue;
-            }
-
-            id = static_cast<Identifier*>(tps->getSpecified());
+            createVar(static_cast<Identifier*>(expr));
+        } else if(!isNodeOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
+            _ctx.get()->reporter().error(*expr, "Argument should be an identifier");
         }
-
-        sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(id->getValue());
-        arg->setPos(*id);
-        id->setSymbol(arg);
-
-        tryAddSymbol(arg);
     }
 
     ASTVisitor::visit(func);
 
     RESTORE_SCOPE
+}
+
+void SymbolAssignation::visit(TypeSpecifier* tps) {
+    createVar(tps->getSpecified());
+    ASTVisitor::visit(tps);
 }
 
 void SymbolAssignation::visit(Identifier* id) {
@@ -256,6 +236,13 @@ void SymbolAssignation::visit(Identifier* id) {
     } else {
         _ctx.get()->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
     }
+}
+
+void SymbolAssignation::createVar(Identifier *id) {
+    sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(id->getValue());
+    arg->setPos(*id);
+    id->setSymbol(arg);
+    tryAddSymbol(arg);
 }
 
 }

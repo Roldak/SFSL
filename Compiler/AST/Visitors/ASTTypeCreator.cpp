@@ -32,7 +32,7 @@ void ASTTypeCreator::visit(Identifier* ident) {
     createTypeFromSymbolic(ident, *ident);
 }
 
-type::Type *ASTTypeCreator::getCreatedType() const {
+type::Type* ASTTypeCreator::getCreatedType() const {
     return _created;
 }
 

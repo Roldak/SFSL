@@ -74,16 +74,17 @@ void TypeAssignation::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
 
     if (type::Type* tpe = createType(tps->getTypeNode(), _ctx)) {
-        if (isNodeOfType<Identifier>(tps->getSpecified(), _ctx)) {
-            Identifier* id = static_cast<Identifier*>(tps->getSpecified());
-            type::Typed* tped = nullptr;
+        Identifier* id = tps->getSpecified();
+        type::Typed* tped = nullptr;
 
-            if (id->getSymbol()->getSymbolType() == sym::SYM_VAR) {
-                tped = static_cast<sym::VariableSymbol*>(id->getSymbol());
-            }
-
-            tped->setType(tpe);
+        if (id->getSymbol()->getSymbolType() == sym::SYM_VAR) {
+            tped = static_cast<sym::VariableSymbol*>(id->getSymbol());
         }
+        // TODO : if symbol type is SYM_DEF
+
+        tped->setType(tpe);
+    } else {
+        _ctx.get()->reporter().error(*tps->getTypeNode(), "Expression is not a type");
     }
 }
 

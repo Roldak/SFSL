@@ -48,7 +48,7 @@ Identifier* BinaryExpression::getOperator() const {
 
 // TYPE SPECIFIER
 
-TypeSpecifier::TypeSpecifier(Expression* specified, Expression* type) : _specified(specified), _type(type) {
+TypeSpecifier::TypeSpecifier(Identifier* specified, Expression* type) : _specified(specified), _type(type) {
 
 }
 
@@ -58,7 +58,7 @@ TypeSpecifier::~TypeSpecifier() {
 
 SFSL_AST_ON_VISIT_CPP(TypeSpecifier)
 
-Expression* TypeSpecifier::getSpecified() const {
+Identifier *TypeSpecifier::getSpecified() const {
     return _specified;
 }
 

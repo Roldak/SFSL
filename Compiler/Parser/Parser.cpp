@@ -256,6 +256,9 @@ Expression* Parser::parsePrimary() {
         break;
     case tok::TOK_ID:
         toRet = parseIdentifier();
+        if (accept(tok::OPER_COLON)) {
+            toRet = parseTypeSpecifier(static_cast<Identifier*>(toRet));
+        }
         break;
 
     case tok::TOK_OPER:
@@ -288,6 +291,13 @@ Expression* Parser::parsePrimary() {
     }
 
     return toRet;
+}
+
+TypeSpecifier* Parser::parseTypeSpecifier(Identifier* id) {
+    TypeSpecifier* spec = _mngr.New<TypeSpecifier>(id, parseExpression());
+    spec->setPos(*id);
+    spec->setEndPos(_lastTokenEndPos);
+    return spec;
 }
 
 Block* Parser::parseBlock() {
@@ -333,8 +343,6 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
         res = _mngr.New<FunctionCreation>(left, parseExpression());
     } else if (accept(tok::OPER_DOT)) {
         return parseDotOperation(left);
-    } else if (accept(tok::OPER_COLON)) {
-        res = _mngr.New<TypeSpecifier>(left, parseExpression());
     }
 
     if (res) {
