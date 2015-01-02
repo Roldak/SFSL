@@ -40,8 +40,6 @@ Token* Lexer::getNext() {
 
 void Lexer::produceNext() {
 
-    size_t initPos = _source.getPosition();
-
     while (_lastChar.kind == CHR_EMPTY || _lastChar.kind == CHR_SPACE) {
         if (!_source.hasNext()) {
             _curToken = _ctx->memoryManager().New<EOFToken>();
@@ -49,9 +47,10 @@ void Lexer::produceNext() {
             return;
         }
 
-        initPos = _source.getPosition();
         _lastChar = readCharInfo();
     }
+
+    size_t initPos = _lastChar.pos;
 
     std::string soFar;
     soFar += _lastChar.chr;
@@ -99,11 +98,13 @@ void Lexer::produceNext() {
 }
 
 Lexer::CharInfo Lexer::readCharInfo() {
+    size_t pos = _source.getPosition();
     char chr = _source.getNext();
     CHR_KIND kind = charKindFromChar(chr);
 
     return CharInfo{
         .chr = chr,
+        .pos = pos,
         .kind = kind
     };
 }

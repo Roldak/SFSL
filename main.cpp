@@ -54,6 +54,7 @@ int main(int argc, char** argv) {
     src::SFSLInputStream src(src_str.get(), input);
 
     try {
+
         lex::Lexer lexer(ctx, src, 1024);
 
         ast::Parser parser(ctx, lexer);
@@ -79,6 +80,7 @@ int main(int argc, char** argv) {
         if (ctx.get()->reporter().getErrorCount() != 0) {
             return 1;
         }
+
     } catch(const sfsl::common::CompilationFatalError& ex) {
         std::cerr << ex.what() << std::endl;
     }
