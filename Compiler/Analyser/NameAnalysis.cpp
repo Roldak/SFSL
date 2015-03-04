@@ -169,18 +169,11 @@ void SymbolAssignation::visit(BinaryExpression* exp) {
 void SymbolAssignation::visit(MemberAccess* mac) {
     mac->getAccessed()->onVisit(this);
     if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
-        if (sym->getSymbolType() == sym::SYM_MODULE) {
-
-            sym::Scope* scope = ((sym::ModuleSymbol*)sym)->getScope();
-            const std::string& id = mac->getMember()->getValue();
-
-            if (sym::Symbol* resSymbol = scope->getSymbol<sym::Symbol>(id, false)) {
-                mac->setSymbol(resSymbol);
-            } else {
-                _ctx.get()->reporter().error(
-                            *(mac->getMember()),
-                            std::string("No member named '") + id + "' in module '" + sym->getName() + "'");
-            }
+        switch (sym->getSymbolType()) {
+        case sym::SYM_MODULE:   assignFromStaticScope<sym::ModuleSymbol>(mac, sym, "module"); break;
+        case sym::SYM_CLASS:    assignFromStaticScope<sym::ClassSymbol>(mac, sym, "class"); break;
+        default:
+            break;
         }
     }
 }
@@ -239,6 +232,20 @@ void SymbolAssignation::createVar(Identifier *id) {
     arg->setPos(*id);
     id->setSymbol(arg);
     tryAddSymbol(arg);
+}
+
+template<typename T>
+void SymbolAssignation::assignFromStaticScope(MemberAccess* mac, sym::Symbol* sym, const std::string& typeName) {
+    sym::Scope* scope = ((T*)sym)->getScope();
+    const std::string& id = mac->getMember()->getValue();
+
+    if (sym::Symbol* resSymbol = scope->getSymbol<sym::Symbol>(id, false)) {
+        mac->setSymbol(resSymbol);
+    } else {
+        _ctx.get()->reporter().error(
+                    *(mac->getMember()),
+                    std::string("No member named '") + id + "' in " + typeName + " '" + sym->getName() + "'");
+    }
 }
 
 }

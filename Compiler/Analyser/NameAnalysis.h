@@ -77,6 +77,9 @@ public:
 private:
 
     void createVar(Identifier* id);
+
+    template<typename T>
+    void assignFromStaticScope(MemberAccess* mac, sym::Symbol* sym, const std::string& typeName);
 };
 
 }
