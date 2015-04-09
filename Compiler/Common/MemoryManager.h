@@ -37,7 +37,7 @@ namespace common {
          * @return A pointer to the instance
          */
         T* New(Args... args) {
-            return new(alloc(sizeof(T))) T(args...);
+            return new(alloc(sizeof(T))) T(std::forward<Args>(args)...);
         }
 
     protected:
