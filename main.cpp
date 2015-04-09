@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     }
 
     if (!sourceFile)
-        sourceFile = (char*)"Examples\\test.sfsl";
+        sourceFile = (char*)"Examples\\longfile.sfsl";
 
     std::string source;
 
@@ -44,14 +44,16 @@ int main(int argc, char** argv) {
         source += f.get();
     }
 
-    std::shared_ptr<std::string> src_str(new std::string(sourceFile));
+    //std::shared_ptr<std::string> src_str(new std::string(sourceFile));
 
     clock_t exec = clock();
 
     auto ctx = common::CompilationContext::DefaultCompilationContext();
     std::istringstream input(source);
 
-    src::SFSLInputStream src(src_str.get(), input);
+    std::cout << sizeof(src::SFSLSourceName) << std::endl;
+
+    src::SFSLInputStream src(src::SFSLSourceName::make(ctx, std::string(sourceFile)), input);
 
     try {
 
@@ -64,7 +66,7 @@ int main(int argc, char** argv) {
         if (ctx.get()->reporter().getErrorCount() != 0) {
             return 1;
         }
-
+/*
         ast::ASTPrinter printer(ctx);
         prog->onVisit(&printer);
 
@@ -76,7 +78,7 @@ int main(int argc, char** argv) {
 
         ast::TypeAssignation typeAssign(ctx);
         prog->onVisit(&typeAssign);
-
+*/
         if (ctx.get()->reporter().getErrorCount() != 0) {
             return 1;
         }
