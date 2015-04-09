@@ -7,6 +7,7 @@
 //
 
 #include "Reporter.h"
+#include "Positionnable.h"
 
 namespace sfsl {
 

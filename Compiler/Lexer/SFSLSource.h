@@ -10,6 +10,7 @@
 #define __SFSL__SFSLSource__
 
 #include <iostream>
+#include "SFSLSourceName.h"
 #include "../Common/Positionnable.h"
 #include "../Common/CompilationContext.h"
 
@@ -18,36 +19,12 @@ namespace sfsl {
 namespace src {
 
     /**
-     * @brief Simple class containing the name of the SFSLSource, which can be automatically managed
-     */
-    class SFSLSourceName final {
-    public:
-
-        friend class SFSLSource;
-
-        /**
-         * @brief Creates a new SFSLsourceName object and make it managed automatically
-         * @param compilationContext The Compilation context from which to instantiate the object
-         * @param name The name to the source file
-         * @return The newly created SFSLSourceName
-         */
-        static SFSLSourceName make(const std::shared_ptr<common::CompilationContext>& compilationContext, const std::string& name);
-
-    private:
-
-        SFSLSourceName(std::string &name);
-        std::string& getName() const;
-
-        std::string& _name;
-    };
-
-    /**
      * @brief Abstract class representing a source of SFSL data
      */
     class SFSLSource {
     public:
 
-        SFSLSource(const SFSLSourceName& sourceName);
+        SFSLSource(SFSLSourceName sourceName);
 
         /**
          * @brief Fills the buffer with maxBufferSize characters (or less, if the end of this input
@@ -67,7 +44,7 @@ namespace src {
         /**
          * @return The name of the source
          */
-        std::string* getSourceName() const;
+        src::SFSLSourceName getSourceName() const;
 
         /**
          * @return A Positionnable corresponding to the current position
@@ -77,7 +54,7 @@ namespace src {
     protected:
 
         size_t _position;
-        std::string& _sourceName;
+        src::SFSLSourceName _sourceName;
     };
 
     /**
@@ -91,7 +68,7 @@ namespace src {
          * @param sourceName the name of the source
          * @param input the std::istream input
          */
-        SFSLInputStream(const SFSLSourceName& sourceName, std::istream& input);
+        SFSLInputStream(SFSLSourceName sourceName, std::istream& input);
 
         virtual size_t getNexts(char* buffer, size_t maxBufferSize);
 
@@ -119,7 +96,7 @@ namespace src {
          * @param sourceName the path to the source
          * @param source the std::string input
          */
-        SFSLInputString(const SFSLSourceName& sourceName, const std::string& source);
+        SFSLInputString(SFSLSourceName sourceName, const std::string& source);
 
         virtual size_t getNexts(char* buffer, size_t maxBufferSize);
 

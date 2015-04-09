@@ -14,7 +14,7 @@ namespace sfsl {
 namespace tok {
 
 std::string Token::toStringDetailed() const {
-    return "{.pos = " + *getSourceName() + "@" + utils::T_toString(getStartPosition())
+    return "{.pos = " + getSourceName().getName() + "@" + utils::T_toString(getStartPosition())
                       + ":" + utils::T_toString(getEndPosition()) + ", "
             ".type = '" + TokenTypeToString(getTokenType()) +"', "
             ".value = '" + toString() + "'}";

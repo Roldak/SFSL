@@ -51,8 +51,6 @@ int main(int argc, char** argv) {
     auto ctx = common::CompilationContext::DefaultCompilationContext();
     std::istringstream input(source);
 
-    std::cout << sizeof(src::SFSLSourceName) << std::endl;
-
     src::SFSLInputStream src(src::SFSLSourceName::make(ctx, std::string(sourceFile)), input);
 
     try {

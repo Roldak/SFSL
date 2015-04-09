@@ -8,29 +8,13 @@
 
 #include "SFSLSource.h"
 
-#include "../Common/ManageableWrapper.h"
-
 namespace sfsl {
 
 namespace src {
 
-// SFSL SOURCE PATH
-
-SFSLSourceName SFSLSourceName::make(const std::shared_ptr<common::CompilationContext>& compilationContext, const std::string& name) {
-    return SFSLSourceName(compilationContext.get()->memoryManager().New<common::ManageableWrapper<std::string>>(name)->getRef());
-}
-
-SFSLSourceName::SFSLSourceName(std::string& name) : _name(name) {
-
-}
-
-std::string &SFSLSourceName::getName() const {
-    return _name;
-}
-
 // SFSL SOURCE
 
-SFSLSource::SFSLSource(const SFSLSourceName& sourceName) : _position(0), _sourceName(sourceName.getName()) {
+SFSLSource::SFSLSource(SFSLSourceName sourceName) : _position(0), _sourceName(sourceName) {
 
 }
 
@@ -38,8 +22,8 @@ size_t SFSLSource::getPosition() const {
     return _position - 1;
 }
 
-std::string* SFSLSource::getSourceName() const {
-    return &_sourceName;
+SFSLSourceName SFSLSource::getSourceName() const {
+    return _sourceName;
 }
 
 common::Positionnable SFSLSource::currentPos() const {
@@ -48,7 +32,7 @@ common::Positionnable SFSLSource::currentPos() const {
 
 // INPUT STREAM SOURCE
 
-SFSLInputStream::SFSLInputStream(const SFSLSourceName& sourceName, std::istream& input) : SFSLSource(sourceName), _input(input) {
+SFSLInputStream::SFSLInputStream(SFSLSourceName sourceName, std::istream& input) : SFSLSource(sourceName), _input(input) {
     produceNext();
 }
 
@@ -73,7 +57,7 @@ void SFSLInputStream::produceNext() {
 
 // INPUT STRING SOURCE
 
-SFSLInputString::SFSLInputString(const SFSLSourceName& sourceName, const std::string &source)
+SFSLInputString::SFSLInputString(SFSLSourceName sourceName, const std::string &source)
     : SFSLSource(sourceName), _input(source), _size(source.size()), _curIndex(0) {
 
 }

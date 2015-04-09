@@ -11,11 +11,12 @@
 
 #include <iostream>
 #include <stdexcept>
-#include "Positionnable.h"
 
 namespace sfsl {
 
 namespace common {
+
+    class Positionnable;
 
     /**
      * @brief Abstract representing an Reporter which is used throughout the compilation process
@@ -79,13 +80,13 @@ namespace common {
         StandartErrReporter();
         virtual ~StandartErrReporter();
 
-        virtual void info(const Positionnable &pos, const std::string &msg);
+        virtual void info(const Positionnable& pos, const std::string& msg);
 
-        virtual void warning(const Positionnable &pos, const std::string &msg);
+        virtual void warning(const Positionnable& pos, const std::string& msg);
 
-        virtual void error(const Positionnable &pos, const std::string &msg);
+        virtual void error(const Positionnable& pos, const std::string& msg);
 
-        virtual void fatal(const Positionnable &pos, const std::string &msg);
+        virtual void fatal(const Positionnable& pos, const std::string& msg);
 
     private:
 

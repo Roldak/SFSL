@@ -10,6 +10,7 @@
 #define __SFSL__Positionnable__
 
 #include <iostream>
+#include "../Lexer/SFSLSourceName.h"
 
 namespace sfsl {
 
@@ -32,7 +33,7 @@ namespace common {
          * @param pos Its position
          * @param source Its source name
          */
-        Positionnable(size_t startPos, size_t endPos, std::string* source);
+        Positionnable(size_t startPos, size_t endPos, src::SFSLSourceName source);
 
         virtual ~Positionnable();
 
@@ -41,7 +42,7 @@ namespace common {
          * @param pos The new position
          * @param source The new file name
          */
-        void setPos(size_t startPos, size_t endPos, std::string* source);
+        void setPos(size_t startPos, size_t endPos, src::SFSLSourceName source);
 
         /**
          * @brief Sets the position of the object to be the same as the Positionnable given in parameter
@@ -74,7 +75,7 @@ namespace common {
         /**
          * @return The name of the source at the origin of the Positionnable
          */
-        std::string* getSourceName() const;
+        src::SFSLSourceName getSourceName() const;
 
         /**
          * @return A readable representation of the position
@@ -85,8 +86,7 @@ namespace common {
 
         size_t _startPos;
         size_t _endPos;
-        std::string* _source;
-
+        src::SFSLSourceName _source;
     };
 
 }

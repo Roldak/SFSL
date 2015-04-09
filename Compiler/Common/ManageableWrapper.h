@@ -35,8 +35,8 @@ namespace common {
         /**
          * @return A reference towards the underlying object
          */
-        T& getRef() {
-            return _value;
+        const T* getConstPtr() {
+            return &_value;
         }
 
     private:
