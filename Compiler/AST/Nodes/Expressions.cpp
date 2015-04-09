@@ -46,6 +46,26 @@ Identifier* BinaryExpression::getOperator() const {
     return _oper;
 }
 
+// TYPE SPECIFIER
+
+TypeSpecifier::TypeSpecifier(Identifier* specified, Expression* type) : _specified(specified), _type(type) {
+
+}
+
+TypeSpecifier::~TypeSpecifier() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeSpecifier)
+
+Identifier *TypeSpecifier::getSpecified() const {
+    return _specified;
+}
+
+Expression* TypeSpecifier::getTypeNode() const {
+    return _type;
+}
+
 // MEMBER ACCESS
 
 MemberAccess::MemberAccess(Expression* accessed, Identifier* member) : _accessed(accessed), _member(member) {
@@ -94,7 +114,7 @@ FunctionCreation::~FunctionCreation() {
 
 SFSL_AST_ON_VISIT_CPP(FunctionCreation)
 
-Expression *FunctionCreation::getArgs() const {
+Expression* FunctionCreation::getArgs() const {
     return _args;
 }
 

@@ -11,9 +11,10 @@
 
 #include <iostream>
 #include <vector>
-#include "../../../Utils/Utils.h"
-#include "../Symbols/Symbolic.h"
 #include "ASTNode.h"
+#include "../../../Utils/Utils.h"
+#include "../Symbols/Symbols.h"
+#include "../Symbols/Symbolic.h"
 
 namespace sfsl {
 
@@ -70,9 +71,35 @@ private:
 };
 
 /**
- * @brief Represent a member access (with a dot operation, e.g. `point.x`)
+ * @brief Represents a type specifying expression, e.g `x: int`
  */
-class MemberAccess : public Expression {
+class TypeSpecifier : public Expression {
+public:
+    TypeSpecifier(Identifier* specified, Expression* type);
+    virtual ~TypeSpecifier();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The specified part
+     */
+    Identifier* getSpecified() const;
+
+    /**
+     * @return The type part
+     */
+    Expression* getTypeNode() const;
+
+private:
+
+    Identifier* _specified;
+    Expression* _type;
+};
+
+/**
+// * @brief Represents a member access (with a dot operation, e.g. `point.x`)
+ */
+class MemberAccess : public Expression, public sym::Symbolic<sym::Symbol> {
 public:
 
     MemberAccess(Expression* accessed, Identifier* member);
@@ -121,7 +148,7 @@ private:
 /**
  * @brief Represents a function creation, e.g. `(x) => 2 * x`
  */
-class FunctionCreation : public Expression {
+class FunctionCreation : public Expression, public sym::Scoped {
 public:
 
     FunctionCreation(Expression* args, Expression* body);
@@ -182,7 +209,7 @@ private:
  * @brief Represents an Identifier, which
  * refers to a symbol.
  */
-class Identifier : public Expression {
+class Identifier : public Expression, public sym::Symbolic<sym::Symbol> {
 public:
 
     Identifier(const std::string& name);

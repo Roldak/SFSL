@@ -25,13 +25,16 @@ public:
 
     ASTPrinter(std::shared_ptr<common::CompilationContext>& ctx);
 
-    virtual void visit(ModuleDecl* module);
+    virtual ~ASTPrinter();
 
+    virtual void visit(ModuleDecl* module);
+    virtual void visit(ClassDecl* clss);
     virtual void visit(DefineDecl* decl);
 
     virtual void visit(ExpressionStatement* exp);
 
     virtual void visit(BinaryExpression* exp);
+    virtual void visit(TypeSpecifier* tps);
     virtual void visit(Block* block);
     virtual void visit(IfExpression* ifexpr);
     virtual void visit(MemberAccess* dot);

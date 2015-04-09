@@ -16,7 +16,7 @@ AbstractMemoryManager::~AbstractMemoryManager() {
 
 }
 
-MemoryChunk::MemoryChunk(size_t size, MemoryChunk *parent) : _chunk(new char[size]), _chunkSize(size), _offset(0), _parent(parent) {
+MemoryChunk::MemoryChunk(size_t size, MemoryChunk* parent) : _chunk(new char[size]), _chunkSize(size), _offset(0), _parent(parent) {
 
 }
 
@@ -43,17 +43,17 @@ ChunkedMemoryManager::ChunkedMemoryManager(size_t chunksSize) : _lastChunk(new M
 
 }
 
-MemoryManageable *ChunkedMemoryManager::alloc(size_t size) {
-    MemoryManageable* ptr = reinterpret_cast<MemoryManageable*>(MemoryChunk::alloc(_lastChunk, size));
-    _allocated.push_back(ptr);
-    return ptr;
-}
-
-void ChunkedMemoryManager::free() {
+ChunkedMemoryManager::~ChunkedMemoryManager() {
     for (auto ptr : _allocated) {
         ptr->~MemoryManageable();
     }
     delete _lastChunk;
+}
+
+MemoryManageable* ChunkedMemoryManager::alloc(size_t size) {
+    MemoryManageable* ptr = reinterpret_cast<MemoryManageable*>(MemoryChunk::alloc(_lastChunk, size));
+    _allocated.push_back(ptr);
+    return ptr;
 }
 
 }

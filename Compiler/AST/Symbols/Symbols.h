@@ -9,80 +9,90 @@
 #ifndef __SFSL__Symbols__
 #define __SFSL__Symbols__
 
-#include "../../Common/MemoryManageable.h"
-#include "../../Common/Positionnable.h"
 #include <iostream>
 #include <map>
+#include "../../Common/MemoryManageable.h"
+#include "../../Common/Positionnable.h"
+#include "Scoped.h"
+#include "../../Types/Types.h"
 
 namespace sfsl {
 
 namespace sym {
 
-    enum SYM_TYPE{SYM_MODULE, SYM_CLASS, SYM_FUNC, SYM_VAR};
+    enum SYM_TYPE{SYM_MODULE = 0, SYM_CLASS, SYM_DEF, SYM_VAR};
 
     class ModuleSymbol;
     class ClassSymbol;
-    class FunctionSymbol;
+    class DefinitionSymbol;
     class VariableSymbol;
 
+    /**
+     * @brief Abstract class representing a Symbol, which is a uniquely named object
+     */
     class Symbol : public common::MemoryManageable, public common::Positionnable {
     public:
-
-        Symbol(const std::string& name);
         virtual ~Symbol();
 
+        /**
+         * @return The type of this symbol
+         */
         virtual SYM_TYPE getSymbolType() const = 0;
 
+        /**
+         * @return The name of this symbol
+         */
         const std::string& getName() const;
+
+    protected:
+        Symbol(const std::string& name);
 
     private:
 
         const std::string _name;
     };
 
-    class ModuleSymbol : public Symbol {
+    /**
+     * @brief Represents the symbol associated to a module.
+     */
+    class ModuleSymbol : public Symbol, public Scoped {
     public:
         ModuleSymbol(const std::string& name);
         virtual ~ModuleSymbol();
 
         virtual SYM_TYPE getSymbolType() const;
 
-        void addModule(ModuleSymbol* moduleSym);
-        void addClass(ClassSymbol* classSym);
-        void addFunction(FunctionSymbol* funcSym);
-
         ModuleSymbol* getModule(const std::string& name) const;
         ClassSymbol* getClass(const std::string& name) const;
-        FunctionSymbol* getFunction(const std::string& name) const;
-
-    private:
-
-        std::map<std::string, ModuleSymbol*> _modules;
-        std::map<std::string, ClassSymbol*> _classes;
-        std::map<std::string, FunctionSymbol*> _functions;
+        DefinitionSymbol* getDefinition(const std::string& name) const;
     };
 
-    class ClassSymbol : public Symbol {
+    /**
+     * @brief Represents the symbol associated to a class
+     */
+    class ClassSymbol : public Symbol, public Scoped {
     public:
         ClassSymbol(const std::string& name);
         virtual ~ClassSymbol();
 
         virtual SYM_TYPE getSymbolType() const;
-
-        void addClass(ClassSymbol* classSym);
-        void addFunction(FunctionSymbol* funcSym);
-        void addAttribute(VariableSymbol* varSym);
     };
 
-    class FunctionSymbol : public Symbol {
+    /**
+     * @brief Represents the symbol associated to a def
+     */
+    class DefinitionSymbol : public Symbol, public Scoped {
     public:
-        FunctionSymbol(const std::string& name);
-        virtual ~FunctionSymbol();
+        DefinitionSymbol(const std::string& name);
+        virtual ~DefinitionSymbol();
 
         virtual SYM_TYPE getSymbolType() const;
     };
 
-    class VariableSymbol : public Symbol {
+    /**
+     * @brief Represents the symbol associated to a variable
+     */
+    class VariableSymbol : public Symbol, public type::Typed {
     public:
         VariableSymbol(const std::string& name);
         virtual ~VariableSymbol();

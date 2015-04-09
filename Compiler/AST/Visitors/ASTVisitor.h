@@ -30,6 +30,8 @@ public:
      */
     ASTVisitor(std::shared_ptr<common::CompilationContext>& ctx);
 
+    virtual ~ASTVisitor();
+
     /**
      * @brief Should never be called.
      * @param node The visited node
@@ -39,11 +41,13 @@ public:
     virtual void visit(Program* prog);
 
     virtual void visit(ModuleDecl* module);
+    virtual void visit(ClassDecl* clss);
     virtual void visit(DefineDecl* decl);
 
     virtual void visit(ExpressionStatement* exp);
 
     virtual void visit(BinaryExpression* bin);
+    virtual void visit(TypeSpecifier* tps);
     virtual void visit(Block* block);
     virtual void visit(IfExpression* ifexpr);
     virtual void visit(MemberAccess* dot);
@@ -54,9 +58,10 @@ public:
     virtual void visit(IntLitteral* intlit);
     virtual void visit(RealLitteral* reallit);
 
-private:
+protected:
 
     std::shared_ptr<common::CompilationContext> _ctx;
+    common::AbstractMemoryManager& _mngr;
 };
 
 }

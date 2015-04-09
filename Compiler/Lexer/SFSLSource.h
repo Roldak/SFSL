@@ -37,17 +37,17 @@ namespace src {
         /**
          * @return The current position in the source
          */
-        size_t getPosition();
+        size_t getPosition() const;
 
         /**
          * @return The name of the source
          */
-        std::string* getSourceName();
+        std::string* getSourceName() const;
 
         /**
          * @return A Positionnable corresponding to the current position
          */
-        common::Positionnable currentPos();
+        common::Positionnable currentPos() const;
 
     protected:
 
@@ -68,7 +68,7 @@ namespace src {
          */
         SFSLInputStream(std::string* sourceName, std::istream& input);
 
-        virtual size_t getNexts(char *buffer, size_t maxBufferSize);
+        virtual size_t getNexts(char* buffer, size_t maxBufferSize);
 
     private:
 
@@ -96,7 +96,7 @@ namespace src {
          */
         SFSLInputString(std::string* sourceName, const std::string& source);
 
-        virtual size_t getNexts(char *buffer, size_t maxBufferSize);
+        virtual size_t getNexts(char* buffer, size_t maxBufferSize);
 
     private:
 

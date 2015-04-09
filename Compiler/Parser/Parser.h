@@ -23,6 +23,8 @@
 
 namespace sfsl {
 
+namespace ast {
+
 /**
  * @brief The Parser is used to transform a sequence of tokens into an Abstract Syntax Tree
  */
@@ -31,7 +33,7 @@ public:
 
     /**
      * @brief Creates a Parser object
-     * @param ctx The compilation context used throughout the parsing to report errors or allocate memory
+     * @param ctx The compilation context used throughout the parsing to report errors and allocate memory
      * @param lexer The lexer from which to fetch the tokens during the parsing
      */
     Parser(std::shared_ptr<common::CompilationContext>& ctx, lex::Lexer& lexer);
@@ -39,7 +41,7 @@ public:
     /**
      * @brief Start the parsing process
      */
-    ast::ASTNode* parse();
+    ast::Program* parse();
 
 private:
 
@@ -62,9 +64,10 @@ private:
 
     ast::Identifier* parseIdentifier(const std::string& errMsg = "");
 
-    ast::ASTNode* parseProgram();
+    ast::Program* parseProgram();
     ast::ModuleDecl* parseModule();
-    ast::DefineDecl* parseDef();
+    ast::DefineDecl* parseDef(bool asStatement);
+    ast::ClassDecl* parseClass(bool asStatement);
 
         // statements
 
@@ -75,6 +78,7 @@ private:
     ast::Expression* parseExpression();
     ast::Expression* parseBinary(ast::Expression* left, int precedence);
     ast::Expression* parsePrimary();
+    ast::TypeSpecifier* parseTypeSpecifier(ast::Identifier* id);
 
     ast::Block* parseBlock();
     ast::IfExpression* parseIf(bool asStatement);
@@ -84,12 +88,17 @@ private:
     ast::Tuple* parseTuple(std::vector<ast::Expression*>& exprs);
     ast::Expression* parseDotOperation(ast::Expression* left);
 
+        // others
+
+    ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
+
     // Members
 
     std::shared_ptr<common::CompilationContext> _ctx;
     common::AbstractMemoryManager& _mngr;
     lex::Lexer& _lex;
 
+    size_t _lastTokenEndPos;
     tok::Token* _currentToken;
 
 };
@@ -102,9 +111,9 @@ bool Parser::expect(T type, const std::string& expected, bool fatal) {
 
    if (!accept(type)) {
        if (fatal) {
-           _ctx->reporter().fatal(*lastTok, "expected " + expected + "; got `" + lastTok->toString() + "`");
+           _ctx->reporter().fatal(*lastTok, "expected " + expected + " but got `" + lastTok->toString() + "`");
        } else {
-           _ctx->reporter().error(*lastTok, "expected " + expected + "; got `" + lastTok->toString() + "`");
+           _ctx->reporter().error(*lastTok, "expected " + expected + " but got `" + lastTok->toString() + "`");
        }
        return false;
    }
@@ -115,6 +124,8 @@ bool Parser::expect(T type, const std::string& expected, bool fatal) {
 template<typename T>
 T* Parser::as() {
     return static_cast<T*>(_currentToken);
+}
+
 }
 
 }

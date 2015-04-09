@@ -26,7 +26,7 @@ namespace common {
     public:
 
         /**
-         * @brief Destructor. Implementations should call #free()
+         * @brief Destructor. Implementations should free all the memory that has been allocated
          */
         virtual ~AbstractMemoryManager() = 0;
 
@@ -37,7 +37,7 @@ namespace common {
          * @return A pointer to the instance
          */
         T* New(Args... args) {
-            return new(alloc(sizeof(T))) T(args...);
+            return new(alloc(sizeof(T))) T(std::forward<Args>(args)...);
         }
 
     protected:
@@ -48,11 +48,6 @@ namespace common {
          * @return A pointer to the free space
          */
         virtual MemoryManageable* alloc(size_t size) = 0;
-
-        /**
-         * @brief Frees every managed instances
-         */
-        virtual void free() = 0;
 
     };
 
@@ -83,14 +78,13 @@ namespace common {
             return ptr;
         }
 
-        virtual void free() {
+        void free() {
             for (auto ptr : _allocated) {
                 delete ptr;
             }
         }
 
         Collection_t<MemoryManageable*, Allocator> _allocated;
-
     };
 
     /**
@@ -140,17 +134,14 @@ namespace common {
          */
         ChunkedMemoryManager(size_t chunksSize);
 
-        virtual ~ChunkedMemoryManager() { free(); }
+        virtual ~ChunkedMemoryManager();
 
     private:
 
         virtual MemoryManageable* alloc(size_t size);
 
-        virtual void free();
-
         MemoryChunk* _lastChunk;
         std::vector<MemoryManageable*> _allocated;
-
     };
 
 }

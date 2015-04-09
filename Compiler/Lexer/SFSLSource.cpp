@@ -16,25 +16,25 @@ SFSLSource::SFSLSource(std::string* sourceName) : _position(0), _sourceName(sour
 
 }
 
-size_t SFSLSource::getPosition() {
+size_t SFSLSource::getPosition() const {
     return _position - 1;
 }
 
-std::string* SFSLSource::getSourceName() {
+std::string* SFSLSource::getSourceName() const {
     return _sourceName;
 }
 
-common::Positionnable SFSLSource::currentPos() {
-    return *common::Positionnable().setPos<common::Positionnable>(getPosition(), getSourceName());
+common::Positionnable SFSLSource::currentPos() const {
+    return common::Positionnable(getPosition(), getPosition() + 1, getSourceName());
 }
 
 // INPUT STREAM SOURCE
 
-SFSLInputStream::SFSLInputStream(std::string* sourceName, std::istream &input) : SFSLSource(sourceName), _input(input) {
+SFSLInputStream::SFSLInputStream(std::string* sourceName, std::istream& input) : SFSLSource(sourceName), _input(input) {
     produceNext();
 }
 
-size_t SFSLInputStream::getNexts(char *buffer, size_t maxBufferSize) {
+size_t SFSLInputStream::getNexts(char* buffer, size_t maxBufferSize) {
     size_t i = 0;
 
     while (_hasNext && i < maxBufferSize) {
@@ -60,7 +60,7 @@ SFSLInputString::SFSLInputString(std::string *sourceName, const std::string &sou
 
 }
 
-size_t SFSLInputString::getNexts(char *buffer, size_t maxBufferSize) {
+size_t SFSLInputString::getNexts(char* buffer, size_t maxBufferSize) {
     size_t i = 0;
 
     while (_curIndex < _size && i < maxBufferSize) {

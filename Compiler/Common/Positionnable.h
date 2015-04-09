@@ -23,53 +23,68 @@ namespace common {
     public:
 
         /**
-         * @brief Creates a Positionnable
+         * @brief Creates a BasePositionnable
          */
         Positionnable();
 
         /**
-         * @brief Creates a Positionnable
-         * @param pos its position
-         * @param source its source name
+         * @brief Creates a BasePositionnable
+         * @param pos Its position
+         * @param source Its source name
          */
-        Positionnable(size_t pos, std::string *source);
+        Positionnable(size_t startPos, size_t endPos, std::string* source);
 
-        template<typename T>
-        /**
-         * @brief sets the position of the object to the given parameters
-         * @param pos the new position
-         * @param source the new file name
-         * @return this
-         */
-        T* setPos(size_t pos, std::string* source) {
-            _pos = pos;
-            _source = source;
-            return static_cast<T*>(this);
-        }
-
-        template<typename T>
-        /**
-         * @brief sets the position of the object to be the same as the Positionnable given in parameter
-         * @param other the Positionnable which contains the position to copy
-         * @return this
-         */
-        T* setPos(const Positionnable& other) {
-            return setPos<T>(other._pos, other._source);
-        }
+        virtual ~Positionnable();
 
         /**
-         * @return the position of the Positionnable
+         * @brief Sets the position of the object to the given parameters
+         * @param pos The new position
+         * @param source The new file name
          */
-        size_t getPosition() const;
+        void setPos(size_t startPos, size_t endPos, std::string* source);
 
         /**
-         * @return the name of the source at the origin of the Positionnable
+         * @brief Sets the position of the object to be the same as the Positionnable given in parameter
+         * @param other The Positionnable which contains the position to copy
+         */
+        void setPos(const Positionnable& other);
+
+        /**
+         * @brief Sets the start position
+         * @param startPos The new position
+         */
+        void setStartPos(size_t startPos);
+
+        /**
+         * @brief Sets the end position
+         * @param startPos The new position
+         */
+        void setEndPos(size_t endPos);
+
+        /**
+         * @return The start position of the Positionnable
+         */
+        size_t getStartPosition() const;
+
+        /**
+         * @return The end position of the Positionnable
+         */
+        size_t getEndPosition() const;
+
+        /**
+         * @return The name of the source at the origin of the Positionnable
          */
         std::string* getSourceName() const;
 
+        /**
+         * @return A readable representation of the position
+         */
+        std::string positionStr() const;
+
     private:
 
-        size_t _pos;
+        size_t _startPos;
+        size_t _endPos;
         std::string* _source;
 
     };

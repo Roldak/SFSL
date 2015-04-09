@@ -11,7 +11,7 @@
 
 namespace sfsl {
 
-namespace ast {
+namespace sym {
 
 template<typename Symbol_Type>
 /**
@@ -26,14 +26,14 @@ public:
     /**
      * @param symbol The symbol to assign to the this Symbolic
      */
-    virtual void setSymbol(Symbol_Type* symbol) {
+    void setSymbol(Symbol_Type* symbol) {
         _symbol = symbol;
     }
 
     /**
      * @return The symbol that was assigned to this Symbolic
      */
-    virtual Symbol_Type* getSymbol() {
+    Symbol_Type* getSymbol() {
         return _symbol;
     }
 

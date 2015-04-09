@@ -16,13 +16,53 @@ ASTPrinter::ASTPrinter(std::shared_ptr<common::CompilationContext> &ctx) : ASTVi
 
 }
 
+ASTPrinter::~ASTPrinter() {
+
+}
+
 void ASTPrinter::visit(ModuleDecl *module) {
-    printIndents();
     std::cout << "module " << module->getName()->getValue() << " {" << std::endl;
 
     ++_indentCount;
 
-    for (ASTNode* decl : module->getDeclarations()) {
+    for (ModuleDecl* mod : module->getSubModules()) {
+        printIndents();
+        mod->onVisit(this);
+        std::cout << std::endl;
+    }
+
+    for (ClassDecl* clss : module->getClasses()) {
+        printIndents();
+        clss->onVisit(this);
+        std::cout << std::endl;
+    }
+
+    for (DefineDecl* decl : module->getDeclarations()) {
+        printIndents();
+        decl->onVisit(this);
+        std::cout << std::endl;
+    }
+
+    --_indentCount;
+
+    printIndents();
+    std::cout << "}" << std::endl;
+}
+
+void ASTPrinter::visit(ClassDecl *clss) {
+    std::cout << "class " << clss->getName()->getValue() << " {" << std::endl;
+
+    ++_indentCount;
+
+    for (TypeSpecifier* field : clss->getFields()) {
+        printIndents();
+        Identifier* fieldName = static_cast<Identifier*>(field->getSpecified());
+        std::cout << fieldName->getValue() << " : ";
+        field->getTypeNode()->onVisit(this);
+        std::cout << ";" << std::endl;
+    }
+
+    for (DefineDecl* decl : clss->getDefs()) {
         printIndents();
         decl->onVisit(this);
         std::cout << std::endl;
@@ -60,6 +100,14 @@ void ASTPrinter::visit(BinaryExpression *exp) {
     std::cout << ")";
 }
 
+void ASTPrinter::visit(TypeSpecifier *tps) {
+    std::cout << "(";
+    tps->getSpecified()->onVisit(this);
+    std::cout << " : ";
+    tps->getTypeNode()->onVisit(this);
+    std::cout << ")";
+}
+
 void ASTPrinter::visit(Block *block) {
     std::cout << "{" << std::endl;
     ++_indentCount;
@@ -76,11 +124,11 @@ void ASTPrinter::visit(Block *block) {
 }
 
 void ASTPrinter::visit(IfExpression *ifexpr) {
-    std::cout << "if (";
+    std::cout << "if ";
 
     ifexpr->getCondition()->onVisit(this);
 
-    std::cout << ") ";
+    std::cout << " ";
 
     ifexpr->getThen()->onVisit(this);
 

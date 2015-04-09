@@ -7,6 +7,7 @@
 //
 
 #include "Positionnable.h"
+#include "../../Utils/Utils.h"
 
 namespace sfsl {
 
@@ -16,16 +17,46 @@ Positionnable::Positionnable() {
 
 }
 
-Positionnable::Positionnable(size_t pos, std::string *source) : _pos(pos), _source(source) {
+Positionnable::Positionnable(size_t startPos, size_t endPos, std::string* source) {
+    setPos(startPos, endPos, source);
+}
+
+Positionnable::~Positionnable() {
 
 }
 
-size_t Positionnable::getPosition() const{
-    return _pos;
+void Positionnable::setPos(size_t startPos, size_t endPos, std::string* source) {
+    _startPos = startPos;
+    _endPos = endPos;
+    _source = source;
+}
+
+void Positionnable::setPos(const Positionnable& other) {
+    setPos(other._startPos, other._endPos, other._source);
+}
+
+void Positionnable::setStartPos(size_t startPos) {
+    _startPos = startPos;
+}
+
+void Positionnable::setEndPos(size_t endPos) {
+    _endPos = endPos;
+}
+
+size_t Positionnable::getStartPosition() const{
+    return _startPos;
+}
+
+size_t Positionnable::getEndPosition() const{
+    return _endPos;
 }
 
 std::string* Positionnable::getSourceName() const {
     return _source;
+}
+
+std::string Positionnable::positionStr() const {
+    return (*_source) + ":" + utils::T_toString(_startPos) + ":" + utils::T_toString(_endPos);
 }
 
 }
