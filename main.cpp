@@ -11,7 +11,6 @@
 #include "Compiler/Analyser/NameAnalysis.h"
 #include "Compiler/Analyser/TypeChecking.h"
 
-using namespace std;
 using namespace sfsl;
 
 int main(int argc, char** argv) {
@@ -35,7 +34,7 @@ int main(int argc, char** argv) {
     }
 
     if (!sourceFile)
-        sourceFile = (char*)"Examples\\longfile.sfsl";
+        sourceFile = (char*)"Examples\\test.sfsl";
 
     std::string source;
 
@@ -44,14 +43,12 @@ int main(int argc, char** argv) {
         source += f.get();
     }
 
-    //std::shared_ptr<std::string> src_str(new std::string(sourceFile));
-
     clock_t exec = clock();
 
     auto ctx = common::CompilationContext::DefaultCompilationContext();
     std::istringstream input(source);
 
-    src::SFSLInputStream src(src::SFSLSourceName::make(ctx, std::string(sourceFile)), input);
+    src::SFSLInputStream src(src::SFSLSourceName::make(ctx, sourceFile), input);
 
     try {
 
@@ -64,7 +61,7 @@ int main(int argc, char** argv) {
         if (ctx.get()->reporter().getErrorCount() != 0) {
             return 1;
         }
-/*
+
         ast::ASTPrinter printer(ctx);
         prog->onVisit(&printer);
 
@@ -76,7 +73,7 @@ int main(int argc, char** argv) {
 
         ast::TypeAssignation typeAssign(ctx);
         prog->onVisit(&typeAssign);
-*/
+
         if (ctx.get()->reporter().getErrorCount() != 0) {
             return 1;
         }
@@ -89,5 +86,5 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << endl << endl;
+    std::cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << std::endl << std::endl;
 }

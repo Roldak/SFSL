@@ -35,6 +35,9 @@ namespace ast {
 
         virtual void visit(TypeSpecifier *tps);
 
+        virtual void visit(IntLitteral* intlit);
+        virtual void visit(RealLitteral* reallit);
+
     private:
 
         sym::Scope* _curScope;

@@ -54,14 +54,6 @@ void TypeAssignation::visit(DefineDecl* decl) {
     RESTORE_SCOPE
 }
 
-void TypeAssignation::visit(Block* block) {
-    SAVE_SCOPE
-    _curScope = block->getScope();
-
-    ASTVisitor::visit(block);
-
-    RESTORE_SCOPE
-}
 
 void TypeAssignation::visit(FunctionCreation* func) {
     SAVE_SCOPE
@@ -70,6 +62,12 @@ void TypeAssignation::visit(FunctionCreation* func) {
     ASTVisitor::visit(func);
 
     RESTORE_SCOPE
+}
+
+void TypeAssignation::visit(BinaryExpression* bin) {
+    ASTVisitor::visit(this);
+
+    bin->setType(bin->getLhs()->type()); // TODO : change that
 }
 
 void TypeAssignation::visit(TypeSpecifier* tps) {
@@ -88,6 +86,27 @@ void TypeAssignation::visit(TypeSpecifier* tps) {
     } else {
         _ctx.get()->reporter().error(*tps->getTypeNode(), "Expression is not a type");
     }
+}
+
+void TypeAssignation::visit(Block* block) {
+    SAVE_SCOPE
+    _curScope = block->getScope();
+
+    ASTVisitor::visit(block);
+
+    RESTORE_SCOPE
+}
+
+void TypeAssignation::visit(IfExpression *ifexpr) {
+    ASTVisitor::visit(this);
+}
+
+void TypeAssignation::visit(IntLitteral* intlit) {
+
+}
+
+void TypeAssignation::visit(RealLitteral* reallit) {
+
 }
 
 // TYPE CHECK

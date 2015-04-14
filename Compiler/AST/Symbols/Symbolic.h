@@ -33,7 +33,7 @@ public:
     /**
      * @return The symbol that was assigned to this Symbolic
      */
-    Symbol_Type* getSymbol() {
+    Symbol_Type* getSymbol() const {
         return _symbol;
     }
 

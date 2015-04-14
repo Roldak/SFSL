@@ -139,7 +139,7 @@ DefineDecl* Parser::parseDef(bool asStatement) {
 
 }
 
-ClassDecl *Parser::parseClass(bool asStatement) {
+ClassDecl* Parser::parseClass(bool asStatement) {
     Identifier* className = parseIdentifier("expected class name");
     expect(tok::OPER_L_BRACE, "`{`");
 
@@ -321,11 +321,11 @@ IfExpression* Parser::parseIf(bool asStatement) {
 
     Expression* cond = parseExpression();
 
-    ASTNode* then = asStatement ? (ASTNode*)parseStatement() : (ASTNode*)parseExpression();
+    ASTNode* then = asStatement ? static_cast<ASTNode*>(parseStatement()) : static_cast<ASTNode*>(parseExpression());
     ASTNode* els = nullptr;
 
     if (accept(tok::KW_ELSE)) {
-         els = asStatement ? (ASTNode*)parseStatement() : (ASTNode*)parseExpression();
+         els = asStatement ? static_cast<ASTNode*>(parseStatement()) : static_cast<ASTNode*>(parseExpression());
     }
 
     IfExpression* ifexpr = _mngr.New<IfExpression>(cond, then, els);

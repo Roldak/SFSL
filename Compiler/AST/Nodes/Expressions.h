@@ -15,6 +15,7 @@
 #include "../../../Utils/Utils.h"
 #include "../Symbols/Symbols.h"
 #include "../Symbols/Symbolic.h"
+#include "../../Types/Types.h"
 
 namespace sfsl {
 
@@ -28,7 +29,7 @@ class Statement;
  * Cannot be constructed. This class is there just to provide
  * a lower upper bound for all the expressions than ASTNode
  */
-class Expression : virtual public ASTNode {
+class Expression : virtual public ASTNode, public type::Typed {
 public:
 
     virtual ~Expression();
