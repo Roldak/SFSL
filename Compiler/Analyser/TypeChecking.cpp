@@ -9,6 +9,7 @@
 #include "TypeChecking.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
+#include "../AST/Symbols/Scope.h"
 
 namespace sfsl {
 
@@ -88,6 +89,13 @@ void TypeAssignation::visit(Block* block) {
     _curScope = block->getScope();
 
     ASTVisitor::visit(block);
+
+    const std::vector<Expression*>& stats = block->getStatements();
+    if (stats.size() > 0) {
+        block->setType(stats.back()->type());
+    } else {
+        //block->setType(_curScope->);
+    }
 
     RESTORE_SCOPE
 }

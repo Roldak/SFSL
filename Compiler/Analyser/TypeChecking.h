@@ -47,7 +47,6 @@ namespace ast {
     private:
 
         sym::Scope* _curScope;
-
     };
 
     /**

@@ -10,6 +10,7 @@
 #define __SFSL__Utils__
 
 #include <sstream>
+#include <vector>
 
 #define PTR_SIZE sizeof(void*)
 
@@ -54,6 +55,24 @@ inline T String_toT(const std::string& val) {
     T res;
     oss >> res;
     return res;
+}
+
+//(http://stackoverflow.com/questions/236129/split-a-string-in-c)
+/**
+ * @brief Splits the given strings according to a delimiter.
+ * (Note : does not skip empty tokens.)
+ * @param toFill The vector in which to add the parts
+ * @param str The string to split
+ * @param delim The delimiter for which to split the string
+ * @return the number of parts that were split.
+ */
+inline size_t split(std::vector<std::string>& toFill, const std::string& str, char delim) {
+    std::stringstream ss(str);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        toFill.push_back(item);
+    }
+    return toFill.size();
 }
 
 }

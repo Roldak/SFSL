@@ -21,7 +21,7 @@ ASTTypeCreator::~ASTTypeCreator() {
 }
 
 void ASTTypeCreator::visit(ASTNode* node) {
-    // do not thrown an exception
+    // do not throw an exception
 }
 
 void ASTTypeCreator::visit(MemberAccess* mac) {
