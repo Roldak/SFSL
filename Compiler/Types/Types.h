@@ -50,7 +50,7 @@ private:
 
 /**
  * @brief Interface that represents a node that has a type,
- * like a binary expression, an identifier, etc.
+ * like an expression, or some of the symbols.
  */
 class Typed {
 public:
