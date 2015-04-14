@@ -21,6 +21,22 @@ Expression::~Expression() {
 
 SFSL_AST_ON_VISIT_CPP(Expression)
 
+// EXPRESSION STATEMENT
+
+ExpressionStatement::ExpressionStatement(Expression *expr) : _expr(expr) {
+
+}
+
+ExpressionStatement::~ExpressionStatement() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(ExpressionStatement)
+
+Expression *ExpressionStatement::getExpression() const {
+    return _expr;
+}
+
 // BINARY EXPRESSION
 
 BinaryExpression::BinaryExpression(Expression *lhs, Expression *rhs, Identifier *oper)
@@ -58,13 +74,54 @@ TypeSpecifier::~TypeSpecifier() {
 
 SFSL_AST_ON_VISIT_CPP(TypeSpecifier)
 
-Identifier *TypeSpecifier::getSpecified() const {
+Identifier* TypeSpecifier::getSpecified() const {
     return _specified;
 }
 
 Expression* TypeSpecifier::getTypeNode() const {
     return _type;
 }
+
+// BLOCK
+
+Block::Block(const std::vector<Expression*>& stats) : _stats(stats) {
+
+}
+
+Block::~Block() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(Block)
+
+const std::vector<Expression*>& Block::getStatements() const {
+    return _stats;
+}
+
+// IF EXPRESSION
+
+IfExpression::IfExpression(Expression* cond, ASTNode* then, ASTNode* els)
+    : _cond(cond), _then(then), _else(els) {
+
+}
+
+IfExpression::~IfExpression() {
+
+}
+
+Expression *IfExpression::getCondition() const {
+    return _cond;
+}
+
+ASTNode* IfExpression::getThen() const {
+    return _then;
+}
+
+ASTNode* IfExpression::getElse() const {
+    return _else;
+}
+
+SFSL_AST_ON_VISIT_CPP(IfExpression)
 
 // MEMBER ACCESS
 

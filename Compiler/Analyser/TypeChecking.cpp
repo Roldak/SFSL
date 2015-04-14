@@ -54,18 +54,13 @@ void TypeAssignation::visit(DefineDecl* decl) {
     RESTORE_SCOPE
 }
 
-
-void TypeAssignation::visit(FunctionCreation* func) {
-    SAVE_SCOPE
-    _curScope = func->getScope();
-
-    ASTVisitor::visit(func);
-
-    RESTORE_SCOPE
+void TypeAssignation::visit(ExpressionStatement *exp) {
+    ASTVisitor::visit(exp);
+    exp->setType(exp->getExpression()->type());
 }
 
 void TypeAssignation::visit(BinaryExpression* bin) {
-    ASTVisitor::visit(this);
+    ASTVisitor::visit(bin);
 
     bin->setType(bin->getLhs()->type()); // TODO : change that
 }
@@ -97,8 +92,34 @@ void TypeAssignation::visit(Block* block) {
     RESTORE_SCOPE
 }
 
-void TypeAssignation::visit(IfExpression *ifexpr) {
-    ASTVisitor::visit(this);
+void TypeAssignation::visit(IfExpression* ifexpr) {
+    ASTVisitor::visit(ifexpr);
+    //ifexpr->setType(ifexpr->getThen());
+}
+
+void TypeAssignation::visit(MemberAccess* dot) {
+
+}
+
+void TypeAssignation::visit(Tuple* tuple) {
+
+}
+
+void TypeAssignation::visit(FunctionCreation* func) {
+    SAVE_SCOPE
+    _curScope = func->getScope();
+
+    ASTVisitor::visit(func);
+
+    RESTORE_SCOPE
+}
+
+void TypeAssignation::visit(FunctionCall* call) {
+
+}
+
+void TypeAssignation::visit(Identifier* ident) {
+
 }
 
 void TypeAssignation::visit(IntLitteral* intlit) {

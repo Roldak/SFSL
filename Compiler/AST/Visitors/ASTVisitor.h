@@ -11,7 +11,6 @@
 
 #include <iostream>
 #include "../Nodes/Program.h"
-#include "../Nodes/Statements.h"
 #include "../../Common/CompilationContext.h"
 
 namespace sfsl {

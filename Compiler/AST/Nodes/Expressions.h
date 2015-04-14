@@ -39,6 +39,28 @@ public:
 };
 
 /**
+ * @brief Represents a statement witch is simply the evaluation of an expression
+ */
+class ExpressionStatement : public Expression {
+public:
+
+    ExpressionStatement(Expression* expr);
+    virtual ~ExpressionStatement();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The expression contained in the statement
+     */
+    Expression* getExpression() const;
+
+private:
+
+    Expression* _expr;
+
+};
+
+/**
  * @brief Represents a binary expression, aka lhs oper rhs.
  */
 class BinaryExpression : public Expression {
@@ -95,6 +117,61 @@ private:
 
     Identifier* _specified;
     Expression* _type;
+};
+
+/**
+ * @brief Represents a block, aka a list of statements
+ */
+class Block : public Expression, public sym::Scoped {
+public:
+    Block(const std::vector<Expression*>& stats);
+    virtual ~Block();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The list of statements contained in the block
+     */
+    const std::vector<Expression*>& getStatements() const;
+
+private:
+
+    const std::vector<Expression*> _stats;
+
+};
+
+/**
+ * @brief Represents an If expression, e.g. if (1 + 1 == 2) println("hi") else println("salut")
+ */
+class IfExpression : public Expression {
+public:
+
+    IfExpression(Expression* cond, ASTNode* then, ASTNode* els);
+    virtual ~IfExpression();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The condition expression
+     */
+    Expression* getCondition() const;
+
+    /**
+     * @return The then-part expression
+     */
+    ASTNode* getThen() const;
+
+    /**
+     * @return The else-part expression, potentially null
+     */
+    ASTNode* getElse() const;
+
+private:
+
+    Expression* _cond;
+    ASTNode* _then;
+    ASTNode* _else;
+
 };
 
 /**

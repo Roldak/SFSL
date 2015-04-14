@@ -19,7 +19,7 @@
 #include "../Common/CompilationContext.h"
 
 #include "../AST/Nodes/Program.h"
-#include "../AST/Nodes/Statements.h"
+#include "../AST/Nodes/Expressions.h"
 
 namespace sfsl {
 
@@ -71,7 +71,7 @@ private:
 
         // statements
 
-    ast::Statement* parseStatement();
+    ast::Expression* parseStatement();
 
         // expressions
 

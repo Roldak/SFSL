@@ -173,7 +173,7 @@ ClassDecl* Parser::parseClass(bool asStatement) {
     return classDecl;
 }
 
-Statement* Parser::parseStatement() {
+Expression* Parser::parseStatement() {
     if (isType(tok::TOK_KW)) {
         tok::KW_TYPE kw = as<tok::Keyword>()->getKwType();
         accept();
@@ -302,13 +302,14 @@ TypeSpecifier* Parser::parseTypeSpecifier(Identifier* id) {
 }
 
 Block* Parser::parseBlock() {
-    std::vector<Statement*> stats;
+    std::vector<Expression*> stats;
 
     SAVE_POS(startPos)
 
     while (!accept(tok::OPER_R_BRACE)) {
         stats.push_back(parseStatement());
     }
+
     Block* block = _mngr.New<Block>(stats);
     block->setPos(startPos);
     block->setEndPos(_lastTokenEndPos);

@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <vector>
-#include "Statements.h"
+#include "Expressions.h"
 #include "../Symbols/Symbols.h"
 #include "../Symbols/Symbolic.h"
 
@@ -75,7 +75,7 @@ private:
  *  - This definition's name
  *  - The value associated to this definition
  */
-class DefineDecl : public Statement, public sym::Symbolic<sym::DefinitionSymbol> {
+class DefineDecl : public Expression, public sym::Symbolic<sym::DefinitionSymbol> {
 public:
 
     DefineDecl(Identifier* name, ASTNode* value);
@@ -107,7 +107,7 @@ private:
  *  - Its fields
  *  - Its definitions
  */
-class ClassDecl : public Statement, public sym::Symbolic<sym::ClassSymbol> {
+class ClassDecl : public Expression, public sym::Symbolic<sym::ClassSymbol> {
 public:
 
     ClassDecl(Identifier* name, const std::vector<TypeSpecifier*> fields, const std::vector<DefineDecl*> defs);
