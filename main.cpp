@@ -10,6 +10,7 @@
 #include "Compiler/AST/Visitors/ASTPrinter.h"
 #include "Compiler/Analyser/NameAnalysis.h"
 #include "Compiler/Analyser/TypeChecking.h"
+#include "Compiler/AST/Symbols/SymbolResolver.h"
 
 using namespace sfsl;
 
