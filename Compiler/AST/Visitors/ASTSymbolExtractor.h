@@ -26,7 +26,7 @@ public:
      * @brief Creates an ASTSymbolExtractor
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTSymbolExtractor(std::shared_ptr<common::CompilationContext>& ctx);
+    ASTSymbolExtractor(CompCtx_Ptr& ctx);
 
     virtual ~ASTSymbolExtractor();
 
@@ -46,7 +46,7 @@ protected:
     sym::Symbol* _sym;
 };
 
-inline sym::Symbol* extractSymbol(ASTNode* node, std::shared_ptr<common::CompilationContext>& ctx) {
+inline sym::Symbol* extractSymbol(ASTNode* node, CompCtx_Ptr& ctx) {
     ASTSymbolExtractor extractor(ctx);
     node->onVisit(&extractor);
     return extractor.getSymbol();

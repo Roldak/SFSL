@@ -12,7 +12,7 @@ namespace sfsl {
 
 namespace ast {
 
-ASTTypeCreator::ASTTypeCreator(std::shared_ptr<common::CompilationContext>& ctx) : ASTVisitor(ctx), _created(nullptr) {
+ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx) : ASTVisitor(ctx), _created(nullptr) {
 
 }
 

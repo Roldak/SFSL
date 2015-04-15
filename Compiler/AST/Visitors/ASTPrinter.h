@@ -23,7 +23,7 @@ namespace ast {
 class ASTPrinter : public ASTVisitor {
 public:
 
-    ASTPrinter(std::shared_ptr<common::CompilationContext>& ctx);
+    ASTPrinter(CompCtx_Ptr& ctx);
 
     virtual ~ASTPrinter();
 

@@ -32,7 +32,7 @@ namespace src {
          * @param name The name to the source file
          * @return The newly created SFSLSourceName
          */
-        static SFSLSourceName make(const std::shared_ptr<common::CompilationContext>& compilationContext, const std::string& name);
+        static SFSLSourceName make(const CompCtx_Ptr& compilationContext, const std::string& name);
 
         const std::string& getName() const;
 

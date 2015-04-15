@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include "../AST/Visitors/ASTVisitor.h"
+#include "../AST/Symbols/SymbolResolver.h"
 
 namespace sfsl {
 
@@ -22,7 +23,7 @@ namespace ast {
     class TypeAssignation : public ASTVisitor {
     public:
 
-        TypeAssignation(std::shared_ptr<common::CompilationContext>& ctx);
+        TypeAssignation(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
 
         virtual void visit(ASTNode*);
 
@@ -47,6 +48,7 @@ namespace ast {
     private:
 
         sym::Scope* _curScope;
+        const sym::SymbolResolver& _res;
     };
 
     /**
@@ -55,7 +57,7 @@ namespace ast {
     class TypeCheck : public ASTVisitor {
     public:
 
-        TypeCheck(std::shared_ptr<common::CompilationContext>& ctx);
+        TypeCheck(CompCtx_Ptr& ctx);
 
         virtual void visit(Statement* stmt);
 

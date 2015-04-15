@@ -13,11 +13,12 @@ namespace sfsl {
 
 namespace sym {
 
-SymbolResolver::SymbolResolver(const ast::Program* prog) : _scope(prog->getScope()) {
+SymbolResolver::SymbolResolver(const ast::Program* prog, const CompCtx_Ptr &ctx)
+    : _scope(prog->getScope()), _ctx(ctx) {
 
 }
 
-Symbol* SymbolResolver::getSymbol(const std::string& fullPathName) {
+Symbol* SymbolResolver::getSymbol(const std::string& fullPathName) const {
     std::vector<std::string> parts;
     size_t i = 0, e = utils::split(parts, fullPathName, NAMESPACE_DELIMITER);
     Scope* scope = _scope;
@@ -44,6 +45,34 @@ Symbol* SymbolResolver::getSymbol(const std::string& fullPathName) {
     }
 
     return lastSym;
+}
+
+void SymbolResolver::setPredefClassesPath(const std::string &fullPathName) {
+    _unitType   = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + UNIT_CLASS_NAME));
+    _intType    = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + INT_CLASS_NAME));
+    _realType   = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + REAL_CLASS_NAME));
+}
+
+type::Type* SymbolResolver::Unit() const {
+    return _unitType;
+}
+
+type::Type* SymbolResolver::Int() const {
+    return _intType;
+}
+
+type::Type* SymbolResolver::Real() const {
+    return _realType;
+}
+
+type::Type* SymbolResolver::createTypeFromSymbol(Symbol* sym) {
+    if (sym) {
+        if (sym->getSymbolType() == SYM_CLASS) {
+            return _ctx.get()->memoryManager().New<type::ObjectType>(static_cast<sym::ClassSymbol*>(sym));
+        }
+    }
+    throw common::CompilationFatalError("Cannot create type : " +
+                                        (sym ? (sym->getName() + "is not a type") : "null pointer was passed"));
 }
 
 }

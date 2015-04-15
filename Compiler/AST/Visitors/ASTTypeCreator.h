@@ -27,7 +27,7 @@ public:
      * @brief Creates an ASTTypeCreator
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTTypeCreator(std::shared_ptr<common::CompilationContext>& ctx);
+    ASTTypeCreator(CompCtx_Ptr& ctx);
 
     virtual ~ASTTypeCreator();
 
@@ -57,7 +57,7 @@ protected:
  * @param ctx The compilation context
  * @return The generated type
  */
-inline type::Type* createType(ASTNode* node, std::shared_ptr<common::CompilationContext>& ctx) {
+inline type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx) {
     ASTTypeCreator creator(ctx);
     node->onVisit(&creator);
     return creator.getCreatedType();

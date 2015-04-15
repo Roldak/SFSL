@@ -20,7 +20,8 @@ namespace ast {
 
 // TYPE ASSIGNATION
 
-TypeAssignation::TypeAssignation(std::shared_ptr<common::CompilationContext>& ctx) : ASTVisitor(ctx), _curScope(nullptr) {
+TypeAssignation::TypeAssignation(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
+    : ASTVisitor(ctx), _curScope(nullptr), _res(res) {
 
 }
 
@@ -37,7 +38,7 @@ void TypeAssignation::visit(ModuleDecl* mod) {
     RESTORE_SCOPE
 }
 
-void TypeAssignation::visit(ClassDecl *clss) {
+void TypeAssignation::visit(ClassDecl* clss) {
     SAVE_SCOPE
     _curScope = clss->getSymbol()->getScope();
 
@@ -55,7 +56,7 @@ void TypeAssignation::visit(DefineDecl* decl) {
     RESTORE_SCOPE
 }
 
-void TypeAssignation::visit(ExpressionStatement *exp) {
+void TypeAssignation::visit(ExpressionStatement* exp) {
     ASTVisitor::visit(exp);
     exp->setType(exp->getExpression()->type());
 }
@@ -94,7 +95,7 @@ void TypeAssignation::visit(Block* block) {
     if (stats.size() > 0) {
         block->setType(stats.back()->type());
     } else {
-        //block->setType(_curScope->);
+        block->setType(_res.Unit());
     }
 
     RESTORE_SCOPE
@@ -131,16 +132,16 @@ void TypeAssignation::visit(Identifier* ident) {
 }
 
 void TypeAssignation::visit(IntLitteral* intlit) {
-
+    intlit->setType(_res.Int());
 }
 
 void TypeAssignation::visit(RealLitteral* reallit) {
-
+    reallit->setType(_res.Real());
 }
 
 // TYPE CHECK
 
-TypeCheck::TypeCheck(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx) {
+TypeCheck::TypeCheck(CompCtx_Ptr &ctx) : ASTVisitor(ctx) {
 
 }
 

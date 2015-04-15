@@ -31,15 +31,15 @@ namespace common {
 
     protected:
 
-        // delete operator is protected so that the user cannot delete manually an object that
-        void operator delete(void*);
+        // delete operator is protected so that the user cannot delete manually an object that is supposed to be managed automatically
+        void operator delete  (void*);
         void operator delete[](void*);
 
     private:
         // to prevent manual allocation
         void* operator new   (size_t);
         void* operator new[] (size_t);
-        void* operator new(size_t, void*);
+        void* operator new   (size_t, void*);
     };
 
 }

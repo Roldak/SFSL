@@ -18,7 +18,7 @@ namespace ast {
 
 // SCOPE POSSESSOR VISITOR
 
-ScopePossessorVisitor::ScopePossessorVisitor(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx), _curScope(nullptr) {
+ScopePossessorVisitor::ScopePossessorVisitor(CompCtx_Ptr &ctx) : ASTVisitor(ctx), _curScope(nullptr) {
 
 }
 
@@ -44,7 +44,7 @@ T* ScopePossessorVisitor::createSymbol(U* node) {
 
 // SCOPE GENERATION
 
-ScopeGeneration::ScopeGeneration(std::shared_ptr<common::CompilationContext> &ctx) : ScopePossessorVisitor(ctx) {
+ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
 
 }
 
@@ -130,7 +130,7 @@ void ScopeGeneration::popScope() {
 #define SAVE_SCOPE  sym::Scope* last = _curScope;
 #define RESTORE_SCOPE _curScope = last;
 
-SymbolAssignation::SymbolAssignation(std::shared_ptr<common::CompilationContext> &ctx) : ScopePossessorVisitor(ctx) {
+SymbolAssignation::SymbolAssignation(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
 
 }
 

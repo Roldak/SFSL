@@ -27,7 +27,7 @@ public:
      * @brief Creates an ASTVisitor
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTVisitor(std::shared_ptr<common::CompilationContext>& ctx);
+    ASTVisitor(CompCtx_Ptr& ctx);
 
     virtual ~ASTVisitor();
 
@@ -59,7 +59,7 @@ public:
 
 protected:
 
-    std::shared_ptr<common::CompilationContext> _ctx;
+    CompCtx_Ptr _ctx;
     common::AbstractMemoryManager& _mngr;
 };
 

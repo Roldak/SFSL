@@ -27,7 +27,7 @@ public:
      * @brief Creates an ASTTypeIdentifier
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTTypeIdentifier(std::shared_ptr<common::CompilationContext>& ctx) : ASTVisitor(ctx) {}
+    ASTTypeIdentifier(CompCtx_Ptr& ctx) : ASTVisitor(ctx) {}
 
     virtual ~ASTTypeIdentifier() {}
 
@@ -125,7 +125,7 @@ template<typename T>
  * @param ctx The compilation context
  * @return True if the type matches, else false
  */
-bool isNodeOfType(ASTNode* node, std::shared_ptr<common::CompilationContext>& ctx) {
+bool isNodeOfType(ASTNode* node, CompCtx_Ptr& ctx) {
     ASTTypeIdentifier<T> identifier(ctx);
     node->onVisit(&identifier);
     return identifier.matches();

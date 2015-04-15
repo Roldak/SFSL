@@ -12,7 +12,7 @@ namespace sfsl {
 
 namespace ast {
 
-ASTPrinter::ASTPrinter(std::shared_ptr<common::CompilationContext> &ctx) : ASTVisitor(ctx), _indentCount(0) {
+ASTPrinter::ASTPrinter(CompCtx_Ptr &ctx) : ASTVisitor(ctx), _indentCount(0) {
 
 }
 

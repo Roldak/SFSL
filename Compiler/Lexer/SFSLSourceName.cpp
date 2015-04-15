@@ -21,7 +21,7 @@ SFSLSourceName::SFSLSourceName(const std::string* name) : _name(name) {
 
 }
 
-SFSLSourceName SFSLSourceName::make(const std::shared_ptr<common::CompilationContext>& compilationContext, const std::string& name) {
+SFSLSourceName SFSLSourceName::make(const CompCtx_Ptr& compilationContext, const std::string& name) {
     return SFSLSourceName(compilationContext.get()->memoryManager().New<common::ManageableWrapper<std::string>>(name)->getConstPtr());
 }
 

@@ -13,7 +13,7 @@ namespace sfsl {
 
 namespace ast {
 
-ASTVisitor::ASTVisitor(std::shared_ptr<common::CompilationContext> &ctx) : _ctx(ctx), _mngr(ctx.get()->memoryManager()) {
+ASTVisitor::ASTVisitor(CompCtx_Ptr &ctx) : _ctx(ctx), _mngr(ctx.get()->memoryManager()) {
 
 }
 

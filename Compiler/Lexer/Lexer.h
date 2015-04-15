@@ -31,7 +31,7 @@ namespace lex {
          * @param source The input source
          * @param sourceBufferSize The size of the buffer used by the source reader
          */
-        Lexer(std::shared_ptr<common::CompilationContext>& ctx, src::SFSLSource& source, size_t sourceBufferSize = 128);
+        Lexer(CompCtx_Ptr& ctx, src::SFSLSource& source, size_t sourceBufferSize = 128);
 
         /**
          * @return True if there are more tokens to come, otherwise false
@@ -73,7 +73,7 @@ namespace lex {
         void handleMultiLineComment();
         void handleSingleLineComment();
 
-        std::shared_ptr<common::CompilationContext> _ctx;
+        CompCtx_Ptr _ctx;
         src::BufferedSFSLSource _source;
 
         tok::Token* _curToken;

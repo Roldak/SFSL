@@ -21,7 +21,7 @@ namespace ast {
  */
 class ScopePossessorVisitor : public ASTVisitor {
 protected:
-    ScopePossessorVisitor(std::shared_ptr<common::CompilationContext>& ctx);
+    ScopePossessorVisitor(CompCtx_Ptr& ctx);
 
     template<typename T, typename U>
     T* createSymbol(U* node);
@@ -37,7 +37,7 @@ protected:
 class ScopeGeneration : public ScopePossessorVisitor {
 public:
 
-    ScopeGeneration(std::shared_ptr<common::CompilationContext>& ctx);
+    ScopeGeneration(CompCtx_Ptr& ctx);
 
     virtual void visit(Program* prog);
 
@@ -60,7 +60,7 @@ private:
 class SymbolAssignation : public ScopePossessorVisitor {
 public:
 
-    SymbolAssignation(std::shared_ptr<common::CompilationContext>& ctx);
+    SymbolAssignation(CompCtx_Ptr& ctx);
 
     virtual void visit(ModuleDecl* mod);
     virtual void visit(ClassDecl* clss);

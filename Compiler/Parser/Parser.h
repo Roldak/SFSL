@@ -36,7 +36,7 @@ public:
      * @param ctx The compilation context used throughout the parsing to report errors and allocate memory
      * @param lexer The lexer from which to fetch the tokens during the parsing
      */
-    Parser(std::shared_ptr<common::CompilationContext>& ctx, lex::Lexer& lexer);
+    Parser(CompCtx_Ptr& ctx, lex::Lexer& lexer);
 
     /**
      * @brief Start the parsing process
@@ -94,7 +94,7 @@ private:
 
     // Members
 
-    std::shared_ptr<common::CompilationContext> _ctx;
+    CompCtx_Ptr _ctx;
     common::AbstractMemoryManager& _mngr;
     lex::Lexer& _lex;
 

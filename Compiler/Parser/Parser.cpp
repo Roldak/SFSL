@@ -16,7 +16,7 @@ namespace sfsl {
 
 using namespace ast;
 
-Parser::Parser(std::shared_ptr<common::CompilationContext>& ctx, lex::Lexer &lexer)
+Parser::Parser(CompCtx_Ptr& ctx, lex::Lexer &lexer)
     : _ctx(ctx), _mngr(ctx->memoryManager()), _lex(lexer), _lastTokenEndPos(0), _currentToken(nullptr) {
 
 }

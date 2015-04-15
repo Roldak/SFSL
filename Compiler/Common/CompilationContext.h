@@ -61,6 +61,8 @@ private:
 
 }
 
+typedef std::shared_ptr<common::CompilationContext> CompCtx_Ptr;
+
 }
 
 #endif

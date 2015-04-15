@@ -12,7 +12,7 @@ namespace sfsl {
 
 namespace ast {
 
-ASTSymbolExtractor::ASTSymbolExtractor(std::shared_ptr<common::CompilationContext>& ctx) : ASTVisitor(ctx) {
+ASTSymbolExtractor::ASTSymbolExtractor(CompCtx_Ptr& ctx) : ASTVisitor(ctx) {
 
 }
 
