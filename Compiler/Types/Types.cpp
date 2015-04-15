@@ -37,7 +37,7 @@ Type::~Type() {
 
 }
 
-Type* Type::NotYetDefined = new TypeNotYetDefined();
+Type* Type::NotYetDefined = nullptr; // TODO : not nullptr
 
 ObjectType::ObjectType(sym::ClassSymbol* clss) : _class(clss) {
 

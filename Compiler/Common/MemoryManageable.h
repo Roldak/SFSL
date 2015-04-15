@@ -9,6 +9,8 @@
 #ifndef __SFSL__MemoryManageable__
 #define __SFSL__MemoryManageable__
 
+#include <stddef.h>
+
 namespace sfsl {
 
 namespace common {
@@ -20,11 +22,24 @@ namespace common {
     class MemoryManageable {
     public:
 
+        friend class AbstractMemoryManager;
+
         /**
          * @brief The destructor
          */
         virtual ~MemoryManageable() {}
 
+    protected:
+
+        // delete operator is protected so that the user cannot delete manually an object that
+        void operator delete(void*);
+        void operator delete[](void*);
+
+    private:
+        // to prevent manual allocation
+        void* operator new   (size_t);
+        void* operator new[] (size_t);
+        void* operator new(size_t, void*);
     };
 
 }
