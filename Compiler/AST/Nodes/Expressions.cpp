@@ -100,7 +100,7 @@ const std::vector<Expression*>& Block::getStatements() const {
 
 // IF EXPRESSION
 
-IfExpression::IfExpression(Expression* cond, ASTNode* then, ASTNode* els)
+IfExpression::IfExpression(Expression* cond, Expression* then, Expression* els)
     : _cond(cond), _then(then), _else(els) {
 
 }
@@ -113,11 +113,11 @@ Expression *IfExpression::getCondition() const {
     return _cond;
 }
 
-ASTNode* IfExpression::getThen() const {
+Expression* IfExpression::getThen() const {
     return _then;
 }
 
-ASTNode* IfExpression::getElse() const {
+Expression* IfExpression::getElse() const {
     return _else;
 }
 
