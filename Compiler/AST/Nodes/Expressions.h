@@ -22,7 +22,6 @@ namespace sfsl {
 namespace ast {
 
 class Identifier;
-class Statement;
 
 /**
  * @brief A superclass that represents an expression.

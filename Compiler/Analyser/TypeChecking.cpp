@@ -145,10 +145,6 @@ TypeCheck::TypeCheck(CompCtx_Ptr &ctx) : ASTVisitor(ctx) {
 
 }
 
-void TypeCheck::visit(Statement* stmt) {
-
-}
-
 void TypeCheck::visit(MemberAccess* mac) {
 
 }

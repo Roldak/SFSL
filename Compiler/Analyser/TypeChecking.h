@@ -59,8 +59,6 @@ namespace ast {
 
         TypeCheck(CompCtx_Ptr& ctx);
 
-        virtual void visit(Statement* stmt);
-
         virtual void visit(MemberAccess* mac);
 
     private:
