@@ -124,11 +124,16 @@ void TypeAssignation::visit(FunctionCreation* func) {
 }
 
 void TypeAssignation::visit(FunctionCall* call) {
+    ASTVisitor::visit(call);
 
 }
 
 void TypeAssignation::visit(Identifier* ident) {
-
+    if (sym::Symbol* sym = ident->getSymbol()) {
+        if (sym->getSymbolType() == sym::SYM_VAR) {
+            ident->setType(static_cast<sym::VariableSymbol*>(ident->getSymbol())->type());
+        }
+    }
 }
 
 void TypeAssignation::visit(IntLitteral* intlit) {
@@ -141,7 +146,7 @@ void TypeAssignation::visit(RealLitteral* reallit) {
 
 // TYPE CHECK
 
-TypeCheck::TypeCheck(CompCtx_Ptr &ctx) : ASTVisitor(ctx) {
+TypeCheck::TypeCheck(CompCtx_Ptr& ctx) : ASTVisitor(ctx) {
 
 }
 

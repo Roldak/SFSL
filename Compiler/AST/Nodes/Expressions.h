@@ -145,7 +145,7 @@ private:
 class IfExpression : public Expression {
 public:
 
-    IfExpression(Expression* cond, ASTNode* then, ASTNode* els);
+    IfExpression(Expression* cond, Expression* then, Expression* els);
     virtual ~IfExpression();
 
     SFSL_AST_ON_VISIT_H
@@ -158,18 +158,18 @@ public:
     /**
      * @return The then-part expression
      */
-    ASTNode* getThen() const;
+    Expression* getThen() const;
 
     /**
      * @return The else-part expression, potentially null
      */
-    ASTNode* getElse() const;
+    Expression* getElse() const;
 
 private:
 
     Expression* _cond;
-    ASTNode* _then;
-    ASTNode* _else;
+    Expression* _then;
+    Expression* _else;
 
 };
 

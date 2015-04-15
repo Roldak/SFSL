@@ -322,11 +322,11 @@ IfExpression* Parser::parseIf(bool asStatement) {
 
     Expression* cond = parseExpression();
 
-    ASTNode* then = asStatement ? static_cast<ASTNode*>(parseStatement()) : static_cast<ASTNode*>(parseExpression());
-    ASTNode* els = nullptr;
+    Expression* then = asStatement ? parseStatement() : parseExpression();
+    Expression* els = nullptr;
 
     if (accept(tok::KW_ELSE)) {
-         els = asStatement ? static_cast<ASTNode*>(parseStatement()) : static_cast<ASTNode*>(parseExpression());
+         els = asStatement ? parseStatement() : parseExpression();
     }
 
     IfExpression* ifexpr = _mngr.New<IfExpression>(cond, then, els);

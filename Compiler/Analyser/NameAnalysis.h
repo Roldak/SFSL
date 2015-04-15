@@ -70,7 +70,6 @@ public:
     virtual void visit(MemberAccess* mac);
     virtual void visit(Block* block);
     virtual void visit(FunctionCreation* func);
-
     virtual void visit(TypeSpecifier* tps);
     virtual void visit(Identifier* id);
 
