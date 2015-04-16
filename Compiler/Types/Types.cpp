@@ -54,7 +54,7 @@ TYPE_KIND ObjectType::getTypeKind() { return TYPE_OBJECT; }
 
 bool ObjectType::isSubTypeOf(Type* other) {
     if (ObjectType* objother = getIf<ObjectType>(other)) {
-        return _class == objother->_class;
+        return _class == objother->_class; // TODO : change that when inheritance is supported.
     }
     return false;
 }

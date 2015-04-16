@@ -107,7 +107,27 @@ void TypeCheking::visit(Block* block) {
 
 void TypeCheking::visit(IfExpression* ifexpr) {
     ASTVisitor::visit(ifexpr);
-    //ifexpr->setType(ifexpr->getThen());
+
+    if (!ifexpr->getCondition()->type()->isSubTypeOf(_res.Bool())) {
+        _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (" + ifexpr->getCondition()->type()->toString() + ")");
+    }
+
+    if (ifexpr->getElse()) {
+        type::Type* thenType = ifexpr->getThen()->type();
+        type::Type* elseType = ifexpr->getElse()->type();
+
+        if (thenType->isSubTypeOf(elseType)) {
+            ifexpr->setType(elseType);
+        } else if (elseType->isSubTypeOf(thenType)) {
+            ifexpr->setType(thenType);
+        } else {
+            _rep.error(*ifexpr, "The then-part and else-part have different types (" +
+                       thenType->toString() + " and " + elseType->toString() + " found)");
+        }
+
+    } else {
+        ifexpr->setType(ifexpr->getThen()->type());
+    }
 }
 
 void TypeCheking::visit(MemberAccess* dot) {
@@ -135,6 +155,8 @@ void TypeCheking::visit(Identifier* ident) {
     if (sym::Symbol* sym = ident->getSymbol()) {
         if (sym->getSymbolType() == sym::SYM_VAR) {
             ident->setType(static_cast<sym::VariableSymbol*>(ident->getSymbol())->type());
+        } else if (sym->getSymbolType() == sym::SYM_DEF) {
+            ident->setType(static_cast<sym::DefinitionSymbol*>(ident->getSymbol())->type());
         }
     }
 }
