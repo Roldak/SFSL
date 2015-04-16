@@ -160,7 +160,7 @@ void TypeCheking::visit(MemberAccess* dot) {
 }
 
 void TypeCheking::visit(Tuple* tuple) {
-
+    ASTVisitor::visit(tuple);
 }
 
 void TypeCheking::visit(FunctionCreation* func) {
