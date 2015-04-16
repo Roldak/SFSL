@@ -127,16 +127,12 @@ void ScopeGeneration::popScope() {
 
 // SYMBOL ASSIGNATION
 
-#define SAVE_SCOPE  sym::Scope* last = _curScope;
-#define RESTORE_SCOPE _curScope = last;
-
 SymbolAssignation::SymbolAssignation(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
 
 }
 
 void SymbolAssignation::visit(ModuleDecl* mod) {
-    SAVE_SCOPE
-    _curScope = mod->getSymbol()->getScope();
+    SAVE_SCOPE(mod->getSymbol())
 
     ASTVisitor::visit(mod);
 
@@ -144,8 +140,7 @@ void SymbolAssignation::visit(ModuleDecl* mod) {
 }
 
 void SymbolAssignation::visit(ClassDecl *clss) {
-    SAVE_SCOPE
-    _curScope = clss->getSymbol()->getScope();
+    SAVE_SCOPE(clss->getSymbol())
 
     ASTVisitor::visit(clss);
 
@@ -153,8 +148,7 @@ void SymbolAssignation::visit(ClassDecl *clss) {
 }
 
 void SymbolAssignation::visit(DefineDecl* def) {
-    SAVE_SCOPE
-    _curScope = def->getSymbol()->getScope();
+    SAVE_SCOPE(def->getSymbol())
 
     ASTVisitor::visit(def);
 
@@ -179,8 +173,7 @@ void SymbolAssignation::visit(MemberAccess* mac) {
 }
 
 void SymbolAssignation::visit(Block* block) {
-    SAVE_SCOPE
-    _curScope = block->getScope();
+    SAVE_SCOPE(block)
 
     ASTVisitor::visit(block);
 
@@ -188,8 +181,7 @@ void SymbolAssignation::visit(Block* block) {
 }
 
 void SymbolAssignation::visit(FunctionCreation* func) {
-    SAVE_SCOPE
-    _curScope = func->getScope();
+    SAVE_SCOPE(func)
 
     Expression* expr = func->getArgs();
     std::vector<Expression*> args;

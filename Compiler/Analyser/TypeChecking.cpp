@@ -15,9 +15,6 @@ namespace sfsl {
 
 namespace ast {
 
-#define SAVE_SCOPE  sym::Scope* last = _curScope;
-#define RESTORE_SCOPE _curScope = last;
-
 // TYPE CHECK
 
 TypeCheking::TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
@@ -30,8 +27,7 @@ void TypeCheking::visit(ASTNode*) {
 }
 
 void TypeCheking::visit(ModuleDecl* mod) {
-    SAVE_SCOPE
-    _curScope = mod->getSymbol()->getScope();
+    SAVE_SCOPE(mod->getSymbol())
 
     ASTVisitor::visit(mod);
 
@@ -39,8 +35,7 @@ void TypeCheking::visit(ModuleDecl* mod) {
 }
 
 void TypeCheking::visit(ClassDecl* clss) {
-    SAVE_SCOPE
-    _curScope = clss->getSymbol()->getScope();
+    SAVE_SCOPE(clss->getSymbol())
 
     ASTVisitor::visit(clss);
 
@@ -48,11 +43,11 @@ void TypeCheking::visit(ClassDecl* clss) {
 }
 
 void TypeCheking::visit(DefineDecl* decl) {
-    SAVE_SCOPE
-    _curScope = decl->getSymbol()->getScope();
+    SAVE_SCOPE(decl->getSymbol())
 
     ASTVisitor::visit(decl);
 
+    // type inference
     decl->getName()->setType(decl->getValue()->type());
     static_cast<sym::DefinitionSymbol*>(decl->getSymbol())->setType(decl->getValue()->type());
 
@@ -90,8 +85,7 @@ void TypeCheking::visit(TypeSpecifier* tps) {
 }
 
 void TypeCheking::visit(Block* block) {
-    SAVE_SCOPE
-    _curScope = block->getScope();
+    SAVE_SCOPE(block)
 
     ASTVisitor::visit(block);
 
@@ -139,8 +133,7 @@ void TypeCheking::visit(Tuple* tuple) {
 }
 
 void TypeCheking::visit(FunctionCreation* func) {
-    SAVE_SCOPE
-    _curScope = func->getScope();
+    SAVE_SCOPE(func)
 
     ASTVisitor::visit(func);
 

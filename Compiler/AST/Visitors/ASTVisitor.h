@@ -13,6 +13,11 @@
 #include "../Nodes/Program.h"
 #include "../../Common/CompilationContext.h"
 
+#define SAVE_SCOPE(expr)  \
+    sym::Scope* __last_scope__ = _curScope; \
+    _curScope = (expr)->getScope();
+#define RESTORE_SCOPE _curScope = __last_scope__;
+
 namespace sfsl {
 
 namespace ast {
