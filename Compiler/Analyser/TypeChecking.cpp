@@ -135,7 +135,28 @@ void TypeCheking::visit(IfExpression* ifexpr) {
 }
 
 void TypeCheking::visit(MemberAccess* dot) {
-    //type::Type* t = dot->getAccessed()->type();
+    dot->getAccessed()->onVisit(this);
+
+    if (type::Type* t = dot->getAccessed()->type()) {
+        if (t->getTypeKind() == type::TYPE_OBJECT) {
+            sym::ClassSymbol* clss = static_cast<type::ObjectType*>(t)->getClass();
+            if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(dot->getMember()->getValue(), false)) {
+
+                if (sym->getSymbolType() == sym::SYM_VAR) {
+                    dot->setType(static_cast<sym::VariableSymbol*>(sym)->type());
+                } else if (sym->getSymbolType() == sym::SYM_DEF) {
+                    dot->setType(static_cast<sym::DefinitionSymbol*>(sym)->type());
+                } else { // is not supposed to happen
+                    _rep.error(*dot->getMember(), "member " + dot->getMember()->getValue() +
+                               " of class " + clss->getName() + " is not a value");
+                }
+
+            } else {
+                _rep.error(*dot->getMember(), "no member named " +
+                           dot->getMember()->getValue() + " in class " + clss->getName());
+            }
+        }
+    }
 }
 
 void TypeCheking::visit(Tuple* tuple) {

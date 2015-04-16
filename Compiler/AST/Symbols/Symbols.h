@@ -79,7 +79,7 @@ namespace sym {
     };
 
     /**
-     * @brief Represents the symbol associated to a def
+     * @brief Represents the symbol associated to a definition
      */
     class DefinitionSymbol : public Symbol, public Scoped, public type::Typed {
     public:

@@ -43,6 +43,8 @@ public:
     virtual bool isSubTypeOf(Type* other);
     virtual std::string toString();
 
+    sym::ClassSymbol* getClass();
+
 private:
 
     sym::ClassSymbol* _class;

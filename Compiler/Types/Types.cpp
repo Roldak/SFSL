@@ -63,6 +63,10 @@ std::string ObjectType::toString() {
     return _class->getName();
 }
 
+sym::ClassSymbol* ObjectType::getClass() {
+    return _class;
+}
+
 // TYPED
 
 Typed::Typed() : _type(Type::NotYetDefined()) {
