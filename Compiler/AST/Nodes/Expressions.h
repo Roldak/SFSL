@@ -93,6 +93,33 @@ private:
 };
 
 /**
+ * @brief Represents an assignement expression, aka lhs = rhs.
+ */
+class AssignmentExpression : public Expression {
+public:
+
+    AssignmentExpression(Expression* lhs, Expression* rhs);
+    virtual ~AssignmentExpression();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The left hand side of the binary expression
+     */
+    Expression* getLhs() const;
+
+    /**
+     * @return The right hand side of the binary expression
+     */
+    Expression* getRhs() const;
+
+private:
+
+    Expression* _lhs;
+    Expression* _rhs;
+};
+
+/**
  * @brief Represents a type specifying expression, e.g `x: int`
  */
 class TypeSpecifier : public Expression {

@@ -392,6 +392,9 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
     Expression* res;
 
     switch (oper->getOpType()) {
+    case tok::OPER_EQ:
+        res = _mngr.New<AssignmentExpression>(left, right);
+        break;
     default:
         res = _mngr.New<BinaryExpression>(left, right, _mngr.New<Identifier>(oper->toString()));
         break;

@@ -62,6 +62,27 @@ Identifier* BinaryExpression::getOperator() const {
     return _oper;
 }
 
+// ASSIGNMENT EXPRESSION
+
+AssignmentExpression::AssignmentExpression(Expression *lhs, Expression *rhs)
+    : _lhs(lhs), _rhs(rhs) {
+
+}
+
+AssignmentExpression::~AssignmentExpression() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(AssignmentExpression)
+
+Expression* AssignmentExpression::getLhs() const {
+    return _lhs;
+}
+
+Expression* AssignmentExpression::getRhs() const {
+    return _rhs;
+}
+
 // TYPE SPECIFIER
 
 TypeSpecifier::TypeSpecifier(Identifier* specified, Expression* type) : _specified(specified), _type(type) {
@@ -207,7 +228,7 @@ Tuple* FunctionCall::getArgsTuple() const {
 // IDENTIFIER
 
 Identifier::Identifier(const std::string& name) : _name(name) {
-
+    setSymbol(nullptr);
 }
 
 Identifier::~Identifier() {

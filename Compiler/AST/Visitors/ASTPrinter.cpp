@@ -100,6 +100,14 @@ void ASTPrinter::visit(BinaryExpression *exp) {
     std::cout << ")";
 }
 
+void ASTPrinter::visit(AssignmentExpression *aex) {
+    std::cout << "(";
+    aex->getLhs()->onVisit(this);
+    std::cout << " = ";
+    aex->getRhs()->onVisit(this);
+    std::cout << ")";
+}
+
 void ASTPrinter::visit(TypeSpecifier *tps) {
     std::cout << "(";
     tps->getSpecified()->onVisit(this);

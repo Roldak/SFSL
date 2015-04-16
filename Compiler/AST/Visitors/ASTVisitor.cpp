@@ -71,6 +71,11 @@ void ASTVisitor::visit(BinaryExpression* bin) {
     bin->getRhs()->onVisit(this);
 }
 
+void ASTVisitor::visit(AssignmentExpression* aex) {
+    aex->getLhs()->onVisit(this);
+    aex->getRhs()->onVisit(this);
+}
+
 void ASTVisitor::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
     tps->getTypeNode()->onVisit(this);

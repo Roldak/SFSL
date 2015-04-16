@@ -186,22 +186,24 @@ void SymbolAssignation::visit(FunctionCreation* func) {
     Expression* expr = func->getArgs();
     std::vector<Expression*> args;
 
-    if (isNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...`, `(exp, exp) => ...`
-        Tuple* tuple = static_cast<Tuple*>(expr);
-        args = tuple->getExpressions();
-    } else { // form is `exp => ...`
+    if (isNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
+        args = static_cast<Tuple*>(expr)->getExpressions();
+    } else { // form is `exp => ...` or `(exp) => ...`
         args.push_back(expr);
     }
 
     for (Expression* expr : args) {
         if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
             createVar(static_cast<Identifier*>(expr));
-        } else if(!isNodeOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
+        } else if(isNodeOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
+            // The var is already going to be created by the TypeSpecifier Node
+            expr->onVisit(this);
+        } else {
             _ctx.get()->reporter().error(*expr, "Argument should be an identifier");
         }
     }
 
-    ASTVisitor::visit(func);
+    func->getBody()->onVisit(this);
 
     RESTORE_SCOPE
 }
@@ -228,7 +230,7 @@ void SymbolAssignation::createVar(Identifier *id) {
 
 template<typename T>
 void SymbolAssignation::assignFromStaticScope(MemberAccess* mac, sym::Symbol* sym, const std::string& typeName) {
-    sym::Scope* scope = ((T*)sym)->getScope();
+    sym::Scope* scope = static_cast<T*>(sym)->getScope();
     const std::string& id = mac->getMember()->getValue();
 
     if (sym::Symbol* resSymbol = scope->getSymbol<sym::Symbol>(id, false)) {

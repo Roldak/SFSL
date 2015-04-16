@@ -49,7 +49,7 @@ void StandartErrReporter::fatal(const Positionnable &pos, const std::string &msg
 }
 
 void StandartErrReporter::reportMessage(const std::string &prefix, const Positionnable& pos, const std::string &msg) {
-    std::cerr << pos.positionStr() << ": " << prefix << ": " << msg << std::endl;
+    std::cerr << pos.positionStr() << ":" << prefix << ":" << msg << std::endl;
 }
 
 }

@@ -61,8 +61,12 @@ void TypeCheking::visit(ExpressionStatement* exp) {
 
 void TypeCheking::visit(BinaryExpression* bin) {
     ASTVisitor::visit(bin);
-
     bin->setType(bin->getLhs()->type()); // TODO : make it right
+}
+
+void TypeCheking::visit(AssignmentExpression* aex) {
+    ASTVisitor::visit(aex);
+    aex->setType(aex->getLhs()->type());
 }
 
 void TypeCheking::visit(TypeSpecifier* tps) {
@@ -125,7 +129,7 @@ void TypeCheking::visit(IfExpression* ifexpr) {
 }
 
 void TypeCheking::visit(MemberAccess* dot) {
-
+    //type::Type* t = dot->getAccessed()->type();
 }
 
 void TypeCheking::visit(Tuple* tuple) {
@@ -136,6 +140,8 @@ void TypeCheking::visit(FunctionCreation* func) {
     SAVE_SCOPE(func)
 
     ASTVisitor::visit(func);
+
+    _rep.info(*func, func->getBody()->type()->toString());
 
     RESTORE_SCOPE
 }
