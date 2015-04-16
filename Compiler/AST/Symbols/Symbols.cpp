@@ -56,7 +56,7 @@ SYM_TYPE ClassSymbol::getSymbolType() const {
 
 // DEFINITION SYMBOL
 
-DefinitionSymbol::DefinitionSymbol(const std::string &name) : Symbol(name) {
+DefinitionSymbol::DefinitionSymbol(const std::string &name, ast::DefineDecl* def) : Symbol(name), _def(def) {
 
 }
 
@@ -66,6 +66,10 @@ DefinitionSymbol::~DefinitionSymbol() {
 
 SYM_TYPE DefinitionSymbol::getSymbolType() const {
     return SYM_DEF;
+}
+
+ast::DefineDecl *DefinitionSymbol::getDef() const {
+    return _def;
 }
 
 // VARIABLE SYMBOL

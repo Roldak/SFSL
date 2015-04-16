@@ -43,15 +43,19 @@ void TypeCheking::visit(ClassDecl* clss) {
 }
 
 void TypeCheking::visit(DefineDecl* decl) {
-    SAVE_SCOPE(decl->getSymbol())
+    if (_visitedDefs.find(decl) == _visitedDefs.end()) {
+        _visitedDefs.emplace(decl);
 
-    ASTVisitor::visit(decl);
+        SAVE_SCOPE(decl->getSymbol())
 
-    // type inference
-    decl->getName()->setType(decl->getValue()->type());
-    static_cast<sym::DefinitionSymbol*>(decl->getSymbol())->setType(decl->getValue()->type());
+        ASTVisitor::visit(decl);
 
-    RESTORE_SCOPE
+        // type inference
+        decl->getName()->setType(decl->getValue()->type());
+        static_cast<sym::DefinitionSymbol*>(decl->getSymbol())->setType(decl->getValue()->type());
+
+        RESTORE_SCOPE
+    }
 }
 
 void TypeCheking::visit(ExpressionStatement* exp) {
@@ -175,6 +179,7 @@ void TypeCheking::visit(FunctionCreation* func) {
 
 void TypeCheking::visit(FunctionCall* call) {
     ASTVisitor::visit(call);
+
 }
 
 void TypeCheking::visit(Identifier* ident) {
@@ -182,7 +187,14 @@ void TypeCheking::visit(Identifier* ident) {
         if (sym->getSymbolType() == sym::SYM_VAR) {
             ident->setType(static_cast<sym::VariableSymbol*>(ident->getSymbol())->type());
         } else if (sym->getSymbolType() == sym::SYM_DEF) {
-            ident->setType(static_cast<sym::DefinitionSymbol*>(ident->getSymbol())->type());
+            sym::DefinitionSymbol* defsym = static_cast<sym::DefinitionSymbol*>(ident->getSymbol());
+            defsym->getDef()->onVisit(this);
+
+            if (defsym->type() == type::Type::NotYetDefined()) {
+                _rep.error(*defsym, "Type of " + defsym->getName() + " cannot be inferred because of a cyclic dependency");
+            }
+
+            ident->setType(defsym->type());
         }
     }
 }

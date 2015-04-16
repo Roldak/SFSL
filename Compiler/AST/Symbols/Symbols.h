@@ -18,6 +18,10 @@
 
 namespace sfsl {
 
+namespace ast {
+    class DefineDecl;
+}
+
 namespace sym {
 
     enum SYM_TYPE{SYM_MODULE = 0, SYM_CLASS, SYM_DEF, SYM_VAR};
@@ -83,10 +87,16 @@ namespace sym {
      */
     class DefinitionSymbol : public Symbol, public Scoped, public type::Typed {
     public:
-        DefinitionSymbol(const std::string& name);
+        DefinitionSymbol(const std::string& name, ast::DefineDecl* def);
         virtual ~DefinitionSymbol();
 
         virtual SYM_TYPE getSymbolType() const;
+
+        ast::DefineDecl* getDef() const;
+
+    private:
+
+        ast::DefineDecl* _def;
     };
 
     /**

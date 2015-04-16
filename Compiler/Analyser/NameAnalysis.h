@@ -26,6 +26,8 @@ protected:
     template<typename T, typename U>
     T* createSymbol(U* node);
 
+    sym::DefinitionSymbol* createSymbol(DefineDecl* node);
+
     void tryAddSymbol(sym::Symbol* sym);
 
     sym::Scope* _curScope;

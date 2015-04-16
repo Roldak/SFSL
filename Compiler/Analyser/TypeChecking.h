@@ -10,6 +10,7 @@
 #define __SFSL__TypeChecking__
 
 #include <iostream>
+#include <set>
 #include "../AST/Visitors/ASTVisitor.h"
 #include "../AST/Symbols/SymbolResolver.h"
 
@@ -51,6 +52,8 @@ namespace ast {
         sym::Scope* _curScope;
         const sym::SymbolResolver& _res;
         common::AbstractReporter& _rep;
+
+        std::set<DefineDecl*> _visitedDefs;
     };
 }
 

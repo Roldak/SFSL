@@ -42,6 +42,16 @@ T* ScopePossessorVisitor::createSymbol(U* node) {
     return sym;
 }
 
+sym::DefinitionSymbol* ScopePossessorVisitor::createSymbol(DefineDecl *node) {
+    sym::DefinitionSymbol* sym = _mngr.New<sym::DefinitionSymbol>(node->getName()->getValue(), node);
+    sym->setPos(*node);
+
+    node->setSymbol(sym);
+    tryAddSymbol(sym);
+
+    return sym;
+}
+
 // SCOPE GENERATION
 
 ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
@@ -89,7 +99,7 @@ void ScopeGeneration::visit(ClassDecl* clss) {
 }
 
 void ScopeGeneration::visit(DefineDecl* def) {
-    createSymbol<sym::DefinitionSymbol>(def);
+    createSymbol(def);
 
     pushScope(def->getSymbol(), true);
 
