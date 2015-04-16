@@ -1,4 +1,4 @@
 SFSL
 ====
 
-Simple and Fast Scripting Language
+A statically typed and functionnal scripting language.
