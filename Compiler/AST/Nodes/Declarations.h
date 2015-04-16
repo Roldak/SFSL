@@ -78,7 +78,7 @@ private:
 class DefineDecl : public Expression, public sym::Symbolic<sym::DefinitionSymbol> {
 public:
 
-    DefineDecl(Identifier* name, ASTNode* value);
+    DefineDecl(Identifier* name, Expression* value);
     virtual ~DefineDecl();
 
     SFSL_AST_ON_VISIT_H
@@ -91,12 +91,12 @@ public:
     /**
      * @return The value associated to this definition
      */
-    ASTNode* getValue() const;
+    Expression* getValue() const;
 
 private:
 
     Identifier* _name;
-    ASTNode* _value;
+    Expression* _value;
 
 };
 

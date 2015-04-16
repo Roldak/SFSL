@@ -30,7 +30,7 @@ public:
     virtual bool isSubTypeOf(Type* other) = 0;
     virtual std::string toString() = 0;
 
-    static Type* NotYetDefined;
+    static Type* NotYetDefined();
 };
 
 class ObjectType : public Type {
@@ -54,6 +54,8 @@ private:
  */
 class Typed {
 public:
+    Typed();
+
     virtual ~Typed();
 
     /**

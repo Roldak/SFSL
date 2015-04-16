@@ -20,10 +20,10 @@ namespace ast {
     /**
      * @brief
      */
-    class TypeAssignation : public ASTVisitor {
+    class TypeCheking : public ASTVisitor {
     public:
 
-        TypeAssignation(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
+        TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
 
         virtual void visit(ASTNode*);
 
@@ -49,20 +49,7 @@ namespace ast {
 
         sym::Scope* _curScope;
         const sym::SymbolResolver& _res;
-    };
-
-    /**
-     * @brief
-     */
-    class TypeCheck : public ASTVisitor {
-    public:
-
-        TypeCheck(CompCtx_Ptr& ctx);
-
-        virtual void visit(MemberAccess* mac);
-
-    private:
-
+        common::AbstractReporter& _rep;
     };
 }
 

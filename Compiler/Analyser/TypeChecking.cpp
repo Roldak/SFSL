@@ -18,18 +18,18 @@ namespace ast {
 #define SAVE_SCOPE  sym::Scope* last = _curScope;
 #define RESTORE_SCOPE _curScope = last;
 
-// TYPE ASSIGNATION
+// TYPE CHECK
 
-TypeAssignation::TypeAssignation(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : ASTVisitor(ctx), _curScope(nullptr), _res(res) {
-
-}
-
-void TypeAssignation::visit(ASTNode*) {
+TypeCheking::TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
+    : ASTVisitor(ctx), _curScope(nullptr), _res(res), _rep(ctx.get()->reporter()) {
 
 }
 
-void TypeAssignation::visit(ModuleDecl* mod) {
+void TypeCheking::visit(ASTNode*) {
+
+}
+
+void TypeCheking::visit(ModuleDecl* mod) {
     SAVE_SCOPE
     _curScope = mod->getSymbol()->getScope();
 
@@ -38,7 +38,7 @@ void TypeAssignation::visit(ModuleDecl* mod) {
     RESTORE_SCOPE
 }
 
-void TypeAssignation::visit(ClassDecl* clss) {
+void TypeCheking::visit(ClassDecl* clss) {
     SAVE_SCOPE
     _curScope = clss->getSymbol()->getScope();
 
@@ -47,27 +47,30 @@ void TypeAssignation::visit(ClassDecl* clss) {
     RESTORE_SCOPE
 }
 
-void TypeAssignation::visit(DefineDecl* decl) {
+void TypeCheking::visit(DefineDecl* decl) {
     SAVE_SCOPE
     _curScope = decl->getSymbol()->getScope();
 
     ASTVisitor::visit(decl);
 
+    decl->getName()->setType(decl->getValue()->type());
+    static_cast<sym::DefinitionSymbol*>(decl->getSymbol())->setType(decl->getValue()->type());
+
     RESTORE_SCOPE
 }
 
-void TypeAssignation::visit(ExpressionStatement* exp) {
+void TypeCheking::visit(ExpressionStatement* exp) {
     ASTVisitor::visit(exp);
     exp->setType(exp->getExpression()->type());
 }
 
-void TypeAssignation::visit(BinaryExpression* bin) {
+void TypeCheking::visit(BinaryExpression* bin) {
     ASTVisitor::visit(bin);
 
-    bin->setType(bin->getLhs()->type()); // TODO : change that
+    bin->setType(bin->getLhs()->type()); // TODO : make it right
 }
 
-void TypeAssignation::visit(TypeSpecifier* tps) {
+void TypeCheking::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
 
     if (type::Type* tpe = createType(tps->getTypeNode(), _ctx)) {
@@ -76,8 +79,9 @@ void TypeAssignation::visit(TypeSpecifier* tps) {
 
         if (id->getSymbol()->getSymbolType() == sym::SYM_VAR) {
             tped = static_cast<sym::VariableSymbol*>(id->getSymbol());
+        } else if (id->getSymbol()->getSymbolType() == sym::SYM_DEF) {
+            tped = static_cast<sym::DefinitionSymbol*>(id->getSymbol());
         }
-        // TODO : if symbol type is SYM_DEF
 
         tped->setType(tpe);
     } else {
@@ -85,7 +89,7 @@ void TypeAssignation::visit(TypeSpecifier* tps) {
     }
 }
 
-void TypeAssignation::visit(Block* block) {
+void TypeCheking::visit(Block* block) {
     SAVE_SCOPE
     _curScope = block->getScope();
 
@@ -101,20 +105,20 @@ void TypeAssignation::visit(Block* block) {
     RESTORE_SCOPE
 }
 
-void TypeAssignation::visit(IfExpression* ifexpr) {
+void TypeCheking::visit(IfExpression* ifexpr) {
     ASTVisitor::visit(ifexpr);
     //ifexpr->setType(ifexpr->getThen());
 }
 
-void TypeAssignation::visit(MemberAccess* dot) {
+void TypeCheking::visit(MemberAccess* dot) {
 
 }
 
-void TypeAssignation::visit(Tuple* tuple) {
+void TypeCheking::visit(Tuple* tuple) {
 
 }
 
-void TypeAssignation::visit(FunctionCreation* func) {
+void TypeCheking::visit(FunctionCreation* func) {
     SAVE_SCOPE
     _curScope = func->getScope();
 
@@ -123,12 +127,11 @@ void TypeAssignation::visit(FunctionCreation* func) {
     RESTORE_SCOPE
 }
 
-void TypeAssignation::visit(FunctionCall* call) {
+void TypeCheking::visit(FunctionCall* call) {
     ASTVisitor::visit(call);
-
 }
 
-void TypeAssignation::visit(Identifier* ident) {
+void TypeCheking::visit(Identifier* ident) {
     if (sym::Symbol* sym = ident->getSymbol()) {
         if (sym->getSymbolType() == sym::SYM_VAR) {
             ident->setType(static_cast<sym::VariableSymbol*>(ident->getSymbol())->type());
@@ -136,24 +139,13 @@ void TypeAssignation::visit(Identifier* ident) {
     }
 }
 
-void TypeAssignation::visit(IntLitteral* intlit) {
+void TypeCheking::visit(IntLitteral* intlit) {
     intlit->setType(_res.Int());
 }
 
-void TypeAssignation::visit(RealLitteral* reallit) {
+void TypeCheking::visit(RealLitteral* reallit) {
     reallit->setType(_res.Real());
 }
-
-// TYPE CHECK
-
-TypeCheck::TypeCheck(CompCtx_Ptr& ctx) : ASTVisitor(ctx) {
-
-}
-
-void TypeCheck::visit(MemberAccess* mac) {
-
-}
-
 
 }
 

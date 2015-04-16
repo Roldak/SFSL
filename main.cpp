@@ -75,8 +75,8 @@ int main(int argc, char** argv) {
         sym::SymbolResolver res(prog, ctx);
         res.setPredefClassesPath("sfsl.lang");
 
-        ast::TypeAssignation typeAssign(ctx, res);
-        prog->onVisit(&typeAssign);
+        ast::TypeCheking typeCheck(ctx, res);
+        prog->onVisit(&typeCheck);
 
         if (ctx.get()->reporter().getErrorCount() != 0) {
             return 1;

@@ -49,7 +49,7 @@ Identifier *ModuleDecl::getName() const {
 
 // DEFINE DECLARATION
 
-DefineDecl::DefineDecl(Identifier *name, ASTNode *value) : _name(name), _value(value) {
+DefineDecl::DefineDecl(Identifier *name, Expression *value) : _name(name), _value(value) {
 
 }
 
@@ -63,7 +63,7 @@ Identifier *DefineDecl::getName() const {
     return _name;
 }
 
-ASTNode *DefineDecl::getValue() const {
+Expression *DefineDecl::getValue() const {
     return _value;
 }
 

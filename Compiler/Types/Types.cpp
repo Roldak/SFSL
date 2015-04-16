@@ -37,7 +37,10 @@ Type::~Type() {
 
 }
 
-Type* Type::NotYetDefined = nullptr; // TODO : not nullptr
+Type* Type::NotYetDefined() {
+    static char nyd;
+    return reinterpret_cast<Type*>(&nyd); // all we want is a unique memory area
+}
 
 ObjectType::ObjectType(sym::ClassSymbol* clss) : _class(clss) {
 
@@ -61,6 +64,10 @@ std::string ObjectType::toString() {
 }
 
 // TYPED
+
+Typed::Typed() : _type(Type::NotYetDefined()) {
+
+}
 
 Typed::~Typed() {
 

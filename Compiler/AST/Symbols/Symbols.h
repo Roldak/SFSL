@@ -81,7 +81,7 @@ namespace sym {
     /**
      * @brief Represents the symbol associated to a def
      */
-    class DefinitionSymbol : public Symbol, public Scoped {
+    class DefinitionSymbol : public Symbol, public Scoped, public type::Typed {
     public:
         DefinitionSymbol(const std::string& name);
         virtual ~DefinitionSymbol();
