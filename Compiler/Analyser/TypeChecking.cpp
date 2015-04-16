@@ -48,11 +48,15 @@ void TypeCheking::visit(DefineDecl* decl) {
 
         SAVE_SCOPE(decl->getSymbol())
 
-        ASTVisitor::visit(decl);
+        //ASTVisitor::visit(decl);
+
+        decl->getValue()->onVisit(this);
 
         // type inference
         decl->getName()->setType(decl->getValue()->type());
         static_cast<sym::DefinitionSymbol*>(decl->getSymbol())->setType(decl->getValue()->type());
+
+        decl->getName()->onVisit(this);
 
         RESTORE_SCOPE
     }
@@ -173,6 +177,8 @@ void TypeCheking::visit(FunctionCreation* func) {
     ASTVisitor::visit(func);
 
     _rep.info(*func, func->getBody()->type()->toString());
+
+    func->setType(func->getBody()->type()); // TODO : change it
 
     RESTORE_SCOPE
 }
