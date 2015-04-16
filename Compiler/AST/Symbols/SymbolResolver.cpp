@@ -49,19 +49,36 @@ Symbol* SymbolResolver::getSymbol(const std::string& fullPathName) const {
 
 void SymbolResolver::setPredefClassesPath(const std::string &fullPathName) {
     _unitType   = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + UNIT_CLASS_NAME));
+    _boolType   = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + BOOL_CLASS_NAME));
     _intType    = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + INT_CLASS_NAME));
     _realType   = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + REAL_CLASS_NAME));
 }
 
 type::Type* SymbolResolver::Unit() const {
+    if (!_unitType) {
+        throw common::CompilationFatalError("Unit type was not set");
+    }
     return _unitType;
 }
 
+type::Type* SymbolResolver::Bool() const {
+    if (!_boolType) {
+        throw common::CompilationFatalError("Bool type was not set");
+    }
+    return _boolType;
+}
+
 type::Type* SymbolResolver::Int() const {
+    if (!_intType) {
+        throw common::CompilationFatalError("Int type was not set");
+    }
     return _intType;
 }
 
 type::Type* SymbolResolver::Real() const {
+    if (!_realType) {
+        throw common::CompilationFatalError("Real type was not set");
+    }
     return _realType;
 }
 

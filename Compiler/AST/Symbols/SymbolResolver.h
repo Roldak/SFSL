@@ -11,6 +11,7 @@
 
 #define NAMESPACE_DELIMITER '.'
 #define UNIT_CLASS_NAME "unit"
+#define BOOL_CLASS_NAME  "bool"
 #define INT_CLASS_NAME  "int"
 #define REAL_CLASS_NAME "real"
 
@@ -56,6 +57,11 @@ public:
     type::Type* Unit() const;
 
     /**
+     * @return The Bool type
+     */
+    type::Type* Bool() const;
+
+    /**
      * @return The Int type
      */
     type::Type* Int() const;
@@ -73,6 +79,7 @@ private:
     CompCtx_Ptr _ctx;
 
     type::Type* _unitType;
+    type::Type* _boolType;
     type::Type* _intType;
     type::Type* _realType;
 };
