@@ -38,8 +38,8 @@ Type::~Type() {
 }
 
 Type* Type::NotYetDefined() {
-    static char nyd;
-    return reinterpret_cast<Type*>(&nyd); // all we want is a unique memory area
+    static TypeNotYetDefined nyd;
+    return &nyd; // all we want is a unique memory area
 }
 
 ObjectType::ObjectType(sym::ClassSymbol* clss) : _class(clss) {

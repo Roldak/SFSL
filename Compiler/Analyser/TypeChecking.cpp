@@ -66,6 +66,12 @@ void TypeCheking::visit(BinaryExpression* bin) {
 
 void TypeCheking::visit(AssignmentExpression* aex) {
     ASTVisitor::visit(aex);
+
+    if (!aex->getRhs()->type()->isSubTypeOf(aex->getLhs()->type())) {
+        _rep.error(*aex, "Assigning incompatible type. Found " +
+                   aex->getRhs()->type()->toString() + ", Expected " + aex->getLhs()->type()->toString());
+    }
+
     aex->setType(aex->getLhs()->type());
 }
 
