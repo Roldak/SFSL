@@ -144,23 +144,22 @@ void TypeCheking::visit(MemberAccess* dot) {
     if (type::Type* t = dot->getAccessed()->type()) {
         if (t->getTypeKind() == type::TYPE_OBJECT) {
             sym::ClassSymbol* clss = static_cast<type::ObjectType*>(t)->getClass();
-            if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(dot->getMember()->getValue(), false)) {
 
-                if (sym->getSymbolType() == sym::SYM_VAR) {
-                    dot->setType(static_cast<sym::VariableSymbol*>(sym)->type());
-                } else if (sym->getSymbolType() == sym::SYM_DEF) {
-                    dot->setType(static_cast<sym::DefinitionSymbol*>(sym)->type());
-                } else { // is not supposed to happen
+            if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(dot->getMember()->getValue(), false)) {
+                if (type::Type* t = tryGetTypeOfSymbol(sym)) {
+                    dot->setType(t);
+                } else {
                     _rep.error(*dot->getMember(), "member " + dot->getMember()->getValue() +
                                " of class " + clss->getName() + " is not a value");
                 }
-
             } else {
                 _rep.error(*dot->getMember(), "no member named " +
                            dot->getMember()->getValue() + " in class " + clss->getName());
             }
         }
     }
+
+    // TODO : static access
 }
 
 void TypeCheking::visit(Tuple* tuple) {
@@ -172,7 +171,7 @@ void TypeCheking::visit(FunctionCreation* func) {
 
     ASTVisitor::visit(func);
 
-    _rep.info(*func, func->getBody()->type()->toString());
+    _rep.info(*func->getArgs(), func->getBody()->type()->toString());
 
     func->setType(func->getBody()->type()); // TODO : change it
 
@@ -181,22 +180,13 @@ void TypeCheking::visit(FunctionCreation* func) {
 
 void TypeCheking::visit(FunctionCall* call) {
     ASTVisitor::visit(call);
-
+    call->setType(call->getCallee()->type());
 }
 
 void TypeCheking::visit(Identifier* ident) {
     if (sym::Symbol* sym = ident->getSymbol()) {
-        if (sym->getSymbolType() == sym::SYM_VAR) {
-            ident->setType(static_cast<sym::VariableSymbol*>(ident->getSymbol())->type());
-        } else if (sym->getSymbolType() == sym::SYM_DEF) {
-            sym::DefinitionSymbol* defsym = static_cast<sym::DefinitionSymbol*>(ident->getSymbol());
-            defsym->getDef()->onVisit(this);
-
-            if (defsym->type() == type::Type::NotYetDefined()) {
-                _rep.error(*defsym, "Type of " + defsym->getName() + " cannot be inferred because of a cyclic dependency");
-            }
-
-            ident->setType(defsym->type());
+        if (type::Type* t = tryGetTypeOfSymbol(sym)) {
+            ident->setType(t);
         }
     }
 }
@@ -207,6 +197,22 @@ void TypeCheking::visit(IntLitteral* intlit) {
 
 void TypeCheking::visit(RealLitteral* reallit) {
     reallit->setType(_res.Real());
+}
+
+type::Type* TypeCheking::tryGetTypeOfSymbol(sym::Symbol* sym) {
+    if (sym->getSymbolType() == sym::SYM_VAR) {
+        return static_cast<sym::VariableSymbol*>(sym)->type();
+    } else if (sym->getSymbolType() == sym::SYM_DEF) {
+        sym::DefinitionSymbol* defsym = static_cast<sym::DefinitionSymbol*>(sym);
+        defsym->getDef()->onVisit(this);
+
+        if (defsym->type() == type::Type::NotYetDefined()) {
+            _rep.error(*defsym, "Type of " + defsym->getName() + " cannot be inferred because of a cyclic dependency");
+        }
+
+        return defsym->type();
+    }
+    return nullptr;
 }
 
 }

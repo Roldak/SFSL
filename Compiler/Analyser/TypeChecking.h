@@ -49,6 +49,8 @@ namespace ast {
 
     private:
 
+        type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
+
         sym::Scope* _curScope;
         const sym::SymbolResolver& _res;
         common::AbstractReporter& _rep;
