@@ -73,7 +73,7 @@ void TypeCheking::visit(AssignmentExpression* aex) {
 
     if (!aex->getRhs()->type()->isSubTypeOf(aex->getLhs()->type())) {
         _rep.error(*aex, "Assigning incompatible type. Found " +
-                   aex->getRhs()->type()->toString() + ", Expected " + aex->getLhs()->type()->toString());
+                   aex->getRhs()->type()->toString() + ", expected " + aex->getLhs()->type()->toString());
     }
 
     aex->setType(aex->getLhs()->type());
@@ -129,8 +129,8 @@ void TypeCheking::visit(IfExpression* ifexpr) {
         } else if (elseType->isSubTypeOf(thenType)) {
             ifexpr->setType(thenType);
         } else {
-            _rep.error(*ifexpr, "The then-part and else-part have different types (" +
-                       thenType->toString() + " and " + elseType->toString() + " found)");
+            _rep.error(*ifexpr, "The then-part and else-part have different types. Found " +
+                       thenType->toString() + " and " + elseType->toString());
         }
 
     } else {
