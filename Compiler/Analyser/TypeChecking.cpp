@@ -63,6 +63,14 @@ void TypeCheking::visit(DefineDecl* decl) {
     }
 }
 
+void TypeCheking::visit(TypeTuple* ttuple) {
+
+}
+
+void TypeCheking::visit(TypeConstructorCreation* typeconstructor) {
+
+}
+
 void TypeCheking::visit(ExpressionStatement* exp) {
     ASTVisitor::visit(exp);
     exp->setType(exp->getExpression()->type());

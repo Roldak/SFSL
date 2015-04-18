@@ -292,6 +292,9 @@ Expression* Parser::parsePrimary() {
                 return tuple;
             }
         }
+        else if (accept(tok::OPER_L_BRACKET)) {
+            return parseTypeTuple();
+        }
         else if (accept(tok::OPER_L_BRACE)) {
             return parseBlock();
         } else {
@@ -384,27 +387,12 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
 
 Tuple* Parser::parseTuple() {
     std::vector<Expression*> exprs;
-    return parseTuple(exprs);
+    return parseTuple<Tuple, tok::OPER_R_PAREN>(exprs);
 }
 
-ast::Tuple* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
-
-    SAVE_POS(startPos)
-
-    if (!accept(tok::OPER_R_PAREN)) {
-        do {
-            if (Expression* arg = parseExpression()){
-                exprs.push_back(arg);
-            }
-        } while (accept(tok::OPER_COMMA));
-
-        expect(tok::OPER_R_PAREN, "`)`");
-    }
-
-    Tuple* tuple = _mngr.New<Tuple>(exprs);
-    tuple->setPos(startPos);
-    tuple->setEndPos(_lastTokenEndPos);
-    return tuple;
+TypeTuple *Parser::parseTypeTuple() {
+    std::vector<Expression*> exprs;
+    return parseTuple<TypeTuple, tok::OPER_R_BRACKET>(exprs);
 }
 
 Expression* Parser::parseDotOperation(Expression* left) {
@@ -413,6 +401,27 @@ Expression* Parser::parseDotOperation(Expression* left) {
     maccess->setPos(*left);
     maccess->setEndPos(_lastTokenEndPos);
     return maccess;
+}
+
+template<typename T, tok::OPER_TYPE R_DELIM>
+T* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
+
+    SAVE_POS(startPos)
+
+    if (!accept(R_DELIM)) {
+        do {
+            if (Expression* arg = parseExpression()){
+                exprs.push_back(arg);
+            }
+        } while (accept(tok::OPER_COMMA));
+
+        expect(R_DELIM, "`)`");
+    }
+
+    T* tuple = _mngr.New<T>(exprs);
+    tuple->setPos(startPos);
+    tuple->setEndPos(_lastTokenEndPos);
+    return tuple;
 }
 
 Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operator* oper) {
@@ -431,6 +440,5 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
     res->setEndPos(_lastTokenEndPos);
     return res;
 }
-
 
 }

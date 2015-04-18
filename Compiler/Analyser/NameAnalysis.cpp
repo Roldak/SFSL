@@ -188,7 +188,7 @@ void SymbolAssignation::visit(DefineDecl* def) {
 }
 
 void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
-    SAVE_SCOPE(typeconstructor)
+    /*SAVE_SCOPE(typeconstructor)
 
     const std::vector<Expression*>& args = typeconstructor->getArgs()->getExpressions();
 
@@ -202,7 +202,7 @@ void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
 
     typeconstructor->getBody()->onVisit(this);
 
-    RESTORE_SCOPE
+    RESTORE_SCOPE*/
 }
 
 void SymbolAssignation::visit(BinaryExpression* exp) {

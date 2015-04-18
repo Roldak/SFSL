@@ -28,6 +28,10 @@ void ASTTypeCreator::visit(ClassDecl *clss) {
     _created = _mngr.New<type::ObjectType>(clss);
 }
 
+void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
+
+}
+
 void ASTTypeCreator::visit(MemberAccess* mac) {
     createTypeFromSymbolic(mac, *mac);
 }
