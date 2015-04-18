@@ -86,6 +86,7 @@ void TypeCheking::visit(AssignmentExpression* aex) {
 
 void TypeCheking::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
+    tps->getTypeNode()->onVisit(this);
 
     if (type::Type* tpe = createType(tps->getTypeNode(), _ctx)) {
         Identifier* id = tps->getSpecified();

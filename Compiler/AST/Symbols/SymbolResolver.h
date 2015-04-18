@@ -75,8 +75,6 @@ private:
 
     type::Type* createTypeFromSymbol(Symbol* sym);
 
-    ast::ClassDecl* getClassDeclFromTypeSymbol(TypeSymbol* sym) const;
-
     Scope* _scope;
     mutable CompCtx_Ptr _ctx;
 

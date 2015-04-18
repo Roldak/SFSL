@@ -66,6 +66,24 @@ inline type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx) {
     return creator.getCreatedType();
 }
 
+/**
+ * @brief Evaluates the type of the TypeSymbol and returns the ClassDecl
+ * associated to the ObjectType in case it evaluated to ObjectType,
+ * otherwise returns nullptr
+ *
+ * @param sym The TypeSymbol from which to get the ClassDecl
+ * @param ctx The compilation context
+ * @return The ClassDecl is found, otherwise nullptr
+ */
+inline ast::ClassDecl* getClassDeclFromTypeSymbol(sym::TypeSymbol* sym, CompCtx_Ptr& ctx) {
+    if (type::Type* t = createType(sym->getTypeDecl()->getExpression(), ctx)) {
+        if (type::ObjectType* o = type::getIf<type::ObjectType>(t)) {
+            return o->getClass();
+        }
+    }
+    return nullptr;
+}
+
 }
 
 }

@@ -11,6 +11,7 @@
 #include "../AST/Symbols/Symbols.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTSymbolExtractor.h"
+#include "../AST/Visitors/ASTTypeCreator.h"
 
 namespace sfsl {
 
@@ -188,9 +189,10 @@ void SymbolAssignation::visit(MemberAccess* mac) {
     mac->getAccessed()->onVisit(this);
     if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
         switch (sym->getSymbolType()) {
-        case sym::SYM_MODULE:   assignFromStaticScope<sym::ModuleSymbol>(mac, sym, "module"); break;
-        //case sym::SYM_TPE:      assignFromStaticScope<sym::TypeSymbol>(mac, sym, "class"); break;
+        case sym::SYM_MODULE:   assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName()); break;
+        case sym::SYM_TPE:      assignFromTypeSymbol(mac, static_cast<sym::TypeSymbol*>(sym)); break;
         default:
+            mac->setSymbol(nullptr);
             break;
         }
     }
@@ -252,9 +254,8 @@ void SymbolAssignation::createVar(Identifier *id) {
     tryAddSymbol(arg);
 }
 
-template<typename T>
-void SymbolAssignation::assignFromStaticScope(MemberAccess* mac, sym::Symbol* sym, const std::string& typeName) {
-    sym::Scope* scope = static_cast<T*>(sym)->getScope();
+void SymbolAssignation::assignFromStaticScope(MemberAccess* mac, sym::Scoped* scoped, const std::string& typeName) {
+    sym::Scope* scope = scoped->getScope();
     const std::string& id = mac->getMember()->getValue();
 
     if (sym::Symbol* resSymbol = scope->getSymbol<sym::Symbol>(id, false)) {
@@ -262,7 +263,15 @@ void SymbolAssignation::assignFromStaticScope(MemberAccess* mac, sym::Symbol* sy
     } else {
         _ctx.get()->reporter().error(
                     *(mac->getMember()),
-                    std::string("No member named '") + id + "' in " + typeName + " '" + sym->getName() + "'");
+                    std::string("No member named '") + id + "' in " + typeName);
+    }
+}
+
+void SymbolAssignation::assignFromTypeSymbol(MemberAccess* mac, sym::TypeSymbol* tsym) {
+    if (ClassDecl* clss = getClassDeclFromTypeSymbol(tsym, _ctx)) {
+        assignFromStaticScope(mac, clss, "class " + clss->getName());
+    } else {
+        _ctx.get()->reporter().error(*mac->getMember(), "Type " + tsym->getName() + " cannot have any members");
     }
 }
 

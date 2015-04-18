@@ -81,8 +81,9 @@ private:
 
     void createVar(Identifier* id);
 
-    template<typename T>
-    void assignFromStaticScope(MemberAccess* mac, sym::Symbol* sym, const std::string& typeName);
+    void assignFromStaticScope(MemberAccess* mac, sym::Scoped* scoped, const std::string& typeName);
+    void assignFromTypeSymbol(MemberAccess* mac, sym::TypeSymbol* tsym);
+
 };
 
 }

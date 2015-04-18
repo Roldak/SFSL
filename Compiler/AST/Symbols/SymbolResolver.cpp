@@ -34,7 +34,7 @@ Symbol* SymbolResolver::getSymbol(const std::string& fullPathName) const {
             Scoped* scoped;
 
             switch (lastSym->getSymbolType()) {
-                case SYM_TPE:       scoped = getClassDeclFromTypeSymbol(static_cast<TypeSymbol*>(lastSym)); break;
+                case SYM_TPE:       scoped = ast::getClassDeclFromTypeSymbol(static_cast<TypeSymbol*>(lastSym), _ctx); break;
                 case SYM_MODULE:    scoped = static_cast<ModuleSymbol*>(lastSym); break;
                 default:            scoped = nullptr; break;
             }
@@ -86,20 +86,12 @@ type::Type* SymbolResolver::Real() const {
 type::Type* SymbolResolver::createTypeFromSymbol(Symbol* sym) {
     if (sym) {
         if (sym->getSymbolType() == SYM_TPE) {
-            return _ctx.get()->memoryManager().New<type::ObjectType>(getClassDeclFromTypeSymbol(static_cast<sym::TypeSymbol*>(sym)));
+            return _ctx.get()->memoryManager().New<type::ObjectType>(
+                        ast::getClassDeclFromTypeSymbol(static_cast<sym::TypeSymbol*>(sym), _ctx));
         }
     }
     throw common::CompilationFatalError("Cannot create type : " +
                                         (sym ? (sym->getName() + " is not a type") : "null pointer was passed"));
-}
-
-ast::ClassDecl* SymbolResolver::getClassDeclFromTypeSymbol(TypeSymbol* sym) const {
-    if (type::Type* t = ast::createType(sym->getTypeDecl()->getExpression(), _ctx)) {
-        if (type::ObjectType* o = type::getIf<type::ObjectType>(t)) {
-            return o->getClass();
-        }
-    }
-    return nullptr;
 }
 
 }
