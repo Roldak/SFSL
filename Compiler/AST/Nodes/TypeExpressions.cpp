@@ -16,8 +16,8 @@ namespace ast {
 // CLASS DECLARATION
 
 ClassDecl::ClassDecl(const std::string& name,
-                     const std::vector<TypeSpecifier *> fields,
-                     const std::vector<DefineDecl *> defs)
+                     const std::vector<TypeSpecifier*>& fields,
+                     const std::vector<DefineDecl*>& defs)
 
     : _name(name), _fields(fields), _defs(defs)
 {
@@ -38,7 +38,7 @@ const std::vector<DefineDecl*>& ClassDecl::getDefs() const{
     return _defs;
 }
 
-const std::string &ClassDecl::getName() const {
+const std::string& ClassDecl::getName() const {
     return _name;
 }
 

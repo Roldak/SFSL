@@ -51,34 +51,23 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
             return;
         }
 
-        sym::Scope* scope = _mngr.New<sym::Scope>(constructor->getScope(), false);
-        constructor->setScope(scope);
+        std::map<sym::TypeSymbol*, sym::TypeSymbol*> subTable;
 
         for (size_t i = 0; i < params.size(); ++i) {
-            //type::T
-            //ast::TypeDecl* decl = _mngr.New<TypeDecl>(static_cast<Identifier*>(params[i]));
-            sym::TypeSymbol* type = _mngr.New<sym::TypeSymbol>(
-                        static_cast<Identifier*>(params[i])->getValue(), nullptr);
-
-            type->setType(createType(args[i], _ctx, _res));
-
-            scope->addSymbol(type);
+            subTable[params[i]] = args[i];
         }
-
-        ast::ScopeGeneration scopeGen(_ctx, scope);
-        constructor->getBody()->onVisit(&scopeGen);
-
-        ast::SymbolAssignation symAssign(_ctx, scope);
-        constructor->getBody()->onVisit(&symAssign);
-
-        if (_ctx.get()->reporter().getErrorCount() != 0) {
-            return;
-        }
-
-        ast::TypeCheking typeCheck(_ctx, *_res, scope);
-        constructor->getBody()->onVisit(&typeCheck);
 
         constructor->getBody()->onVisit(this);
+
+        if (_created) {
+            if (type::ObjectType* obj = type::getIf<type::ObjectType>(_created)) {
+                _created = substituteTypes(obj, subTable);
+            } else {
+                _ctx.get()->reporter().error(*tcall, "wtf");
+            }
+        } else {
+            _ctx.get()->reporter().fatal(*tcall, "Type instantiation failed");
+        }
 
     } else {
         _ctx.get()->reporter().error(*tcall, "type expression is not a type constructor");
@@ -100,7 +89,7 @@ type::Type* ASTTypeCreator::getCreatedType() const {
 void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol> *symbolic, common::Positionnable& pos) {
     if (sym::Symbol* symbol = symbolic->getSymbol()) {
         if (symbol->getSymbolType() != sym::SYM_TPE) {
-            _ctx.get()->reporter().error(pos, "Symbol does not refer a type");
+            _ctx.get()->reporter().error(pos, "Symbol " + symbol->getName() + " does not refer a type");
             return;
         }
 
@@ -121,6 +110,12 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol> *symbolic
             _created = ts->type();
         }
     }
+}
+
+type::ObjectType *ASTTypeCreator::substituteTypes(type::ObjectType* original, const std::map<sym::TypeSymbol*, sym::TypeSymbol*>& table) {
+    sym::Scope* scope = obj->getClass()->getScope();
+    const std::map<std::string, sym::Symbol*>& symbols = scope->getAllSymbols();
+
 }
 
 }

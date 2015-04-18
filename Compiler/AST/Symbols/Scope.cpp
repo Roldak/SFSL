@@ -29,6 +29,10 @@ Scope* Scope::getParent() const {
     return _parent;
 }
 
+const std::map<std::string, Symbol *> Scope::getAllSymbols() const {
+    return _symbols;
+}
+
 Symbol* Scope::_getSymbol(const std::string &name, SYM_TYPE symType, bool recursive) const {
     if (_isDefScope && symType == SYM_VAR) {
         return nullptr;

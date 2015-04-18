@@ -25,7 +25,7 @@ namespace ast {
 class ClassDecl : public Expression, public sym::Scoped {
 public:
 
-    ClassDecl(const std::string& name, const std::vector<TypeSpecifier*> fields, const std::vector<DefineDecl*> defs);
+    ClassDecl(const std::string& name, const std::vector<TypeSpecifier*>& fields, const std::vector<DefineDecl*>& defs);
     virtual ~ClassDecl();
 
     SFSL_AST_ON_VISIT_H

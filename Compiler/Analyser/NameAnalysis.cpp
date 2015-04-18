@@ -122,7 +122,7 @@ void ScopeGeneration::visit(DefineDecl* def) {
     popScope();
 }
 
-void ScopeGeneration::visit(TypeConstructorCreation *typeconstructor) {
+void ScopeGeneration::visit(TypeConstructorCreation* typeconstructor) {
     pushScope(typeconstructor);
 
     ASTVisitor::visit(typeconstructor);
@@ -188,7 +188,7 @@ void SymbolAssignation::visit(DefineDecl* def) {
 }
 
 void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
-    /*SAVE_SCOPE(typeconstructor)
+    SAVE_SCOPE(typeconstructor)
 
     const std::vector<Expression*>& args = typeconstructor->getArgs()->getExpressions();
 
@@ -202,7 +202,7 @@ void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
 
     typeconstructor->getBody()->onVisit(this);
 
-    RESTORE_SCOPE*/
+    RESTORE_SCOPE
 }
 
 void SymbolAssignation::visit(BinaryExpression* exp) {
@@ -212,6 +212,7 @@ void SymbolAssignation::visit(BinaryExpression* exp) {
 
 void SymbolAssignation::visit(MemberAccess* mac) {
     mac->getAccessed()->onVisit(this);
+
     if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
         switch (sym->getSymbolType()) {
         case sym::SYM_MODULE:   assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName()); break;
@@ -278,7 +279,9 @@ void SymbolAssignation::createVar(Identifier *id) {
 }
 
 void SymbolAssignation::createType(Identifier *id) {
-    sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), nullptr);
+    ClassDecl* clss = _mngr.New<ClassDecl>(id->getValue(), std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
+    TypeDecl* type = _mngr.New<TypeDecl>(id, clss);
+    sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
     initCreated(id, arg);
 }
 

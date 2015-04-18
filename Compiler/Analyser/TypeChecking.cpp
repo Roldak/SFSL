@@ -68,7 +68,11 @@ void TypeCheking::visit(TypeTuple* ttuple) {
 }
 
 void TypeCheking::visit(TypeConstructorCreation* typeconstructor) {
+    SAVE_SCOPE(typeconstructor)
 
+    ASTVisitor::visit(typeconstructor);
+
+    RESTORE_SCOPE
 }
 
 void TypeCheking::visit(TypeConstructorCall* tcall) {

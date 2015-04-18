@@ -47,7 +47,15 @@ namespace sym {
             return nullptr;
         }
 
+        /**
+         * @return The parent if this scope
+         */
         Scope* getParent() const;
+
+        /**
+         * @return The map containing all the symbols
+         */
+        const std::map<std::string, Symbol*> getAllSymbols() const;
 
     private:
 
