@@ -43,15 +43,23 @@ type::Type* ASTTypeCreator::getCreatedType() const {
 void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol> *symbolic, common::Positionnable& pos) {
     if (sym::Symbol* symbol = symbolic->getSymbol()) {
         if (symbol->getSymbolType() != sym::SYM_TPE) {
-            _ctx.get()->reporter().error(pos, "Symbol does not refer a class");
+            _ctx.get()->reporter().error(pos, "Symbol does not refer a type");
             return;
         }
 
-        sym::TypeSymbol* ts = static_cast<sym::TypeSymbol>(symbol);
+        sym::TypeSymbol* ts = static_cast<sym::TypeSymbol*>(symbol);
 
         if (ts->type() == type::Type::NotYetDefined()) {
-            _created = createType(ts->getTypeDecl()->getExpression(), _ctx);
-            ts->setType(_created);
+
+            if (_visitedTypes.find(ts) == _visitedTypes.end()) {
+                _visitedTypes.emplace(ts);
+
+                ts->getTypeDecl()->getExpression()->onVisit(this);
+                ts->setType(_created);
+            } else {
+                _ctx.get()->reporter().error(pos, "A cyclic dependency was found");
+            }
+
         } else {
             _created = ts->type();
         }

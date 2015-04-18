@@ -10,6 +10,7 @@
 #define __SFSL__ASTTypeCreator__
 
 #include <iostream>
+#include <set>
 #include "ASTVisitor.h"
 #include "../../Types/Types.h"
 
@@ -48,6 +49,7 @@ protected:
 
     type::Type* _created;
 
+    std::set<sym::TypeSymbol*> _visitedTypes;
 };
 
 /**
