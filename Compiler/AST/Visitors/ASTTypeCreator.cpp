@@ -60,7 +60,7 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
             sym::TypeSymbol* type = _mngr.New<sym::TypeSymbol>(
                         static_cast<Identifier*>(params[i])->getValue(), nullptr);
 
-            type->setType(createType(args[i], _ctx));
+            type->setType(createType(args[i], _ctx, _res));
 
             scope->addSymbol(type);
         }
