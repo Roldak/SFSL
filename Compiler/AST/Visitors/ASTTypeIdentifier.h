@@ -55,6 +55,14 @@ public:
         setIfSame<DefineDecl>();
     }
 
+    virtual void visit(TypeTuple*) {
+        setIfSame<TypeTuple>();
+    }
+
+    virtual void visit(TypeConstructorCreation*) {
+        setIfSame<TypeConstructorCreation>();
+    }
+
     virtual void visit(ExpressionStatement*) {
         setIfSame<ExpressionStatement>();
     }

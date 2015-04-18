@@ -52,6 +52,54 @@ private:
     std::vector<DefineDecl*> _defs;
 };
 
+/**
+ * @brief Represents a tuple
+ */
+class TypeTuple : public Expression {
+public:
+
+    TypeTuple(const std::vector<Expression*>& exprs);
+    virtual ~TypeTuple();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The sequence of expressions that compose the tuple
+     */
+    const std::vector<Expression*>& getExpressions();
+
+private:
+
+    const std::vector<Expression*> _exprs;
+};
+
+/**
+ * @brief Represents a type constructor creation, e.g. `[T] => class { x: T; }`
+ */
+class TypeConstructorCreation : public Expression, public sym::Scoped {
+public:
+
+    TypeConstructorCreation(TypeTuple* args, Expression* body);
+    virtual ~TypeConstructorCreation();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The tuple of arguments
+     */
+    TypeTuple* getArgs() const;
+
+    /**
+     * @return The body of the function
+     */
+    Expression* getBody() const;
+
+private:
+
+    TypeTuple* _args;
+    Expression* _body;
+};
+
 }
 
 }

@@ -64,6 +64,17 @@ void ASTVisitor::visit(DefineDecl* decl) {
     decl->getValue()->onVisit(this);
 }
 
+void ASTVisitor::visit(TypeTuple* ttuple) {
+    for (auto arg : ttuple->getExpressions()) {
+        arg->onVisit(this);
+    }
+}
+
+void ASTVisitor::visit(TypeConstructorCreation *typeconstructor) {
+    typeconstructor->getArgs()->onVisit(this);
+    typeconstructor->getBody()->onVisit(this);
+}
+
 void ASTVisitor::visit(ExpressionStatement* exp) {
     exp->getExpression()->onVisit(this);
 }

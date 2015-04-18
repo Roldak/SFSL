@@ -49,6 +49,8 @@ public:
     virtual void visit(ClassDecl* clss);
     virtual void visit(DefineDecl* decl);
 
+    virtual void visit(TypeConstructorCreation* typeconstructor);
+
     virtual void visit(Block* block);
     virtual void visit(FunctionCreation* func);
 
@@ -70,6 +72,8 @@ public:
     virtual void visit(ClassDecl* clss);
     virtual void visit(DefineDecl* decl);
 
+    virtual void visit(TypeConstructorCreation* typeconstructor);
+
     virtual void visit(BinaryExpression* exp);
     virtual void visit(MemberAccess* mac);
     virtual void visit(Block* block);
@@ -80,6 +84,8 @@ public:
 private:
 
     void createVar(Identifier* id);
+    void createType(Identifier* id);
+    void initCreated(Identifier* id, sym::Symbol* s);
 
     void assignFromStaticScope(MemberAccess* mac, sym::Scoped* scoped, const std::string& typeName);
     void assignFromTypeSymbol(MemberAccess* mac, sym::TypeSymbol* tsym);

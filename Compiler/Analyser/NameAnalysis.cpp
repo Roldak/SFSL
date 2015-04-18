@@ -122,6 +122,14 @@ void ScopeGeneration::visit(DefineDecl* def) {
     popScope();
 }
 
+void ScopeGeneration::visit(TypeConstructorCreation *typeconstructor) {
+    pushScope(typeconstructor);
+
+    ASTVisitor::visit(typeconstructor);
+
+    popScope();
+}
+
 void ScopeGeneration::visit(Block* block) {
     pushScope(block);
 
@@ -175,6 +183,24 @@ void SymbolAssignation::visit(DefineDecl* def) {
     SAVE_SCOPE(def->getSymbol())
 
     ASTVisitor::visit(def);
+
+    RESTORE_SCOPE
+}
+
+void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
+    SAVE_SCOPE(typeconstructor)
+
+    const std::vector<Expression*>& args = typeconstructor->getArgs()->getExpressions();
+
+    for (Expression* expr : args) {
+        if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
+            createType(static_cast<Identifier*>(expr));
+        } else {
+            _ctx.get()->reporter().error(*expr, "Argument should be an identifier");
+        }
+    }
+
+    typeconstructor->getBody()->onVisit(this);
 
     RESTORE_SCOPE
 }
@@ -248,9 +274,18 @@ void SymbolAssignation::visit(Identifier* id) {
 
 void SymbolAssignation::createVar(Identifier *id) {
     sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(id->getValue());
-    arg->setPos(*id);
-    id->setSymbol(arg);
-    tryAddSymbol(arg);
+    initCreated(id, arg);
+}
+
+void SymbolAssignation::createType(Identifier *id) {
+    sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), nullptr);
+    initCreated(id, arg);
+}
+
+void SymbolAssignation::initCreated(Identifier *id, sym::Symbol *s) {
+    s->setPos(*id);
+    id->setSymbol(s);
+    tryAddSymbol(s);
 }
 
 void SymbolAssignation::assignFromStaticScope(MemberAccess* mac, sym::Scoped* scoped, const std::string& typeName) {

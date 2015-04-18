@@ -42,6 +42,42 @@ const std::string &ClassDecl::getName() const {
     return _name;
 }
 
+// TYPE TUPLE
+
+TypeTuple::TypeTuple(const std::vector<Expression*>& exprs) : _exprs(exprs) {
+
+}
+
+TypeTuple::~TypeTuple() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeTuple)
+
+const std::vector<Expression*>& TypeTuple::getExpressions() {
+    return _exprs;
+}
+
+// TYPE CONSTRUCTOR CREATION
+
+TypeConstructorCreation::TypeConstructorCreation(TypeTuple *args, Expression* body) : _args(args), _body(body) {
+
+}
+
+TypeConstructorCreation::~TypeConstructorCreation() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeConstructorCreation)
+
+TypeTuple* TypeConstructorCreation::getArgs() const {
+    return _args;
+}
+
+Expression* TypeConstructorCreation::getBody() const {
+    return _body;
+}
+
 }
 
 }

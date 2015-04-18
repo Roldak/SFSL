@@ -9,6 +9,7 @@
 #include "Parser.h"
 
 #include "../Lexer/Tokens/Litterals.h"
+#include "../AST/Visitors/ASTTypeIdentifier.h"
 
 #define SAVE_POS(ident) const common::Positionnable ident = *_currentToken;
 
@@ -364,7 +365,11 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     if (accept(tok::OPER_L_PAREN)) {
         res = _mngr.New<FunctionCall>(left, parseTuple());
     } else if (accept(tok::OPER_FAT_ARROW)) {
-        res = _mngr.New<FunctionCreation>(left, parseExpression());
+        if (ast::isNodeOfType<TypeTuple>(left, _ctx)) {
+            res = _mngr.New<TypeConstructorCreation>(static_cast<TypeTuple*>(left), parseExpression());
+        } else {
+            res = _mngr.New<FunctionCreation>(left, parseExpression());
+        }
     } else if (accept(tok::OPER_DOT)) {
         return parseDotOperation(left);
     }
