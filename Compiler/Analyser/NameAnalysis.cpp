@@ -25,10 +25,9 @@ ScopePossessorVisitor::ScopePossessorVisitor(CompCtx_Ptr &ctx) : ASTVisitor(ctx)
 
 void ScopePossessorVisitor::tryAddSymbol(sym::Symbol* sym) {
     if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
-        _ctx.get()->reporter().error(*sym,
-                                     std::string("Multiple definitions of symbol '") + sym->getName() +
-                                     "' were found. First instance here : " +
-                                     oldSymbol->positionStr());
+        _ctx.get()->reporter().error(*sym, std::string("Multiple definitions of symbol '") +
+                                     sym->getName() + "' were found.");
+        _ctx.get()->reporter().info(*oldSymbol, "First instance here");
     }
 }
 
