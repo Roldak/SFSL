@@ -68,14 +68,14 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
         ast::ScopeGeneration scopeGen(_ctx, scope);
         constructor->getBody()->onVisit(&scopeGen);
 
-        ast::SymbolAssignation symAssign(_ctx);
+        ast::SymbolAssignation symAssign(_ctx, scope);
         constructor->getBody()->onVisit(&symAssign);
 
         if (_ctx.get()->reporter().getErrorCount() != 0) {
             return;
         }
 
-        ast::TypeCheking typeCheck(_ctx, *_res);
+        ast::TypeCheking typeCheck(_ctx, *_res, scope);
         constructor->getBody()->onVisit(&typeCheck);
 
         constructor->getBody()->onVisit(this);

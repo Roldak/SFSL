@@ -66,7 +66,7 @@ private:
 class SymbolAssignation : public ScopePossessorVisitor {
 public:
 
-    SymbolAssignation(CompCtx_Ptr& ctx);
+    SymbolAssignation(CompCtx_Ptr& ctx, sym::Scope* initialScope = nullptr);
 
     virtual void visit(ModuleDecl* mod);
     virtual void visit(ClassDecl* clss);

@@ -24,7 +24,7 @@ namespace ast {
     class TypeCheking : public ASTVisitor {
     public:
 
-        TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
+        TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res, sym::Scope* initialScope = nullptr);
 
         virtual void visit(ASTNode*);
 

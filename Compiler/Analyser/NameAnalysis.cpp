@@ -159,8 +159,8 @@ void ScopeGeneration::popScope() {
 
 // SYMBOL ASSIGNATION
 
-SymbolAssignation::SymbolAssignation(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
-
+SymbolAssignation::SymbolAssignation(CompCtx_Ptr &ctx, sym::Scope* initialScope) : ScopePossessorVisitor(ctx) {
+    _curScope = initialScope;
 }
 
 void SymbolAssignation::visit(ModuleDecl* mod) {

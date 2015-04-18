@@ -17,8 +17,8 @@ namespace ast {
 
 // TYPE CHECK
 
-TypeCheking::TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : ASTVisitor(ctx), _curScope(nullptr), _res(res), _rep(ctx.get()->reporter()) {
+TypeCheking::TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res, sym::Scope *initialScope)
+    : ASTVisitor(ctx), _curScope(initialScope), _res(res), _rep(ctx.get()->reporter()) {
 
 }
 
