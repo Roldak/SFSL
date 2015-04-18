@@ -12,6 +12,7 @@
 #include <iostream>
 #include <set>
 #include "ASTVisitor.h"
+#include "../Symbols/SymbolResolver.h"
 #include "../../Types/Types.h"
 
 namespace sfsl {
@@ -28,7 +29,7 @@ public:
      * @brief Creates an ASTTypeCreator
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTTypeCreator(CompCtx_Ptr& ctx);
+    ASTTypeCreator(CompCtx_Ptr& ctx, const sym::SymbolResolver* res);
 
     virtual ~ASTTypeCreator();
 
@@ -54,6 +55,8 @@ protected:
     type::Type* _created;
 
     std::set<sym::TypeSymbol*> _visitedTypes;
+
+    const sym::SymbolResolver* _res;
 };
 
 /**
@@ -64,8 +67,8 @@ protected:
  * @param ctx The compilation context
  * @return The generated type
  */
-inline type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx) {
-    ASTTypeCreator creator(ctx);
+inline type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, const sym::SymbolResolver* res = nullptr) {
+    ASTTypeCreator creator(ctx, res);
     node->onVisit(&creator);
     return creator.getCreatedType();
 }

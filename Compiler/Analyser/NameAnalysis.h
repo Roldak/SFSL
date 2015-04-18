@@ -40,7 +40,7 @@ protected:
 class ScopeGeneration : public ScopePossessorVisitor {
 public:
 
-    ScopeGeneration(CompCtx_Ptr& ctx);
+    ScopeGeneration(CompCtx_Ptr& ctx, sym::Scope* initialScope = nullptr);
 
     virtual void visit(Program* prog);
 

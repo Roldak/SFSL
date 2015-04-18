@@ -64,8 +64,8 @@ sym::TypeSymbol* ScopePossessorVisitor::createSymbol(TypeDecl* node) {
 
 // SCOPE GENERATION
 
-ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
-
+ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx, sym::Scope *initialScope) : ScopePossessorVisitor(ctx) {
+    _curScope = initialScope;
 }
 
 void ScopeGeneration::visit(Program* prog) {

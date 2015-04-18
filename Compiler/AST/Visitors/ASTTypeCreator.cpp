@@ -7,12 +7,17 @@
 //
 
 #include "ASTTypeCreator.h"
+#include "../Symbols/Scope.h"
+#include "../Symbols/SymbolResolver.h"
+#include "../../Analyser/NameAnalysis.h"
+#include "../../Analyser/TypeChecking.h"
 
 namespace sfsl {
 
 namespace ast {
 
-ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx) : ASTVisitor(ctx), _created(nullptr) {
+ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, const sym::SymbolResolver* res)
+    : ASTVisitor(ctx), _created(nullptr), _res(res) {
 
 }
 
@@ -33,7 +38,51 @@ void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
 }
 
 void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
+    tcall->getCallee()->onVisit(this);
+    if (_created->getTypeKind() == type::TYPE_CONSTRUCTOR) {
+        TypeConstructorCreation* constructor = static_cast<type::ConstructorType*>(_created)->getTypeConstructor();
 
+        const std::vector<Expression*>& args = tcall->getArgs();
+        const std::vector<Expression*>& params = constructor->getArgs()->getExpressions();
+
+        if (args.size() != params.size()) {
+            _ctx.get()->reporter().error(*tcall, "Expected argument count is different from what was found");
+            _created = nullptr;
+            return;
+        }
+
+        sym::Scope* scope = _mngr.New<sym::Scope>(constructor->getScope(), false);
+        constructor->setScope(scope);
+
+        for (size_t i = 0; i < params.size(); ++i) {
+            //type::T
+            //ast::TypeDecl* decl = _mngr.New<TypeDecl>(static_cast<Identifier*>(params[i]));
+            sym::TypeSymbol* type = _mngr.New<sym::TypeSymbol>(
+                        static_cast<Identifier*>(params[i])->getValue(), nullptr);
+
+            type->setType(createType(args[i], _ctx));
+
+            scope->addSymbol(type);
+        }
+
+        ast::ScopeGeneration scopeGen(_ctx, scope);
+        constructor->getBody()->onVisit(&scopeGen);
+
+        ast::SymbolAssignation symAssign(_ctx);
+        constructor->getBody()->onVisit(&symAssign);
+
+        if (_ctx.get()->reporter().getErrorCount() != 0) {
+            return;
+        }
+
+        ast::TypeCheking typeCheck(_ctx, *_res);
+        constructor->getBody()->onVisit(&typeCheck);
+
+        constructor->getBody()->onVisit(this);
+
+    } else {
+        _ctx.get()->reporter().error(*tcall, "type expression is not a type constructor");
+    }
 }
 
 void ASTTypeCreator::visit(MemberAccess* mac) {
