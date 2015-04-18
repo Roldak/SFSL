@@ -78,6 +78,31 @@ Expression* TypeConstructorCreation::getBody() const {
     return _body;
 }
 
+// TYPE CONSTRUCTOR CALL
+
+TypeConstructorCall::TypeConstructorCall(Expression* callee, TypeTuple* args)
+    : _callee(callee), _args(args) {
+
+}
+
+TypeConstructorCall::~TypeConstructorCall() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeConstructorCall)
+
+Expression* TypeConstructorCall::getCallee() const {
+    return _callee;
+}
+
+const std::vector<Expression*>& TypeConstructorCall::getArgs() const {
+    return _args->getExpressions();
+}
+
+TypeTuple* TypeConstructorCall::getArgsTuple() const {
+    return _args;
+}
+
 }
 
 }

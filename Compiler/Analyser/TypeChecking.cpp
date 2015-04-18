@@ -71,6 +71,10 @@ void TypeCheking::visit(TypeConstructorCreation* typeconstructor) {
 
 }
 
+void TypeCheking::visit(TypeConstructorCall* tcall) {
+
+}
+
 void TypeCheking::visit(ExpressionStatement* exp) {
     ASTVisitor::visit(exp);
     exp->setType(exp->getExpression()->type());

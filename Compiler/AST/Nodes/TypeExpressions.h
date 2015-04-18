@@ -100,6 +100,39 @@ private:
     Expression* _body;
 };
 
+/**
+ * @brief Represents a type constructor call.
+ */
+class TypeConstructorCall : public Expression {
+public:
+
+    TypeConstructorCall(Expression* callee, TypeTuple* args);
+    virtual ~TypeConstructorCall();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The expression to which is applied the brackets operator
+     */
+    Expression* getCallee() const;
+
+    /**
+     * @return The sequence of arguments which are applied to the callee
+     */
+    TypeTuple* getArgsTuple() const;
+
+    /**
+     * @return The arguments by extracting them directly from the tuple
+     */
+    const std::vector<Expression*>& getArgs() const;
+
+private:
+
+    Expression* _callee;
+    TypeTuple* _args;
+
+};
+
 }
 
 }

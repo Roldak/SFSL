@@ -75,6 +75,11 @@ void ASTVisitor::visit(TypeConstructorCreation *typeconstructor) {
     typeconstructor->getBody()->onVisit(this);
 }
 
+void ASTVisitor::visit(TypeConstructorCall *tcall) {
+    tcall->getCallee()->onVisit(this);
+    tcall->getArgsTuple()->onVisit(this);
+}
+
 void ASTVisitor::visit(ExpressionStatement* exp) {
     exp->getExpression()->onVisit(this);
 }

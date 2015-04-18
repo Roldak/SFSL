@@ -63,8 +63,35 @@ std::string ObjectType::toString() {
     return _class->getName();
 }
 
-ast::ClassDecl* ObjectType::getClass() {
+ast::ClassDecl* ObjectType::getClass() const {
     return _class;
+}
+
+// TYPE CONSTRUCTOR
+
+ConstructorType::ConstructorType(ast::TypeConstructorCreation *typeConstructor)
+    : _typeConstructor(typeConstructor) {
+
+}
+
+ConstructorType::~ConstructorType() {
+
+}
+
+TYPE_KIND ConstructorType::getTypeKind() {
+    return TYPE_CONSTRUCTOR;
+}
+
+bool ConstructorType::isSubTypeOf(Type *other) {
+    return this == other;
+}
+
+std::string ConstructorType::toString() {
+    return "<type constructor>";
+}
+
+ast::TypeConstructorCreation* ConstructorType::getTypeConstructor() const {
+    return _typeConstructor;
 }
 
 // TYPED

@@ -63,6 +63,10 @@ public:
         setIfSame<TypeConstructorCreation>();
     }
 
+    virtual void visit(TypeConstructorCall*) {
+        setIfSame<TypeConstructorCall>();
+    }
+
     virtual void visit(ExpressionStatement*) {
         setIfSame<ExpressionStatement>();
     }

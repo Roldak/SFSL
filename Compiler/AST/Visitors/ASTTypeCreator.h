@@ -35,6 +35,10 @@ public:
     virtual void visit(ASTNode* node);
 
     virtual void visit(ClassDecl* clss);
+
+    virtual void visit(TypeConstructorCreation* typeconstructor);
+    virtual void visit(TypeConstructorCall* tcall);
+
     virtual void visit(MemberAccess* mac);
     virtual void visit(Identifier *ident);
 

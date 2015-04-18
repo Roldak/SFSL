@@ -10,17 +10,19 @@
 #define __SFSL__Types__
 
 #include <iostream>
+#include <vector>
 #include "../Common/MemoryManageable.h"
 
 namespace sfsl {
 
 namespace ast {
     class ClassDecl;
+    class TypeConstructorCreation;
 }
 
 namespace type {
 
-enum TYPE_KIND { TYPE_NYD, TYPE_OBJECT };
+enum TYPE_KIND { TYPE_NYD, TYPE_OBJECT, TYPE_CONSTRUCTOR };
 
 class Type : public common::MemoryManageable {
 public:
@@ -43,11 +45,28 @@ public:
     virtual bool isSubTypeOf(Type* other);
     virtual std::string toString();
 
-    ast::ClassDecl* getClass();
+    ast::ClassDecl* getClass() const;
 
 private:
 
     ast::ClassDecl* _class;
+};
+
+class ConstructorType : public Type {
+public:
+    ConstructorType(ast::TypeConstructorCreation* typeConstructor);
+
+    virtual ~ConstructorType();
+
+    virtual TYPE_KIND getTypeKind();
+    virtual bool isSubTypeOf(Type* other);
+    virtual std::string toString();
+
+    ast::TypeConstructorCreation* getTypeConstructor() const;
+
+private:
+
+    ast::TypeConstructorCreation* _typeConstructor;
 };
 
 /**

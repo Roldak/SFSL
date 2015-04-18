@@ -367,6 +367,8 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
 
     if (accept(tok::OPER_L_PAREN)) {
         res = _mngr.New<FunctionCall>(left, parseTuple());
+    } else if (accept(tok::OPER_L_BRACKET)) {
+        res = _mngr.New<TypeConstructorCall>(left, parseTypeTuple());
     } else if (accept(tok::OPER_FAT_ARROW)) {
         if (ast::isNodeOfType<TypeTuple>(left, _ctx)) {
             res = _mngr.New<TypeConstructorCreation>(static_cast<TypeTuple*>(left), parseExpression());
