@@ -166,12 +166,12 @@ void TypeCheking::visit(MemberAccess* dot) {
     dot->getAccessed()->onVisit(this);
 
     if (type::Type* t = dot->getAccessed()->type()) {
-        if (t->getTypeKind() == type::TYPE_OBJECT) {
-            ClassDecl* clss = static_cast<type::ObjectType*>(t)->getClass();
+        if (type::ObjectType* obj = type::getIf<type::ObjectType>(t)) {
+            ClassDecl* clss = obj->getClass();
 
             if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(dot->getMember()->getValue(), false)) {
                 if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-                    dot->setType(t);
+                    dot->setType(obj->trySubsitution(t));
                 } else {
                     _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() +
                                " of class " + clss->getName() + " is not a value");

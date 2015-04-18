@@ -42,7 +42,8 @@ Type* Type::NotYetDefined() {
     return &nyd; // all we want is a unique memory area
 }
 
-ObjectType::ObjectType(ast::ClassDecl* clss) : _class(clss) {
+ObjectType::ObjectType(ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
+    : _class(clss), _subTable(substitutionTable) {
 
 }
 
@@ -65,6 +66,18 @@ std::string ObjectType::toString() {
 
 ast::ClassDecl* ObjectType::getClass() const {
     return _class;
+}
+
+const SubstitutionTable& ObjectType::getSubstitutionTable() const {
+    return _subTable;
+}
+
+Type* ObjectType::trySubsitution(Type *type) const {
+    const auto& found = _subTable.find(type);
+    if (found != _subTable.end()) {
+        return found->second;
+    }
+    return type;
 }
 
 // TYPE CONSTRUCTOR

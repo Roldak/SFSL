@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <set>
+#include <map>
 #include "ASTVisitor.h"
 #include "../Symbols/SymbolResolver.h"
 #include "../../Types/Types.h"
@@ -51,6 +52,7 @@ public:
 protected:
 
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
+    type::ObjectType* substituteTypes(type::ObjectType* original, const type::SubstitutionTable& table);
 
     type::Type* _created;
 

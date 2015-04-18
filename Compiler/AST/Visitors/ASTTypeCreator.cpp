@@ -51,10 +51,12 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
             return;
         }
 
-        std::map<sym::TypeSymbol*, sym::TypeSymbol*> subTable;
+        type::SubstitutionTable subTable;
 
         for (size_t i = 0; i < params.size(); ++i) {
-            subTable[params[i]] = args[i];
+            sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(static_cast<Identifier*>(params[i])->getSymbol());
+            args[i]->onVisit(this);
+            subTable[param->type()] = _created;
         }
 
         constructor->getBody()->onVisit(this);
@@ -112,10 +114,8 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol> *symbolic
     }
 }
 
-type::ObjectType *ASTTypeCreator::substituteTypes(type::ObjectType* original, const std::map<sym::TypeSymbol*, sym::TypeSymbol*>& table) {
-    sym::Scope* scope = obj->getClass()->getScope();
-    const std::map<std::string, sym::Symbol*>& symbols = scope->getAllSymbols();
-
+type::ObjectType* ASTTypeCreator::substituteTypes(type::ObjectType* original, const type::SubstitutionTable& table) {
+    return _mngr.New<type::ObjectType>(original->getClass(), table);
 }
 
 }

@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 #include "../Common/MemoryManageable.h"
 
 namespace sfsl {
@@ -35,9 +36,11 @@ public:
     static Type* NotYetDefined();
 };
 
+typedef std::map<Type*, Type*> SubstitutionTable;
+
 class ObjectType : public Type {
 public:
-    ObjectType(ast::ClassDecl* clss);
+    ObjectType(ast::ClassDecl* clss, const SubstitutionTable& substitutionTable = {});
 
     virtual ~ObjectType();
 
@@ -46,10 +49,14 @@ public:
     virtual std::string toString();
 
     ast::ClassDecl* getClass() const;
+    const SubstitutionTable& getSubstitutionTable() const;
+
+    Type* trySubsitution(Type* type) const;
 
 private:
 
     ast::ClassDecl* _class;
+    const SubstitutionTable _subTable;
 };
 
 class ConstructorType : public Type {
