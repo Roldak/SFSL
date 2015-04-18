@@ -75,14 +75,14 @@ namespace sym {
     /**
      * @brief Represents the symbol associated to a type
      */
-    class TypeSymbol : public Symbol {
+    class TypeSymbol : public Symbol, public type::Typed {
     public:
         TypeSymbol(const std::string& name, ast::TypeDecl* type);
         virtual ~TypeSymbol();
 
         virtual SYM_TYPE getSymbolType() const;
 
-        ast::TypeDecl* getType() const;
+        ast::TypeDecl* getTypeDecl() const;
 
     private:
 

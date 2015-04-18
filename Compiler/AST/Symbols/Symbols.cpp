@@ -54,7 +54,7 @@ SYM_TYPE TypeSymbol::getSymbolType() const {
     return SYM_TPE;
 }
 
-ast::TypeDecl* TypeSymbol::getType() const {
+ast::TypeDecl* TypeSymbol::getTypeDecl() const {
     return _type;
 }
 

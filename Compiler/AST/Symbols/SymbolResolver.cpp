@@ -94,7 +94,7 @@ type::Type* SymbolResolver::createTypeFromSymbol(Symbol* sym) {
 }
 
 ast::ClassDecl* SymbolResolver::getClassDeclFromTypeSymbol(TypeSymbol* sym) const {
-    if (type::Type* t = ast::createType(sym->getType()->getExpression(), _ctx)) {
+    if (type::Type* t = ast::createType(sym->getTypeDecl()->getExpression(), _ctx)) {
         if (type::ObjectType* o = type::getIf<type::ObjectType>(t)) {
             return o->getClass();
         }

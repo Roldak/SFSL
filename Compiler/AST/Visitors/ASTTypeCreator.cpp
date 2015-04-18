@@ -47,7 +47,14 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol> *symbolic
             return;
         }
 
-        _created = createType(static_cast<sym::TypeSymbol*>(symbol)->getType()->getExpression(), _ctx);
+        sym::TypeSymbol* ts = static_cast<sym::TypeSymbol>(symbol);
+
+        if (ts->type() == type::Type::NotYetDefined()) {
+            _created = createType(ts->getTypeDecl()->getExpression(), _ctx);
+            ts->setType(_created);
+        } else {
+            _created = ts->type();
+        }
     }
 }
 
