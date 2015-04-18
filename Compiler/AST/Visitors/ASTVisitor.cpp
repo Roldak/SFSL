@@ -37,17 +37,20 @@ void ASTVisitor::visit(ModuleDecl* module) {
     for (ModuleDecl* mod : module->getSubModules()) {
         mod->onVisit(this);
     }
-    for (ClassDecl* clss : module->getClasses()) {
-        clss->onVisit(this);
+    for (TypeDecl* type : module->getTypes()) {
+        type->onVisit(this);
     }
     for (DefineDecl* decl : module->getDeclarations()) {
         decl->onVisit(this);
     }
 }
 
-void ASTVisitor::visit(ClassDecl *clss) {
-    clss->getName()->onVisit(this);
+void ASTVisitor::visit(TypeDecl *tdecl) {
+    tdecl->getName()->onVisit(this);
+    tdecl->getExpression()->onVisit(this);
+}
 
+void ASTVisitor::visit(ClassDecl *clss) {
     for (TypeSpecifier* field : clss->getFields()) {
         field->onVisit(this);
     }

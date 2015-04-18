@@ -24,6 +24,10 @@ void ASTTypeCreator::visit(ASTNode* node) {
     // do not throw an exception
 }
 
+void ASTTypeCreator::visit(ClassDecl *clss) {
+    _created = _mngr.New<type::ObjectType>(clss);
+}
+
 void ASTTypeCreator::visit(MemberAccess* mac) {
     createTypeFromSymbolic(mac, *mac);
 }
@@ -38,12 +42,12 @@ type::Type* ASTTypeCreator::getCreatedType() const {
 
 void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol> *symbolic, common::Positionnable& pos) {
     if (sym::Symbol* symbol = symbolic->getSymbol()) {
-        if (symbol->getSymbolType() != sym::SYM_CLASS) {
+        if (symbol->getSymbolType() != sym::SYM_TPE) {
             _ctx.get()->reporter().error(pos, "Symbol does not refer a class");
             return;
         }
 
-        _created = _mngr.New<type::ObjectType>(static_cast<sym::ClassSymbol*>(symbol));
+        _created = createType(static_cast<sym::TypeSymbol*>(symbol)->getType()->getExpression(), _ctx);
     }
 }
 

@@ -52,6 +52,16 @@ sym::DefinitionSymbol* ScopePossessorVisitor::createSymbol(DefineDecl *node) {
     return sym;
 }
 
+sym::TypeSymbol* ScopePossessorVisitor::createSymbol(TypeDecl* node) {
+    sym::TypeSymbol* sym = _mngr.New<sym::TypeSymbol>(node->getName()->getValue(), node);
+    sym->setPos(*node);
+
+    node->setSymbol(sym);
+    tryAddSymbol(sym);
+
+    return sym;
+}
+
 // SCOPE GENERATION
 
 ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
@@ -88,10 +98,14 @@ void ScopeGeneration::visit(ModuleDecl* module) {
     }
 }
 
-void ScopeGeneration::visit(ClassDecl* clss) {
-    createSymbol<sym::ClassSymbol>(clss);
+void ScopeGeneration::visit(TypeDecl* tdecl) {
+    createSymbol(tdecl);
 
-    pushScope(clss->getSymbol(), true);
+    ASTVisitor::visit(tdecl);
+}
+
+void ScopeGeneration::visit(ClassDecl* clss) {
+    pushScope(clss, true);
 
     ASTVisitor::visit(clss);
 
@@ -150,7 +164,7 @@ void SymbolAssignation::visit(ModuleDecl* mod) {
 }
 
 void SymbolAssignation::visit(ClassDecl *clss) {
-    SAVE_SCOPE(clss->getSymbol())
+    SAVE_SCOPE(clss)
 
     ASTVisitor::visit(clss);
 
@@ -175,7 +189,7 @@ void SymbolAssignation::visit(MemberAccess* mac) {
     if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
         switch (sym->getSymbolType()) {
         case sym::SYM_MODULE:   assignFromStaticScope<sym::ModuleSymbol>(mac, sym, "module"); break;
-        case sym::SYM_CLASS:    assignFromStaticScope<sym::ClassSymbol>(mac, sym, "class"); break;
+        //case sym::SYM_TPE:      assignFromStaticScope<sym::TypeSymbol>(mac, sym, "class"); break;
         default:
             break;
         }

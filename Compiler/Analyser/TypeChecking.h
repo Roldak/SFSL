@@ -29,6 +29,7 @@ namespace ast {
         virtual void visit(ASTNode*);
 
         virtual void visit(ModuleDecl* mod);
+        virtual void visit(TypeDecl* tdecl);
         virtual void visit(ClassDecl* clss);
         virtual void visit(DefineDecl* decl);
 

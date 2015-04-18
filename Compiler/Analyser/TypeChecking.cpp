@@ -34,8 +34,13 @@ void TypeCheking::visit(ModuleDecl* mod) {
     RESTORE_SCOPE
 }
 
+void TypeCheking::visit(TypeDecl *tdecl) {
+    ASTVisitor::visit(tdecl);
+    tdecl->setType(_res.Unit());
+}
+
 void TypeCheking::visit(ClassDecl* clss) {
-    SAVE_SCOPE(clss->getSymbol())
+    SAVE_SCOPE(clss)
 
     ASTVisitor::visit(clss);
 
@@ -143,18 +148,16 @@ void TypeCheking::visit(MemberAccess* dot) {
 
     if (type::Type* t = dot->getAccessed()->type()) {
         if (t->getTypeKind() == type::TYPE_OBJECT) {
-            sym::ClassSymbol* clss = static_cast<type::ObjectType*>(t)->getClass();
+            ClassDecl* clss = static_cast<type::ObjectType*>(t)->getClass();
 
             if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(dot->getMember()->getValue(), false)) {
                 if (type::Type* t = tryGetTypeOfSymbol(sym)) {
                     dot->setType(t);
                 } else {
-                    _rep.error(*dot->getMember(), "member " + dot->getMember()->getValue() +
-                               " of class " + clss->getName() + " is not a value");
+                    _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() + " is not a value");
                 }
             } else {
-                _rep.error(*dot->getMember(), "no member named " +
-                           dot->getMember()->getValue() + " in class " + clss->getName());
+                _rep.error(*dot->getMember(), "Expression does not have any member named " + dot->getMember()->getValue());
             }
         }
     }

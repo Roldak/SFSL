@@ -33,7 +33,7 @@ public:
     virtual void visit(ASTNode* node);
 
     virtual void visit(ModuleDecl* mod);
-    virtual void visit(ClassDecl* clss);
+    virtual void visit(TypeDecl* type);
     virtual void visit(DefineDecl* def);
 
     virtual void visit(Identifier* id);

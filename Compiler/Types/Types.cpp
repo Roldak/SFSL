@@ -7,7 +7,7 @@
 //
 
 #include "Types.h"
-#include "../AST/Symbols/Symbols.h"
+#include "../AST/Nodes/TypeExpressions.h"
 
 namespace sfsl {
 
@@ -42,7 +42,7 @@ Type* Type::NotYetDefined() {
     return &nyd; // all we want is a unique memory area
 }
 
-ObjectType::ObjectType(sym::ClassSymbol* clss) : _class(clss) {
+ObjectType::ObjectType(ast::ClassDecl* clss) : _class(clss) {
 
 }
 
@@ -63,7 +63,7 @@ std::string ObjectType::toString() {
     return _class->getName();
 }
 
-sym::ClassSymbol* ObjectType::getClass() {
+ast::ClassDecl* ObjectType::getClass() {
     return _class;
 }
 

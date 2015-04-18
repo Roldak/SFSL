@@ -43,6 +43,10 @@ public:
         setIfSame<ModuleDecl>();
     }
 
+    virtual void visit(TypeDecl*) {
+        setIfSame<TypeDecl>();
+    }
+
     virtual void visit(ClassDecl*) {
         setIfSame<ClassDecl>();
     }

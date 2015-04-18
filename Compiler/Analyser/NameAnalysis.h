@@ -27,6 +27,7 @@ protected:
     T* createSymbol(U* node);
 
     sym::DefinitionSymbol* createSymbol(DefineDecl* node);
+    sym::TypeSymbol* createSymbol(TypeDecl* node);
 
     void tryAddSymbol(sym::Symbol* sym);
 
@@ -44,6 +45,7 @@ public:
     virtual void visit(Program* prog);
 
     virtual void visit(ModuleDecl* module);
+    virtual void visit(TypeDecl* tdecl);
     virtual void visit(ClassDecl* clss);
     virtual void visit(DefineDecl* decl);
 

@@ -94,7 +94,7 @@ ModuleDecl* Parser::parseModule() {
 
     Identifier* moduleName = parseIdentifier("expected module name");
     std::vector<ModuleDecl*> mods;
-    std::vector<ClassDecl*> classes;
+    std::vector<TypeDecl*> types;
     std::vector<DefineDecl*> decls;
 
     expect(tok::OPER_L_BRACE, "`{`");
@@ -102,8 +102,8 @@ ModuleDecl* Parser::parseModule() {
     while (!accept(tok::OPER_R_BRACE)) {
         if (accept(tok::KW_MODULE)) {
             mods.push_back(parseModule());
-        } else if (accept(tok::KW_CLASS)) {
-            classes.push_back(parseClass(false));
+        } else if (accept(tok::KW_TPE)) {
+            types.push_back(parseType(false));
         } else if (accept(tok::KW_DEF)) {
             decls.push_back(parseDef(false));
         } else {
@@ -112,7 +112,7 @@ ModuleDecl* Parser::parseModule() {
         }
     }
 
-    ModuleDecl* modDecl = _mngr.New<ModuleDecl>(moduleName, mods, classes, decls);
+    ModuleDecl* modDecl = _mngr.New<ModuleDecl>(moduleName, mods, types, decls);
     modDecl->setPos(*moduleName);
     modDecl->setEndPos(_lastTokenEndPos);
 
@@ -139,8 +139,16 @@ DefineDecl* Parser::parseDef(bool asStatement) {
 
 }
 
-ClassDecl* Parser::parseClass(bool asStatement) {
-    Identifier* className = parseIdentifier("expected class name");
+ClassDecl* Parser::parseClass() {
+    SAVE_POS(startPos)
+
+    std::string className = "<anonymous>";
+
+    if (_currentToken->getTokenType() == tok::TOK_ID) {
+        className = as<tok::Identifier>()->toString();
+        accept();
+    }
+
     expect(tok::OPER_L_BRACE, "`{`");
 
     std::vector<TypeSpecifier*> fields;
@@ -163,14 +171,26 @@ ClassDecl* Parser::parseClass(bool asStatement) {
         }
     }
 
+    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, fields, defs);
+    classDecl->setPos(startPos);
+    classDecl->setEndPos(_lastTokenEndPos);
+    return classDecl;
+}
+
+TypeDecl* Parser::parseType(bool asStatement) {
+    Identifier* typeName = parseIdentifier("expected type name");
+    accept(tok::OPER_EQ);
+
+    Expression* expr = parseExpression();
+
     if (asStatement) {
         expect(tok::OPER_SEMICOLON, "`;`");
     }
 
-    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, fields, defs);
-    classDecl->setPos(*className);
-    classDecl->setEndPos(_lastTokenEndPos);
-    return classDecl;
+    TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr);
+    typeDecl->setPos(*typeName);
+    typeDecl->setEndPos(_lastTokenEndPos);
+    return typeDecl;
 }
 
 Expression* Parser::parseStatement() {
@@ -181,7 +201,7 @@ Expression* Parser::parseStatement() {
         switch (kw) {
         case tok::KW_DEF:   return parseDef(true);
         case tok::KW_IF:    return parseIf(true);
-        case tok::KW_CLASS: return parseClass(true);
+        case tok::KW_TPE:   return parseType(true);
         default:            return nullptr;
         }
     } else if (accept(tok::OPER_L_BRACE)) {
@@ -281,6 +301,8 @@ Expression* Parser::parsePrimary() {
     case tok::TOK_KW:
         if (accept(tok::KW_IF)) {
             return parseIf(false);
+        } else if (accept(tok::KW_CLASS)) {
+            return parseClass();
         }
         break;
 

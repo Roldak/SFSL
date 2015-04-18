@@ -71,8 +71,8 @@ namespace sym {
     }
 
     template<>
-    inline ClassSymbol* Scope::getSymbol(const std::string& name, bool recursive) const {
-        return static_cast<ClassSymbol*>(_getSymbol(name, SYM_CLASS, recursive));
+    inline TypeSymbol* Scope::getSymbol(const std::string& name, bool recursive) const {
+        return static_cast<TypeSymbol*>(_getSymbol(name, SYM_TPE, recursive));
     }
 
     template<>

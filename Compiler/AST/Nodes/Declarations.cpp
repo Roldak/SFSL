@@ -17,10 +17,10 @@ namespace ast {
 
 ModuleDecl::ModuleDecl(Identifier *name,
                        const std::vector<ModuleDecl*>& mods,
-                       const std::vector<sfsl::ast::ClassDecl*>& classes,
+                       const std::vector<TypeDecl*>& classes,
                        const std::vector<sfsl::ast::DefineDecl*>& decls)
 
-    : _name(name), _mods(mods), _classes(classes), _decls(decls)
+    : _name(name), _mods(mods), _types(classes), _decls(decls)
 {
 
 }
@@ -35,8 +35,8 @@ const std::vector<ModuleDecl*>& ModuleDecl::getSubModules() const {
     return _mods;
 }
 
-const std::vector<ClassDecl *> &ModuleDecl::getClasses() const {
-    return _classes;
+const std::vector<TypeDecl*>& ModuleDecl::getTypes() const {
+    return _types;
 }
 
 const std::vector<DefineDecl*>& ModuleDecl::getDeclarations() const {
@@ -59,41 +59,33 @@ DefineDecl::~DefineDecl() {
 
 SFSL_AST_ON_VISIT_CPP(DefineDecl)
 
-Identifier *DefineDecl::getName() const {
+Identifier* DefineDecl::getName() const {
     return _name;
 }
 
-Expression *DefineDecl::getValue() const {
+Expression* DefineDecl::getValue() const {
     return _value;
 }
 
-// CLASS DECLARATION
 
-ClassDecl::ClassDecl(Identifier *name,
-                     const std::vector<TypeSpecifier *> fields,
-                     const std::vector<DefineDecl *> defs)
+// TYPE DECLARATION
 
-    : _name(name), _fields(fields), _defs(defs)
-{
+TypeDecl::TypeDecl(Identifier *id, Expression *exp) : _name(id), _exp(exp) {
 
 }
 
-ClassDecl::~ClassDecl() {
+TypeDecl::~TypeDecl() {
 
 }
 
-SFSL_AST_ON_VISIT_CPP(ClassDecl)
+SFSL_AST_ON_VISIT_CPP(TypeDecl)
 
-Identifier* ClassDecl::getName() const {
+Identifier *TypeDecl::getName() const {
     return _name;
 }
 
-const std::vector<TypeSpecifier*>& ClassDecl::getFields() const {
-    return _fields;
-}
-
-const std::vector<DefineDecl*>& ClassDecl::getDefs() const{
-    return _defs;
+Expression *TypeDecl::getExpression() const {
+    return _exp;
 }
 
 }

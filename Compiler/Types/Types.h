@@ -14,8 +14,8 @@
 
 namespace sfsl {
 
-namespace sym {
-    class ClassSymbol;
+namespace ast {
+    class ClassDecl;
 }
 
 namespace type {
@@ -35,7 +35,7 @@ public:
 
 class ObjectType : public Type {
 public:
-    ObjectType(sym::ClassSymbol* clss);
+    ObjectType(ast::ClassDecl* clss);
 
     virtual ~ObjectType();
 
@@ -43,11 +43,11 @@ public:
     virtual bool isSubTypeOf(Type* other);
     virtual std::string toString();
 
-    sym::ClassSymbol* getClass();
+    ast::ClassDecl* getClass();
 
 private:
 
-    sym::ClassSymbol* _class;
+    ast::ClassDecl* _class;
 };
 
 /**

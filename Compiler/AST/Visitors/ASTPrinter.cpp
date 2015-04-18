@@ -31,9 +31,9 @@ void ASTPrinter::visit(ModuleDecl *module) {
         std::cout << std::endl;
     }
 
-    for (ClassDecl* clss : module->getClasses()) {
+    for (TypeDecl* type : module->getTypes()) {
         printIndents();
-        clss->onVisit(this);
+        type->onVisit(this);
         std::cout << std::endl;
     }
 
@@ -49,8 +49,18 @@ void ASTPrinter::visit(ModuleDecl *module) {
     std::cout << "}" << std::endl;
 }
 
+void ASTPrinter::visit(TypeDecl* tdecl) {
+    std::cout << "type ";
+
+    tdecl->getName()->onVisit(this);
+
+    std::cout << " = ";
+
+    tdecl->getExpression()->onVisit(this);
+}
+
 void ASTPrinter::visit(ClassDecl *clss) {
-    std::cout << "class " << clss->getName()->getValue() << " {" << std::endl;
+    std::cout << "class {" << std::endl;
 
     ++_indentCount;
 
@@ -71,7 +81,7 @@ void ASTPrinter::visit(ClassDecl *clss) {
     --_indentCount;
 
     printIndents();
-    std::cout << "}" << std::endl;
+    std::cout << "}";
 }
 
 void ASTPrinter::visit(DefineDecl *decl) {

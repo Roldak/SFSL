@@ -20,14 +20,15 @@ namespace sfsl {
 
 namespace ast {
     class DefineDecl;
+    class TypeDecl;
 }
 
 namespace sym {
 
-    enum SYM_TYPE{SYM_MODULE = 0, SYM_CLASS, SYM_DEF, SYM_VAR};
+    enum SYM_TYPE{SYM_MODULE = 0, SYM_TPE, SYM_DEF, SYM_VAR};
 
     class ModuleSymbol;
-    class ClassSymbol;
+    class TypeSymbol;
     class DefinitionSymbol;
     class VariableSymbol;
 
@@ -67,19 +68,25 @@ namespace sym {
         virtual SYM_TYPE getSymbolType() const;
 
         ModuleSymbol* getModule(const std::string& name) const;
-        ClassSymbol* getClass(const std::string& name) const;
+        TypeSymbol* getClass(const std::string& name) const;
         DefinitionSymbol* getDefinition(const std::string& name) const;
     };
 
     /**
-     * @brief Represents the symbol associated to a class
+     * @brief Represents the symbol associated to a type
      */
-    class ClassSymbol : public Symbol, public Scoped {
+    class TypeSymbol : public Symbol {
     public:
-        ClassSymbol(const std::string& name);
-        virtual ~ClassSymbol();
+        TypeSymbol(const std::string& name, ast::TypeDecl* type);
+        virtual ~TypeSymbol();
 
         virtual SYM_TYPE getSymbolType() const;
+
+        ast::TypeDecl* getType() const;
+
+    private:
+
+        ast::TypeDecl* _type;
     };
 
     /**

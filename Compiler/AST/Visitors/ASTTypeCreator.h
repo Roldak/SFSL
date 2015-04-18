@@ -33,6 +33,7 @@ public:
 
     virtual void visit(ASTNode* node);
 
+    virtual void visit(ClassDecl* clss);
     virtual void visit(MemberAccess* mac);
     virtual void visit(Identifier *ident);
 

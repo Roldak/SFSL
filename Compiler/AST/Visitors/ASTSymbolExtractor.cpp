@@ -28,8 +28,8 @@ void ASTSymbolExtractor::visit(ModuleDecl* mod) {
     _sym = mod->getSymbol();
 }
 
-void ASTSymbolExtractor::visit(ClassDecl* clss) {
-    _sym = clss->getSymbol();
+void ASTSymbolExtractor::visit(TypeDecl* type) {
+    _sym = type->getSymbol();
 }
 
 void ASTSymbolExtractor::visit(DefineDecl* def) {

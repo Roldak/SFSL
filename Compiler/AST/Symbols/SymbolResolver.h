@@ -75,8 +75,10 @@ private:
 
     type::Type* createTypeFromSymbol(Symbol* sym);
 
+    ast::ClassDecl* getClassDeclFromTypeSymbol(TypeSymbol* sym) const;
+
     Scope* _scope;
-    CompCtx_Ptr _ctx;
+    mutable CompCtx_Ptr _ctx;
 
     type::Type* _unitType;
     type::Type* _boolType;

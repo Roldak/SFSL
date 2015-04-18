@@ -45,6 +45,7 @@ public:
     virtual void visit(Program* prog);
 
     virtual void visit(ModuleDecl* module);
+    virtual void visit(TypeDecl* tdecl);
     virtual void visit(ClassDecl* clss);
     virtual void visit(DefineDecl* decl);
 
