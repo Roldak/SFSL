@@ -114,6 +114,8 @@ void TypeCheking::visit(TypeSpecifier* tps) {
     } else {
         _ctx.get()->reporter().error(*tps->getTypeNode(), "Expression is not a type");
     }
+
+    tps->setType(_res.Unit());
 }
 
 void TypeCheking::visit(Block* block) {
