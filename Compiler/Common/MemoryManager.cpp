@@ -57,6 +57,10 @@ size_t MemoryChunk::getChunkSize() const {
     return _chunkSize;
 }
 
+size_t MemoryChunk::getUsedChunkSize() const {
+    return _offset;
+}
+
 // CHUNKED MEMORY MANAGER
 
 ChunkedMemoryManager::ChunkedMemoryManager(size_t chunksSize) : _lastChunk(new MemoryChunk(chunksSize, nullptr)) {
@@ -73,14 +77,16 @@ ChunkedMemoryManager::~ChunkedMemoryManager() {
 std::string ChunkedMemoryManager::getInfos() {
     std::string toRet = "ChunkedMemoryManager{";
 
-    size_t chunkCount = 0, totalChunkSize = 0;
+    size_t chunkCount = 0, totalUsedSize = 0, totalChunkSize = 0;
     for (const MemoryChunk* cur = _lastChunk; cur != nullptr; cur = cur->getParent()) {
         ++chunkCount;
+        totalUsedSize += cur->getUsedChunkSize();
         totalChunkSize += cur->getChunkSize();
     }
 
     toRet += utils::T_toString(chunkCount) + " chunks containing ";
     toRet += utils::T_toString(_allocated.size()) + " objects for a total of ";
+    toRet += utils::T_toString(totalUsedSize) + " bytes used on ";
     toRet += utils::T_toString(totalChunkSize) + " bytes allocated}";
     return toRet;
 }

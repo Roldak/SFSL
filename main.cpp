@@ -59,6 +59,9 @@ int main(int argc, char** argv) {
 
         ast::Parser parser(ctx, lexer);
 
+        std::cout << "STARTING PARSER" << std::endl;
+        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+
         ast::Program* prog = parser.parse();
 
         if (ctx.get()->reporter().getErrorCount() != 0) {
@@ -69,9 +72,14 @@ int main(int argc, char** argv) {
         prog->onVisit(&printer);
         */
 
+        std::cout << "STARTING SCOPE GENERATION" << std::endl;
+        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+
         ast::ScopeGeneration scopeGen(ctx);
         prog->onVisit(&scopeGen);
 
+        std::cout << "STARTING SYMBOL ASSIGNATION" << std::endl;
+        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
 
         ast::SymbolAssignation symAssign(ctx);
         prog->onVisit(&symAssign);
@@ -83,8 +91,14 @@ int main(int argc, char** argv) {
         sym::SymbolResolver res(prog, ctx);
         res.setPredefClassesPath("sfsl.lang");
 
+        std::cout << "STARTING TYPECHECKING" << std::endl;
+        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+
         ast::TypeCheking typeCheck(ctx, res);
         prog->onVisit(&typeCheck);
+
+        std::cout << "DONE" << std::endl;
+        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
 
         if (ctx.get()->reporter().getErrorCount() != 0) {
             return 1;

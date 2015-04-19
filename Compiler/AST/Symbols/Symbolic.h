@@ -21,6 +21,8 @@ template<typename Symbol_Type>
 class Symbolic {
 public:
 
+    Symbolic() : _symbol(nullptr) {}
+
     virtual ~Symbolic() {}
 
     /**

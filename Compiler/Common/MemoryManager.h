@@ -130,6 +130,11 @@ namespace common {
          */
         size_t getChunkSize() const;
 
+        /**
+         * @return The current size of memory that is used in the chunk
+         */
+        size_t getUsedChunkSize() const;
+
     private:
 
         char* _chunk;
