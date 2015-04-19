@@ -251,6 +251,10 @@ type::SubstitutionTable helper(const type::SubstitutionTable& inner, type::Objec
 
 type::ObjectType* TypeCheking::applySubsitutions(type::ObjectType *inner, type::ObjectType *obj) {
     const type::SubstitutionTable& toSub = inner->getSubstitutionTable();
+    if (toSub.size() == 0) {
+        return inner;
+    }
+
     type::SubstitutionTable newTable;
 
     for (const auto& pair : toSub) {
