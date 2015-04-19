@@ -20,15 +20,15 @@ public:
 
     virtual ~TypeNotYetDefined() {}
 
-    virtual TYPE_KIND getTypeKind() {
+    virtual TYPE_KIND getTypeKind() const {
         return TYPE_NYD;
     }
 
-    virtual bool isSubTypeOf(Type *other) {
+    virtual bool isSubTypeOf(const Type*) const {
         return false;
     }
 
-    virtual std::string toString() {
+    virtual std::string toString() const {
         return "<not yet defined>";
     }
 };
@@ -70,18 +70,25 @@ ObjectType::~ObjectType() {
 
 }
 
-TYPE_KIND ObjectType::getTypeKind() { return TYPE_OBJECT; }
+TYPE_KIND ObjectType::getTypeKind() const { return TYPE_OBJECT; }
 
-bool ObjectType::isSubTypeOf(Type* other) {
+bool ObjectType::isSubTypeOf(const Type* other) const {
     if (ObjectType* objother = getIf<ObjectType>(other)) {
         if (_class == objother->_class) { // TODO : change that when inheritance is supported.
-
+            const SubstitutionTable& osub = objother->getSubstitutionTable();
+            for (const auto& pair : _subTable) {
+                const auto& subpair = osub.find(pair.first);
+                if (!subpair->second->isSubTypeOf(pair.second)) { // TODO support contravariance maybe?
+                    return false;
+                }
+            }
+            return true;
         }
     }
     return false;
 }
 
-std::string ObjectType::toString() {
+std::string ObjectType::toString() const {
     std::string toRet = _class->getName();
     if (!_subTable.empty()) {
         toRet += "[";
@@ -108,15 +115,15 @@ ConstructorType::~ConstructorType() {
 
 }
 
-TYPE_KIND ConstructorType::getTypeKind() {
+TYPE_KIND ConstructorType::getTypeKind() const {
     return TYPE_CONSTRUCTOR;
 }
 
-bool ConstructorType::isSubTypeOf(Type *other) {
+bool ConstructorType::isSubTypeOf(const Type* other) const {
     return this == other;
 }
 
-std::string ConstructorType::toString() {
+std::string ConstructorType::toString() const {
     return "<type constructor>";
 }
 

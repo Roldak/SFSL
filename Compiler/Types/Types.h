@@ -35,9 +35,9 @@ public:
 
     virtual ~Type();
 
-    virtual TYPE_KIND getTypeKind() = 0;
-    virtual bool isSubTypeOf(Type* other) = 0;
-    virtual std::string toString() = 0;
+    virtual TYPE_KIND getTypeKind() const = 0;
+    virtual bool isSubTypeOf(const Type* other) const = 0;
+    virtual std::string toString() const = 0;
 
     static Type* NotYetDefined();
 
@@ -56,9 +56,9 @@ public:
 
     virtual ~ObjectType();
 
-    virtual TYPE_KIND getTypeKind();
-    virtual bool isSubTypeOf(Type* other);
-    virtual std::string toString();
+    virtual TYPE_KIND getTypeKind() const;
+    virtual bool isSubTypeOf(const Type* other) const;
+    virtual std::string toString() const;
 
     ast::ClassDecl* getClass() const;
 
@@ -73,9 +73,9 @@ public:
 
     virtual ~ConstructorType();
 
-    virtual TYPE_KIND getTypeKind();
-    virtual bool isSubTypeOf(Type* other);
-    virtual std::string toString();
+    virtual TYPE_KIND getTypeKind() const;
+    virtual bool isSubTypeOf(const Type* other) const;
+    virtual std::string toString() const;
 
     ast::TypeConstructorCreation* getTypeConstructor() const;
 
@@ -110,17 +110,17 @@ protected:
 };
 
 template<typename T>
-inline T* getIf(Type* t) {
+inline T* getIf(const Type* t) {
     return nullptr;
 }
 
 template<>
-inline ObjectType* getIf(Type* t) {
+inline ObjectType* getIf(const Type* t) {
     return t->getTypeKind() == TYPE_OBJECT ? (ObjectType*)t : nullptr;
 }
 
 template<>
-inline ConstructorType* getIf(Type* t) {
+inline ConstructorType* getIf(const Type* t) {
     return t->getTypeKind() == TYPE_CONSTRUCTOR ? (ConstructorType*)t : nullptr;
 }
 
