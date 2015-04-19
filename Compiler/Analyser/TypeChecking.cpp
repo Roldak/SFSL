@@ -239,7 +239,7 @@ type::Type* TypeCheking::tryGetTypeOfSymbol(sym::Symbol* sym) {
     return nullptr;
 }
 
-type::ObjectType *TypeCheking::applySubsitutions(type::ObjectType *inner, type::ObjectType *obj) {
+type::ObjectType* TypeCheking::applySubsitutions(type::ObjectType *inner, type::ObjectType *obj) {
     const type::SubstitutionTable& toSub = inner->getSubstitutionTable();
     type::SubstitutionTable newTable;
 

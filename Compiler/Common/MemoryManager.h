@@ -40,6 +40,13 @@ namespace common {
             return new(alloc(sizeof(T))) T(std::forward<Args>(args)...);
         }
 
+        /**
+         * @brief Returns any info about the current state of memory.
+         * Implementations may send different informations.
+         * @return A string of an arbitrary format containing informations.
+         */
+        virtual std::string getInfos();
+
     protected:
 
         /**
@@ -113,6 +120,16 @@ namespace common {
          */
         static void* alloc(MemoryChunk*& chunk, size_t size);
 
+        /**
+         * @return The parent of this memory chunk
+         */
+        const MemoryChunk* getParent() const;
+
+        /**
+         * @return The size (in bytes) of this chunk
+         */
+        size_t getChunkSize() const;
+
     private:
 
         char* _chunk;
@@ -135,6 +152,8 @@ namespace common {
         ChunkedMemoryManager(size_t chunksSize);
 
         virtual ~ChunkedMemoryManager();
+
+        virtual std::string getInfos() override;
 
     private:
 

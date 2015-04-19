@@ -12,6 +12,8 @@
 #include "Compiler/Analyser/TypeChecking.h"
 #include "Compiler/AST/Symbols/SymbolResolver.h"
 
+#define DEFAULT_CHUNK_SIZE 2048
+
 using namespace sfsl;
 
 int main(int argc, char** argv) {
@@ -46,7 +48,7 @@ int main(int argc, char** argv) {
 
     clock_t exec = clock();
 
-    auto ctx = common::CompilationContext::DefaultCompilationContext();
+    auto ctx = common::CompilationContext::DefaultCompilationContext(DEFAULT_CHUNK_SIZE);
     std::istringstream input(source);
 
     src::SFSLInputStream src(src::SFSLSourceName::make(ctx, sourceFile), input);
@@ -62,12 +64,14 @@ int main(int argc, char** argv) {
         if (ctx.get()->reporter().getErrorCount() != 0) {
             return 1;
         }
-
+/*
         ast::ASTPrinter printer(ctx);
         prog->onVisit(&printer);
+        */
 
         ast::ScopeGeneration scopeGen(ctx);
         prog->onVisit(&scopeGen);
+
 
         ast::SymbolAssignation symAssign(ctx);
         prog->onVisit(&symAssign);

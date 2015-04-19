@@ -27,6 +27,8 @@ namespace tok {
     class Token : public common::MemoryManageable, public common::Positionnable {
     public:
 
+        virtual ~Token();
+
         /**
          * @return the type of the token
          */

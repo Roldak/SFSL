@@ -218,6 +218,8 @@ void SymbolAssignation::visit(BinaryExpression* exp) {
 void SymbolAssignation::visit(MemberAccess* mac) {
     mac->getAccessed()->onVisit(this);
 
+    std::cout << _ctx.get()->memoryManager().getInfos() << std::endl;
+
     if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
         switch (sym->getSymbolType()) {
         case sym::SYM_MODULE:   assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName()); break;

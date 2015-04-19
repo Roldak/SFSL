@@ -48,7 +48,7 @@ public:
      *  - ChunkedMemoryManager as the memory manager.
      *  - StandartErrReporter as the error reporter.
      */
-    static std::shared_ptr<CompilationContext> DefaultCompilationContext();
+    static std::shared_ptr<CompilationContext> DefaultCompilationContext(size_t chunksize);
 
 private:
 

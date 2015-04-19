@@ -29,8 +29,8 @@ AbstractReporter& CompilationContext::reporter() {
     return *_rprt;
 }
 
-std::shared_ptr<CompilationContext> CompilationContext::DefaultCompilationContext() {
-    return std::shared_ptr<CompilationContext>(new CompilationContext(new ChunkedMemoryManager(2048), new StandartErrReporter()));
+std::shared_ptr<CompilationContext> CompilationContext::DefaultCompilationContext(size_t chunksize) {
+    return std::shared_ptr<CompilationContext>(new CompilationContext(new ChunkedMemoryManager(chunksize), new StandartErrReporter()));
 }
 
 
