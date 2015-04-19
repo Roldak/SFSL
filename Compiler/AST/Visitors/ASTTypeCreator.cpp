@@ -52,6 +52,9 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
             return;
         }
 
+        const type::SubstitutionTable old = _subTable;
+        _subTable = type::SubstitutionTable();
+
         for (size_t i = 0; i < params.size(); ++i) {
             sym::TypeSymbol* param;
             if (isNodeOfType<Identifier>(params[i], _ctx)) {
@@ -71,6 +74,8 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
         }
 
         constructor->getBody()->onVisit(this);
+
+        _subTable = old;
 
         if (!_created) {
             _ctx.get()->reporter().fatal(*tcall, "Type instantiation failed");
