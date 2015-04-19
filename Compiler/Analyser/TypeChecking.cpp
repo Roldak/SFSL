@@ -63,20 +63,12 @@ void TypeCheking::visit(DefineDecl* decl) {
     }
 }
 
-void TypeCheking::visit(TypeTuple* ttuple) {
-
-}
-
 void TypeCheking::visit(TypeConstructorCreation* typeconstructor) {
     SAVE_SCOPE(typeconstructor)
 
     ASTVisitor::visit(typeconstructor);
 
     RESTORE_SCOPE
-}
-
-void TypeCheking::visit(TypeConstructorCall* tcall) {
-
 }
 
 void TypeCheking::visit(ExpressionStatement* exp) {
@@ -238,6 +230,24 @@ type::Type* TypeCheking::tryGetTypeOfSymbol(sym::Symbol* sym) {
     }
     return nullptr;
 }
+
+// x: Box[T=>Box[T=>int]]
+// x.value: Box[T=>int]
+/*
+type::SubstitutionTable helper(const type::SubstitutionTable& inner, type::ObjectType* obj) {
+    const type::SubstitutionTable& toSub = inner->getSubstitutionTable();
+    type::SubstitutionTable newTable;
+
+    for (const auto& pair : toSub) {
+        type::Type* res = obj->trySubstitution(pair.second);
+        if (type::ObjectType* o = type::getIf<type::ObjectType>(res)) {
+            res = helper(o, obj);
+        }
+        newTable[pair.first] = res;
+    }
+
+    return newTable;
+}*/
 
 type::ObjectType* TypeCheking::applySubsitutions(type::ObjectType *inner, type::ObjectType *obj) {
     const type::SubstitutionTable& toSub = inner->getSubstitutionTable();

@@ -56,7 +56,7 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
         _subTable = type::SubstitutionTable();
 
         for (size_t i = 0; i < params.size(); ++i) {
-            sym::TypeSymbol* param;
+            sym::TypeSymbol* param = nullptr;
             if (isNodeOfType<Identifier>(params[i], _ctx)) {
                 param = static_cast<sym::TypeSymbol*>(static_cast<Identifier*>(params[i])->getSymbol());
             } else if (isNodeOfType<TypeConstructorCall>(params[i], _ctx)) {
