@@ -285,6 +285,7 @@ void SymbolAssignation::createVar(Identifier *id) {
 
 void SymbolAssignation::createObjectType(Identifier *id) {
     ClassDecl* clss = _mngr.New<ClassDecl>(id->getValue(), std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
+    clss->setScope(_mngr.New<sym::Scope>(nullptr));
     TypeDecl* type = _mngr.New<TypeDecl>(id, clss);
     sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
     arg->setType(createType(clss, _ctx));
