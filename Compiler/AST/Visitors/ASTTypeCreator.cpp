@@ -7,6 +7,7 @@
 //
 
 #include "ASTTypeCreator.h"
+#include "ASTTypeIdentifier.h"
 #include "../Symbols/Scope.h"
 #include "../Symbols/SymbolResolver.h"
 #include "../../Analyser/NameAnalysis.h"
@@ -29,12 +30,12 @@ void ASTTypeCreator::visit(ASTNode* node) {
     // do not throw an exception
 }
 
-void ASTTypeCreator::visit(ClassDecl *clss) {
-    _created = _mngr.New<type::ObjectType>(clss);
+void ASTTypeCreator::visit(ClassDecl* clss) {
+    _created = _mngr.New<type::ObjectType>(clss, _subTable);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
-    _created = _mngr.New<type::ConstructorType>(typeconstructor);
+    _created = _mngr.New<type::ConstructorType>(typeconstructor, _subTable);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
@@ -51,28 +52,32 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
             return;
         }
 
-        type::SubstitutionTable subTable;
-
         for (size_t i = 0; i < params.size(); ++i) {
-            sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(static_cast<Identifier*>(params[i])->getSymbol());
+            sym::TypeSymbol* param;
+            if (isNodeOfType<Identifier>(params[i], _ctx)) {
+                param = static_cast<sym::TypeSymbol*>(static_cast<Identifier*>(params[i])->getSymbol());
+            } else if (isNodeOfType<TypeConstructorCall>(params[i], _ctx)) {
+                param = static_cast<sym::TypeSymbol*>(
+                            static_cast<Identifier*>(
+                                static_cast<TypeConstructorCall*>(
+                                    params[i]
+                                    )->getCallee()
+                                )->getSymbol()
+                            );
+            }
+
             args[i]->onVisit(this);
-            subTable[param->type()] = _created;
+            _subTable[param->type()] = _created;
         }
 
         constructor->getBody()->onVisit(this);
 
-        if (_created) {
-            if (type::ObjectType* obj = type::getIf<type::ObjectType>(_created)) {
-                _created = substituteTypes(obj, subTable);
-            } else {
-                _ctx.get()->reporter().error(*tcall, "wtf");
-            }
-        } else {
+        if (!_created) {
             _ctx.get()->reporter().fatal(*tcall, "Type instantiation failed");
         }
 
     } else {
-        _ctx.get()->reporter().error(*tcall, "type expression is not a type constructor");
+        _ctx.get()->reporter().error(*tcall, "Expression is not a type constructor");
     }
 }
 
@@ -112,10 +117,6 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol> *symbolic
             _created = ts->type();
         }
     }
-}
-
-type::ObjectType* ASTTypeCreator::substituteTypes(type::ObjectType* original, const type::SubstitutionTable& table) {
-    return _mngr.New<type::ObjectType>(original->getClass(), table);
 }
 
 }

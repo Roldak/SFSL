@@ -170,8 +170,10 @@ void TypeCheking::visit(MemberAccess* dot) {
             ClassDecl* clss = obj->getClass();
 
             if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(dot->getMember()->getValue(), false)) {
-                if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-                    dot->setType(obj->trySubsitution(t));
+                if (type::ObjectType* t = type::getIf<type::ObjectType>(obj->trySubstitution(tryGetTypeOfSymbol(sym)))) {
+                    type::SubstitutionTable merged = t->getSubstitutionTable();
+                    merged.insert(obj->getSubstitutionTable().begin(), obj->getSubstitutionTable().end());
+                    dot->setType(_mngr.New<type::ObjectType>(t->getClass(), merged));
                 } else {
                     _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() +
                                " of class " + clss->getName() + " is not a value");

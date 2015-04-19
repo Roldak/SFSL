@@ -25,8 +25,14 @@ namespace type {
 
 enum TYPE_KIND { TYPE_NYD, TYPE_OBJECT, TYPE_CONSTRUCTOR };
 
+class Type;
+
+typedef std::map<Type*, Type*> SubstitutionTable;
+
 class Type : public common::MemoryManageable {
 public:
+    Type(const SubstitutionTable& substitutionTable = {});
+
     virtual ~Type();
 
     virtual TYPE_KIND getTypeKind() = 0;
@@ -34,9 +40,15 @@ public:
     virtual std::string toString() = 0;
 
     static Type* NotYetDefined();
-};
 
-typedef std::map<Type*, Type*> SubstitutionTable;
+    const SubstitutionTable& getSubstitutionTable() const;
+
+    Type* trySubstitution(Type* type) const;
+
+protected:
+
+    const SubstitutionTable _subTable;
+};
 
 class ObjectType : public Type {
 public:
@@ -49,19 +61,15 @@ public:
     virtual std::string toString();
 
     ast::ClassDecl* getClass() const;
-    const SubstitutionTable& getSubstitutionTable() const;
-
-    Type* trySubsitution(Type* type) const;
 
 private:
 
     ast::ClassDecl* _class;
-    const SubstitutionTable _subTable;
 };
 
 class ConstructorType : public Type {
 public:
-    ConstructorType(ast::TypeConstructorCreation* typeConstructor);
+    ConstructorType(ast::TypeConstructorCreation* typeConstructor, const SubstitutionTable& substitutionTable = {});
 
     virtual ~ConstructorType();
 
@@ -109,6 +117,11 @@ inline T* getIf(Type* t) {
 template<>
 inline ObjectType* getIf(Type* t) {
     return t->getTypeKind() == TYPE_OBJECT ? (ObjectType*)t : nullptr;
+}
+
+template<>
+inline ConstructorType* getIf(Type* t) {
+    return t->getTypeKind() == TYPE_CONSTRUCTOR ? (ConstructorType*)t : nullptr;
 }
 
 }

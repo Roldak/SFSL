@@ -84,7 +84,8 @@ public:
 private:
 
     void createVar(Identifier* id);
-    void createType(Identifier* id);
+    void createObjectType(Identifier* id);
+    void createTypeConstructor(Identifier* id, TypeTuple* ttuple);
     void initCreated(Identifier* id, sym::Symbol* s);
 
     void assignFromStaticScope(MemberAccess* mac, sym::Scoped* scoped, const std::string& typeName);

@@ -33,6 +33,10 @@ public:
     }
 };
 
+Type::Type(const SubstitutionTable &substitutionTable) : _subTable(substitutionTable) {
+
+}
+
 Type::~Type() {
 
 }
@@ -42,8 +46,23 @@ Type* Type::NotYetDefined() {
     return &nyd; // all we want is a unique memory area
 }
 
+const SubstitutionTable& Type::getSubstitutionTable() const {
+    return _subTable;
+}
+
+Type* Type::trySubstitution(Type *type) const {
+    auto found = _subTable.find(type);
+    while (found != _subTable.end()) {
+        type = found->second;
+        found = _subTable.find(type);
+    }
+    return type;
+}
+
+// OBJECT TYPE
+
 ObjectType::ObjectType(ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
-    : _class(clss), _subTable(substitutionTable) {
+    : Type(substitutionTable), _class(clss) {
 
 }
 
@@ -55,35 +74,33 @@ TYPE_KIND ObjectType::getTypeKind() { return TYPE_OBJECT; }
 
 bool ObjectType::isSubTypeOf(Type* other) {
     if (ObjectType* objother = getIf<ObjectType>(other)) {
-        return _class == objother->_class; // TODO : change that when inheritance is supported.
+        if (_class == objother->_class) { // TODO : change that when inheritance is supported.
+
+        }
     }
     return false;
 }
 
 std::string ObjectType::toString() {
-    return _class->getName();
+    std::string toRet = _class->getName();
+    if (!_subTable.empty()) {
+        toRet += "[";
+        for (const auto& pair : _subTable) {
+            toRet += pair.first->toString() + "=>" + pair.second->toString() + ", ";
+        }
+        toRet = toRet.substr(0, toRet.size() - 2) + "]";
+    }
+    return toRet;
 }
 
 ast::ClassDecl* ObjectType::getClass() const {
     return _class;
 }
 
-const SubstitutionTable& ObjectType::getSubstitutionTable() const {
-    return _subTable;
-}
-
-Type* ObjectType::trySubsitution(Type *type) const {
-    const auto& found = _subTable.find(type);
-    if (found != _subTable.end()) {
-        return found->second;
-    }
-    return type;
-}
-
 // TYPE CONSTRUCTOR
 
-ConstructorType::ConstructorType(ast::TypeConstructorCreation *typeConstructor)
-    : _typeConstructor(typeConstructor) {
+ConstructorType::ConstructorType(ast::TypeConstructorCreation*typeConstructor, const SubstitutionTable& substitutionTable)
+    : Type(substitutionTable), _typeConstructor(typeConstructor) {
 
 }
 

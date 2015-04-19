@@ -194,8 +194,13 @@ void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
 
     for (Expression* expr : args) {
         if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
-            createType(static_cast<Identifier*>(expr));
-        } else {
+            createObjectType(static_cast<Identifier*>(expr));
+        }
+        else if(isNodeOfType<TypeConstructorCall>(expr, _ctx)) {
+            TypeConstructorCall* call = static_cast<TypeConstructorCall*>(expr);
+            createTypeConstructor(static_cast<Identifier*>(call->getCallee()), call->getArgsTuple()); // TODO : safer cast
+        }
+        else {
             _ctx.get()->reporter().error(*expr, "Argument should be an identifier");
         }
     }
@@ -278,9 +283,22 @@ void SymbolAssignation::createVar(Identifier *id) {
     initCreated(id, arg);
 }
 
-void SymbolAssignation::createType(Identifier *id) {
+void SymbolAssignation::createObjectType(Identifier *id) {
     ClassDecl* clss = _mngr.New<ClassDecl>(id->getValue(), std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
     TypeDecl* type = _mngr.New<TypeDecl>(id, clss);
+    sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
+    arg->setType(createType(clss, _ctx));
+    initCreated(id, arg);
+}
+
+void SymbolAssignation::createTypeConstructor(Identifier *id, TypeTuple *ttuple) {
+    for (Expression* expr : ttuple->getExpressions()) {
+        createObjectType(static_cast<Identifier*>(expr));
+    }
+    ClassDecl* resClass = _mngr.New<ClassDecl>(id->getValue(), std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
+    TypeConstructorCreation* typeconstuctor = _mngr.New<TypeConstructorCreation>(ttuple, resClass);
+
+    TypeDecl* type = _mngr.New<TypeDecl>(id, typeconstuctor);
     sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
     initCreated(id, arg);
 }

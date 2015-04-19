@@ -52,11 +52,12 @@ public:
 protected:
 
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
-    type::ObjectType* substituteTypes(type::ObjectType* original, const type::SubstitutionTable& table);
 
     type::Type* _created;
 
     std::set<sym::TypeSymbol*> _visitedTypes;
+
+    type::SubstitutionTable _subTable;
 
     const sym::SymbolResolver* _res;
 };
