@@ -55,6 +55,7 @@ namespace ast {
     private:
 
         type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
+        type::ObjectType* applySubsitutions(type::ObjectType* inner, type::ObjectType* obj);
 
         sym::Scope* _curScope;
         const sym::SymbolResolver& _res;

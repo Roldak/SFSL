@@ -171,9 +171,7 @@ void TypeCheking::visit(MemberAccess* dot) {
 
             if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(dot->getMember()->getValue(), false)) {
                 if (type::ObjectType* t = type::getIf<type::ObjectType>(obj->trySubstitution(tryGetTypeOfSymbol(sym)))) {
-                    type::SubstitutionTable merged = t->getSubstitutionTable();
-                    merged.insert(obj->getSubstitutionTable().begin(), obj->getSubstitutionTable().end());
-                    dot->setType(_mngr.New<type::ObjectType>(t->getClass(), merged));
+                    dot->setType(applySubsitutions(t, obj));
                 } else {
                     _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() +
                                " of class " + clss->getName() + " is not a value");
@@ -239,6 +237,21 @@ type::Type* TypeCheking::tryGetTypeOfSymbol(sym::Symbol* sym) {
         return defsym->type();
     }
     return nullptr;
+}
+
+type::ObjectType *TypeCheking::applySubsitutions(type::ObjectType *inner, type::ObjectType *obj) {
+    const type::SubstitutionTable& toSub = inner->getSubstitutionTable();
+    type::SubstitutionTable newTable;
+
+    for (const auto& pair : toSub) {
+        type::Type* res = obj->trySubstitution(pair.second);
+        if (type::ObjectType* o = type::getIf<type::ObjectType>(res)) {
+            res = applySubsitutions(o, obj);
+        }
+        newTable[pair.first] = res;
+    }
+
+    return _mngr.New<type::ObjectType>(inner->getClass(), newTable);
 }
 
 }

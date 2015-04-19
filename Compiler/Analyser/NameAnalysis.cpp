@@ -300,6 +300,7 @@ void SymbolAssignation::createTypeConstructor(Identifier *id, TypeTuple *ttuple)
 
     TypeDecl* type = _mngr.New<TypeDecl>(id, typeconstuctor);
     sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
+    arg->setType(createType(typeconstuctor, _ctx));
     initCreated(id, arg);
 }
 
