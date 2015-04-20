@@ -41,6 +41,18 @@ Type::~Type() {
 
 }
 
+std::string Type::toString() const {
+    std::string toRet = "";
+    if (!_subTable.empty()) {
+        toRet += "[";
+        for (const auto& pair : _subTable) {
+            toRet += pair.first->toString() + "=>" + pair.second->toString() + ", ";
+        }
+        toRet = toRet.substr(0, toRet.size() - 2) + "]";
+    }
+    return toRet;
+}
+
 Type* Type::NotYetDefined() {
     static TypeNotYetDefined nyd;
     return &nyd; // all we want is a unique memory area
@@ -89,15 +101,7 @@ bool ObjectType::isSubTypeOf(const Type* other) const {
 }
 
 std::string ObjectType::toString() const {
-    std::string toRet = _class->getName();
-    if (!_subTable.empty()) {
-        toRet += "[";
-        for (const auto& pair : _subTable) {
-            toRet += pair.first->toString() + "=>" + pair.second->toString() + ", ";
-        }
-        toRet = toRet.substr(0, toRet.size() - 2) + "]";
-    }
-    return toRet;
+    return _class->getName() + Type::toString();
 }
 
 ast::ClassDecl* ObjectType::getClass() const {
@@ -124,7 +128,7 @@ bool ConstructorType::isSubTypeOf(const Type* other) const {
 }
 
 std::string ConstructorType::toString() const {
-    return "<type constructor>";
+    return "<type constructor>" + Type::toString();
 }
 
 ast::TypeConstructorCreation* ConstructorType::getTypeConstructor() const {

@@ -60,6 +60,7 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
             if (isNodeOfType<Identifier>(params[i], _ctx)) {
                 param = static_cast<sym::TypeSymbol*>(static_cast<Identifier*>(params[i])->getSymbol());
             } else if (isNodeOfType<TypeConstructorCall>(params[i], _ctx)) {
+                // TODO : this code is ugly and wrong
                 param = static_cast<sym::TypeSymbol*>(
                             static_cast<Identifier*>(
                                 static_cast<TypeConstructorCall*>(
@@ -69,8 +70,7 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
                             );
             }
 
-            args[i]->onVisit(this);
-            _subTable[param->type()] = _created;
+            _subTable[param->type()] = createType(args[i], _ctx, _res);
         }
 
         constructor->getBody()->onVisit(this);

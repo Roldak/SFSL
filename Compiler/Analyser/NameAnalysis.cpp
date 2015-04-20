@@ -297,6 +297,7 @@ void SymbolAssignation::createTypeConstructor(Identifier *id, TypeTuple *ttuple)
         createObjectType(static_cast<Identifier*>(expr));
     }
     ClassDecl* resClass = _mngr.New<ClassDecl>(id->getValue(), std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
+    resClass->setScope(_mngr.New<sym::Scope>(nullptr));
     TypeConstructorCreation* typeconstuctor = _mngr.New<TypeConstructorCreation>(ttuple, resClass);
 
     TypeDecl* type = _mngr.New<TypeDecl>(id, typeconstuctor);

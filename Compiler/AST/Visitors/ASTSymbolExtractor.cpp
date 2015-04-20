@@ -22,6 +22,7 @@ ASTSymbolExtractor::~ASTSymbolExtractor() {
 }
 
 void ASTSymbolExtractor::visit(ASTNode*) {
+    // do not throw an exception
 }
 
 void ASTSymbolExtractor::visit(ModuleDecl* mod) {

@@ -249,6 +249,29 @@ type::SubstitutionTable helper(const type::SubstitutionTable& inner, type::Objec
     return newTable;
 }*/
 
+// TODO : optimize these
+
+type::ConstructorType* TypeCheking::applySubsitutions(type::ConstructorType* inner, type::ObjectType* obj) {
+    const type::SubstitutionTable& toSub = inner->getSubstitutionTable();
+    if (toSub.size() == 0) {
+        return inner;
+    }
+
+    type::SubstitutionTable newTable;
+
+    for (const auto& pair : toSub) {
+        type::Type* res = obj->trySubstitution(pair.second);
+        if (type::ObjectType* o = type::getIf<type::ObjectType>(res)) {
+            res = applySubsitutions(o, obj);
+        } else if (type::ConstructorType* c = type::getIf<type::ConstructorType>(res)){
+            res = applySubsitutions(c, obj);
+        }
+        newTable[pair.first] = res;
+    }
+
+    return _mngr.New<type::ConstructorType>(inner->getTypeConstructor(), newTable);
+}
+
 type::ObjectType* TypeCheking::applySubsitutions(type::ObjectType *inner, type::ObjectType *obj) {
     const type::SubstitutionTable& toSub = inner->getSubstitutionTable();
     if (toSub.size() == 0) {
@@ -261,6 +284,8 @@ type::ObjectType* TypeCheking::applySubsitutions(type::ObjectType *inner, type::
         type::Type* res = obj->trySubstitution(pair.second);
         if (type::ObjectType* o = type::getIf<type::ObjectType>(res)) {
             res = applySubsitutions(o, obj);
+        } else if (type::ConstructorType* c = type::getIf<type::ConstructorType>(res)){
+            res = applySubsitutions(c, obj);
         }
         newTable[pair.first] = res;
     }
