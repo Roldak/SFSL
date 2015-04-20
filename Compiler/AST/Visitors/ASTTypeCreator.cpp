@@ -75,6 +75,8 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
 
         constructor->getBody()->onVisit(this);
 
+        _created = type::Type::trySubstitution(_subTable, _created);
+
         _subTable = old;
 
         if (!_created) {

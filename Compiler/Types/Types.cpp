@@ -63,10 +63,14 @@ const SubstitutionTable& Type::getSubstitutionTable() const {
 }
 
 Type* Type::trySubstitution(Type *type) const {
-    auto found = _subTable.find(type);
-    while (found != _subTable.end()) {
+    return trySubstitution(_subTable, type);
+}
+
+Type* Type::trySubstitution(const SubstitutionTable& table, Type* type) {
+    auto found = table.find(type);
+    while (found != table.end()) {
         type = found->second;
-        found = _subTable.find(type);
+        found = table.find(type);
     }
     return type;
 }

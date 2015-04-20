@@ -45,6 +45,8 @@ public:
 
     Type* trySubstitution(Type* type) const;
 
+    static Type* trySubstitution(const SubstitutionTable& table, Type *type);
+
 protected:
 
     const SubstitutionTable _subTable;
