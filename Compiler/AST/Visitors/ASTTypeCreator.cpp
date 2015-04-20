@@ -70,7 +70,7 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
                             );
             }
 
-            _subTable[param->type()] = createType(args[i], _ctx, _res);
+            _subTable[param->type()] = type::Type::trySubstitution(old, createType(args[i], _ctx, _res));
         }
 
         constructor->getBody()->onVisit(this);
@@ -100,7 +100,7 @@ type::Type* ASTTypeCreator::getCreatedType() const {
     return _created;
 }
 
-void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol> *symbolic, common::Positionnable& pos) {
+void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos) {
     if (sym::Symbol* symbol = symbolic->getSymbol()) {
         if (symbol->getSymbolType() != sym::SYM_TPE) {
             _ctx.get()->reporter().error(pos, "Symbol " + symbol->getName() + " does not refer a type");

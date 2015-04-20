@@ -231,24 +231,6 @@ type::Type* TypeCheking::tryGetTypeOfSymbol(sym::Symbol* sym) {
     return nullptr;
 }
 
-// x: Box[T=>Box[T=>int]]
-// x.value: Box[T=>int]
-/*
-type::SubstitutionTable helper(const type::SubstitutionTable& inner, type::ObjectType* obj) {
-    const type::SubstitutionTable& toSub = inner->getSubstitutionTable();
-    type::SubstitutionTable newTable;
-
-    for (const auto& pair : toSub) {
-        type::Type* res = obj->trySubstitution(pair.second);
-        if (type::ObjectType* o = type::getIf<type::ObjectType>(res)) {
-            res = helper(o, obj);
-        }
-        newTable[pair.first] = res;
-    }
-
-    return newTable;
-}*/
-
 // TODO : optimize these
 
 type::ConstructorType* TypeCheking::applySubsitutions(type::ConstructorType* inner, type::ObjectType* obj) {
