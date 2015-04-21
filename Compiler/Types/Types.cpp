@@ -139,6 +139,36 @@ ast::TypeConstructorCreation* ConstructorType::getTypeConstructor() const {
     return _typeConstructor;
 }
 
+// CONSTRUCTOR APPLY TYPE
+
+ConstructorApplyType::ConstructorApplyType(ConstructorType *callee, const std::vector<Type *> &args)
+    : _callee(callee), _args(args) {
+
+}
+
+ConstructorApplyType::~ConstructorApplyType() {
+
+}
+
+TYPE_KIND ConstructorApplyType::getTypeKind() const {
+    return TYPE_CONSTRUCTOR_APPLY;
+}
+
+bool ConstructorApplyType::isSubTypeOf(const Type *other) const {
+    return false;
+}
+
+std::string ConstructorApplyType::toString() const {
+    std::string toRet = _callee->toString() + "[";
+    for (size_t i = 0; i < _args.size(); ++i) {
+        toRet += _args[i]->toString();
+        if (i != _args.size() - 1) {
+            toRet += ", ";
+        }
+    }
+    return toRet + "]";
+}
+
 // TYPED
 
 Typed::Typed() : _type(Type::NotYetDefined()) {

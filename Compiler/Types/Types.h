@@ -23,7 +23,7 @@ namespace ast {
 
 namespace type {
 
-enum TYPE_KIND { TYPE_NYD, TYPE_OBJECT, TYPE_CONSTRUCTOR };
+enum TYPE_KIND { TYPE_NYD, TYPE_OBJECT, TYPE_CONSTRUCTOR, TYPE_CONSTRUCTOR_APPLY };
 
 class Type;
 
@@ -86,6 +86,23 @@ private:
     ast::TypeConstructorCreation* _typeConstructor;
 };
 
+class ConstructorApplyType : public Type {
+public:
+    ConstructorApplyType(ConstructorType* callee, const std::vector<Type*>& args);
+
+    virtual ~ConstructorApplyType();
+
+    virtual TYPE_KIND getTypeKind() const;
+    virtual bool isSubTypeOf(const Type* other) const;
+    virtual std::string toString() const;
+
+private:
+
+    ConstructorType* _callee;
+    std::vector<Type*> _args;
+
+};
+
 /**
  * @brief Interface that represents a node that has a type,
  * like an expression, or some of the symbols.
@@ -124,6 +141,11 @@ inline ObjectType* getIf(const Type* t) {
 template<>
 inline ConstructorType* getIf(const Type* t) {
     return t->getTypeKind() == TYPE_CONSTRUCTOR ? (ConstructorType*)t : nullptr;
+}
+
+template<>
+inline ConstructorApplyType* getIf(const Type* t) {
+    return t->getTypeKind() == TYPE_CONSTRUCTOR_APPLY ? (ConstructorApplyType*)t : nullptr;
 }
 
 }

@@ -12,13 +12,14 @@
 #include "../Symbols/SymbolResolver.h"
 #include "../../Analyser/NameAnalysis.h"
 #include "../../Analyser/TypeChecking.h"
+#include "../../../Utils/Utils.h"
 
 namespace sfsl {
 
 namespace ast {
 
-ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, const sym::SymbolResolver* res)
-    : ASTVisitor(ctx), _created(nullptr), _res(res) {
+ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx)
+    : ASTVisitor(ctx), _created(nullptr) {
 
 }
 
@@ -31,58 +32,31 @@ void ASTTypeCreator::visit(ASTNode* node) {
 }
 
 void ASTTypeCreator::visit(ClassDecl* clss) {
-    _created = _mngr.New<type::ObjectType>(clss, _subTable);
+    _created = _mngr.New<type::ObjectType>(clss);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
-    _created = _mngr.New<type::ConstructorType>(typeconstructor, _subTable);
+    _created = _mngr.New<type::ConstructorType>(typeconstructor);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
     tcall->getCallee()->onVisit(this);
-    if (_created->getTypeKind() == type::TYPE_CONSTRUCTOR) {
-        TypeConstructorCreation* constructor = static_cast<type::ConstructorType*>(_created)->getTypeConstructor();
-
-        const std::vector<Expression*>& args = tcall->getArgs();
-        const std::vector<Expression*>& params = constructor->getArgs()->getExpressions();
-
-        if (args.size() != params.size()) {
-            _ctx.get()->reporter().error(*tcall, "Expected argument count is different from what was found");
+    if (type::ConstructorType* ctr = type::getIf<type::ConstructorType>(_created)) {
+        if (ctr->getTypeConstructor()->getArgs()->getExpressions().size() != tcall->getArgs().size()) {
+            _ctx.get()->reporter().error(*tcall, "Wrong number of arguments. Expected "
+                                         + utils::T_toString(ctr->getTypeConstructor()->getArgs()->getExpressions().size())
+                                         + ", found " + utils::T_toString(tcall->getArgs().size()));
             _created = nullptr;
             return;
         }
 
-        const type::SubstitutionTable old = _subTable;
-        _subTable = type::SubstitutionTable();
-
-        for (size_t i = 0; i < params.size(); ++i) {
-            sym::TypeSymbol* param = nullptr;
-            if (isNodeOfType<Identifier>(params[i], _ctx)) {
-                param = static_cast<sym::TypeSymbol*>(static_cast<Identifier*>(params[i])->getSymbol());
-            } else if (isNodeOfType<TypeConstructorCall>(params[i], _ctx)) {
-                // TODO : this code is ugly and wrong
-                param = static_cast<sym::TypeSymbol*>(
-                            static_cast<Identifier*>(
-                                static_cast<TypeConstructorCall*>(
-                                    params[i]
-                                    )->getCallee()
-                                )->getSymbol()
-                            );
-            }
-
-            _subTable[param->type()] = type::Type::trySubstitution(old, createType(args[i], _ctx, _res));
+        std::vector<type::Type*> args;
+        for (size_t i = 0; i < tcall->getArgs().size(); ++i) {
+            tcall->getArgs()[i]->onVisit(this);
+            args.push_back(_created);
         }
 
-        constructor->getBody()->onVisit(this);
-
-        _created = type::Type::trySubstitution(_subTable, _created);
-
-        _subTable = old;
-
-        if (!_created) {
-            _ctx.get()->reporter().fatal(*tcall, "Type instantiation failed");
-        }
-
+        _created = _mngr.New<type::ConstructorApplyType>(ctr, args);
     } else {
         _ctx.get()->reporter().error(*tcall, "Expression is not a type constructor");
     }
