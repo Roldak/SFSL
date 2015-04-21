@@ -8,10 +8,14 @@
 
 #include "Types.h"
 #include "../AST/Nodes/TypeExpressions.h"
+#include "../AST/Visitors/ASTTypeCreator.h"
+#include "../AST/Visitors/ASTTypeIdentifier.h"
 
 namespace sfsl {
 
 namespace type {
+
+// TYPE NOT YET DEFINED
 
 class TypeNotYetDefined : public Type {
 public:
@@ -28,10 +32,16 @@ public:
         return false;
     }
 
+    virtual Type* applyEnv(const SubstitutionTable &env, CompCtx_Ptr &ctx) const {
+        return Type::NotYetDefined();
+    }
+
     virtual std::string toString() const {
         return "<not yet defined>";
     }
 };
+
+// TYPE
 
 Type::Type(const SubstitutionTable &substitutionTable) : _subTable(substitutionTable) {
 
@@ -53,26 +63,28 @@ std::string Type::toString() const {
     return toRet;
 }
 
+const SubstitutionTable& Type::getSubstitutionTable() const {
+    return _subTable;
+}
+
 Type* Type::NotYetDefined() {
     static TypeNotYetDefined nyd;
     return &nyd; // all we want is a unique memory area
 }
 
-const SubstitutionTable& Type::getSubstitutionTable() const {
-    return _subTable;
-}
-
-Type* Type::trySubstitution(Type *type) const {
-    return trySubstitution(_subTable, type);
-}
-
-Type* Type::trySubstitution(const SubstitutionTable& table, Type* type) {
-    auto found = table.find(type);
+Type* Type::findSubstitution(const SubstitutionTable& table, Type* toFind) {
+    auto found = table.find(toFind);
     while (found != table.end()) {
-        type = found->second;
-        found = table.find(type);
+        toFind = found->second;
+        found = table.find(toFind);
     }
-    return type;
+    return toFind;
+}
+
+void Type::applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to) {
+    for (auto& pair : to) {
+        pair.second = findSubstitution(env, pair.second);
+    }
 }
 
 // OBJECT TYPE
@@ -108,6 +120,12 @@ std::string ObjectType::toString() const {
     return _class->getName() + Type::toString();
 }
 
+Type* ObjectType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+    SubstitutionTable table = _subTable;
+    applyEnvHelper(env, table);
+    return ctx.get()->memoryManager().New<ObjectType>(_class, table);
+}
+
 ast::ClassDecl* ObjectType::getClass() const {
     return _class;
 }
@@ -135,14 +153,20 @@ std::string ConstructorType::toString() const {
     return "<type constructor>" + Type::toString();
 }
 
+Type* ConstructorType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+    SubstitutionTable table = _subTable;
+    applyEnvHelper(env, table);
+    return ctx.get()->memoryManager().New<ConstructorType>(_typeConstructor, table);
+}
+
 ast::TypeConstructorCreation* ConstructorType::getTypeConstructor() const {
     return _typeConstructor;
 }
 
 // CONSTRUCTOR APPLY TYPE
 
-ConstructorApplyType::ConstructorApplyType(ConstructorType *callee, const std::vector<Type *> &args)
-    : _callee(callee), _args(args) {
+ConstructorApplyType::ConstructorApplyType(ConstructorType* callee, const std::vector<Type*>& args, const SubstitutionTable& substitutionTable)
+    : Type(substitutionTable), _callee(callee), _args(args) {
 
 }
 
@@ -169,6 +193,41 @@ std::string ConstructorApplyType::toString() const {
     return toRet + "]";
 }
 
+Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+    SubstitutionTable table = _subTable;
+    applyEnvHelper(env, table);
+
+    Type* sub = findSubstitution(env, _callee)->applyEnv(env, ctx);
+
+    if (ConstructorType* ctr = getIf<ConstructorType>(sub)) {
+        const auto& params = ctr->getTypeConstructor()->getArgs()->getExpressions();
+        SubstitutionTable subs;
+
+        for (size_t i = 0; i < params.size(); ++i) {
+            sym::TypeSymbol* param = nullptr;
+            if (ast::isNodeOfType<ast::Identifier>(params[i], ctx)) {
+                param = static_cast<sym::TypeSymbol*>(static_cast<ast::Identifier*>(params[i])->getSymbol());
+            } else if (ast::isNodeOfType<ast::TypeConstructorCall>(params[i], ctx)) {
+                // TODO : this code is ugly and wrong
+                param = static_cast<sym::TypeSymbol*>(
+                            static_cast<ast::Identifier*>(
+                                static_cast<ast::TypeConstructorCall*>(
+                                    params[i]
+                                    )->getCallee()
+                                )->getSymbol()
+                            );
+            }
+
+            subs[param->type()] = findSubstitution(env, _args[i])->applyEnv(env, ctx);
+        }
+
+
+        return ast::createType(ctr->getTypeConstructor()->getBody(), ctx, subs)->applyEnv(subs, ctx);
+    }
+
+    return nullptr;
+}
+
 // TYPED
 
 Typed::Typed() : _type(Type::NotYetDefined()) {
@@ -179,11 +238,11 @@ Typed::~Typed() {
 
 }
 
-void Typed::setType(type::Type* type) {
+void Typed::setType(Type* type) {
     _type = type;
 }
 
-type::Type* Typed::type() const {
+Type* Typed::type() const {
     return _type;
 }
 

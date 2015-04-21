@@ -18,8 +18,8 @@ namespace sfsl {
 
 namespace ast {
 
-ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx)
-    : ASTVisitor(ctx), _created(nullptr) {
+ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable)
+    : ASTVisitor(ctx), _created(nullptr), _subTable(subTable) {
 
 }
 
@@ -32,11 +32,11 @@ void ASTTypeCreator::visit(ASTNode* node) {
 }
 
 void ASTTypeCreator::visit(ClassDecl* clss) {
-    _created = _mngr.New<type::ObjectType>(clss);
+    _created = _mngr.New<type::ObjectType>(clss, _subTable);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
-    _created = _mngr.New<type::ConstructorType>(typeconstructor);
+    _created = _mngr.New<type::ConstructorType>(typeconstructor, _subTable);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
@@ -56,7 +56,7 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
             args.push_back(_created);
         }
 
-        _created = _mngr.New<type::ConstructorApplyType>(ctr, args);
+        _created = _mngr.New<type::ConstructorApplyType>(ctr, args, _subTable);
     } else {
         _ctx.get()->reporter().error(*tcall, "Expression is not a type constructor");
     }

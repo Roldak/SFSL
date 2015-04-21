@@ -30,14 +30,13 @@ public:
      * @brief Creates an ASTTypeCreator
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTTypeCreator(CompCtx_Ptr& ctx);
+    ASTTypeCreator(CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable);
 
     virtual ~ASTTypeCreator();
 
     virtual void visit(ASTNode* node);
 
     virtual void visit(ClassDecl* clss);
-
     virtual void visit(TypeConstructorCreation* typeconstructor);
     virtual void visit(TypeConstructorCall* tcall);
 
@@ -55,6 +54,8 @@ protected:
 
     type::Type* _created;
 
+    const type::SubstitutionTable& _subTable;
+
     std::set<sym::TypeSymbol*> _visitedTypes;
 };
 
@@ -66,8 +67,8 @@ protected:
  * @param ctx The compilation context
  * @return The generated type
  */
-inline type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx) {
-    ASTTypeCreator creator(ctx);
+inline type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable = {}) {
+    ASTTypeCreator creator(ctx, subTable);
     node->onVisit(&creator);
     return creator.getCreatedType();
 }

@@ -13,6 +13,7 @@
 #include <vector>
 #include <map>
 #include "../Common/MemoryManageable.h"
+#include "../Common/CompilationContext.h"
 
 namespace sfsl {
 
@@ -39,15 +40,17 @@ public:
     virtual bool isSubTypeOf(const Type* other) const = 0;
     virtual std::string toString() const = 0;
 
-    static Type* NotYetDefined();
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const = 0;
 
     const SubstitutionTable& getSubstitutionTable() const;
 
-    Type* trySubstitution(Type* type) const;
+    static Type* NotYetDefined();
 
-    static Type* trySubstitution(const SubstitutionTable& table, Type *type);
+    static Type* findSubstitution(const SubstitutionTable& table, Type* toFind);
 
 protected:
+
+    static void applyEnvHelper(const SubstitutionTable& env, SubstitutionTable &to);
 
     const SubstitutionTable _subTable;
 };
@@ -61,6 +64,8 @@ public:
     virtual TYPE_KIND getTypeKind() const;
     virtual bool isSubTypeOf(const Type* other) const;
     virtual std::string toString() const;
+
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const;
 
     ast::ClassDecl* getClass() const;
 
@@ -79,6 +84,8 @@ public:
     virtual bool isSubTypeOf(const Type* other) const;
     virtual std::string toString() const;
 
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const;
+
     ast::TypeConstructorCreation* getTypeConstructor() const;
 
 private:
@@ -88,13 +95,15 @@ private:
 
 class ConstructorApplyType : public Type {
 public:
-    ConstructorApplyType(ConstructorType* callee, const std::vector<Type*>& args);
+    ConstructorApplyType(ConstructorType* callee, const std::vector<Type*>& args, const SubstitutionTable& substitutionTable = {});
 
     virtual ~ConstructorApplyType();
 
     virtual TYPE_KIND getTypeKind() const;
     virtual bool isSubTypeOf(const Type* other) const;
     virtual std::string toString() const;
+
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const;
 
 private:
 
@@ -116,16 +125,16 @@ public:
     /**
      * @param type The type to set
      */
-    void setType(type::Type* type);
+    void setType(Type* type);
 
     /**
      * @return The type of the object
      */
-    type::Type* type() const;
+    Type* type() const;
 
 protected:
 
-    type::Type* _type;
+    Type* _type;
 };
 
 template<typename T>

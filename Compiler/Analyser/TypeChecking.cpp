@@ -162,8 +162,9 @@ void TypeCheking::visit(MemberAccess* dot) {
             ClassDecl* clss = obj->getClass();
 
             if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(dot->getMember()->getValue(), false)) {
-                if (type::ObjectType* t = type::getIf<type::ObjectType>(obj->trySubstitution(tryGetTypeOfSymbol(sym)))) {
-                    dot->setType(applySubsitutions(t, obj));
+                type::Type* subbed = type::Type::findSubstitution(obj->getSubstitutionTable(), tryGetTypeOfSymbol(sym))->applyEnv(obj->getSubstitutionTable(), _ctx);
+                if (type::ObjectType* t = type::getIf<type::ObjectType>(subbed)) {
+                    dot->setType(t);
                 } else {
                     _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() +
                                " of class " + clss->getName() + " is not a value");
@@ -196,13 +197,13 @@ void TypeCheking::visit(FunctionCreation* func) {
 
 void TypeCheking::visit(FunctionCall* call) {
     ASTVisitor::visit(call);
-    call->setType(call->getCallee()->type());
+    call->setType(call->getCallee()->type()->applyEnv(call->getCallee()->type()->getSubstitutionTable(), _ctx));
 }
 
 void TypeCheking::visit(Identifier* ident) {
     if (sym::Symbol* sym = ident->getSymbol()) {
         if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-            ident->setType(t);
+            ident->setType(t->applyEnv({}, _ctx));
         }
     }
 }
@@ -229,50 +230,6 @@ type::Type* TypeCheking::tryGetTypeOfSymbol(sym::Symbol* sym) {
         return defsym->type();
     }
     return nullptr;
-}
-
-// TODO : optimize these
-
-type::ConstructorType* TypeCheking::applySubsitutions(type::ConstructorType* inner, type::ObjectType* obj) {
-    const type::SubstitutionTable& toSub = inner->getSubstitutionTable();
-    if (toSub.size() == 0) {
-        return inner;
-    }
-
-    type::SubstitutionTable newTable;
-
-    for (const auto& pair : toSub) {
-        type::Type* res = obj->trySubstitution(pair.second);
-        if (type::ObjectType* o = type::getIf<type::ObjectType>(res)) {
-            res = applySubsitutions(o, obj);
-        } else if (type::ConstructorType* c = type::getIf<type::ConstructorType>(res)){
-            res = applySubsitutions(c, obj);
-        }
-        newTable[pair.first] = res;
-    }
-
-    return _mngr.New<type::ConstructorType>(inner->getTypeConstructor(), newTable);
-}
-
-type::ObjectType* TypeCheking::applySubsitutions(type::ObjectType *inner, type::ObjectType *obj) {
-    const type::SubstitutionTable& toSub = inner->getSubstitutionTable();
-    if (toSub.size() == 0) {
-        return inner;
-    }
-
-    type::SubstitutionTable newTable;
-
-    for (const auto& pair : toSub) {
-        type::Type* res = obj->trySubstitution(pair.second);
-        if (type::ObjectType* o = type::getIf<type::ObjectType>(res)) {
-            res = applySubsitutions(o, obj);
-        } else if (type::ConstructorType* c = type::getIf<type::ConstructorType>(res)){
-            res = applySubsitutions(c, obj);
-        }
-        newTable[pair.first] = res;
-    }
-
-    return _mngr.New<type::ObjectType>(inner->getClass(), newTable);
 }
 
 }
