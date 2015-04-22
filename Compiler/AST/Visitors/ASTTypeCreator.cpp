@@ -41,25 +41,17 @@ void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
 
 void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
     tcall->getCallee()->onVisit(this);
-    if (type::ConstructorType* ctr = type::getIf<type::ConstructorType>(_created)) {
-        if (ctr->getTypeConstructor()->getArgs()->getExpressions().size() != tcall->getArgs().size()) {
-            _ctx.get()->reporter().error(*tcall, "Wrong number of arguments. Expected "
-                                         + utils::T_toString(ctr->getTypeConstructor()->getArgs()->getExpressions().size())
-                                         + ", found " + utils::T_toString(tcall->getArgs().size()));
-            _created = nullptr;
-            return;
-        }
 
-        std::vector<type::Type*> args;
-        for (size_t i = 0; i < tcall->getArgs().size(); ++i) {
-            tcall->getArgs()[i]->onVisit(this);
-            args.push_back(_created);
-        }
+    type::Type* ctr = _created;
 
-        _created = _mngr.New<type::ConstructorApplyType>(ctr, args, _subTable);
-    } else {
-        _ctx.get()->reporter().error(*tcall, "Expression is not a type constructor");
+    std::vector<type::Type*> args;
+    for (size_t i = 0; i < tcall->getArgs().size(); ++i) {
+        tcall->getArgs()[i]->onVisit(this);
+        args.push_back(_created);
     }
+
+    _created = _mngr.New<type::ConstructorApplyType>(ctr, args, *tcall, _subTable);
+
 }
 
 void ASTTypeCreator::visit(MemberAccess* mac) {

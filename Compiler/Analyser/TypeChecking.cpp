@@ -162,7 +162,9 @@ void TypeCheking::visit(MemberAccess* dot) {
             ClassDecl* clss = obj->getClass();
 
             if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(dot->getMember()->getValue(), false)) {
-                type::Type* subbed = type::Type::findSubstitution(obj->getSubstitutionTable(), tryGetTypeOfSymbol(sym))->applyEnv(obj->getSubstitutionTable(), _ctx);
+                type::Type* subbed = type::Type::findSubstitution(obj->getSubstitutionTable(), tryGetTypeOfSymbol(sym))
+                        ->applyEnv(obj->getSubstitutionTable(), _ctx);
+
                 if (type::ObjectType* t = type::getIf<type::ObjectType>(subbed)) {
                     dot->setType(t);
                 } else {

@@ -32,7 +32,7 @@ public:
         return false;
     }
 
-    virtual Type* applyEnv(const SubstitutionTable &env, CompCtx_Ptr &ctx) const {
+    virtual Type* applyEnv(const SubstitutionTable&, CompCtx_Ptr&) const {
         return Type::NotYetDefined();
     }
 
@@ -165,8 +165,10 @@ ast::TypeConstructorCreation* ConstructorType::getTypeConstructor() const {
 
 // CONSTRUCTOR APPLY TYPE
 
-ConstructorApplyType::ConstructorApplyType(ConstructorType* callee, const std::vector<Type*>& args, const SubstitutionTable& substitutionTable)
-    : Type(substitutionTable), _callee(callee), _args(args) {
+ConstructorApplyType::ConstructorApplyType(Type* callee, const std::vector<Type*>& args,
+                                           const common::Positionnable& pos,
+                                           const SubstitutionTable& substitutionTable)
+    : Type(substitutionTable), _callee(callee), _args(args), _pos(pos) {
 
 }
 
@@ -200,6 +202,12 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
         const auto& params = ctr->getTypeConstructor()->getArgs()->getExpressions();
         SubstitutionTable subs;
 
+        if (params.size() != _args.size()) {
+            ctx.get()->reporter().error(_pos, "Wrong number of arguments. Expected "
+                                         + utils::T_toString(params.size()) + ", found " + utils::T_toString(_args.size()));
+            return Type::NotYetDefined();
+        }
+
         for (size_t i = 0; i < params.size(); ++i) {
             sym::TypeSymbol* param = nullptr;
             if (ast::isNodeOfType<ast::Identifier>(params[i], ctx)) {
@@ -219,10 +227,12 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
         }
 
 
-        return findSubstitution(subs, ast::createType(ctr->getTypeConstructor()->getBody(), ctx, subs))->applyEnv(env, ctx);
+        return findSubstitution(subs, ast::createType(ctr->getTypeConstructor()->getBody(), ctx, subs))->applyEnv(subs, ctx);
+    } else {
+        ctx.get()->reporter().error(_pos, "Type " + sub->toString() + " is not a type constructor");
     }
 
-    return nullptr;
+    return Type::NotYetDefined();
 }
 
 // TYPED

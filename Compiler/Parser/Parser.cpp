@@ -137,7 +137,6 @@ DefineDecl* Parser::parseDef(bool asStatement) {
     defDecl->setPos(*defName);
     defDecl->setEndPos(_lastTokenEndPos);
     return defDecl;
-
 }
 
 ClassDecl* Parser::parseClass() {

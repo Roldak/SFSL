@@ -14,6 +14,7 @@
 #include <map>
 #include "../Common/MemoryManageable.h"
 #include "../Common/CompilationContext.h"
+#include "../Common/Positionnable.h"
 
 namespace sfsl {
 
@@ -95,7 +96,7 @@ private:
 
 class ConstructorApplyType : public Type {
 public:
-    ConstructorApplyType(ConstructorType* callee, const std::vector<Type*>& args, const SubstitutionTable& substitutionTable = {});
+    ConstructorApplyType(Type* callee, const std::vector<Type*>& args, const common::Positionnable& pos, const SubstitutionTable& substitutionTable = {});
 
     virtual ~ConstructorApplyType();
 
@@ -107,9 +108,9 @@ public:
 
 private:
 
-    ConstructorType* _callee;
+    Type* _callee;
     std::vector<Type*> _args;
-
+    const common::Positionnable _pos;
 };
 
 /**
