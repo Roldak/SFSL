@@ -194,9 +194,6 @@ std::string ConstructorApplyType::toString() const {
 }
 
 Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
-    SubstitutionTable table = _subTable;
-    applyEnvHelper(env, table);
-
     Type* sub = findSubstitution(env, _callee)->applyEnv(env, ctx);
 
     if (ConstructorType* ctr = getIf<ConstructorType>(sub)) {
@@ -222,7 +219,7 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
         }
 
 
-        return ast::createType(ctr->getTypeConstructor()->getBody(), ctx, subs)->applyEnv(subs, ctx);
+        return findSubstitution(subs, ast::createType(ctr->getTypeConstructor()->getBody(), ctx, subs))->applyEnv(env, ctx);
     }
 
     return nullptr;
