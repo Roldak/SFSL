@@ -19,7 +19,7 @@ namespace tok {
     /**
      * @brief Enumerates every possible Keyword
      */
-    enum KW_TYPE { KW_MODULE, KW_DEF, KW_CLASS, KW_IF, KW_ELSE, KW_WHILE, KW_FOR, KW_UNKNOWN };
+    enum KW_TYPE { KW_MODULE, KW_DEF, KW_TPE, KW_CLASS, KW_IF, KW_ELSE, KW_WHILE, KW_FOR, KW_UNKNOWN };
 
     /**
      * @brief Represents a Keyword
@@ -34,8 +34,8 @@ namespace tok {
         Keyword(KW_TYPE kwType);
         virtual ~Keyword();
 
-        virtual TOK_TYPE getTokenType() const;
-        virtual std::string toString() const;
+        virtual TOK_TYPE getTokenType() const override;
+        virtual std::string toString() const override;
 
         /**
          * @return the Keyword type of this particular instance

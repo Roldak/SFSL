@@ -70,7 +70,7 @@ namespace src {
          */
         SFSLInputStream(SFSLSourceName sourceName, std::istream& input);
 
-        virtual size_t getNexts(char* buffer, size_t maxBufferSize);
+        virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
 
     private:
 
@@ -98,7 +98,7 @@ namespace src {
          */
         SFSLInputString(SFSLSourceName sourceName, const std::string& source);
 
-        virtual size_t getNexts(char* buffer, size_t maxBufferSize);
+        virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
 
     private:
 

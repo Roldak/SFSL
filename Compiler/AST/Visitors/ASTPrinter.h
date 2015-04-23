@@ -27,23 +27,27 @@ public:
 
     virtual ~ASTPrinter();
 
-    virtual void visit(ModuleDecl* module);
-    virtual void visit(ClassDecl* clss);
-    virtual void visit(DefineDecl* decl);
+    virtual void visit(ModuleDecl* module) override;
+    virtual void visit(TypeDecl* tdecl) override;
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(DefineDecl* decl) override;
 
-    virtual void visit(ExpressionStatement* exp);
+    virtual void visit(TypeTuple* ttuple) override;
+    virtual void visit(TypeConstructorCreation* typeconstructor) override;
 
-    virtual void visit(BinaryExpression* exp);
-    virtual void visit(AssignmentExpression* aex);
-    virtual void visit(TypeSpecifier* tps);
-    virtual void visit(Block* block);
-    virtual void visit(IfExpression* ifexpr);
-    virtual void visit(MemberAccess* dot);
-    virtual void visit(Tuple* tuple);
-    virtual void visit(FunctionCreation* func);
-    virtual void visit(Identifier* ident);
-    virtual void visit(IntLitteral* intlit);
-    virtual void visit(RealLitteral* reallit);
+    virtual void visit(ExpressionStatement* exp) override;
+
+    virtual void visit(BinaryExpression* exp) override;
+    virtual void visit(AssignmentExpression* aex) override;
+    virtual void visit(TypeSpecifier* tps) override;
+    virtual void visit(Block* block) override;
+    virtual void visit(IfExpression* ifexpr) override;
+    virtual void visit(MemberAccess* dot) override;
+    virtual void visit(Tuple* tuple) override;
+    virtual void visit(FunctionCreation* func) override;
+    virtual void visit(Identifier* ident) override;
+    virtual void visit(IntLitteral* intlit) override;
+    virtual void visit(RealLitteral* reallit) override;
 
 private :
 

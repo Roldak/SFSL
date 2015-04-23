@@ -7,6 +7,7 @@
 //
 
 #include "SymbolResolver.h"
+#include "../Visitors/ASTTypeCreator.h"
 #include "Scope.h"
 
 namespace sfsl {
@@ -15,6 +16,10 @@ namespace sym {
 
 SymbolResolver::SymbolResolver(const ast::Program* prog, const CompCtx_Ptr &ctx)
     : _scope(prog->getScope()), _ctx(ctx) {
+
+}
+
+SymbolResolver::~SymbolResolver() {
 
 }
 
@@ -33,7 +38,7 @@ Symbol* SymbolResolver::getSymbol(const std::string& fullPathName) const {
             Scoped* scoped;
 
             switch (lastSym->getSymbolType()) {
-                case SYM_CLASS:     scoped = static_cast<ClassSymbol*>(lastSym); break;
+                case SYM_TPE:       scoped = ast::getClassDeclFromTypeSymbol(static_cast<TypeSymbol*>(lastSym), _ctx); break;
                 case SYM_MODULE:    scoped = static_cast<ModuleSymbol*>(lastSym); break;
                 default:            scoped = nullptr; break;
             }
@@ -84,12 +89,13 @@ type::Type* SymbolResolver::Real() const {
 
 type::Type* SymbolResolver::createTypeFromSymbol(Symbol* sym) {
     if (sym) {
-        if (sym->getSymbolType() == SYM_CLASS) {
-            return _ctx.get()->memoryManager().New<type::ObjectType>(static_cast<sym::ClassSymbol*>(sym));
+        if (sym->getSymbolType() == SYM_TPE) {
+            return _ctx.get()->memoryManager().New<type::ObjectType>(
+                        ast::getClassDeclFromTypeSymbol(static_cast<sym::TypeSymbol*>(sym), _ctx));
         }
     }
     throw common::CompilationFatalError("Cannot create type : " +
-                                        (sym ? (sym->getName() + "is not a type") : "null pointer was passed"));
+                                        (sym ? (sym->getName() + " is not a type") : "null pointer was passed"));
 }
 
 }

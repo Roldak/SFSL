@@ -27,11 +27,11 @@ namespace common {
  *
  * Instances of this class can be created via the static methods
  */
-class CompilationContext {
+class CompilationContext final {
 public:
 
     CompilationContext(const CompilationContext& other) = delete;
-    virtual ~CompilationContext();
+    ~CompilationContext();
 
     /**
      * @return The memory manager
@@ -48,7 +48,7 @@ public:
      *  - ChunkedMemoryManager as the memory manager.
      *  - StandartErrReporter as the error reporter.
      */
-    static std::shared_ptr<CompilationContext> DefaultCompilationContext();
+    static std::shared_ptr<CompilationContext> DefaultCompilationContext(size_t chunksize);
 
 private:
 

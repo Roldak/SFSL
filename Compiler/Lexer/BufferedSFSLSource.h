@@ -20,7 +20,7 @@ namespace src {
  * @brief A SFSL Source overlay that uses a buffer of a constant size
  * to store the next characters of the input.
  */
-class BufferedSFSLSource {
+class BufferedSFSLSource final {
 public:
 
     /**

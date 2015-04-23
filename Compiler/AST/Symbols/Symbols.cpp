@@ -42,16 +42,20 @@ SYM_TYPE ModuleSymbol::getSymbolType() const {
 
 // CLASS SYMBOL
 
-ClassSymbol::ClassSymbol(const std::string &name) : Symbol(name) {
+TypeSymbol::TypeSymbol(const std::string &name, ast::TypeDecl *type) : Symbol(name), _type(type) {
 
 }
 
-ClassSymbol::~ClassSymbol() {
+TypeSymbol::~TypeSymbol() {
 
 }
 
-SYM_TYPE ClassSymbol::getSymbolType() const {
-    return SYM_CLASS;
+SYM_TYPE TypeSymbol::getSymbolType() const {
+    return SYM_TPE;
+}
+
+ast::TypeDecl* TypeSymbol::getTypeDecl() const {
+    return _type;
 }
 
 // DEFINITION SYMBOL

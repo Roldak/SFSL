@@ -30,14 +30,14 @@ public:
 
     virtual ~ASTSymbolExtractor();
 
-    virtual void visit(ASTNode* node);
+    virtual void visit(ASTNode* node) override;
 
-    virtual void visit(ModuleDecl* mod);
-    virtual void visit(ClassDecl* clss);
-    virtual void visit(DefineDecl* def);
+    virtual void visit(ModuleDecl* mod) override;
+    virtual void visit(TypeDecl* type) override;
+    virtual void visit(DefineDecl* def) override;
 
-    virtual void visit(Identifier* id);
-    virtual void visit(MemberAccess* mac);
+    virtual void visit(Identifier* id) override;
+    virtual void visit(MemberAccess* mac) override;
 
     sym::Symbol* getSymbol() const;
 

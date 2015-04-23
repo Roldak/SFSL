@@ -31,9 +31,9 @@ void ASTPrinter::visit(ModuleDecl *module) {
         std::cout << std::endl;
     }
 
-    for (ClassDecl* clss : module->getClasses()) {
+    for (TypeDecl* type : module->getTypes()) {
         printIndents();
-        clss->onVisit(this);
+        type->onVisit(this);
         std::cout << std::endl;
     }
 
@@ -49,8 +49,18 @@ void ASTPrinter::visit(ModuleDecl *module) {
     std::cout << "}" << std::endl;
 }
 
-void ASTPrinter::visit(ClassDecl *clss) {
-    std::cout << "class " << clss->getName()->getValue() << " {" << std::endl;
+void ASTPrinter::visit(TypeDecl* tdecl) {
+    std::cout << "type ";
+
+    tdecl->getName()->onVisit(this);
+
+    std::cout << " = ";
+
+    tdecl->getExpression()->onVisit(this);
+}
+
+void ASTPrinter::visit(ClassDecl* clss) {
+    std::cout << "class {" << std::endl;
 
     ++_indentCount;
 
@@ -71,10 +81,10 @@ void ASTPrinter::visit(ClassDecl *clss) {
     --_indentCount;
 
     printIndents();
-    std::cout << "}" << std::endl;
+    std::cout << "}";
 }
 
-void ASTPrinter::visit(DefineDecl *decl) {
+void ASTPrinter::visit(DefineDecl* decl) {
 
     std::cout << "def ";
 
@@ -85,12 +95,36 @@ void ASTPrinter::visit(DefineDecl *decl) {
     decl->getValue()->onVisit(this);
 }
 
-void ASTPrinter::visit(ExpressionStatement *exp) {
+void ASTPrinter::visit(TypeTuple* ttuple) {
+    std::cout << "[";
+
+    const std::vector<Expression*>& args(ttuple->getExpressions());
+
+    for (size_t i = 0, e = args.size(); i < e; ++i) {
+        args[i]->onVisit(this);
+
+        if (i != e - 1) {
+            std::cout << ", ";
+        }
+    }
+
+    std::cout << "]";
+}
+
+void ASTPrinter::visit(TypeConstructorCreation* typeconstructor) {
+    std::cout << "(";
+    typeconstructor->getArgs()->onVisit(this);
+    std::cout << " => ";
+    typeconstructor->getBody()->onVisit(this);
+    std::cout << ")";
+}
+
+void ASTPrinter::visit(ExpressionStatement* exp) {
     exp->getExpression()->onVisit(this);
     std::cout << ";";
 }
 
-void ASTPrinter::visit(BinaryExpression *exp) {
+void ASTPrinter::visit(BinaryExpression* exp) {
     std::cout << "(";
     exp->getLhs()->onVisit(this);
     std::cout << " ";
@@ -100,7 +134,7 @@ void ASTPrinter::visit(BinaryExpression *exp) {
     std::cout << ")";
 }
 
-void ASTPrinter::visit(AssignmentExpression *aex) {
+void ASTPrinter::visit(AssignmentExpression* aex) {
     std::cout << "(";
     aex->getLhs()->onVisit(this);
     std::cout << " = ";
@@ -108,7 +142,7 @@ void ASTPrinter::visit(AssignmentExpression *aex) {
     std::cout << ")";
 }
 
-void ASTPrinter::visit(TypeSpecifier *tps) {
+void ASTPrinter::visit(TypeSpecifier* tps) {
     std::cout << "(";
     tps->getSpecified()->onVisit(this);
     std::cout << " : ";
@@ -116,7 +150,7 @@ void ASTPrinter::visit(TypeSpecifier *tps) {
     std::cout << ")";
 }
 
-void ASTPrinter::visit(Block *block) {
+void ASTPrinter::visit(Block* block) {
     std::cout << "{" << std::endl;
     ++_indentCount;
 
@@ -131,7 +165,7 @@ void ASTPrinter::visit(Block *block) {
     std::cout << "}";
 }
 
-void ASTPrinter::visit(IfExpression *ifexpr) {
+void ASTPrinter::visit(IfExpression* ifexpr) {
     std::cout << "if ";
 
     ifexpr->getCondition()->onVisit(this);
@@ -146,7 +180,7 @@ void ASTPrinter::visit(IfExpression *ifexpr) {
     }
 }
 
-void ASTPrinter::visit(MemberAccess *dot) {
+void ASTPrinter::visit(MemberAccess* dot) {
     std::cout << "(";
     dot->getAccessed()->onVisit(this);
     std::cout << ".";
@@ -154,7 +188,7 @@ void ASTPrinter::visit(MemberAccess *dot) {
     std::cout << ")";
 }
 
-void ASTPrinter::visit(Tuple *tuple) {
+void ASTPrinter::visit(Tuple* tuple) {
     std::cout << "(";
 
     const std::vector<Expression*>& args(tuple->getExpressions());
@@ -170,7 +204,7 @@ void ASTPrinter::visit(Tuple *tuple) {
     std::cout << ")";
 }
 
-void ASTPrinter::visit(FunctionCreation *func) {
+void ASTPrinter::visit(FunctionCreation* func) {
     std::cout << "(";
     func->getArgs()->onVisit(this);
     std::cout << " => ";
@@ -178,15 +212,15 @@ void ASTPrinter::visit(FunctionCreation *func) {
     std::cout << ")";
 }
 
-void ASTPrinter::visit(Identifier *ident) {
+void ASTPrinter::visit(Identifier* ident) {
     std::cout << ident->getValue();
 }
 
-void ASTPrinter::visit(IntLitteral *intlit) {
+void ASTPrinter::visit(IntLitteral* intlit) {
     std::cout << intlit->getValue();
 }
 
-void ASTPrinter::visit(RealLitteral *reallit) {
+void ASTPrinter::visit(RealLitteral* reallit) {
     std::cout << reallit->getValue();
 }
 

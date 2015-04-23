@@ -27,8 +27,8 @@ namespace tok {
         EOFToken();
         virtual ~EOFToken();
 
-        virtual TOK_TYPE getTokenType() const;
-        virtual std::string toString() const;
+        virtual TOK_TYPE getTokenType() const override;
+        virtual std::string toString() const override;
 
     };
 
@@ -45,8 +45,8 @@ namespace tok {
 
         virtual ~BadToken();
 
-        virtual TOK_TYPE getTokenType() const;
-        virtual std::string toString() const;
+        virtual TOK_TYPE getTokenType() const override;
+        virtual std::string toString() const override;
 
     private:
 

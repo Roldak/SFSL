@@ -27,7 +27,7 @@ namespace sym {
  * @brief A class which makes it easy to retrieve symbols that are
  * defined in the AST
  */
-class SymbolResolver {
+class SymbolResolver final {
 public:
 
     /**
@@ -36,6 +36,8 @@ public:
      * @param ctx The #sfsl::common::CompilationContext
      */
     SymbolResolver(const ast::Program* prog, const CompCtx_Ptr& ctx);
+
+    ~SymbolResolver();
 
     /**
      * @brief Tries to retrieve the symbol for the given name.
@@ -76,7 +78,7 @@ private:
     type::Type* createTypeFromSymbol(Symbol* sym);
 
     Scope* _scope;
-    CompCtx_Ptr _ctx;
+    mutable CompCtx_Ptr _ctx;
 
     type::Type* _unitType;
     type::Type* _boolType;

@@ -40,6 +40,13 @@ namespace common {
             return new(alloc(sizeof(T))) T(std::forward<Args>(args)...);
         }
 
+        /**
+         * @brief Returns any info about the current state of memory.
+         * Implementations may send different informations.
+         * @return A string of an arbitrary format containing informations.
+         */
+        virtual std::string getInfos() const;
+
     protected:
 
         /**
@@ -72,7 +79,7 @@ namespace common {
 
     private:
 
-        virtual MemoryManageable* alloc(size_t size) {
+        virtual MemoryManageable* alloc(size_t size) override {
             MemoryManageable* ptr = reinterpret_cast<MemoryManageable*>(new char[size]);
             _allocated.push_back(ptr);
             return ptr;
@@ -113,6 +120,21 @@ namespace common {
          */
         static void* alloc(MemoryChunk*& chunk, size_t size);
 
+        /**
+         * @return The parent of this memory chunk
+         */
+        const MemoryChunk* getParent() const;
+
+        /**
+         * @return The size (in bytes) of this chunk
+         */
+        size_t getChunkSize() const;
+
+        /**
+         * @return The current size of memory that is used in the chunk
+         */
+        size_t getUsedChunkSize() const;
+
     private:
 
         char* _chunk;
@@ -136,9 +158,11 @@ namespace common {
 
         virtual ~ChunkedMemoryManager();
 
+        virtual std::string getInfos() const override;
+
     private:
 
-        virtual MemoryManageable* alloc(size_t size);
+        virtual MemoryManageable* alloc(size_t size) override;
 
         MemoryChunk* _lastChunk;
         std::vector<MemoryManageable*> _allocated;

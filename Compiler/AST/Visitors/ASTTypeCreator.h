@@ -10,7 +10,10 @@
 #define __SFSL__ASTTypeCreator__
 
 #include <iostream>
+#include <set>
+#include <map>
 #include "ASTVisitor.h"
+#include "../Symbols/SymbolResolver.h"
 #include "../../Types/Types.h"
 
 namespace sfsl {
@@ -27,14 +30,18 @@ public:
      * @brief Creates an ASTTypeCreator
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTTypeCreator(CompCtx_Ptr& ctx);
+    ASTTypeCreator(CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable);
 
     virtual ~ASTTypeCreator();
 
-    virtual void visit(ASTNode* node);
+    virtual void visit(ASTNode* node) override;
 
-    virtual void visit(MemberAccess* mac);
-    virtual void visit(Identifier *ident);
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(TypeConstructorCreation* typeconstructor) override;
+    virtual void visit(TypeConstructorCall* tcall) override;
+
+    virtual void visit(MemberAccess* mac) override;
+    virtual void visit(Identifier *ident) override;
 
     /**
      * @return The type created by the ASTTypeCreator
@@ -47,6 +54,9 @@ protected:
 
     type::Type* _created;
 
+    const type::SubstitutionTable& _subTable;
+
+    std::set<sym::TypeSymbol*> _visitedTypes;
 };
 
 /**
@@ -57,10 +67,28 @@ protected:
  * @param ctx The compilation context
  * @return The generated type
  */
-inline type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx) {
-    ASTTypeCreator creator(ctx);
+inline type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable = {}) {
+    ASTTypeCreator creator(ctx, subTable);
     node->onVisit(&creator);
     return creator.getCreatedType();
+}
+
+/**
+ * @brief Evaluates the type of the TypeSymbol and returns the ClassDecl
+ * associated to the ObjectType in case it evaluated to ObjectType,
+ * otherwise returns nullptr
+ *
+ * @param sym The TypeSymbol from which to get the ClassDecl
+ * @param ctx The compilation context
+ * @return The ClassDecl is found, otherwise nullptr
+ */
+inline ast::ClassDecl* getClassDeclFromTypeSymbol(sym::TypeSymbol* sym, CompCtx_Ptr& ctx) {
+    if (type::Type* t = createType(sym->getTypeDecl()->getExpression(), ctx)) {
+        if (type::ObjectType* o = type::getIf<type::ObjectType>(t)) {
+            return o->getClass();
+        }
+    }
+    return nullptr;
 }
 
 }

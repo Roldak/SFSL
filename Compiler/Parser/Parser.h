@@ -67,7 +67,8 @@ private:
     ast::Program* parseProgram();
     ast::ModuleDecl* parseModule();
     ast::DefineDecl* parseDef(bool asStatement);
-    ast::ClassDecl* parseClass(bool asStatement);
+    ast::ClassDecl* parseClass();
+    ast::TypeDecl* parseType(bool asStatement);
 
         // statements
 
@@ -85,14 +86,17 @@ private:
 
     ast::Expression* parseSpecialBinaryContinuity(ast::Expression* left);
     ast::Tuple* parseTuple();
-    ast::Tuple* parseTuple(std::vector<ast::Expression*>& exprs);
+    ast::TypeTuple* parseTypeTuple();
     ast::Expression* parseDotOperation(ast::Expression* left);
 
         // others
 
+    template<typename T, tok::OPER_TYPE R_DELIM>
+    T* parseTuple(std::vector<ast::Expression*>& exprs);
+
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
 
-    // Members
+        // Members
 
     CompCtx_Ptr _ctx;
     common::AbstractMemoryManager& _mngr;

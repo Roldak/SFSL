@@ -18,7 +18,7 @@ namespace sfsl {
 
 namespace sym {
 
-    class Scope : public common::MemoryManageable {
+    class Scope final : public common::MemoryManageable {
     public:
 
         Scope(Scope* parent, bool isDefScope = false);
@@ -47,7 +47,15 @@ namespace sym {
             return nullptr;
         }
 
+        /**
+         * @return The parent if this scope
+         */
         Scope* getParent() const;
+
+        /**
+         * @return The map containing all the symbols
+         */
+        const std::map<std::string, Symbol*> getAllSymbols() const;
 
     private:
 
@@ -71,8 +79,8 @@ namespace sym {
     }
 
     template<>
-    inline ClassSymbol* Scope::getSymbol(const std::string& name, bool recursive) const {
-        return static_cast<ClassSymbol*>(_getSymbol(name, SYM_CLASS, recursive));
+    inline TypeSymbol* Scope::getSymbol(const std::string& name, bool recursive) const {
+        return static_cast<TypeSymbol*>(_getSymbol(name, SYM_TPE, recursive));
     }
 
     template<>

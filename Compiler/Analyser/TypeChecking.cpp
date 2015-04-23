@@ -18,7 +18,11 @@ namespace ast {
 // TYPE CHECK
 
 TypeCheking::TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : ASTVisitor(ctx), _curScope(nullptr), _res(res), _rep(ctx.get()->reporter()) {
+    : ASTVisitor(ctx), _res(res), _rep(ctx.get()->reporter()) {
+
+}
+
+TypeCheking::~TypeCheking() {
 
 }
 
@@ -34,8 +38,13 @@ void TypeCheking::visit(ModuleDecl* mod) {
     RESTORE_SCOPE
 }
 
+void TypeCheking::visit(TypeDecl *tdecl) {
+    ASTVisitor::visit(tdecl);
+    tdecl->setType(_res.Unit());
+}
+
 void TypeCheking::visit(ClassDecl* clss) {
-    SAVE_SCOPE(clss->getSymbol())
+    SAVE_SCOPE(clss)
 
     ASTVisitor::visit(clss);
 
@@ -56,6 +65,14 @@ void TypeCheking::visit(DefineDecl* decl) {
 
         RESTORE_SCOPE
     }
+}
+
+void TypeCheking::visit(TypeConstructorCreation* typeconstructor) {
+    SAVE_SCOPE(typeconstructor)
+
+    ASTVisitor::visit(typeconstructor);
+
+    RESTORE_SCOPE
 }
 
 void TypeCheking::visit(ExpressionStatement* exp) {
@@ -81,6 +98,7 @@ void TypeCheking::visit(AssignmentExpression* aex) {
 
 void TypeCheking::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
+    tps->getTypeNode()->onVisit(this);
 
     if (type::Type* tpe = createType(tps->getTypeNode(), _ctx)) {
         Identifier* id = tps->getSpecified();
@@ -96,6 +114,8 @@ void TypeCheking::visit(TypeSpecifier* tps) {
     } else {
         _ctx.get()->reporter().error(*tps->getTypeNode(), "Expression is not a type");
     }
+
+    tps->setType(_res.Unit());
 }
 
 void TypeCheking::visit(Block* block) {
@@ -142,19 +162,22 @@ void TypeCheking::visit(MemberAccess* dot) {
     dot->getAccessed()->onVisit(this);
 
     if (type::Type* t = dot->getAccessed()->type()) {
-        if (t->getTypeKind() == type::TYPE_OBJECT) {
-            sym::ClassSymbol* clss = static_cast<type::ObjectType*>(t)->getClass();
+        if (type::ObjectType* obj = type::getIf<type::ObjectType>(t)) {
+            ClassDecl* clss = obj->getClass();
 
             if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(dot->getMember()->getValue(), false)) {
-                if (type::Type* t = tryGetTypeOfSymbol(sym)) {
+                type::Type* subbed = type::Type::findSubstitution(obj->getSubstitutionTable(), tryGetTypeOfSymbol(sym))
+                        ->applyEnv(obj->getSubstitutionTable(), _ctx);
+
+                if (type::ObjectType* t = type::getIf<type::ObjectType>(subbed)) {
                     dot->setType(t);
                 } else {
-                    _rep.error(*dot->getMember(), "member " + dot->getMember()->getValue() +
+                    _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() +
                                " of class " + clss->getName() + " is not a value");
                 }
             } else {
-                _rep.error(*dot->getMember(), "no member named " +
-                           dot->getMember()->getValue() + " in class " + clss->getName());
+                _rep.error(*dot->getMember(), "No member named " + dot->getMember()->getValue() +
+                           " in class " + clss->getName());
             }
         }
     }
@@ -180,13 +203,13 @@ void TypeCheking::visit(FunctionCreation* func) {
 
 void TypeCheking::visit(FunctionCall* call) {
     ASTVisitor::visit(call);
-    call->setType(call->getCallee()->type());
+    call->setType(call->getCallee()->type()->applyEnv(call->getCallee()->type()->getSubstitutionTable(), _ctx));
 }
 
 void TypeCheking::visit(Identifier* ident) {
     if (sym::Symbol* sym = ident->getSymbol()) {
         if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-            ident->setType(t);
+            ident->setType(t->applyEnv({}, _ctx));
         }
     }
 }

@@ -9,7 +9,7 @@
 #ifndef __SFSL__ASTNode__
 #define __SFSL__ASTNode__
 
-#define SFSL_AST_ON_VISIT_H virtual void onVisit(ASTVisitor* visitor);
+#define SFSL_AST_ON_VISIT_H virtual void onVisit(ASTVisitor* visitor) override;
 #define SFSL_AST_ON_VISIT_CPP(clss) void clss::onVisit(ASTVisitor* visitor) { visitor->visit(this); }
 
 #include <iostream>

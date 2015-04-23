@@ -41,8 +41,8 @@ namespace tok {
         Operator(OPER_TYPE opType);
         virtual ~Operator();
 
-        virtual TOK_TYPE getTokenType() const;
-        virtual std::string toString() const;
+        virtual TOK_TYPE getTokenType() const override;
+        virtual std::string toString() const override;
 
         /**
          * @return The OPER_TYPE of this instance

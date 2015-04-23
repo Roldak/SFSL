@@ -9,6 +9,7 @@
 #include "Parser.h"
 
 #include "../Lexer/Tokens/Litterals.h"
+#include "../AST/Visitors/ASTTypeIdentifier.h"
 
 #define SAVE_POS(ident) const common::Positionnable ident = *_currentToken;
 
@@ -94,7 +95,7 @@ ModuleDecl* Parser::parseModule() {
 
     Identifier* moduleName = parseIdentifier("expected module name");
     std::vector<ModuleDecl*> mods;
-    std::vector<ClassDecl*> classes;
+    std::vector<TypeDecl*> types;
     std::vector<DefineDecl*> decls;
 
     expect(tok::OPER_L_BRACE, "`{`");
@@ -102,8 +103,8 @@ ModuleDecl* Parser::parseModule() {
     while (!accept(tok::OPER_R_BRACE)) {
         if (accept(tok::KW_MODULE)) {
             mods.push_back(parseModule());
-        } else if (accept(tok::KW_CLASS)) {
-            classes.push_back(parseClass(false));
+        } else if (accept(tok::KW_TPE)) {
+            types.push_back(parseType(false));
         } else if (accept(tok::KW_DEF)) {
             decls.push_back(parseDef(false));
         } else {
@@ -112,7 +113,7 @@ ModuleDecl* Parser::parseModule() {
         }
     }
 
-    ModuleDecl* modDecl = _mngr.New<ModuleDecl>(moduleName, mods, classes, decls);
+    ModuleDecl* modDecl = _mngr.New<ModuleDecl>(moduleName, mods, types, decls);
     modDecl->setPos(*moduleName);
     modDecl->setEndPos(_lastTokenEndPos);
 
@@ -136,11 +137,18 @@ DefineDecl* Parser::parseDef(bool asStatement) {
     defDecl->setPos(*defName);
     defDecl->setEndPos(_lastTokenEndPos);
     return defDecl;
-
 }
 
-ClassDecl* Parser::parseClass(bool asStatement) {
-    Identifier* className = parseIdentifier("expected class name");
+ClassDecl* Parser::parseClass() {
+    SAVE_POS(startPos)
+
+    std::string className = "<anonymous>";
+
+    if (_currentToken->getTokenType() == tok::TOK_ID) {
+        className = as<tok::Identifier>()->toString();
+        accept();
+    }
+
     expect(tok::OPER_L_BRACE, "`{`");
 
     std::vector<TypeSpecifier*> fields;
@@ -163,14 +171,26 @@ ClassDecl* Parser::parseClass(bool asStatement) {
         }
     }
 
+    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, fields, defs);
+    classDecl->setPos(startPos);
+    classDecl->setEndPos(_lastTokenEndPos);
+    return classDecl;
+}
+
+TypeDecl* Parser::parseType(bool asStatement) {
+    Identifier* typeName = parseIdentifier("expected type name");
+    accept(tok::OPER_EQ);
+
+    Expression* expr = parseExpression();
+
     if (asStatement) {
         expect(tok::OPER_SEMICOLON, "`;`");
     }
 
-    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, fields, defs);
-    classDecl->setPos(*className);
-    classDecl->setEndPos(_lastTokenEndPos);
-    return classDecl;
+    TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr);
+    typeDecl->setPos(*typeName);
+    typeDecl->setEndPos(_lastTokenEndPos);
+    return typeDecl;
 }
 
 Expression* Parser::parseStatement() {
@@ -181,7 +201,7 @@ Expression* Parser::parseStatement() {
         switch (kw) {
         case tok::KW_DEF:   return parseDef(true);
         case tok::KW_IF:    return parseIf(true);
-        case tok::KW_CLASS: return parseClass(true);
+        case tok::KW_TPE:   return parseType(true);
         default:            return nullptr;
         }
     } else if (accept(tok::OPER_L_BRACE)) {
@@ -271,6 +291,9 @@ Expression* Parser::parsePrimary() {
                 return tuple;
             }
         }
+        else if (accept(tok::OPER_L_BRACKET)) {
+            return parseTypeTuple();
+        }
         else if (accept(tok::OPER_L_BRACE)) {
             return parseBlock();
         } else {
@@ -281,6 +304,8 @@ Expression* Parser::parsePrimary() {
     case tok::TOK_KW:
         if (accept(tok::KW_IF)) {
             return parseIf(false);
+        } else if (accept(tok::KW_CLASS)) {
+            return parseClass();
         }
         break;
 
@@ -341,8 +366,14 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
 
     if (accept(tok::OPER_L_PAREN)) {
         res = _mngr.New<FunctionCall>(left, parseTuple());
+    } else if (accept(tok::OPER_L_BRACKET)) {
+        res = _mngr.New<TypeConstructorCall>(left, parseTypeTuple());
     } else if (accept(tok::OPER_FAT_ARROW)) {
-        res = _mngr.New<FunctionCreation>(left, parseExpression());
+        if (ast::isNodeOfType<TypeTuple>(left, _ctx)) {
+            res = _mngr.New<TypeConstructorCreation>(static_cast<TypeTuple*>(left), parseExpression());
+        } else {
+            res = _mngr.New<FunctionCreation>(left, parseExpression());
+        }
     } else if (accept(tok::OPER_DOT)) {
         return parseDotOperation(left);
     }
@@ -357,27 +388,12 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
 
 Tuple* Parser::parseTuple() {
     std::vector<Expression*> exprs;
-    return parseTuple(exprs);
+    return parseTuple<Tuple, tok::OPER_R_PAREN>(exprs);
 }
 
-ast::Tuple* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
-
-    SAVE_POS(startPos)
-
-    if (!accept(tok::OPER_R_PAREN)) {
-        do {
-            if (Expression* arg = parseExpression()){
-                exprs.push_back(arg);
-            }
-        } while (accept(tok::OPER_COMMA));
-
-        expect(tok::OPER_R_PAREN, "`)`");
-    }
-
-    Tuple* tuple = _mngr.New<Tuple>(exprs);
-    tuple->setPos(startPos);
-    tuple->setEndPos(_lastTokenEndPos);
-    return tuple;
+TypeTuple *Parser::parseTypeTuple() {
+    std::vector<Expression*> exprs;
+    return parseTuple<TypeTuple, tok::OPER_R_BRACKET>(exprs);
 }
 
 Expression* Parser::parseDotOperation(Expression* left) {
@@ -386,6 +402,27 @@ Expression* Parser::parseDotOperation(Expression* left) {
     maccess->setPos(*left);
     maccess->setEndPos(_lastTokenEndPos);
     return maccess;
+}
+
+template<typename T, tok::OPER_TYPE R_DELIM>
+T* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
+
+    SAVE_POS(startPos)
+
+    if (!accept(R_DELIM)) {
+        do {
+            if (Expression* arg = parseExpression()){
+                exprs.push_back(arg);
+            }
+        } while (accept(tok::OPER_COMMA));
+
+        expect(R_DELIM, "`)`");
+    }
+
+    T* tuple = _mngr.New<T>(exprs);
+    tuple->setPos(startPos);
+    tuple->setEndPos(_lastTokenEndPos);
+    return tuple;
 }
 
 Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operator* oper) {
@@ -404,6 +441,5 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
     res->setEndPos(_lastTokenEndPos);
     return res;
 }
-
 
 }

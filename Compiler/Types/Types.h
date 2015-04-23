@@ -10,44 +10,107 @@
 #define __SFSL__Types__
 
 #include <iostream>
+#include <vector>
+#include <map>
 #include "../Common/MemoryManageable.h"
+#include "../Common/CompilationContext.h"
+#include "../Common/Positionnable.h"
 
 namespace sfsl {
 
-namespace sym {
-    class ClassSymbol;
+namespace ast {
+    class ClassDecl;
+    class TypeConstructorCreation;
 }
 
 namespace type {
 
-enum TYPE_KIND { TYPE_NYD, TYPE_OBJECT };
+enum TYPE_KIND { TYPE_NYD, TYPE_OBJECT, TYPE_CONSTRUCTOR, TYPE_CONSTRUCTOR_APPLY };
+
+class Type;
+
+typedef std::map<Type*, Type*> SubstitutionTable;
 
 class Type : public common::MemoryManageable {
 public:
+    Type(const SubstitutionTable& substitutionTable = {});
+
     virtual ~Type();
 
-    virtual TYPE_KIND getTypeKind() = 0;
-    virtual bool isSubTypeOf(Type* other) = 0;
-    virtual std::string toString() = 0;
+    virtual TYPE_KIND getTypeKind() const = 0;
+    virtual bool isSubTypeOf(const Type* other) const = 0;
+    virtual std::string toString() const = 0;
+
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const = 0;
+
+    const SubstitutionTable& getSubstitutionTable() const;
 
     static Type* NotYetDefined();
+
+    static Type* findSubstitution(const SubstitutionTable& table, Type* toFind);
+
+protected:
+
+    static void applyEnvHelper(const SubstitutionTable& env, SubstitutionTable &to);
+
+    const SubstitutionTable _subTable;
 };
 
 class ObjectType : public Type {
 public:
-    ObjectType(sym::ClassSymbol* clss);
+    ObjectType(ast::ClassDecl* clss, const SubstitutionTable& substitutionTable = {});
 
     virtual ~ObjectType();
 
-    virtual TYPE_KIND getTypeKind();
-    virtual bool isSubTypeOf(Type* other);
-    virtual std::string toString();
+    virtual TYPE_KIND getTypeKind() const override;
+    virtual bool isSubTypeOf(const Type* other) const override;
+    virtual std::string toString() const override;
 
-    sym::ClassSymbol* getClass();
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const override;
+
+    ast::ClassDecl* getClass() const;
 
 private:
 
-    sym::ClassSymbol* _class;
+    ast::ClassDecl* _class;
+};
+
+class ConstructorType : public Type {
+public:
+    ConstructorType(ast::TypeConstructorCreation* typeConstructor, const SubstitutionTable& substitutionTable = {});
+
+    virtual ~ConstructorType();
+
+    virtual TYPE_KIND getTypeKind() const override;
+    virtual bool isSubTypeOf(const Type* other) const override;
+    virtual std::string toString() const override;
+
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const override;
+
+    ast::TypeConstructorCreation* getTypeConstructor() const;
+
+private:
+
+    ast::TypeConstructorCreation* _typeConstructor;
+};
+
+class ConstructorApplyType : public Type {
+public:
+    ConstructorApplyType(Type* callee, const std::vector<Type*>& args, const common::Positionnable& pos, const SubstitutionTable& substitutionTable = {});
+
+    virtual ~ConstructorApplyType();
+
+    virtual TYPE_KIND getTypeKind() const override;
+    virtual bool isSubTypeOf(const Type* other) const override;
+    virtual std::string toString() const override;
+
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const override;
+
+private:
+
+    Type* _callee;
+    const std::vector<Type*> _args;
+    const common::Positionnable _pos;
 };
 
 /**
@@ -63,26 +126,36 @@ public:
     /**
      * @param type The type to set
      */
-    void setType(type::Type* type);
+    void setType(Type* type);
 
     /**
      * @return The type of the object
      */
-    type::Type* type() const;
+    Type* type() const;
 
 protected:
 
-    type::Type* _type;
+    Type* _type;
 };
 
 template<typename T>
-inline T* getIf(Type* t) {
+inline T* getIf(const Type* t) {
     return nullptr;
 }
 
 template<>
-inline ObjectType* getIf(Type* t) {
+inline ObjectType* getIf(const Type* t) {
     return t->getTypeKind() == TYPE_OBJECT ? (ObjectType*)t : nullptr;
+}
+
+template<>
+inline ConstructorType* getIf(const Type* t) {
+    return t->getTypeKind() == TYPE_CONSTRUCTOR ? (ConstructorType*)t : nullptr;
+}
+
+template<>
+inline ConstructorApplyType* getIf(const Type* t) {
+    return t->getTypeKind() == TYPE_CONSTRUCTOR_APPLY ? (ConstructorApplyType*)t : nullptr;
 }
 
 }

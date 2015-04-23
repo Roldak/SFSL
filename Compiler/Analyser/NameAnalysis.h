@@ -22,11 +22,13 @@ namespace ast {
 class ScopePossessorVisitor : public ASTVisitor {
 protected:
     ScopePossessorVisitor(CompCtx_Ptr& ctx);
+    virtual ~ScopePossessorVisitor();
 
     template<typename T, typename U>
     T* createSymbol(U* node);
 
     sym::DefinitionSymbol* createSymbol(DefineDecl* node);
+    sym::TypeSymbol* createSymbol(TypeDecl* node);
 
     void tryAddSymbol(sym::Symbol* sym);
 
@@ -40,15 +42,19 @@ class ScopeGeneration : public ScopePossessorVisitor {
 public:
 
     ScopeGeneration(CompCtx_Ptr& ctx);
+    virtual ~ScopeGeneration();
 
-    virtual void visit(Program* prog);
+    virtual void visit(Program* prog) override;
 
-    virtual void visit(ModuleDecl* module);
-    virtual void visit(ClassDecl* clss);
-    virtual void visit(DefineDecl* decl);
+    virtual void visit(ModuleDecl* module) override;
+    virtual void visit(TypeDecl* tdecl) override;
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(DefineDecl* decl) override;
 
-    virtual void visit(Block* block);
-    virtual void visit(FunctionCreation* func);
+    virtual void visit(TypeConstructorCreation* typeconstructor) override;
+
+    virtual void visit(Block* block) override;
+    virtual void visit(FunctionCreation* func) override;
 
 private:
 
@@ -63,24 +69,31 @@ class SymbolAssignation : public ScopePossessorVisitor {
 public:
 
     SymbolAssignation(CompCtx_Ptr& ctx);
+    virtual ~SymbolAssignation();
 
-    virtual void visit(ModuleDecl* mod);
-    virtual void visit(ClassDecl* clss);
-    virtual void visit(DefineDecl* decl);
+    virtual void visit(ModuleDecl* mod) override;
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(DefineDecl* decl) override;
 
-    virtual void visit(BinaryExpression* exp);
-    virtual void visit(MemberAccess* mac);
-    virtual void visit(Block* block);
-    virtual void visit(FunctionCreation* func);
-    virtual void visit(TypeSpecifier* tps);
-    virtual void visit(Identifier* id);
+    virtual void visit(TypeConstructorCreation* typeconstructor) override;
+
+    virtual void visit(BinaryExpression* exp) override;
+    virtual void visit(MemberAccess* mac) override;
+    virtual void visit(Block* block) override;
+    virtual void visit(FunctionCreation* func) override;
+    virtual void visit(TypeSpecifier* tps) override;
+    virtual void visit(Identifier* id) override;
 
 private:
 
     void createVar(Identifier* id);
+    void createObjectType(Identifier* id);
+    void createTypeConstructor(Identifier* id, TypeTuple* ttuple);
+    void initCreated(Identifier* id, sym::Symbol* s);
 
-    template<typename T>
-    void assignFromStaticScope(MemberAccess* mac, sym::Symbol* sym, const std::string& typeName);
+    void assignFromStaticScope(MemberAccess* mac, sym::Scoped* scoped, const std::string& typeName);
+    void assignFromTypeSymbol(MemberAccess* mac, sym::TypeSymbol* tsym);
+
 };
 
 }

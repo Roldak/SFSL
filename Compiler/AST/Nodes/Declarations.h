@@ -12,6 +12,7 @@
 #include <iostream>
 #include <vector>
 #include "Expressions.h"
+#include "TypeExpressions.h"
 #include "../Symbols/Symbols.h"
 #include "../Symbols/Symbolic.h"
 
@@ -20,7 +21,7 @@ namespace sfsl {
 namespace ast {
 
 class DefineDecl;
-class ClassDecl;
+class TypeDecl;
 
 /**
  * @brief The Module AST
@@ -35,7 +36,7 @@ public:
 
     ModuleDecl(Identifier* name,
                const std::vector<ModuleDecl*>& mods,
-               const std::vector<ClassDecl*>& classes,
+               const std::vector<TypeDecl*>& classes,
                const std::vector<DefineDecl*>& decls);
     virtual ~ModuleDecl();
 
@@ -47,9 +48,9 @@ public:
     const std::vector<ModuleDecl*>& getSubModules() const;
 
     /**
-     * @return All the class definitions that were made inside this module
+     * @return All the type definitions that were made inside this module
      */
-    const std::vector<ClassDecl*>& getClasses() const;
+    const std::vector<TypeDecl*>& getTypes() const;
 
     /**
      * @return All the declarations that were made inside this module
@@ -65,7 +66,7 @@ private:
 
     Identifier* _name;
     const std::vector<ModuleDecl*> _mods;
-    const std::vector<ClassDecl*> _classes;
+    const std::vector<TypeDecl*> _types;
     const std::vector<DefineDecl*> _decls;
 };
 
@@ -100,41 +101,28 @@ private:
 
 };
 
-/**
- * @brief The Class Declaration AST
- * Contains :
- *  - The class name
- *  - Its fields
- *  - Its definitions
- */
-class ClassDecl : public Expression, public sym::Symbolic<sym::ClassSymbol> {
+class TypeDecl : public Expression, public sym::Symbolic<sym::TypeSymbol> {
 public:
 
-    ClassDecl(Identifier* name, const std::vector<TypeSpecifier*> fields, const std::vector<DefineDecl*> defs);
-    virtual ~ClassDecl();
+    TypeDecl(Identifier* id, Expression* exp);
+    virtual ~TypeDecl();
 
     SFSL_AST_ON_VISIT_H
 
     /**
-     * @return The name of the class
+     * @return The name of the type
      */
     Identifier* getName() const;
-
+    
     /**
-     * @return The list of fields declared in this class
+     * @return The type expression
      */
-    const std::vector<TypeSpecifier*>& getFields() const;
-
-    /**
-     * @return The list of definitions declared in this class
-     */
-    const std::vector<DefineDecl*>& getDefs() const;
+    Expression* getExpression() const;
 
 private:
 
     Identifier* _name;
-    std::vector<TypeSpecifier*> _fields;
-    std::vector<DefineDecl*> _defs;
+    Expression* _exp;
 };
 
 }

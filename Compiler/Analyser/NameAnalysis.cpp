@@ -11,6 +11,7 @@
 #include "../AST/Symbols/Symbols.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTSymbolExtractor.h"
+#include "../AST/Visitors/ASTTypeCreator.h"
 
 namespace sfsl {
 
@@ -22,12 +23,15 @@ ScopePossessorVisitor::ScopePossessorVisitor(CompCtx_Ptr &ctx) : ASTVisitor(ctx)
 
 }
 
+ScopePossessorVisitor::~ScopePossessorVisitor() {
+
+}
+
 void ScopePossessorVisitor::tryAddSymbol(sym::Symbol* sym) {
     if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
-        _ctx.get()->reporter().error(*sym,
-                                     std::string("Multiple definitions of symbol '") + sym->getName() +
-                                     "' were found. First instance here : " +
-                                     oldSymbol->positionStr());
+        _ctx.get()->reporter().error(*sym, std::string("Multiple definitions of symbol '") +
+                                     sym->getName() + "' were found.");
+        _ctx.get()->reporter().info(*oldSymbol, "First instance here");
     }
 }
 
@@ -52,9 +56,22 @@ sym::DefinitionSymbol* ScopePossessorVisitor::createSymbol(DefineDecl *node) {
     return sym;
 }
 
+sym::TypeSymbol* ScopePossessorVisitor::createSymbol(TypeDecl* node) {
+    sym::TypeSymbol* sym = _mngr.New<sym::TypeSymbol>(node->getName()->getValue(), node);
+    sym->setPos(*node);
+
+    node->setSymbol(sym);
+    tryAddSymbol(sym);
+
+    return sym;
+}
+
 // SCOPE GENERATION
 
 ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
+}
+
+ScopeGeneration::~ScopeGeneration() {
 
 }
 
@@ -88,10 +105,14 @@ void ScopeGeneration::visit(ModuleDecl* module) {
     }
 }
 
-void ScopeGeneration::visit(ClassDecl* clss) {
-    createSymbol<sym::ClassSymbol>(clss);
+void ScopeGeneration::visit(TypeDecl* tdecl) {
+    createSymbol(tdecl);
 
-    pushScope(clss->getSymbol(), true);
+    ASTVisitor::visit(tdecl);
+}
+
+void ScopeGeneration::visit(ClassDecl* clss) {
+    pushScope(clss, true);
 
     ASTVisitor::visit(clss);
 
@@ -104,6 +125,14 @@ void ScopeGeneration::visit(DefineDecl* def) {
     pushScope(def->getSymbol(), true);
 
     ASTVisitor::visit(def);
+
+    popScope();
+}
+
+void ScopeGeneration::visit(TypeConstructorCreation* typeconstructor) {
+    pushScope(typeconstructor);
+
+    ASTVisitor::visit(typeconstructor);
 
     popScope();
 }
@@ -138,6 +167,9 @@ void ScopeGeneration::popScope() {
 // SYMBOL ASSIGNATION
 
 SymbolAssignation::SymbolAssignation(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
+}
+
+SymbolAssignation::~SymbolAssignation() {
 
 }
 
@@ -150,7 +182,7 @@ void SymbolAssignation::visit(ModuleDecl* mod) {
 }
 
 void SymbolAssignation::visit(ClassDecl *clss) {
-    SAVE_SCOPE(clss->getSymbol())
+    SAVE_SCOPE(clss)
 
     ASTVisitor::visit(clss);
 
@@ -165,6 +197,29 @@ void SymbolAssignation::visit(DefineDecl* def) {
     RESTORE_SCOPE
 }
 
+void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
+    SAVE_SCOPE(typeconstructor)
+
+    const std::vector<Expression*>& args = typeconstructor->getArgs()->getExpressions();
+
+    for (Expression* expr : args) {
+        if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
+            createObjectType(static_cast<Identifier*>(expr));
+        }
+        else if(isNodeOfType<TypeConstructorCall>(expr, _ctx)) {
+            TypeConstructorCall* call = static_cast<TypeConstructorCall*>(expr);
+            createTypeConstructor(static_cast<Identifier*>(call->getCallee()), call->getArgsTuple()); // TODO : safer cast
+        }
+        else {
+            _ctx.get()->reporter().error(*expr, "Argument should be an identifier");
+        }
+    }
+
+    typeconstructor->getBody()->onVisit(this);
+
+    RESTORE_SCOPE
+}
+
 void SymbolAssignation::visit(BinaryExpression* exp) {
     exp->getLhs()->onVisit(this);
     exp->getRhs()->onVisit(this);
@@ -172,11 +227,13 @@ void SymbolAssignation::visit(BinaryExpression* exp) {
 
 void SymbolAssignation::visit(MemberAccess* mac) {
     mac->getAccessed()->onVisit(this);
+
     if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
         switch (sym->getSymbolType()) {
-        case sym::SYM_MODULE:   assignFromStaticScope<sym::ModuleSymbol>(mac, sym, "module"); break;
-        case sym::SYM_CLASS:    assignFromStaticScope<sym::ClassSymbol>(mac, sym, "class"); break;
+        case sym::SYM_MODULE:   assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName()); break;
+        case sym::SYM_TPE:      assignFromTypeSymbol(mac, static_cast<sym::TypeSymbol*>(sym)); break;
         default:
+            mac->setSymbol(nullptr);
             break;
         }
     }
@@ -233,14 +290,40 @@ void SymbolAssignation::visit(Identifier* id) {
 
 void SymbolAssignation::createVar(Identifier *id) {
     sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(id->getValue());
-    arg->setPos(*id);
-    id->setSymbol(arg);
-    tryAddSymbol(arg);
+    initCreated(id, arg);
 }
 
-template<typename T>
-void SymbolAssignation::assignFromStaticScope(MemberAccess* mac, sym::Symbol* sym, const std::string& typeName) {
-    sym::Scope* scope = static_cast<T*>(sym)->getScope();
+void SymbolAssignation::createObjectType(Identifier *id) {
+    ClassDecl* clss = _mngr.New<ClassDecl>(id->getValue(), std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
+    clss->setScope(_mngr.New<sym::Scope>(nullptr));
+    TypeDecl* type = _mngr.New<TypeDecl>(id, clss);
+    sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
+    arg->setType(createType(clss, _ctx));
+    initCreated(id, arg);
+}
+
+void SymbolAssignation::createTypeConstructor(Identifier *id, TypeTuple *ttuple) {
+    for (Expression* expr : ttuple->getExpressions()) {
+        createObjectType(static_cast<Identifier*>(expr));
+    }
+    ClassDecl* resClass = _mngr.New<ClassDecl>(id->getValue(), std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
+    resClass->setScope(_mngr.New<sym::Scope>(nullptr));
+    TypeConstructorCreation* typeconstuctor = _mngr.New<TypeConstructorCreation>(ttuple, resClass);
+
+    TypeDecl* type = _mngr.New<TypeDecl>(id, typeconstuctor);
+    sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
+    arg->setType(createType(typeconstuctor, _ctx));
+    initCreated(id, arg);
+}
+
+void SymbolAssignation::initCreated(Identifier *id, sym::Symbol *s) {
+    s->setPos(*id);
+    id->setSymbol(s);
+    tryAddSymbol(s);
+}
+
+void SymbolAssignation::assignFromStaticScope(MemberAccess* mac, sym::Scoped* scoped, const std::string& typeName) {
+    sym::Scope* scope = scoped->getScope();
     const std::string& id = mac->getMember()->getValue();
 
     if (sym::Symbol* resSymbol = scope->getSymbol<sym::Symbol>(id, false)) {
@@ -248,7 +331,15 @@ void SymbolAssignation::assignFromStaticScope(MemberAccess* mac, sym::Symbol* sy
     } else {
         _ctx.get()->reporter().error(
                     *(mac->getMember()),
-                    std::string("No member named '") + id + "' in " + typeName + " '" + sym->getName() + "'");
+                    std::string("No member named '") + id + "' in " + typeName);
+    }
+}
+
+void SymbolAssignation::assignFromTypeSymbol(MemberAccess* mac, sym::TypeSymbol* tsym) {
+    if (ClassDecl* clss = getClassDeclFromTypeSymbol(tsym, _ctx)) {
+        assignFromStaticScope(mac, clss, "class " + clss->getName());
+    } else {
+        _ctx.get()->reporter().error(*mac->getMember(), "Type " + tsym->getName() + " cannot have any members");
     }
 }
 

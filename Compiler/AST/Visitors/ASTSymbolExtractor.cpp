@@ -12,7 +12,8 @@ namespace sfsl {
 
 namespace ast {
 
-ASTSymbolExtractor::ASTSymbolExtractor(CompCtx_Ptr& ctx) : ASTVisitor(ctx) {
+ASTSymbolExtractor::ASTSymbolExtractor(CompCtx_Ptr& ctx)
+    : ASTVisitor(ctx), _sym(nullptr) {
 
 }
 
@@ -21,15 +22,15 @@ ASTSymbolExtractor::~ASTSymbolExtractor() {
 }
 
 void ASTSymbolExtractor::visit(ASTNode*) {
-    _sym = nullptr;
+    // do not throw an exception
 }
 
 void ASTSymbolExtractor::visit(ModuleDecl* mod) {
     _sym = mod->getSymbol();
 }
 
-void ASTSymbolExtractor::visit(ClassDecl* clss) {
-    _sym = clss->getSymbol();
+void ASTSymbolExtractor::visit(TypeDecl* type) {
+    _sym = type->getSymbol();
 }
 
 void ASTSymbolExtractor::visit(DefineDecl* def) {
