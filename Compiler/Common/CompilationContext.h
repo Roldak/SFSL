@@ -27,11 +27,11 @@ namespace common {
  *
  * Instances of this class can be created via the static methods
  */
-class CompilationContext {
+class CompilationContext final {
 public:
 
     CompilationContext(const CompilationContext& other) = delete;
-    virtual ~CompilationContext();
+    ~CompilationContext();
 
     /**
      * @return The memory manager

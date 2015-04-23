@@ -24,31 +24,32 @@ namespace ast {
     class TypeCheking : public ASTVisitor {
     public:
 
-        TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res, sym::Scope* initialScope = nullptr);
+        TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
+        virtual ~TypeCheking();
 
-        virtual void visit(ASTNode*);
+        virtual void visit(ASTNode*) override;
 
-        virtual void visit(ModuleDecl* mod);
-        virtual void visit(TypeDecl* tdecl);
-        virtual void visit(ClassDecl* clss);
-        virtual void visit(DefineDecl* decl);
+        virtual void visit(ModuleDecl* mod) override;
+        virtual void visit(TypeDecl* tdecl) override;
+        virtual void visit(ClassDecl* clss) override;
+        virtual void visit(DefineDecl* decl) override;
 
-        virtual void visit(TypeConstructorCreation* typeconstructor);
+        virtual void visit(TypeConstructorCreation* typeconstructor) override;
 
-        virtual void visit(ExpressionStatement* exp);
+        virtual void visit(ExpressionStatement* exp) override;
 
-        virtual void visit(BinaryExpression* bin);
-        virtual void visit(AssignmentExpression* aex);
-        virtual void visit(TypeSpecifier* tps);
-        virtual void visit(Block* block);
-        virtual void visit(IfExpression* ifexpr);
-        virtual void visit(MemberAccess* dot);
-        virtual void visit(Tuple* tuple);
-        virtual void visit(FunctionCreation* func);
-        virtual void visit(FunctionCall* call);
-        virtual void visit(Identifier* ident);
-        virtual void visit(IntLitteral* intlit);
-        virtual void visit(RealLitteral* reallit);
+        virtual void visit(BinaryExpression* bin) override;
+        virtual void visit(AssignmentExpression* aex) override;
+        virtual void visit(TypeSpecifier* tps) override;
+        virtual void visit(Block* block) override;
+        virtual void visit(IfExpression* ifexpr) override;
+        virtual void visit(MemberAccess* dot) override;
+        virtual void visit(Tuple* tuple) override;
+        virtual void visit(FunctionCreation* func) override;
+        virtual void visit(FunctionCall* call) override;
+        virtual void visit(Identifier* ident) override;
+        virtual void visit(IntLitteral* intlit) override;
+        virtual void visit(RealLitteral* reallit) override;
 
     private:
 

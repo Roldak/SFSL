@@ -29,8 +29,8 @@ namespace tok {
         IntLitteral(sfsl_int_t value);
         virtual ~IntLitteral();
 
-        virtual TOK_TYPE getTokenType() const;
-        virtual std::string toString() const;
+        virtual TOK_TYPE getTokenType() const override;
+        virtual std::string toString() const override;
 
         /**
          * @return this litteral's int value
@@ -56,8 +56,8 @@ namespace tok {
         RealLitteral(sfsl_real_t value);
         virtual ~RealLitteral();
 
-        virtual TOK_TYPE getTokenType() const;
-        virtual std::string toString() const;
+        virtual TOK_TYPE getTokenType() const override;
+        virtual std::string toString() const override;
 
         /**
          * @return this litteral's real value
@@ -83,8 +83,8 @@ namespace tok {
         StringLitteral(const std::string& value);
         virtual ~StringLitteral();
 
-        virtual TOK_TYPE getTokenType() const;
-        virtual std::string toString() const;
+        virtual TOK_TYPE getTokenType() const override;
+        virtual std::string toString() const override;
 
         /**
          * @return this litteral's string value

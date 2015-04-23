@@ -34,8 +34,8 @@ namespace tok {
         Keyword(KW_TYPE kwType);
         virtual ~Keyword();
 
-        virtual TOK_TYPE getTokenType() const;
-        virtual std::string toString() const;
+        virtual TOK_TYPE getTokenType() const override;
+        virtual std::string toString() const override;
 
         /**
          * @return the Keyword type of this particular instance

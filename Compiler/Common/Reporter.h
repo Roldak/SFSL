@@ -80,13 +80,13 @@ namespace common {
         StandartErrReporter();
         virtual ~StandartErrReporter();
 
-        virtual void info(const Positionnable& pos, const std::string& msg);
+        virtual void info(const Positionnable& pos, const std::string& msg) override;
 
-        virtual void warning(const Positionnable& pos, const std::string& msg);
+        virtual void warning(const Positionnable& pos, const std::string& msg) override;
 
-        virtual void error(const Positionnable& pos, const std::string& msg);
+        virtual void error(const Positionnable& pos, const std::string& msg) override;
 
-        virtual void fatal(const Positionnable& pos, const std::string& msg);
+        virtual void fatal(const Positionnable& pos, const std::string& msg) override;
 
     private:
 

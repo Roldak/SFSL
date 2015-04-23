@@ -45,7 +45,7 @@ namespace common {
          * Implementations may send different informations.
          * @return A string of an arbitrary format containing informations.
          */
-        virtual std::string getInfos();
+        virtual std::string getInfos() const;
 
     protected:
 
@@ -79,7 +79,7 @@ namespace common {
 
     private:
 
-        virtual MemoryManageable* alloc(size_t size) {
+        virtual MemoryManageable* alloc(size_t size) override {
             MemoryManageable* ptr = reinterpret_cast<MemoryManageable*>(new char[size]);
             _allocated.push_back(ptr);
             return ptr;
@@ -158,11 +158,11 @@ namespace common {
 
         virtual ~ChunkedMemoryManager();
 
-        virtual std::string getInfos() override;
+        virtual std::string getInfos() const override;
 
     private:
 
-        virtual MemoryManageable* alloc(size_t size);
+        virtual MemoryManageable* alloc(size_t size) override;
 
         MemoryChunk* _lastChunk;
         std::vector<MemoryManageable*> _allocated;

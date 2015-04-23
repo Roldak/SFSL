@@ -34,14 +34,14 @@ public:
 
     virtual ~ASTTypeCreator();
 
-    virtual void visit(ASTNode* node);
+    virtual void visit(ASTNode* node) override;
 
-    virtual void visit(ClassDecl* clss);
-    virtual void visit(TypeConstructorCreation* typeconstructor);
-    virtual void visit(TypeConstructorCall* tcall);
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(TypeConstructorCreation* typeconstructor) override;
+    virtual void visit(TypeConstructorCall* tcall) override;
 
-    virtual void visit(MemberAccess* mac);
-    virtual void visit(Identifier *ident);
+    virtual void visit(MemberAccess* mac) override;
+    virtual void visit(Identifier *ident) override;
 
     /**
      * @return The type created by the ASTTypeCreator

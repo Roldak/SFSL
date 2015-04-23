@@ -62,11 +62,11 @@ public:
 
     virtual ~ObjectType();
 
-    virtual TYPE_KIND getTypeKind() const;
-    virtual bool isSubTypeOf(const Type* other) const;
-    virtual std::string toString() const;
+    virtual TYPE_KIND getTypeKind() const override;
+    virtual bool isSubTypeOf(const Type* other) const override;
+    virtual std::string toString() const override;
 
-    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const;
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const override;
 
     ast::ClassDecl* getClass() const;
 
@@ -81,11 +81,11 @@ public:
 
     virtual ~ConstructorType();
 
-    virtual TYPE_KIND getTypeKind() const;
-    virtual bool isSubTypeOf(const Type* other) const;
-    virtual std::string toString() const;
+    virtual TYPE_KIND getTypeKind() const override;
+    virtual bool isSubTypeOf(const Type* other) const override;
+    virtual std::string toString() const override;
 
-    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const;
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const override;
 
     ast::TypeConstructorCreation* getTypeConstructor() const;
 
@@ -100,16 +100,16 @@ public:
 
     virtual ~ConstructorApplyType();
 
-    virtual TYPE_KIND getTypeKind() const;
-    virtual bool isSubTypeOf(const Type* other) const;
-    virtual std::string toString() const;
+    virtual TYPE_KIND getTypeKind() const override;
+    virtual bool isSubTypeOf(const Type* other) const override;
+    virtual std::string toString() const override;
 
-    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const;
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const override;
 
 private:
 
     Type* _callee;
-    std::vector<Type*> _args;
+    const std::vector<Type*> _args;
     const common::Positionnable _pos;
 };
 

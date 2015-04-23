@@ -20,7 +20,7 @@ AbstractMemoryManager::~AbstractMemoryManager() {
 
 }
 
-std::string AbstractMemoryManager::getInfos() {
+std::string AbstractMemoryManager::getInfos() const {
     return "<no info available for this Memory Manager>";
 }
 
@@ -74,7 +74,7 @@ ChunkedMemoryManager::~ChunkedMemoryManager() {
     delete _lastChunk;
 }
 
-std::string ChunkedMemoryManager::getInfos() {
+std::string ChunkedMemoryManager::getInfos() const {
     std::string toRet = "ChunkedMemoryManager{";
 
     size_t chunkCount = 0, totalUsedSize = 0, totalChunkSize = 0;

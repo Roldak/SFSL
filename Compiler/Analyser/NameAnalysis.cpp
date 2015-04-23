@@ -23,6 +23,10 @@ ScopePossessorVisitor::ScopePossessorVisitor(CompCtx_Ptr &ctx) : ASTVisitor(ctx)
 
 }
 
+ScopePossessorVisitor::~ScopePossessorVisitor() {
+
+}
+
 void ScopePossessorVisitor::tryAddSymbol(sym::Symbol* sym) {
     if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
         _ctx.get()->reporter().error(*sym, std::string("Multiple definitions of symbol '") +
@@ -64,8 +68,11 @@ sym::TypeSymbol* ScopePossessorVisitor::createSymbol(TypeDecl* node) {
 
 // SCOPE GENERATION
 
-ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx, sym::Scope *initialScope) : ScopePossessorVisitor(ctx) {
-    _curScope = initialScope;
+ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
+}
+
+ScopeGeneration::~ScopeGeneration() {
+
 }
 
 void ScopeGeneration::visit(Program* prog) {
@@ -159,8 +166,11 @@ void ScopeGeneration::popScope() {
 
 // SYMBOL ASSIGNATION
 
-SymbolAssignation::SymbolAssignation(CompCtx_Ptr &ctx, sym::Scope* initialScope) : ScopePossessorVisitor(ctx) {
-    _curScope = initialScope;
+SymbolAssignation::SymbolAssignation(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
+}
+
+SymbolAssignation::~SymbolAssignation() {
+
 }
 
 void SymbolAssignation::visit(ModuleDecl* mod) {

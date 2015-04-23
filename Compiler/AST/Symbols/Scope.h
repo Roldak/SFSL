@@ -18,7 +18,7 @@ namespace sfsl {
 
 namespace sym {
 
-    class Scope : public common::MemoryManageable {
+    class Scope final : public common::MemoryManageable {
     public:
 
         Scope(Scope* parent, bool isDefScope = false);

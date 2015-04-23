@@ -65,7 +65,7 @@ namespace sym {
         ModuleSymbol(const std::string& name);
         virtual ~ModuleSymbol();
 
-        virtual SYM_TYPE getSymbolType() const;
+        virtual SYM_TYPE getSymbolType() const override;
 
         ModuleSymbol* getModule(const std::string& name) const;
         TypeSymbol* getClass(const std::string& name) const;
@@ -80,7 +80,7 @@ namespace sym {
         TypeSymbol(const std::string& name, ast::TypeDecl* type);
         virtual ~TypeSymbol();
 
-        virtual SYM_TYPE getSymbolType() const;
+        virtual SYM_TYPE getSymbolType() const override;
 
         ast::TypeDecl* getTypeDecl() const;
 
@@ -97,7 +97,7 @@ namespace sym {
         DefinitionSymbol(const std::string& name, ast::DefineDecl* def);
         virtual ~DefinitionSymbol();
 
-        virtual SYM_TYPE getSymbolType() const;
+        virtual SYM_TYPE getSymbolType() const override;
 
         ast::DefineDecl* getDef() const;
 
@@ -114,7 +114,7 @@ namespace sym {
         VariableSymbol(const std::string& name);
         virtual ~VariableSymbol();
 
-        virtual SYM_TYPE getSymbolType() const;
+        virtual SYM_TYPE getSymbolType() const override;
     };
 
 }

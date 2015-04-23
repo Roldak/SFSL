@@ -19,6 +19,10 @@ SymbolResolver::SymbolResolver(const ast::Program* prog, const CompCtx_Ptr &ctx)
 
 }
 
+SymbolResolver::~SymbolResolver() {
+
+}
+
 Symbol* SymbolResolver::getSymbol(const std::string& fullPathName) const {
     std::vector<std::string> parts;
     size_t i = 0, e = utils::split(parts, fullPathName, NAMESPACE_DELIMITER);

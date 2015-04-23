@@ -22,6 +22,7 @@ namespace ast {
 class ScopePossessorVisitor : public ASTVisitor {
 protected:
     ScopePossessorVisitor(CompCtx_Ptr& ctx);
+    virtual ~ScopePossessorVisitor();
 
     template<typename T, typename U>
     T* createSymbol(U* node);
@@ -40,19 +41,20 @@ protected:
 class ScopeGeneration : public ScopePossessorVisitor {
 public:
 
-    ScopeGeneration(CompCtx_Ptr& ctx, sym::Scope* initialScope = nullptr);
+    ScopeGeneration(CompCtx_Ptr& ctx);
+    virtual ~ScopeGeneration();
 
-    virtual void visit(Program* prog);
+    virtual void visit(Program* prog) override;
 
-    virtual void visit(ModuleDecl* module);
-    virtual void visit(TypeDecl* tdecl);
-    virtual void visit(ClassDecl* clss);
-    virtual void visit(DefineDecl* decl);
+    virtual void visit(ModuleDecl* module) override;
+    virtual void visit(TypeDecl* tdecl) override;
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(DefineDecl* decl) override;
 
-    virtual void visit(TypeConstructorCreation* typeconstructor);
+    virtual void visit(TypeConstructorCreation* typeconstructor) override;
 
-    virtual void visit(Block* block);
-    virtual void visit(FunctionCreation* func);
+    virtual void visit(Block* block) override;
+    virtual void visit(FunctionCreation* func) override;
 
 private:
 
@@ -66,20 +68,21 @@ private:
 class SymbolAssignation : public ScopePossessorVisitor {
 public:
 
-    SymbolAssignation(CompCtx_Ptr& ctx, sym::Scope* initialScope = nullptr);
+    SymbolAssignation(CompCtx_Ptr& ctx);
+    virtual ~SymbolAssignation();
 
-    virtual void visit(ModuleDecl* mod);
-    virtual void visit(ClassDecl* clss);
-    virtual void visit(DefineDecl* decl);
+    virtual void visit(ModuleDecl* mod) override;
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(DefineDecl* decl) override;
 
-    virtual void visit(TypeConstructorCreation* typeconstructor);
+    virtual void visit(TypeConstructorCreation* typeconstructor) override;
 
-    virtual void visit(BinaryExpression* exp);
-    virtual void visit(MemberAccess* mac);
-    virtual void visit(Block* block);
-    virtual void visit(FunctionCreation* func);
-    virtual void visit(TypeSpecifier* tps);
-    virtual void visit(Identifier* id);
+    virtual void visit(BinaryExpression* exp) override;
+    virtual void visit(MemberAccess* mac) override;
+    virtual void visit(Block* block) override;
+    virtual void visit(FunctionCreation* func) override;
+    virtual void visit(TypeSpecifier* tps) override;
+    virtual void visit(Identifier* id) override;
 
 private:
 
