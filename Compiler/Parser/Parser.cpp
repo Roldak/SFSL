@@ -29,6 +29,10 @@ Program* Parser::parse() {
 
 // Utils
 
+const std::string Parser::AnonymousClassName = "<anonymous class>";
+const std::string Parser::AnonymousTypeConstructorName = "<anonymous type constructor>";
+const std::string Parser::AnonymousFunctionName = "<anonymous function>";
+
 bool Parser::isType(tok::TOK_TYPE type) {
     return _currentToken->getTokenType() == type;
 }
@@ -142,7 +146,7 @@ DefineDecl* Parser::parseDef(bool asStatement) {
 ClassDecl* Parser::parseClass() {
     SAVE_POS(startPos)
 
-    std::string className = "<anonymous>";
+    std::string className = _currentTypeName.empty() ? AnonymousClassName : _currentTypeName;
 
     if (_currentToken->getTokenType() == tok::TOK_ID) {
         className = as<tok::Identifier>()->toString();
@@ -181,7 +185,12 @@ TypeDecl* Parser::parseType(bool asStatement) {
     Identifier* typeName = parseIdentifier("expected type name");
     accept(tok::OPER_EQ);
 
+    std::string lastTypeName = _currentTypeName;
+    _currentTypeName = typeName->getValue();
+
     Expression* expr = parseExpression();
+
+    _currentTypeName = lastTypeName;
 
     if (asStatement) {
         expect(tok::OPER_SEMICOLON, "`;`");
@@ -369,11 +378,7 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     } else if (accept(tok::OPER_L_BRACKET)) {
         res = _mngr.New<TypeConstructorCall>(left, parseTypeTuple());
     } else if (accept(tok::OPER_FAT_ARROW)) {
-        if (ast::isNodeOfType<TypeTuple>(left, _ctx)) {
-            res = _mngr.New<TypeConstructorCreation>(static_cast<TypeTuple*>(left), parseExpression());
-        } else {
-            res = _mngr.New<FunctionCreation>(left, parseExpression());
-        }
+        res = makeFuncOrTypeConstr(left);
     } else if (accept(tok::OPER_DOT)) {
         return parseDotOperation(left);
     }
@@ -440,6 +445,18 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
     res->setPos(*left);
     res->setEndPos(_lastTokenEndPos);
     return res;
+}
+
+Expression* Parser::makeFuncOrTypeConstr(Expression* left) {
+    std::string name;
+
+    if (ast::isNodeOfType<TypeTuple>(left, _ctx)) {
+        name = _currentTypeName.empty() ? AnonymousTypeConstructorName : _currentTypeName;
+        return _mngr.New<TypeConstructorCreation>(name, static_cast<TypeTuple*>(left), parseExpression());
+    } else {
+        name = _currentDefName.empty() ? AnonymousFunctionName : _currentDefName;
+        return _mngr.New<FunctionCreation>(name, left, parseExpression());
+    }
 }
 
 }

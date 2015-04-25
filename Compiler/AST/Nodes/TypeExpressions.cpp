@@ -60,7 +60,8 @@ const std::vector<Expression*>& TypeTuple::getExpressions() {
 
 // TYPE CONSTRUCTOR CREATION
 
-TypeConstructorCreation::TypeConstructorCreation(TypeTuple *args, Expression* body) : _args(args), _body(body) {
+TypeConstructorCreation::TypeConstructorCreation(const std::string &name, TypeTuple *args, Expression* body)
+    : _name(name), _args(args), _body(body) {
 
 }
 
@@ -69,6 +70,10 @@ TypeConstructorCreation::~TypeConstructorCreation() {
 }
 
 SFSL_AST_ON_VISIT_CPP(TypeConstructorCreation)
+
+const std::string& TypeConstructorCreation::getName() const {
+    return _name;
+}
 
 TypeTuple* TypeConstructorCreation::getArgs() const {
     return _args;

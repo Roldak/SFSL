@@ -255,10 +255,15 @@ private:
 class FunctionCreation : public Expression, public sym::Scoped {
 public:
 
-    FunctionCreation(Expression* args, Expression* body);
+    FunctionCreation(const std::string& name, Expression* args, Expression* body);
     virtual ~FunctionCreation();
 
     SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The name of the function
+     */
+    const std::string& getName() const;
 
     /**
      * @return The tuple of arguments
@@ -272,6 +277,7 @@ public:
 
 private:
 
+    std::string _name;
     Expression* _args;
     Expression* _body;
 };

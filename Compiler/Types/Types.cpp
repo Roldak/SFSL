@@ -150,7 +150,7 @@ bool ConstructorType::isSubTypeOf(const Type* other) const {
 }
 
 std::string ConstructorType::toString() const {
-    return "<type constructor>" + Type::toString();
+    return _typeConstructor->getName() + Type::toString();
 }
 
 Type* ConstructorType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {

@@ -45,6 +45,12 @@ public:
 
 private:
 
+    // Static Members
+
+    static const std::string AnonymousClassName;
+    static const std::string AnonymousTypeConstructorName;
+    static const std::string AnonymousFunctionName;
+
     // Utils
 
     bool isType(tok::TOK_TYPE type);
@@ -96,7 +102,9 @@ private:
 
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
 
-        // Members
+    ast::Expression* makeFuncOrTypeConstr(Expression* left);
+
+    // Members
 
     CompCtx_Ptr _ctx;
     common::AbstractMemoryManager& _mngr;
@@ -105,6 +113,8 @@ private:
     size_t _lastTokenEndPos;
     tok::Token* _currentToken;
 
+    std::string _currentTypeName;
+    std::string _currentDefName;
 };
 
 // Template methods implementations

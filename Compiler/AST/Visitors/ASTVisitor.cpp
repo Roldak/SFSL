@@ -110,8 +110,8 @@ void ASTVisitor::visit(IfExpression* ifexpr) {
     ifexpr->getCondition()->onVisit(this);
     ifexpr->getThen()->onVisit(this);
 
-    if (ifexpr->getElse()) {
-        ifexpr->getElse()->onVisit(this);
+    if (Expression* expr = ifexpr->getElse()) {
+        expr->onVisit(this);
     }
 }
 
