@@ -60,7 +60,13 @@ void ASTPrinter::visit(TypeDecl* tdecl) {
 }
 
 void ASTPrinter::visit(ClassDecl* clss) {
-    std::cout << "class {" << std::endl;
+    std::cout << "class " << clss->getName();
+
+    if (clss->getParent()) {
+        clss->getParent()->onVisit(this);
+    }
+
+    std::cout << " {" << std::endl;
 
     ++_indentCount;
 

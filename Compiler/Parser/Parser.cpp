@@ -147,10 +147,15 @@ ClassDecl* Parser::parseClass() {
     SAVE_POS(startPos)
 
     std::string className = _currentTypeName.empty() ? AnonymousClassName : _currentTypeName;
+    Expression* parent = nullptr;
 
     if (_currentToken->getTokenType() == tok::TOK_ID) {
         className = as<tok::Identifier>()->toString();
         accept();
+    }
+
+    if (accept(tok::OPER_COLON)) {
+        parent = parseExpression();
     }
 
     expect(tok::OPER_L_BRACE, "`{`");
@@ -175,7 +180,7 @@ ClassDecl* Parser::parseClass() {
         }
     }
 
-    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, fields, defs);
+    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, parent, fields, defs);
     classDecl->setPos(startPos);
     classDecl->setEndPos(_lastTokenEndPos);
     return classDecl;

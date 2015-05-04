@@ -44,6 +44,16 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
 
     type::Type* ctr = _created;
 
+    if (type::Type* tmp = ctr->applyEnv({}, _ctx)) {
+        if (tmp->getTypeKind() != type::TYPE_CONSTRUCTOR) {
+            _ctx.get()->reporter().error(*tcall, "Expression is not a type constructor.");
+        }
+    } else {
+        _ctx.get()->reporter().fatal(*tcall, "Failed to create a type");
+    }
+
+    // TODO : Check args kind
+
     std::vector<type::Type*> args;
     for (size_t i = 0; i < tcall->getArgs().size(); ++i) {
         tcall->getArgs()[i]->onVisit(this);

@@ -16,10 +16,11 @@ namespace ast {
 // CLASS DECLARATION
 
 ClassDecl::ClassDecl(const std::string& name,
+                     Expression* parent,
                      const std::vector<TypeSpecifier*>& fields,
                      const std::vector<DefineDecl*>& defs)
 
-    : _name(name), _fields(fields), _defs(defs)
+    : _name(name), _parent(parent), _fields(fields), _defs(defs)
 {
 
 }
@@ -30,16 +31,20 @@ ClassDecl::~ClassDecl() {
 
 SFSL_AST_ON_VISIT_CPP(ClassDecl)
 
+const std::string& ClassDecl::getName() const {
+    return _name;
+}
+
+Expression* ClassDecl::getParent() const {
+    return _parent;
+}
+
 const std::vector<TypeSpecifier*>& ClassDecl::getFields() const {
     return _fields;
 }
 
 const std::vector<DefineDecl*>& ClassDecl::getDefs() const{
     return _defs;
-}
-
-const std::string& ClassDecl::getName() const {
-    return _name;
 }
 
 // TYPE TUPLE

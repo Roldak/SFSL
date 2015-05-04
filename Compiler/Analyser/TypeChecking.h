@@ -54,6 +54,7 @@ namespace ast {
     private:
 
         type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
+        type::Type* tryGetTypeOfField(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
         type::ObjectType* applySubsitutions(type::ObjectType* inner, type::ObjectType* obj);
         type::ConstructorType* applySubsitutions(type::ConstructorType* inner, type::ObjectType* obj);
 

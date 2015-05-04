@@ -25,10 +25,20 @@ namespace ast {
 class ClassDecl : public Expression, public sym::Scoped {
 public:
 
-    ClassDecl(const std::string& name, const std::vector<TypeSpecifier*>& fields, const std::vector<DefineDecl*>& defs);
+    ClassDecl(const std::string& name, Expression* parent, const std::vector<TypeSpecifier*>& fields, const std::vector<DefineDecl*>& defs);
     virtual ~ClassDecl();
 
     SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The name of the class
+     */
+    const std::string& getName() const;
+
+    /**
+     * @return The expression defining the parent of this class
+     */
+    Expression* getParent() const;
 
     /**
      * @return The list of fields declared in this class
@@ -40,14 +50,10 @@ public:
      */
     const std::vector<DefineDecl*>& getDefs() const;
 
-    /**
-     * @return The name of the class
-     */
-    const std::string& getName() const;
-
 private:
 
     std::string _name;
+    Expression* _parent;
     std::vector<TypeSpecifier*> _fields;
     std::vector<DefineDecl*> _defs;
 };

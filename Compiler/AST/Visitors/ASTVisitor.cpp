@@ -51,6 +51,9 @@ void ASTVisitor::visit(TypeDecl *tdecl) {
 }
 
 void ASTVisitor::visit(ClassDecl *clss) {
+    if (clss->getParent()) {
+        clss->getParent()->onVisit(this);
+    }
     for (TypeSpecifier* field : clss->getFields()) {
         field->onVisit(this);
     }

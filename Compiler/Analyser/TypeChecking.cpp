@@ -164,12 +164,10 @@ void TypeCheking::visit(MemberAccess* dot) {
     if (type::Type* t = dot->getAccessed()->type()) {
         if (type::ObjectType* obj = type::getIf<type::ObjectType>(t)) {
             ClassDecl* clss = obj->getClass();
+            const type::SubstitutionTable& subtable = obj->getSubstitutionTable();
 
-            if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(dot->getMember()->getValue(), false)) {
-                type::Type* subbed = type::Type::findSubstitution(obj->getSubstitutionTable(), tryGetTypeOfSymbol(sym))
-                        ->applyEnv(obj->getSubstitutionTable(), _ctx);
-
-                if (type::ObjectType* t = type::getIf<type::ObjectType>(subbed)) {
+            if (type::Type* tpe = tryGetTypeOfField(clss, dot->getMember()->getValue(), subtable)) {
+                if (type::ObjectType* t = type::getIf<type::ObjectType>(tpe)) {
                     dot->setType(t);
                 } else {
                     _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() +
@@ -234,6 +232,24 @@ type::Type* TypeCheking::tryGetTypeOfSymbol(sym::Symbol* sym) {
         }
 
         return defsym->type();
+    }
+    return nullptr;
+}
+
+type::Type* TypeCheking::tryGetTypeOfField(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
+    if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(id, false)) {
+        return type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(sym))->applyEnv(subtable, _ctx);
+    } else if (Expression* parent = clss->getParent()) {
+        if (type::Type* t = createType(parent, _ctx)) {
+            type::Type* appliedT = type::Type::findSubstitution(subtable, t)->applyEnv(subtable, _ctx);
+            if (type::ObjectType* obj = type::getIf<type::ObjectType>(appliedT)) {
+                return tryGetTypeOfField(obj->getClass(), id, obj->getSubstitutionTable());
+            } else {
+                _ctx.get()->reporter().error(*parent, "Class " + clss->getName() + " must inherit from a class type");
+            }
+        } else {
+            _ctx.get()->reporter().error(*parent, "Expression is not a type");
+        }
     }
     return nullptr;
 }
