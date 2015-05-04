@@ -48,6 +48,16 @@ void TypeCheking::visit(ClassDecl* clss) {
 
     ASTVisitor::visit(clss);
 
+    if (Expression* par = clss->getParent()) {
+        if (type::Type* t = createType(par, _ctx)) {
+            if (t->applyEnv({}, _ctx)->getTypeKind() != type::TYPE_OBJECT) {
+                _ctx.get()->reporter().error(*par, "Must inherit from a class");
+            }
+        } else {
+            _ctx.get()->reporter().fatal(*par, "Expression is not a type.");
+        }
+    }
+
     RESTORE_SCOPE
 }
 
