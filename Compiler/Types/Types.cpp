@@ -202,18 +202,12 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
         const auto& params = ctr->getTypeConstructor()->getArgs()->getExpressions();
         SubstitutionTable subs;
 
-        if (params.size() != _args.size()) {
-            ctx.get()->reporter().error(_pos, "Wrong number of arguments. Expected "
-                                         + utils::T_toString(params.size()) + ", found " + utils::T_toString(_args.size()));
-            return Type::NotYetDefined();
-        }
-
         for (size_t i = 0; i < params.size(); ++i) {
             sym::TypeSymbol* param = nullptr;
             if (ast::isNodeOfType<ast::Identifier>(params[i], ctx)) {
                 param = static_cast<sym::TypeSymbol*>(static_cast<ast::Identifier*>(params[i])->getSymbol());
             } else if (ast::isNodeOfType<ast::TypeConstructorCall>(params[i], ctx)) {
-                // TODO : this code is ugly and wrong
+                // TODO : this code is ugly and most likely wrong
                 param = static_cast<sym::TypeSymbol*>(
                             static_cast<ast::Identifier*>(
                                 static_cast<ast::TypeConstructorCall*>(
@@ -229,7 +223,7 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
 
         return findSubstitution(subs, ast::createType(ctr->getTypeConstructor()->getBody(), ctx, subs))->applyEnv(subs, ctx);
     } else {
-        ctx.get()->reporter().error(_pos, "Type " + sub->toString() + " is not a type constructor");
+        ctx.get()->reporter().fatal(_pos, "Must have been a type constructor");
     }
 
     return Type::NotYetDefined();

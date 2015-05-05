@@ -51,6 +51,7 @@ public:
 protected:
 
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
+    type::Type* kindCheck(Expression* expected, Expression* passed);
 
     type::Type* _created;
 

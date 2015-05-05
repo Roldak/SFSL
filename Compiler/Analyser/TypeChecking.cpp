@@ -53,8 +53,6 @@ void TypeCheking::visit(ClassDecl* clss) {
             if (t->applyEnv({}, _ctx)->getTypeKind() != type::TYPE_OBJECT) {
                 _ctx.get()->reporter().error(*par, "Must inherit from a class");
             }
-        } else {
-            _ctx.get()->reporter().fatal(*par, "Expression is not a type.");
         }
     }
 
@@ -147,7 +145,7 @@ void TypeCheking::visit(IfExpression* ifexpr) {
     ASTVisitor::visit(ifexpr);
 
     if (!ifexpr->getCondition()->type()->isSubTypeOf(_res.Bool())) {
-        _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (" + ifexpr->getCondition()->type()->toString() + ")");
+        _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (Found " + ifexpr->getCondition()->type()->toString() + ")");
     }
 
     if (ifexpr->getElse()) {

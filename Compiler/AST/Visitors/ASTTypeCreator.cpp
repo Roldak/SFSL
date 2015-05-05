@@ -45,23 +45,33 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
     type::Type* ctr = _created;
 
     if (type::Type* tmp = ctr->applyEnv({}, _ctx)) {
-        if (tmp->getTypeKind() != type::TYPE_CONSTRUCTOR) {
+        if (type::ConstructorType* constr = type::getIf<type::ConstructorType>(tmp)) {
+
+            const std::vector<Expression*>& found = tcall->getArgs();
+            const std::vector<Expression*>& expec = constr->getTypeConstructor()->getArgs()->getExpressions();
+
+            if (found.size() != expec.size()) {
+                _ctx.get()->reporter().error(*tcall, "Wrong number of arguments. Found " +
+                                             utils::T_toString(found.size()) + " Expected " + utils::T_toString(expec.size()));
+            }
+
+            std::vector<type::Type*> args(found.size());
+
+            for (size_t i = 0; i < found.size(); ++i) {
+                if (!(args[i] = kindCheck(expec[i], found[i]))) {
+                    _created = nullptr;
+                    return;
+                }
+            }
+
+            _created = _mngr.New<type::ConstructorApplyType>(ctr, args, *tcall, _subTable);
+
+        } else {
             _ctx.get()->reporter().error(*tcall, "Expression is not a type constructor.");
         }
     } else {
         _ctx.get()->reporter().fatal(*tcall, "Failed to create a type");
     }
-
-    // TODO : Check args kind
-
-    std::vector<type::Type*> args;
-    for (size_t i = 0; i < tcall->getArgs().size(); ++i) {
-        tcall->getArgs()[i]->onVisit(this);
-        args.push_back(_created);
-    }
-
-    _created = _mngr.New<type::ConstructorApplyType>(ctr, args, *tcall, _subTable);
-
 }
 
 void ASTTypeCreator::visit(MemberAccess* mac) {
@@ -100,6 +110,29 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic
             _created = ts->type();
         }
     }
+}
+
+type::Type* ASTTypeCreator::kindCheck(Expression* expected, Expression* passed) {
+    type::TYPE_KIND expKind =
+            isNodeOfType<Identifier>(expected, _ctx) ? type::TYPE_OBJECT :
+                                                       type::TYPE_CONSTRUCTOR;
+
+    type::Type* pasT = createType(passed, _ctx, _subTable);
+
+    if (!pasT) {
+        _ctx.get()->reporter().error(*passed, "Expression is not a type");
+        return nullptr;
+    }
+
+    type::Type* evT = pasT->applyEnv({}, _ctx);
+
+    if (expKind == type::TYPE_CONSTRUCTOR && evT->getTypeKind() == type::TYPE_OBJECT) {
+        _ctx.get()->reporter().error(*passed, "Kind mismatch. Expected type constructor, got proper type (" +
+                                     evT->toString() + ")");
+        return nullptr;
+    }
+
+    return pasT;
 }
 
 }
