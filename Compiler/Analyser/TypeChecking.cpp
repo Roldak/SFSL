@@ -170,6 +170,7 @@ void TypeCheking::visit(MemberAccess* dot) {
     dot->getAccessed()->onVisit(this);
 
     if (type::Type* t = dot->getAccessed()->type()) {
+        t = t->applyEnv({}, _ctx);
         if (type::ObjectType* obj = type::getIf<type::ObjectType>(t)) {
             ClassDecl* clss = obj->getClass();
             const type::SubstitutionTable& subtable = obj->getSubstitutionTable();
@@ -215,7 +216,7 @@ void TypeCheking::visit(FunctionCall* call) {
 void TypeCheking::visit(Identifier* ident) {
     if (sym::Symbol* sym = ident->getSymbol()) {
         if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-            ident->setType(t->applyEnv({}, _ctx));
+            ident->setType(t);
         }
     }
 }

@@ -212,9 +212,9 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
                             static_cast<ast::Identifier*>(
                                 static_cast<ast::TypeConstructorCall*>(
                                     params[i]
-                                    )->getCallee()
-                                )->getSymbol()
-                            );
+                                )->getCallee()
+                            )->getSymbol()
+                        );
             }
 
             subs[param->type()] = findSubstitution(env, _args[i])->applyEnv(env, ctx);
