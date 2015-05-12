@@ -201,8 +201,8 @@ void SymbolAssignation::visit(TypeMemberAccess* tmac) {
     assignMemberAccess(tmac);
 }
 
-void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
-    SAVE_SCOPE(typeconstructor)
+void SymbolAssignation::visit(TypeConstructorCreation* tc) {
+    SAVE_SCOPE(tc)
 
     /*const std::vector<TypeExpression*>& args = typeconstructor->getArgs()->getExpressions();
 
@@ -219,7 +219,27 @@ void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
         }
     }
 */
-    typeconstructor->getBody()->onVisit(this);
+    TypeExpression* expr = tc->getArgs();
+    std::vector<TypeExpression*> args;
+
+    if (isNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        args = static_cast<TypeTuple*>(expr)->getExpressions();
+    } else { // form is `exp => ...` or `[exp] => ...`
+        args.push_back(expr);
+    }
+
+    for (TypeExpression* expr : args) {
+        if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `x`
+            createObjectType(static_cast<TypeIdentifier*>(expr));
+        } /*else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: type`
+            // The var is already going to be created by the TypeSpecifier Node
+            expr->onVisit(this);
+        } */else {
+            _ctx->reporter().error(*expr, "Type argument should be an identifier");
+        }
+    }
+
+    tc->getBody()->onVisit(this);
 
     RESTORE_SCOPE
 }
@@ -287,18 +307,23 @@ void SymbolAssignation::createVar(Identifier *id) {
     initCreated(id, arg);
 }
 
-void SymbolAssignation::createObjectType(Identifier *id) {
+void SymbolAssignation::createObjectType(TypeIdentifier *id) {
     ClassDecl* clss = _mngr.New<ClassDecl>(id->getValue(), nullptr, std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
     clss->setScope(_mngr.New<sym::Scope>(nullptr));
+
     TypeDecl* type = _mngr.New<TypeDecl>(_mngr.New<TypeIdentifier>(id->getValue()), clss);
+
     sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
     arg->setType(createType(clss, _ctx));
+
+    id->setKind(kind::TypeKind::create());
+
     initCreated(id, arg);
 }
 
 void SymbolAssignation::createTypeConstructor(TypeIdentifier* id, TypeTuple *ttuple) {
     for (Expression* expr : ttuple->getExpressions()) {
-        createObjectType(static_cast<Identifier*>(expr));
+        createObjectType(static_cast<TypeIdentifier*>(expr));
     }
     ClassDecl* resClass = _mngr.New<ClassDecl>(id->getValue(), nullptr, std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
     resClass->setScope(_mngr.New<sym::Scope>(nullptr));

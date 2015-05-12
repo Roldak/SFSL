@@ -89,7 +89,7 @@ public:
 private:
 
     void createVar(Identifier* id);
-    void createObjectType(Identifier* id);
+    void createObjectType(TypeIdentifier* id);
     void createTypeConstructor(TypeIdentifier* id, TypeTuple* ttuple);
 
     template<typename T, typename S>

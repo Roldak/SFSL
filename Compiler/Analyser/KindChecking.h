@@ -40,6 +40,8 @@ namespace ast {
 
     private:
 
+        kind::Kind* tryGetKindOfSymbol(sym::Symbol* sym);
+
         common::AbstractReporter& _rep;
 
         std::set<TypeDecl*> _visitedTypeDefs;

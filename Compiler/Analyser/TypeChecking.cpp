@@ -18,7 +18,7 @@ namespace ast {
 // TYPE CHECK
 
 TypeCheking::TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : ASTVisitor(ctx), _res(res), _rep(ctx.get()->reporter()) {
+    : ASTVisitor(ctx), _res(res), _rep(ctx->reporter()) {
 
 }
 
@@ -36,7 +36,7 @@ void TypeCheking::visit(ClassDecl* clss) {
     if (Expression* par = clss->getParent()) {
         if (type::Type* t = createType(par, _ctx)) {
             if (t->applyEnv({}, _ctx)->getTypeKind() != type::TYPE_OBJECT) {
-                _ctx->reporter().error(*par, "Must inherit from a class");
+                _rep.error(*par, "Must inherit from a class");
             }
         }
     }
@@ -220,10 +220,10 @@ type::Type* TypeCheking::tryGetTypeOfField(ClassDecl* clss, const std::string& i
             if (type::ObjectType* obj = type::getIf<type::ObjectType>(appliedT)) {
                 return tryGetTypeOfField(obj->getClass(), id, obj->getSubstitutionTable());
             } else {
-                _ctx->reporter().error(*parent, "Class " + clss->getName() + " must inherit from a class type");
+                _rep.error(*parent, "Class " + clss->getName() + " must inherit from a class type");
             }
         } else {
-            _ctx->reporter().error(*parent, "Expression is not a type");
+            _rep.error(*parent, "Expression is not a type");
         }
     }
     return nullptr;
