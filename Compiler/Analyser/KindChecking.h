@@ -29,12 +29,20 @@ namespace ast {
 
         virtual void visit(ASTNode*) override;
 
+        virtual void visit(TypeDecl* tdecl);
+        virtual void visit(ClassDecl* clss);
+
+        virtual void visit(TypeMemberAccess* tdot);
+        virtual void visit(TypeTuple* ttuple);
+        virtual void visit(TypeConstructorCreation* typeconstructor);
+        virtual void visit(TypeConstructorCall* tcall);
+        virtual void visit(TypeIdentifier* tident);
+
     private:
 
-        sym::Scope* _curScope;
         common::AbstractReporter& _rep;
 
-        std::set<TypeDecl*> _visitedDefs;
+        std::set<TypeDecl*> _visitedTypeDefs;
     };
 }
 

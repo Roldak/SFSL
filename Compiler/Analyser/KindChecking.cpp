@@ -30,6 +30,34 @@ void KindChecking::visit(ASTNode*) {
 
 }
 
+void KindChecking::visit(TypeDecl* tdecl) {
+
+}
+
+void KindChecking::visit(ClassDecl* clss) {
+
+}
+
+void KindChecking::visit(TypeMemberAccess* tdot) {
+
+}
+
+void KindChecking::visit(TypeTuple* ttuple) {
+
+}
+
+void KindChecking::visit(TypeConstructorCreation* typeconstructor) {
+
+}
+
+void KindChecking::visit(TypeConstructorCall* tcall) {
+
+}
+
+void KindChecking::visit(TypeIdentifier* tident) {
+
+}
+
 }
 
 }

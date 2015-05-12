@@ -30,22 +30,7 @@ void TypeCheking::visit(ASTNode*) {
 
 }
 
-void TypeCheking::visit(ModuleDecl* mod) {
-    SAVE_SCOPE(mod->getSymbol())
-
-    ASTVisitor::visit(mod);
-
-    RESTORE_SCOPE
-}
-
-void TypeCheking::visit(TypeDecl *tdecl) {
-    ASTVisitor::visit(tdecl);
-    tdecl->setType(_res.Unit());
-}
-
 void TypeCheking::visit(ClassDecl* clss) {
-    SAVE_SCOPE(clss)
-
     ASTVisitor::visit(clss);
 
     if (Expression* par = clss->getParent()) {
@@ -55,32 +40,18 @@ void TypeCheking::visit(ClassDecl* clss) {
             }
         }
     }
-
-    RESTORE_SCOPE
 }
 
 void TypeCheking::visit(DefineDecl* decl) {
     if (_visitedDefs.find(decl) == _visitedDefs.end()) {
         _visitedDefs.emplace(decl);
 
-        SAVE_SCOPE(decl->getSymbol())
-
         decl->getValue()->onVisit(this);
 
         // type inference
         decl->getName()->setType(decl->getValue()->type());
         static_cast<sym::DefinitionSymbol*>(decl->getSymbol())->setType(decl->getValue()->type());
-
-        RESTORE_SCOPE
     }
-}
-
-void TypeCheking::visit(TypeConstructorCreation* typeconstructor) {
-    SAVE_SCOPE(typeconstructor)
-
-    ASTVisitor::visit(typeconstructor);
-
-    RESTORE_SCOPE
 }
 
 void TypeCheking::visit(ExpressionStatement* exp) {
@@ -130,8 +101,6 @@ void TypeCheking::visit(TypeSpecifier* tps) {
 }
 
 void TypeCheking::visit(Block* block) {
-    SAVE_SCOPE(block)
-
     ASTVisitor::visit(block);
 
     const std::vector<Expression*>& stats = block->getStatements();
@@ -140,8 +109,6 @@ void TypeCheking::visit(Block* block) {
     } else {
         block->setType(_res.Unit());
     }
-
-    RESTORE_SCOPE
 }
 
 void TypeCheking::visit(IfExpression* ifexpr) {
@@ -200,15 +167,11 @@ void TypeCheking::visit(Tuple* tuple) {
 }
 
 void TypeCheking::visit(FunctionCreation* func) {
-    SAVE_SCOPE(func)
-
     ASTVisitor::visit(func);
 
     _rep.info(*func->getArgs(), func->getBody()->type()->toString());
 
     func->setType(func->getBody()->type()); // TODO : change it
-
-    RESTORE_SCOPE
 }
 
 void TypeCheking::visit(FunctionCall* call) {
