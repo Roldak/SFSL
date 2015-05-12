@@ -75,7 +75,9 @@ public:
     virtual void visit(ClassDecl* clss) override;
     virtual void visit(DefineDecl* decl) override;
 
+    virtual void visit(TypeMemberAccess* tdot) override;
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
+    virtual void visit(TypeIdentifier* tident) override;
 
     virtual void visit(BinaryExpression* exp) override;
     virtual void visit(MemberAccess* mac) override;
@@ -93,8 +95,10 @@ private:
     template<typename T, typename S>
     void initCreated(T* id, S* s);
 
-    void assignFromStaticScope(MemberAccess* mac, sym::Scoped* scoped, const std::string& typeName);
-    void assignFromTypeSymbol(MemberAccess* mac, sym::TypeSymbol* tsym);
+    template<typename T>
+    sym::Symbol* getSymbolFromStaticScope(T* mac, sym::Scoped* scoped, const std::string& typeName);
+
+    void assignFromTypeSymbol(TypeMemberAccess* mac, sym::TypeSymbol* tsym);
 
 };
 

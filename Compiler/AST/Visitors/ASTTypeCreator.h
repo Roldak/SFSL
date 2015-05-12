@@ -41,7 +41,7 @@ public:
     virtual void visit(TypeConstructorCall* tcall) override;
 
     virtual void visit(TypeMemberAccess* mac) override;
-    virtual void visit(TypeIdentifier *ident) override;
+    virtual void visit(TypeIdentifier* ident) override;
 
     /**
      * @return The type created by the ASTTypeCreator
