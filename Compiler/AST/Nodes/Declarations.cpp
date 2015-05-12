@@ -70,7 +70,7 @@ Expression* DefineDecl::getValue() const {
 
 // TYPE DECLARATION
 
-TypeDecl::TypeDecl(Identifier *id, Expression *exp) : _name(id), _exp(exp) {
+TypeDecl::TypeDecl(TypeIdentifier *id, TypeExpression *exp) : _name(id), _exp(exp) {
 
 }
 
@@ -80,11 +80,11 @@ TypeDecl::~TypeDecl() {
 
 SFSL_AST_ON_VISIT_CPP(TypeDecl)
 
-Identifier *TypeDecl::getName() const {
+TypeIdentifier* TypeDecl::getName() const {
     return _name;
 }
 
-Expression *TypeDecl::getExpression() const {
+TypeExpression* TypeDecl::getExpression() const {
     return _exp;
 }
 

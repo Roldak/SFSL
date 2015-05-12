@@ -196,13 +196,13 @@ ClassDecl* Parser::parseClass() {
 }
 
 TypeDecl* Parser::parseType(bool asStatement) {
-    Identifier* typeName = parseIdentifier("expected type name");
+    TypeIdentifier* typeName = parseTypeIdentifier("expected type name");
     accept(tok::OPER_EQ);
 
     std::string lastTypeName = _currentTypeName;
     _currentTypeName = typeName->getValue();
 
-    Expression* expr = parseExpression();
+    TypeExpression* expr = parseTypeExpression();
 
     _currentTypeName = lastTypeName;
 
@@ -445,8 +445,6 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
 
     if (accept(tok::OPER_L_PAREN)) {
         res = _mngr.New<FunctionCall>(left, parseTuple());
-    } else if (accept(tok::OPER_L_BRACKET)) {
-        res = _mngr.New<TypeConstructorCall>(left, parseTypeTuple());
     } else if (accept(tok::OPER_FAT_ARROW)) {
         res = makeFuncOrTypeConstr(left);
     } else if (accept(tok::OPER_DOT)) {
@@ -462,8 +460,6 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
 }
 
 Tuple* Parser::parseTuple() {
-
-
     std::vector<Expression*> exprs;
     return parseTuple<Tuple, tok::OPER_R_PAREN, Expression>(exprs, [&](){return parseExpression();});
 }
@@ -524,7 +520,7 @@ Expression* Parser::makeFuncOrTypeConstr(Expression* left) {
 
     if (ast::isNodeOfType<TypeTuple>(left, _ctx)) {
         name = _currentTypeName.empty() ? AnonymousTypeConstructorName : _currentTypeName;
-        return _mngr.New<TypeConstructorCreation>(name, static_cast<TypeTuple*>(left), parseExpression());
+        return _mngr.New<TypeConstructorCreation>(name, static_cast<TypeTuple*>(left), parseTypeExpression());
     } else {
         name = _currentDefName.empty() ? AnonymousFunctionName : _currentDefName;
         return _mngr.New<FunctionCreation>(name, left, parseExpression());

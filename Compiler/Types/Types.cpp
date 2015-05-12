@@ -209,7 +209,7 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
             } else if (ast::isNodeOfType<ast::TypeConstructorCall>(params[i], ctx)) {
                 // TODO : this code is ugly and most likely wrong
                 param = static_cast<sym::TypeSymbol*>(
-                            static_cast<ast::Identifier*>(
+                            static_cast<ast::TypeIdentifier*>(
                                 static_cast<ast::TypeConstructorCall*>(
                                     params[i]
                                 )->getCallee()

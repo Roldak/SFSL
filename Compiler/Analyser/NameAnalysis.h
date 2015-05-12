@@ -88,8 +88,10 @@ private:
 
     void createVar(Identifier* id);
     void createObjectType(Identifier* id);
-    void createTypeConstructor(Identifier* id, TypeTuple* ttuple);
-    void initCreated(Identifier* id, sym::Symbol* s);
+    void createTypeConstructor(TypeIdentifier* id, TypeTuple* ttuple);
+
+    template<typename T, typename S>
+    void initCreated(T* id, S* s);
 
     void assignFromStaticScope(MemberAccess* mac, sym::Scoped* scoped, const std::string& typeName);
     void assignFromTypeSymbol(MemberAccess* mac, sym::TypeSymbol* tsym);

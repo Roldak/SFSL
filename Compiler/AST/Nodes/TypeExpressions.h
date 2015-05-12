@@ -99,7 +99,7 @@ private:
 class TypeConstructorCreation : public TypeExpression, public sym::Scoped {
 public:
 
-    TypeConstructorCreation(const std::string& name, TypeTuple* args, Expression* body);
+    TypeConstructorCreation(const std::string& name, TypeTuple* args, TypeExpression* body);
     virtual ~TypeConstructorCreation();
 
     SFSL_AST_ON_VISIT_H
@@ -117,13 +117,13 @@ public:
     /**
      * @return The body of the type constructor
      */
-    Expression* getBody() const;
+    TypeExpression* getBody() const;
 
 private:
 
     std::string _name;
     TypeTuple* _args;
-    Expression* _body;
+    TypeExpression* _body;
 };
 
 /**
@@ -132,7 +132,7 @@ private:
 class TypeConstructorCall : public TypeExpression {
 public:
 
-    TypeConstructorCall(Expression* callee, TypeTuple* args);
+    TypeConstructorCall(TypeExpression* callee, TypeTuple* args);
     virtual ~TypeConstructorCall();
 
     SFSL_AST_ON_VISIT_H
@@ -140,7 +140,7 @@ public:
     /**
      * @return The expression to which is applied the brackets operator
      */
-    Expression* getCallee() const;
+    TypeExpression* getCallee() const;
 
     /**
      * @return The sequence of arguments which are applied to the callee
@@ -154,7 +154,7 @@ public:
 
 private:
 
-    Expression* _callee;
+    TypeExpression* _callee;
     TypeTuple* _args;
 };
 
@@ -178,6 +178,8 @@ private:
 
     const std::string _name;
 };
+
+// TODO : KindSpecifier
 
 }
 

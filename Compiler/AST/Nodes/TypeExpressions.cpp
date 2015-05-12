@@ -73,7 +73,7 @@ const std::vector<TypeExpression*>& TypeTuple::getExpressions() {
 
 // TYPE CONSTRUCTOR CREATION
 
-TypeConstructorCreation::TypeConstructorCreation(const std::string &name, TypeTuple *args, Expression* body)
+TypeConstructorCreation::TypeConstructorCreation(const std::string &name, TypeTuple *args, TypeExpression* body)
     : _name(name), _args(args), _body(body) {
 
 }
@@ -92,13 +92,13 @@ TypeTuple* TypeConstructorCreation::getArgs() const {
     return _args;
 }
 
-Expression* TypeConstructorCreation::getBody() const {
+TypeExpression* TypeConstructorCreation::getBody() const {
     return _body;
 }
 
 // TYPE CONSTRUCTOR CALL
 
-TypeConstructorCall::TypeConstructorCall(Expression* callee, TypeTuple* args)
+TypeConstructorCall::TypeConstructorCall(TypeExpression* callee, TypeTuple* args)
     : _callee(callee), _args(args) {
 
 }
@@ -109,7 +109,7 @@ TypeConstructorCall::~TypeConstructorCall() {
 
 SFSL_AST_ON_VISIT_CPP(TypeConstructorCall)
 
-Expression* TypeConstructorCall::getCallee() const {
+TypeExpression* TypeConstructorCall::getCallee() const {
     return _callee;
 }
 
