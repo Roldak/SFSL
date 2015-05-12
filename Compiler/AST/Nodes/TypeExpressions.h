@@ -77,7 +77,7 @@ private:
 /**
  * @brief Represents a type member access (with a dot operation, e.g. `module.class`)
  */
-class TypeMemberAccess : public TypeExpression, public sym::Symbolic<sym::TypeSymbol> {
+class TypeMemberAccess : public TypeExpression, public sym::Symbolic<sym::Symbol> {
 public:
 
     TypeMemberAccess(TypeExpression* accessed, TypeIdentifier* member);
@@ -191,7 +191,7 @@ private:
  * @brief Represents a type identifier, which
  * refers to a type symbol.
  */
-class TypeIdentifier : public TypeExpression, public sym::Symbolic<sym::TypeSymbol> {
+class TypeIdentifier : public TypeExpression, public sym::Symbolic<sym::Symbol> {
 public:
     TypeIdentifier(const std::string& name);
     virtual ~TypeIdentifier();

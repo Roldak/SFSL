@@ -96,9 +96,16 @@ private:
     void initCreated(T* id, S* s);
 
     template<typename T>
-    sym::Symbol* getSymbolFromStaticScope(T* mac, sym::Scoped* scoped, const std::string& typeName);
+    void assignIdentifier(T* id);
 
-    void assignFromTypeSymbol(TypeMemberAccess* mac, sym::TypeSymbol* tsym);
+    template<typename T>
+    void assignMemberAccess(T* mac);
+
+    template<typename T>
+    void assignFromStaticScope(T* mac, sym::Scoped* scoped, const std::string& typeName);
+
+    template<typename T>
+    void assignFromTypeSymbol(T* mac, sym::TypeSymbol* tsym);
 
 };
 

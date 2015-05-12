@@ -87,8 +87,14 @@ type::Type* ASTTypeCreator::getCreatedType() const {
     return _created;
 }
 
-void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::TypeSymbol>* symbolic, common::Positionnable& pos) {
-    if (sym::TypeSymbol* ts = symbolic->getSymbol()) {
+void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos) {
+    if (sym::Symbol* s = symbolic->getSymbol()) {
+        if (s->getSymbolType() != sym::SYM_TPE) {
+            _ctx->reporter().error(pos, "Expression is not a type");
+        }
+
+        sym::TypeSymbol* ts = static_cast<sym::TypeSymbol*>(s);
+
         if (ts->type() == type::Type::NotYetDefined()) {
 
             if (_visitedTypes.find(ts) == _visitedTypes.end()) {

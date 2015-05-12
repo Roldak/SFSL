@@ -50,7 +50,7 @@ public:
 
 protected:
 
-    void createTypeFromSymbolic(sym::Symbolic<sym::TypeSymbol>* symbolic, common::Positionnable& pos);
+    void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
 
     type::Type* _created;
 

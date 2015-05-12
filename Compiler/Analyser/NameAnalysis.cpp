@@ -198,17 +198,7 @@ void SymbolAssignation::visit(DefineDecl* def) {
 }
 
 void SymbolAssignation::visit(TypeMemberAccess* tmac) {
-    tmac->getAccessed()->onVisit(this);
-
-    if (sym::Symbol* sym = extractSymbol(tmac->getAccessed(), _ctx)) {
-        if (sym->getSymbolType() == sym::SYM_TPE) {
-            assignFromTypeSymbol(tmac, static_cast<sym::TypeSymbol*>(sym));
-            return;
-        }
-    }
-
-    //else...
-    tmac->setSymbol(nullptr);
+    assignMemberAccess(tmac);
 }
 
 void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
@@ -235,11 +225,7 @@ void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
 }
 
 void SymbolAssignation::visit(TypeIdentifier *id) {
-    if (sym::TypeSymbol* symbol = _curScope->getSymbol<sym::Symbol>(id->getValue())) {
-        id->setSymbol(symbol);
-    } else {
-        _ctx.get()->reporter().error(*id, "Undefined type symbol '" + id->getValue() + "'");
-    }
+    assignIdentifier(id);
 }
 
 void SymbolAssignation::visit(BinaryExpression* exp) {
@@ -248,18 +234,7 @@ void SymbolAssignation::visit(BinaryExpression* exp) {
 }
 
 void SymbolAssignation::visit(MemberAccess* mac) {
-    mac->getAccessed()->onVisit(this);
-
-    if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
-        if (sym->getSymbolType() == sym::SYM_MODULE) {
-            sym::Symbol* res = getSymbolFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName());
-            mac->setSymbol(res);
-            return;
-        }
-    }
-
-    //else...
-    mac->setSymbol(nullptr);
+    assignMemberAccess(mac);
 }
 
 void SymbolAssignation::visit(Block* block) {
@@ -304,11 +279,7 @@ void SymbolAssignation::visit(TypeSpecifier* tps) {
 }
 
 void SymbolAssignation::visit(Identifier* id) {
-    if (sym::Symbol* symbol = _curScope->getSymbol<sym::Symbol>(id->getValue())) {
-        id->setSymbol(symbol);
-    } else {
-        _ctx.get()->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
-    }
+    assignIdentifier(id);
 }
 
 void SymbolAssignation::createVar(Identifier *id) {
@@ -347,28 +318,48 @@ void SymbolAssignation::initCreated(T* id, S* s) {
 }
 
 template<typename T>
-sym::Symbol* SymbolAssignation::getSymbolFromStaticScope(T* mac, sym::Scoped* scoped, const std::string& typeName) {
+void SymbolAssignation::assignIdentifier(T* id) {
+    if (sym::Symbol* symbol = _curScope->getSymbol<sym::Symbol>(id->getValue())) {
+        id->setSymbol(symbol);
+    } else {
+        _ctx.get()->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
+    }
+}
+
+template<typename T>
+void SymbolAssignation::assignMemberAccess(T* mac) {
+    mac->getAccessed()->onVisit(this);
+
+    if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
+        switch (sym->getSymbolType()) {
+        case sym::SYM_MODULE:   assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName()); break;
+        case sym::SYM_TPE:      assignFromTypeSymbol(mac, static_cast<sym::TypeSymbol*>(sym)); break;
+        default:
+            _ctx->reporter().error(*mac, "Member " + mac->getMember()->getValue()  + " is not a valid member");
+            mac->setSymbol(nullptr);
+            break;
+        }
+    }
+}
+
+template<typename T>
+void SymbolAssignation::assignFromStaticScope(T* mac, sym::Scoped* scoped, const std::string& typeName) {
     sym::Scope* scope = scoped->getScope();
     const std::string& id = mac->getMember()->getValue();
 
     if (sym::Symbol* resSymbol = scope->getSymbol<sym::Symbol>(id, false)) {
-        return resSymbol;
+        mac->setSymbol(resSymbol);
     } else {
         _ctx.get()->reporter().error(
                     *(mac->getMember()),
                     std::string("No member named '") + id + "' in " + typeName);
-        return nullptr;
     }
 }
 
-void SymbolAssignation::assignFromTypeSymbol(TypeMemberAccess* mac, sym::TypeSymbol* tsym) {
+template<typename T>
+void SymbolAssignation::assignFromTypeSymbol(T* mac, sym::TypeSymbol* tsym) {
     if (ClassDecl* clss = getClassDeclFromTypeSymbol(tsym, _ctx)) {
-        sym::Symbol* res = getSymbolFromStaticScope(mac, clss, "class " + clss->getName());
-        if (res->getSymbolType() == sym::SYM_TPE) {
-            mac->setSymbol(static_cast<sym::TypeSymbol*>(res));
-        } else {
-            _ctx->reporter().error(*mac->getMember(), "Member " + mac->getMember()->getValue() + " is not a type");
-        }
+        assignFromStaticScope<T>(mac, clss, "class " + clss->getName());
     } else {
         _ctx.get()->reporter().error(*mac->getMember(), "Type " + tsym->getName() + " cannot have any members");
     }
