@@ -233,7 +233,7 @@ Tuple* FunctionCall::getArgsTuple() const {
 // IDENTIFIER
 
 Identifier::Identifier(const std::string& name) : _name(name) {
-    setSymbol(nullptr);
+
 }
 
 Identifier::~Identifier() {

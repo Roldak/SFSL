@@ -68,7 +68,11 @@ private:
 
     // Parsing
 
+    template<typename T>
+    T* parseIdentifierHelper(const std::string errMsg);
+
     ast::Identifier* parseIdentifier(const std::string& errMsg = "");
+    ast::TypeIdentifier* parseTypeIdentifier(const std::string& errMsg = "");
 
     ast::Program* parseProgram();
     ast::ModuleDecl* parseModule();
@@ -86,6 +90,8 @@ private:
     ast::Expression* parseBinary(ast::Expression* left, int precedence);
     ast::Expression* parsePrimary();
     ast::TypeSpecifier* parseTypeSpecifier(ast::Identifier* id);
+
+    ast::TypeExpression* parseTypeExpression();
 
     ast::Block* parseBlock();
     ast::IfExpression* parseIf(bool asStatement);

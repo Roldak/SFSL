@@ -11,10 +11,24 @@
 
 #include <iostream>
 #include "Expressions.h"
+#include "../../Types/Kinds/Kinds.h"
 
 namespace sfsl {
 
 namespace ast {
+
+/**
+ * @brief A superclass that represents a type expression.
+ * Cannot be constructed. This class is there just to provide
+ * a lower upper bound for all the type expressions than Expression
+ */
+class TypeExpression : public Expression, public kind::Kinded {
+public:
+
+    virtual ~TypeExpression();
+
+    SFSL_AST_ON_VISIT_H
+};
 
 /**
  * @brief The Class Declaration AST
@@ -22,7 +36,7 @@ namespace ast {
  *  - Its fields
  *  - Its definitions
  */
-class ClassDecl : public Expression, public sym::Scoped {
+class ClassDecl : public TypeExpression, public sym::Scoped {
 public:
 
     ClassDecl(const std::string& name, Expression* parent, const std::vector<TypeSpecifier*>& fields, const std::vector<DefineDecl*>& defs);
@@ -61,7 +75,7 @@ private:
 /**
  * @brief Represents a tuple
  */
-class TypeTuple : public Expression {
+class TypeTuple : public TypeExpression {
 public:
 
     TypeTuple(const std::vector<Expression*>& exprs);
@@ -82,7 +96,7 @@ private:
 /**
  * @brief Represents a type constructor creation, e.g. `[T] => class { x: T; }`
  */
-class TypeConstructorCreation : public Expression, public sym::Scoped {
+class TypeConstructorCreation : public TypeExpression, public sym::Scoped {
 public:
 
     TypeConstructorCreation(const std::string& name, TypeTuple* args, Expression* body);
@@ -115,7 +129,7 @@ private:
 /**
  * @brief Represents a type constructor call.
  */
-class TypeConstructorCall : public Expression {
+class TypeConstructorCall : public TypeExpression {
 public:
 
     TypeConstructorCall(Expression* callee, TypeTuple* args);
@@ -142,7 +156,27 @@ private:
 
     Expression* _callee;
     TypeTuple* _args;
+};
 
+/**
+ * @brief Represents a type identifier, which
+ * refers to a type symbol.
+ */
+class TypeIdentifier : public TypeExpression, public sym::Symbolic<sym::TypeSymbol> {
+public:
+    TypeIdentifier(const std::string& name);
+    virtual ~TypeIdentifier();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The name of the identifier
+     */
+    const std::string& getValue() const;
+
+private:
+
+    const std::string _name;
 };
 
 }

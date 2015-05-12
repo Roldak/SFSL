@@ -60,7 +60,8 @@ void Parser::accept() {
     _currentToken = _lex.getNext();
 }
 
-Identifier* Parser::parseIdentifier(const std::string& errMsg) {
+template<typename T>
+T* Parser::parseIdentifierHelper(const std::string errMsg) {
     std::string name;
 
     SAVE_POS(startPos)
@@ -72,9 +73,17 @@ Identifier* Parser::parseIdentifier(const std::string& errMsg) {
         _ctx->reporter().error(*_currentToken, errMsg);
     }
 
-    Identifier* id = _mngr.New<Identifier>(name);
+    T* id = _mngr.New<T>(name);
     id->setPos(startPos);
     return id;
+}
+
+Identifier* Parser::parseIdentifier(const std::string& errMsg) {
+    return parseIdentifierHelper<Identifier>(errMsg);
+}
+
+TypeIdentifier *Parser::parseTypeIdentifier(const std::string &errMsg) {
+    return parseIdentifierHelper<TypeIdentifier>(errMsg);
 }
 
 // Parsing
@@ -297,12 +306,10 @@ Expression* Parser::parsePrimary() {
 
     case tok::TOK_OPER:
         if (accept(tok::OPER_L_PAREN)) {
-            Tuple* tuple = parseTuple();
+            Tuple* tuple = static_cast<Tuple*>(toRet = parseTuple());
 
             if (tuple->getExpressions().size() == 1) {
-                return tuple->getExpressions()[0];
-            } else {
-                return tuple;
+                toRet = tuple->getExpressions()[0];
             }
         }
         else if (accept(tok::OPER_L_BRACKET)) {
@@ -338,6 +345,45 @@ TypeSpecifier* Parser::parseTypeSpecifier(Identifier* id) {
     spec->setPos(*id);
     spec->setEndPos(_lastTokenEndPos);
     return spec;
+}
+
+TypeExpression *Parser::parseTypeExpression() {
+    TypeExpression* toRet = nullptr;
+
+    switch (_currentToken->getTokenType()) {
+    case tok::TOK_ID:
+        toRet = parseTypeIdentifier();
+        if (isType(tok::TOK_OPER) && as<tok::Operator>()->getOpType() == tok::OPER_COLON) {
+            //toRet = parseTypeSpecifier(static_cast<Identifier*>(toRet));
+        }
+        break;
+
+    case tok::TOK_OPER:
+        if (accept(tok::OPER_L_BRACKET)) {
+            TypeTuple* ttuple = static_cast<TypeTuple*>(toRet = parseTypeTuple());
+
+            if (ttuple->getExpressions().size() == 1) {
+                //toRet = ttuple->getExpressions()[0];
+            }
+        }
+        else {
+            _ctx->reporter().error(*_currentToken, "unexpected token `"+ _currentToken->toString() +"`");
+        }
+        break;
+
+    case tok::TOK_KW:
+        if (accept(tok::KW_CLASS)) {
+            return parseClass();
+        } else {
+            _ctx->reporter().error(*_currentToken, "Unexpected keyword " + as<tok::Keyword>()->toString());
+        }
+        break;
+
+    default:
+        _ctx->reporter().error(*_currentToken,
+                               "expected int litteral | real litteral | string litteral "
+                               "| identifier | keyword; got " + _currentToken->toString());
+    }
 }
 
 Block* Parser::parseBlock() {
@@ -426,7 +472,7 @@ T* Parser::parseTuple(std::vector<ast::Expression*>& exprs) {
             }
         } while (accept(tok::OPER_COMMA));
 
-        expect(R_DELIM, "`)`");
+        expect(R_DELIM, "`" + tok::Operator::OperTypeToString(R_DELIM) + "`");
     }
 
     T* tuple = _mngr.New<T>(exprs);

@@ -13,6 +13,14 @@ namespace sfsl {
 
 namespace ast {
 
+// TYPE EXPRESSION
+
+TypeExpression::~TypeExpression() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeExpression)
+
 // CLASS DECLARATION
 
 ClassDecl::ClassDecl(const std::string& name,
@@ -111,6 +119,22 @@ const std::vector<Expression*>& TypeConstructorCall::getArgs() const {
 
 TypeTuple* TypeConstructorCall::getArgsTuple() const {
     return _args;
+}
+
+// TYPE IDENTIFIER
+
+TypeIdentifier::TypeIdentifier(const std::string &name) : _name(name) {
+
+}
+
+TypeIdentifier::~TypeIdentifier() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeIdentifier)
+
+const std::string& TypeIdentifier::getValue() const {
+    return _name;
 }
 
 }
