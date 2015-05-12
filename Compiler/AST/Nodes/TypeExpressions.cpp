@@ -24,7 +24,7 @@ SFSL_AST_ON_VISIT_CPP(TypeExpression)
 // CLASS DECLARATION
 
 ClassDecl::ClassDecl(const std::string& name,
-                     Expression* parent,
+                     TypeExpression* parent,
                      const std::vector<TypeSpecifier*>& fields,
                      const std::vector<DefineDecl*>& defs)
 
@@ -43,7 +43,7 @@ const std::string& ClassDecl::getName() const {
     return _name;
 }
 
-Expression* ClassDecl::getParent() const {
+TypeExpression* ClassDecl::getParent() const {
     return _parent;
 }
 
@@ -57,7 +57,7 @@ const std::vector<DefineDecl*>& ClassDecl::getDefs() const{
 
 // TYPE TUPLE
 
-TypeTuple::TypeTuple(const std::vector<Expression*>& exprs) : _exprs(exprs) {
+TypeTuple::TypeTuple(const std::vector<TypeExpression*>& exprs) : _exprs(exprs) {
 
 }
 
@@ -67,7 +67,7 @@ TypeTuple::~TypeTuple() {
 
 SFSL_AST_ON_VISIT_CPP(TypeTuple)
 
-const std::vector<Expression*>& TypeTuple::getExpressions() {
+const std::vector<TypeExpression*>& TypeTuple::getExpressions() {
     return _exprs;
 }
 
@@ -113,7 +113,7 @@ Expression* TypeConstructorCall::getCallee() const {
     return _callee;
 }
 
-const std::vector<Expression*>& TypeConstructorCall::getArgs() const {
+const std::vector<TypeExpression*>& TypeConstructorCall::getArgs() const {
     return _args->getExpressions();
 }
 

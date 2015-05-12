@@ -47,8 +47,8 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
     if (type::Type* tmp = ctr->applyEnv({}, _ctx)) {
         if (type::ConstructorType* constr = type::getIf<type::ConstructorType>(tmp)) {
 
-            const std::vector<Expression*>& found = tcall->getArgs();
-            const std::vector<Expression*>& expec = constr->getTypeConstructor()->getArgs()->getExpressions();
+            const std::vector<TypeExpression*>& found = tcall->getArgs();
+            const std::vector<TypeExpression*>& expec = constr->getTypeConstructor()->getArgs()->getExpressions();
 
             if (found.size() != expec.size()) {
                 _ctx.get()->reporter().error(*tcall, "Wrong number of arguments. Found " +

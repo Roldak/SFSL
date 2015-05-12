@@ -205,7 +205,7 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
         for (size_t i = 0; i < params.size(); ++i) {
             sym::TypeSymbol* param = nullptr;
             if (ast::isNodeOfType<ast::Identifier>(params[i], ctx)) {
-                param = static_cast<sym::TypeSymbol*>(static_cast<ast::Identifier*>(params[i])->getSymbol());
+                param = static_cast<sym::TypeSymbol*>(static_cast<ast::TypeIdentifier*>(params[i])->getSymbol());
             } else if (ast::isNodeOfType<ast::TypeConstructorCall>(params[i], ctx)) {
                 // TODO : this code is ugly and most likely wrong
                 param = static_cast<sym::TypeSymbol*>(

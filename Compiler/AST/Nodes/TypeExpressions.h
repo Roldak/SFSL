@@ -39,7 +39,7 @@ public:
 class ClassDecl : public TypeExpression, public sym::Scoped {
 public:
 
-    ClassDecl(const std::string& name, Expression* parent, const std::vector<TypeSpecifier*>& fields, const std::vector<DefineDecl*>& defs);
+    ClassDecl(const std::string& name, TypeExpression* parent, const std::vector<TypeSpecifier*>& fields, const std::vector<DefineDecl*>& defs);
     virtual ~ClassDecl();
 
     SFSL_AST_ON_VISIT_H
@@ -52,7 +52,7 @@ public:
     /**
      * @return The expression defining the parent of this class
      */
-    Expression* getParent() const;
+    TypeExpression* getParent() const;
 
     /**
      * @return The list of fields declared in this class
@@ -67,7 +67,7 @@ public:
 private:
 
     std::string _name;
-    Expression* _parent;
+    TypeExpression* _parent;
     std::vector<TypeSpecifier*> _fields;
     std::vector<DefineDecl*> _defs;
 };
@@ -78,7 +78,7 @@ private:
 class TypeTuple : public TypeExpression {
 public:
 
-    TypeTuple(const std::vector<Expression*>& exprs);
+    TypeTuple(const std::vector<TypeExpression*>& exprs);
     virtual ~TypeTuple();
 
     SFSL_AST_ON_VISIT_H
@@ -86,11 +86,11 @@ public:
     /**
      * @return The sequence of expressions that compose the tuple
      */
-    const std::vector<Expression*>& getExpressions();
+    const std::vector<TypeExpression*>& getExpressions();
 
 private:
 
-    const std::vector<Expression*> _exprs;
+    const std::vector<TypeExpression*> _exprs;
 };
 
 /**
@@ -150,7 +150,7 @@ public:
     /**
      * @return The arguments by extracting them directly from the tuple
      */
-    const std::vector<Expression*>& getArgs() const;
+    const std::vector<TypeExpression*>& getArgs() const;
 
 private:
 

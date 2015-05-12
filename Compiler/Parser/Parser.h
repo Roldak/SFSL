@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <memory>
+#include <functional>
 
 #include "../Lexer/Lexer.h"
 #include "../Lexer/Tokens/Keyword.h"
@@ -92,6 +93,7 @@ private:
     ast::TypeSpecifier* parseTypeSpecifier(ast::Identifier* id);
 
     ast::TypeExpression* parseTypeExpression();
+    ast::TypeExpression* parseTypePrimary();
 
     ast::Block* parseBlock();
     ast::IfExpression* parseIf(bool asStatement);
@@ -103,8 +105,8 @@ private:
 
         // others
 
-    template<typename T, tok::OPER_TYPE R_DELIM>
-    T* parseTuple(std::vector<ast::Expression*>& exprs);
+    template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
+    RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE*>& exprs, const PARSING_FUNC& f);
 
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
 

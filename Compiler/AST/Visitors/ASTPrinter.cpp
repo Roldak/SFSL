@@ -104,7 +104,7 @@ void ASTPrinter::visit(DefineDecl* decl) {
 void ASTPrinter::visit(TypeTuple* ttuple) {
     std::cout << "[";
 
-    const std::vector<Expression*>& args(ttuple->getExpressions());
+    const std::vector<TypeExpression*>& args(ttuple->getExpressions());
 
     for (size_t i = 0, e = args.size(); i < e; ++i) {
         args[i]->onVisit(this);
