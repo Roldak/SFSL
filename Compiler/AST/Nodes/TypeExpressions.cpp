@@ -73,7 +73,7 @@ const std::vector<TypeExpression*>& TypeTuple::getExpressions() {
 
 // TYPE CONSTRUCTOR CREATION
 
-TypeConstructorCreation::TypeConstructorCreation(const std::string &name, TypeTuple *args, TypeExpression* body)
+TypeConstructorCreation::TypeConstructorCreation(const std::string &name, TypeExpression* args, TypeExpression* body)
     : _name(name), _args(args), _body(body) {
 
 }
@@ -88,7 +88,7 @@ const std::string& TypeConstructorCreation::getName() const {
     return _name;
 }
 
-TypeTuple* TypeConstructorCreation::getArgs() const {
+TypeExpression* TypeConstructorCreation::getArgs() const {
     return _args;
 }
 

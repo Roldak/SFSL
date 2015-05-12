@@ -352,10 +352,21 @@ TypeSpecifier* Parser::parseTypeSpecifier(Identifier* id) {
 TypeExpression* Parser::parseTypeExpression() {
     TypeExpression* res = parseTypePrimary();
 
-    while (accept(tok::OPER_L_BRACKET)) {
+    while (isType(tok::TOK_OPER)) {
         SAVE_POS(startPos)
+        tok::Operator* op = as<tok::Operator>();
 
-        res = _mngr.New<TypeConstructorCall>(res, parseTypeTuple());
+        switch (op->getOpType()) {
+        case tok::OPER_L_BRACKET:
+            res = _mngr.New<TypeConstructorCall>(res, parseTypeTuple());
+            break;
+        case tok::OPER_FAT_ARROW:
+            res = makeFuncOrTypeConstr<TypeConstructorCreation>(res, [&](){return parseTypeExpression();});
+            break;
+        default:
+            _ctx->reporter().error(*op, "Unexpected operator `" + op->toString() + "`");
+            continue;
+        }
 
         res->setPos(startPos);
         res->setEndPos(_lastTokenEndPos);
@@ -446,7 +457,7 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     if (accept(tok::OPER_L_PAREN)) {
         res = _mngr.New<FunctionCall>(left, parseTuple());
     } else if (accept(tok::OPER_FAT_ARROW)) {
-        res = makeFuncOrTypeConstr(left);
+        res = makeFuncOrTypeConstr<FunctionCreation>(left, [&](){return parseExpression();});
     } else if (accept(tok::OPER_DOT)) {
         return parseDotOperation(left);
     }
@@ -515,16 +526,10 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
     return res;
 }
 
-Expression* Parser::makeFuncOrTypeConstr(Expression* left) {
-    std::string name;
-
-    if (ast::isNodeOfType<TypeTuple>(left, _ctx)) {
-        name = _currentTypeName.empty() ? AnonymousTypeConstructorName : _currentTypeName;
-        return _mngr.New<TypeConstructorCreation>(name, static_cast<TypeTuple*>(left), parseTypeExpression());
-    } else {
-        name = _currentDefName.empty() ? AnonymousFunctionName : _currentDefName;
-        return _mngr.New<FunctionCreation>(name, left, parseExpression());
-    }
+template<typename RETURN_TYPE, typename EXPRESSION_TYPE, typename PARSING_FUNC>
+RETURN_TYPE *Parser::makeFuncOrTypeConstr(EXPRESSION_TYPE* left, const PARSING_FUNC& f) {
+    std::string name = _currentDefName.empty() ? AnonymousFunctionName : _currentDefName;
+    return _mngr.New<RETURN_TYPE>(name, left, f());
 }
 
 }

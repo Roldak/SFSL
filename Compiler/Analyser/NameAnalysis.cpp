@@ -200,7 +200,7 @@ void SymbolAssignation::visit(DefineDecl* def) {
 void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
     SAVE_SCOPE(typeconstructor)
 
-    const std::vector<TypeExpression*>& args = typeconstructor->getArgs()->getExpressions();
+    /*const std::vector<TypeExpression*>& args = typeconstructor->getArgs()->getExpressions();
 
     for (Expression* expr : args) {
         if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
@@ -214,7 +214,7 @@ void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
             _ctx.get()->reporter().error(*expr, "Argument should be an identifier");
         }
     }
-
+*/
     typeconstructor->getBody()->onVisit(this);
 
     RESTORE_SCOPE

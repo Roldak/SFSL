@@ -46,7 +46,7 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
 
     if (type::Type* tmp = ctr->applyEnv({}, _ctx)) {
         if (type::ConstructorType* constr = type::getIf<type::ConstructorType>(tmp)) {
-
+            /*
             const std::vector<TypeExpression*>& found = tcall->getArgs();
             const std::vector<TypeExpression*>& expec = constr->getTypeConstructor()->getArgs()->getExpressions();
 
@@ -65,6 +65,7 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
             }
 
             _created = _mngr.New<type::ConstructorApplyType>(ctr, args, *tcall, _subTable);
+            */
 
         } else {
             _ctx.get()->reporter().error(*tcall, "Expression is not a type constructor.");

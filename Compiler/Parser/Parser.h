@@ -110,7 +110,8 @@ private:
 
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
 
-    ast::Expression* makeFuncOrTypeConstr(Expression* left);
+    template<typename RETURN_TYPE, typename EXPRESSION_TYPE, typename PARSING_FUNC>
+    RETURN_TYPE* makeFuncOrTypeConstr(EXPRESSION_TYPE* left, const PARSING_FUNC& f);
 
     // Members
 

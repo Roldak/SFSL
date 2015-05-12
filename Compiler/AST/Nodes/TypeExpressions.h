@@ -99,7 +99,7 @@ private:
 class TypeConstructorCreation : public TypeExpression, public sym::Scoped {
 public:
 
-    TypeConstructorCreation(const std::string& name, TypeTuple* args, TypeExpression* body);
+    TypeConstructorCreation(const std::string& name, TypeExpression* args, TypeExpression* body);
     virtual ~TypeConstructorCreation();
 
     SFSL_AST_ON_VISIT_H
@@ -112,7 +112,7 @@ public:
     /**
      * @return The tuple of arguments
      */
-    TypeTuple* getArgs() const;
+    TypeExpression* getArgs() const;
 
     /**
      * @return The body of the type constructor
@@ -122,7 +122,7 @@ public:
 private:
 
     std::string _name;
-    TypeTuple* _args;
+    TypeExpression* _args;
     TypeExpression* _body;
 };
 
