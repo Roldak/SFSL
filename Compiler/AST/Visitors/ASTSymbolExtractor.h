@@ -39,6 +39,9 @@ public:
     virtual void visit(Identifier* id) override;
     virtual void visit(MemberAccess* mac) override;
 
+    virtual void visit(TypeIdentifier* id) override;
+    virtual void visit(TypeMemberAccess* mac) override;
+
     sym::Symbol* getSymbol() const;
 
 protected:

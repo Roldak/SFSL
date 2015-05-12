@@ -32,8 +32,10 @@ public:
     virtual void visit(ClassDecl* clss) override;
     virtual void visit(DefineDecl* decl) override;
 
+    virtual void visit(TypeMemberAccess* tdot) override;
     virtual void visit(TypeTuple* ttuple) override;
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
+    virtual void visit(TypeIdentifier* tident);
 
     virtual void visit(ExpressionStatement* exp) override;
 

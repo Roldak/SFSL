@@ -93,6 +93,7 @@ private:
     ast::TypeSpecifier* parseTypeSpecifier(ast::Identifier* id);
 
     ast::TypeExpression* parseTypeExpression();
+    ast::TypeExpression* parseTypeBinary(ast::TypeExpression* left, int precedence);
     ast::TypeExpression* parseTypePrimary();
 
     ast::Block* parseBlock();
@@ -101,7 +102,6 @@ private:
     ast::Expression* parseSpecialBinaryContinuity(ast::Expression* left);
     ast::Tuple* parseTuple();
     ast::TypeTuple* parseTypeTuple();
-    ast::Expression* parseDotOperation(ast::Expression* left);
 
         // others
 

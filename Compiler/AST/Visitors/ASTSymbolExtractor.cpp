@@ -45,6 +45,14 @@ void ASTSymbolExtractor::visit(MemberAccess* mac) {
     _sym = mac->getSymbol();
 }
 
+void ASTSymbolExtractor::visit(TypeIdentifier *id) {
+    _sym = id->getSymbol();
+}
+
+void ASTSymbolExtractor::visit(TypeMemberAccess *mac) {
+    _sym = mac->getSymbol();
+}
+
 sym::Symbol* ASTSymbolExtractor::getSymbol() const {
     return _sym;
 }

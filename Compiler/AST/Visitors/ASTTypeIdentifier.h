@@ -31,87 +31,95 @@ public:
 
     virtual ~ASTTypeIdentifier() {}
 
-    virtual void visit(ASTNode*) override{
+    virtual void visit(ASTNode*) override {
         setIfSame<ASTNode>();
     }
 
-    virtual void visit(Program*) override{
+    virtual void visit(Program*) override {
         setIfSame<Program>();
     }
 
-    virtual void visit(ModuleDecl*) override{
+    virtual void visit(ModuleDecl*) override {
         setIfSame<ModuleDecl>();
     }
 
-    virtual void visit(TypeDecl*) override{
+    virtual void visit(TypeDecl*) override {
         setIfSame<TypeDecl>();
     }
 
-    virtual void visit(ClassDecl*) override{
+    virtual void visit(ClassDecl*) override {
         setIfSame<ClassDecl>();
     }
 
-    virtual void visit(DefineDecl*) override{
+    virtual void visit(DefineDecl*) override {
         setIfSame<DefineDecl>();
     }
 
-    virtual void visit(TypeTuple*) override{
+    virtual void visit(TypeMemberAccess*) override {
+        setIfSame<TypeMemberAccess>();
+    }
+
+    virtual void visit(TypeTuple*) override {
         setIfSame<TypeTuple>();
     }
 
-    virtual void visit(TypeConstructorCreation*) override{
+    virtual void visit(TypeConstructorCreation*) override {
         setIfSame<TypeConstructorCreation>();
     }
 
-    virtual void visit(TypeConstructorCall*) override{
+    virtual void visit(TypeConstructorCall*) override {
         setIfSame<TypeConstructorCall>();
     }
 
-    virtual void visit(ExpressionStatement*) override{
+    virtual void visit(TypeIdentifier*) override {
+        setIfSame<TypeIdentifier>();
+    }
+
+    virtual void visit(ExpressionStatement*) override {
         setIfSame<ExpressionStatement>();
     }
 
-    virtual void visit(BinaryExpression*) override{
+    virtual void visit(BinaryExpression*) override {
         setIfSame<BinaryExpression>();
     }
 
-    virtual void visit(TypeSpecifier*) override{
+    virtual void visit(TypeSpecifier*) override {
         setIfSame<TypeSpecifier>();
     }
 
-    virtual void visit(Block*) override{
+    virtual void visit(Block*) override {
         setIfSame<Block>();
     }
 
-    virtual void visit(IfExpression*) override{
+    virtual void visit(IfExpression*) override {
         setIfSame<IfExpression>();
     }
 
-    virtual void visit(MemberAccess*) override{
+    virtual void visit(MemberAccess*) override {
         setIfSame<MemberAccess>();
     }
 
-    virtual void visit(Tuple*) override{
+    virtual void visit(Tuple*) override {
         setIfSame<Tuple>();
     }
 
-    virtual void visit(FunctionCreation*) override{
+    virtual void visit(FunctionCreation*) override {
         setIfSame<FunctionCreation>();
     }
 
-    virtual void visit(FunctionCall*) override{
+    virtual void visit(FunctionCall*) override {
         setIfSame<FunctionCall>();
     }
 
-    virtual void visit(Identifier*) override{
+    virtual void visit(Identifier*) override {
         setIfSame<Identifier>();
     }
 
-    virtual void visit(IntLitteral*) override{
+    virtual void visit(IntLitteral*) override {
         setIfSame<IntLitteral>();
     }
 
-    virtual void visit(RealLitteral*) override{
+    virtual void visit(RealLitteral*) override {
         setIfSame<RealLitteral>();
     }
 

@@ -40,8 +40,8 @@ public:
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
     virtual void visit(TypeConstructorCall* tcall) override;
 
-    virtual void visit(MemberAccess* mac) override;
-    virtual void visit(Identifier *ident) override;
+    virtual void visit(TypeMemberAccess* mac) override;
+    virtual void visit(TypeIdentifier *ident) override;
 
     /**
      * @return The type created by the ASTTypeCreator
@@ -50,8 +50,7 @@ public:
 
 protected:
 
-    void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
-    type::Type* kindCheck(Expression* expected, Expression* passed);
+    void createTypeFromSymbolic(sym::Symbolic<sym::TypeSymbol>* symbolic, common::Positionnable& pos);
 
     type::Type* _created;
 

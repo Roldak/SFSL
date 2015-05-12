@@ -201,7 +201,7 @@ private:
 };
 
 /**
-// * @brief Represents a member access (with a dot operation, e.g. `point.x`)
+ * @brief Represents a member access (with a dot operation, e.g. `point.x`)
  */
 class MemberAccess : public Expression, public sym::Symbolic<sym::Symbol> {
 public:

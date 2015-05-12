@@ -350,29 +350,48 @@ TypeSpecifier* Parser::parseTypeSpecifier(Identifier* id) {
 }
 
 TypeExpression* Parser::parseTypeExpression() {
-    TypeExpression* res = parseTypePrimary();
+    return parseTypeBinary(parseTypePrimary(), 0);
+}
 
+TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence) {
     while (isType(tok::TOK_OPER)) {
-        SAVE_POS(startPos)
         tok::Operator* op = as<tok::Operator>();
+        int newOpPrec = op->getPrecedence();
 
-        switch (op->getOpType()) {
-        case tok::OPER_L_BRACKET:
-            res = _mngr.New<TypeConstructorCall>(res, parseTypeTuple());
+        if (newOpPrec >= precedence) {
+
+            SAVE_POS(startPos)
+
+            TypeExpression* expr;
+
+            accept();
+
+            switch (op->getOpType()) {
+            case tok::OPER_L_BRACKET:
+                expr = _mngr.New<TypeConstructorCall>(left, parseTypeTuple());
+                break;
+            case tok::OPER_FAT_ARROW:
+                expr = makeFuncOrTypeConstr<TypeConstructorCreation>(left, [&](){return parseTypeExpression();});
+                break;
+            case tok::OPER_DOT:
+                expr = _mngr.New<TypeMemberAccess>(left, parseTypeIdentifier("Expected member name"));
+                break;
+            default:
+                _ctx->reporter().error(*op, "Unexpected operator `" + op->toString() + "`");
+                continue;
+            }
+
+            expr->setPos(startPos);
+            expr->setEndPos(_lastTokenEndPos);
+
+            left = expr;
+
+        } else {
             break;
-        case tok::OPER_FAT_ARROW:
-            res = makeFuncOrTypeConstr<TypeConstructorCreation>(res, [&](){return parseTypeExpression();});
-            break;
-        default:
-            _ctx->reporter().error(*op, "Unexpected operator `" + op->toString() + "`");
-            continue;
         }
-
-        res->setPos(startPos);
-        res->setEndPos(_lastTokenEndPos);
     }
 
-    return res;
+    return left;
 }
 
 TypeExpression* Parser::parseTypePrimary() {
@@ -459,8 +478,8 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     } else if (accept(tok::OPER_FAT_ARROW)) {
         res = makeFuncOrTypeConstr<FunctionCreation>(left, [&](){return parseExpression();});
     } else if (accept(tok::OPER_DOT)) {
-        return parseDotOperation(left);
-    }
+        res = _mngr.New<MemberAccess>(left, parseIdentifier("Expected attribute / method name"));
+    } // no match is not an error
 
     if (res) {
         res->setPos(*left);
@@ -478,14 +497,6 @@ Tuple* Parser::parseTuple() {
 TypeTuple *Parser::parseTypeTuple() {
     std::vector<TypeExpression*> exprs;
     return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression>(exprs, [&](){return parseTypeExpression();});
-}
-
-Expression* Parser::parseDotOperation(Expression* left) {
-    Identifier* ident = parseIdentifier("Expected attribute / method name");
-    MemberAccess* maccess = _mngr.New<MemberAccess>(left, ident);
-    maccess->setPos(*left);
-    maccess->setEndPos(_lastTokenEndPos);
-    return maccess;
 }
 
 template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>

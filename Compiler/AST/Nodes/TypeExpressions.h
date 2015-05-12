@@ -17,6 +17,8 @@ namespace sfsl {
 
 namespace ast {
 
+class TypeIdentifier;
+
 /**
  * @brief A superclass that represents a type expression.
  * Cannot be constructed. This class is there just to provide
@@ -70,6 +72,33 @@ private:
     TypeExpression* _parent;
     std::vector<TypeSpecifier*> _fields;
     std::vector<DefineDecl*> _defs;
+};
+
+/**
+ * @brief Represents a type member access (with a dot operation, e.g. `module.class`)
+ */
+class TypeMemberAccess : public TypeExpression, public sym::Symbolic<sym::TypeSymbol> {
+public:
+
+    TypeMemberAccess(TypeExpression* accessed, TypeIdentifier* member);
+    virtual ~TypeMemberAccess();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The accessed part (the left side)
+     */
+    TypeExpression* getAccessed() const;
+
+    /**
+     * @return The member part (the right side)
+     */
+    TypeIdentifier* getMember() const;
+
+private:
+
+    TypeExpression* _accessed;
+    TypeIdentifier* _member;
 };
 
 /**

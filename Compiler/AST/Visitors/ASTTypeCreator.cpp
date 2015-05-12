@@ -75,11 +75,11 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
     }
 }
 
-void ASTTypeCreator::visit(MemberAccess* mac) {
+void ASTTypeCreator::visit(TypeMemberAccess* mac) {
     createTypeFromSymbolic(mac, *mac);
 }
 
-void ASTTypeCreator::visit(Identifier* ident) {
+void ASTTypeCreator::visit(TypeIdentifier* ident) {
     createTypeFromSymbolic(ident, *ident);
 }
 
@@ -87,15 +87,8 @@ type::Type* ASTTypeCreator::getCreatedType() const {
     return _created;
 }
 
-void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos) {
-    if (sym::Symbol* symbol = symbolic->getSymbol()) {
-        if (symbol->getSymbolType() != sym::SYM_TPE) {
-            _ctx.get()->reporter().error(pos, "Symbol " + symbol->getName() + " does not refer a type");
-            return;
-        }
-
-        sym::TypeSymbol* ts = static_cast<sym::TypeSymbol*>(symbol);
-
+void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::TypeSymbol>* symbolic, common::Positionnable& pos) {
+    if (sym::TypeSymbol* ts = symbolic->getSymbol()) {
         if (ts->type() == type::Type::NotYetDefined()) {
 
             if (_visitedTypes.find(ts) == _visitedTypes.end()) {
@@ -111,29 +104,6 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic
             _created = ts->type();
         }
     }
-}
-
-type::Type* ASTTypeCreator::kindCheck(Expression* expected, Expression* passed) {
-    type::TYPE_KIND expKind =
-            isNodeOfType<Identifier>(expected, _ctx) ? type::TYPE_OBJECT :
-                                                       type::TYPE_CONSTRUCTOR;
-
-    type::Type* pasT = createType(passed, _ctx, _subTable);
-
-    if (!pasT) {
-        _ctx.get()->reporter().error(*passed, "Expression is not a type");
-        return nullptr;
-    }
-
-    type::Type* evT = pasT->applyEnv({}, _ctx);
-
-    if (expKind == type::TYPE_CONSTRUCTOR && evT->getTypeKind() == type::TYPE_OBJECT) {
-        _ctx.get()->reporter().error(*passed, "Kind mismatch. Expected type constructor, got proper type (" +
-                                     evT->toString() + ")");
-        return nullptr;
-    }
-
-    return pasT;
 }
 
 }

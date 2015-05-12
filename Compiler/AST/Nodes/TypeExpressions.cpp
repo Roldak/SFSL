@@ -55,6 +55,26 @@ const std::vector<DefineDecl*>& ClassDecl::getDefs() const{
     return _defs;
 }
 
+// TYPE MEMBER ACCESS
+
+TypeMemberAccess::TypeMemberAccess(TypeExpression* accessed, TypeIdentifier* member) : _accessed(accessed), _member(member) {
+
+}
+
+TypeMemberAccess::~TypeMemberAccess() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeMemberAccess)
+
+TypeExpression* TypeMemberAccess::getAccessed() const {
+    return _accessed;
+}
+
+TypeIdentifier* TypeMemberAccess::getMember() const {
+    return _member;
+}
+
 // TYPE TUPLE
 
 TypeTuple::TypeTuple(const std::vector<TypeExpression*>& exprs) : _exprs(exprs) {

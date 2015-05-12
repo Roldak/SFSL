@@ -101,6 +101,14 @@ void ASTPrinter::visit(DefineDecl* decl) {
     decl->getValue()->onVisit(this);
 }
 
+void ASTPrinter::visit(TypeMemberAccess* tdot) {
+    std::cout << "(";
+    tdot->getAccessed()->onVisit(this);
+    std::cout << ".";
+    tdot->getMember()->onVisit(this);
+    std::cout << ")";
+}
+
 void ASTPrinter::visit(TypeTuple* ttuple) {
     std::cout << "[";
 
@@ -123,6 +131,10 @@ void ASTPrinter::visit(TypeConstructorCreation* typeconstructor) {
     std::cout << " => ";
     typeconstructor->getBody()->onVisit(this);
     std::cout << ")";
+}
+
+void ASTPrinter::visit(TypeIdentifier* tident) {
+    std::cout << tident->getValue();
 }
 
 void ASTPrinter::visit(ExpressionStatement* exp) {
