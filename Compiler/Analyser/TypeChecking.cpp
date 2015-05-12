@@ -51,7 +51,7 @@ void TypeCheking::visit(ClassDecl* clss) {
     if (Expression* par = clss->getParent()) {
         if (type::Type* t = createType(par, _ctx)) {
             if (t->applyEnv({}, _ctx)->getTypeKind() != type::TYPE_OBJECT) {
-                _ctx.get()->reporter().error(*par, "Must inherit from a class");
+                _ctx->reporter().error(*par, "Must inherit from a class");
             }
         }
     }
@@ -123,7 +123,7 @@ void TypeCheking::visit(TypeSpecifier* tps) {
 
         tped->setType(tpe);
     } else {
-        _ctx.get()->reporter().error(*tps->getTypeNode(), "Expression is not a type");
+        _ctx->reporter().error(*tps->getTypeNode(), "Expression is not a type");
     }
 
     tps->setType(_res.Unit());
@@ -257,10 +257,10 @@ type::Type* TypeCheking::tryGetTypeOfField(ClassDecl* clss, const std::string& i
             if (type::ObjectType* obj = type::getIf<type::ObjectType>(appliedT)) {
                 return tryGetTypeOfField(obj->getClass(), id, obj->getSubstitutionTable());
             } else {
-                _ctx.get()->reporter().error(*parent, "Class " + clss->getName() + " must inherit from a class type");
+                _ctx->reporter().error(*parent, "Class " + clss->getName() + " must inherit from a class type");
             }
         } else {
-            _ctx.get()->reporter().error(*parent, "Expression is not a type");
+            _ctx->reporter().error(*parent, "Expression is not a type");
         }
     }
     return nullptr;

@@ -51,7 +51,7 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
             const std::vector<TypeExpression*>& expec = constr->getTypeConstructor()->getArgs()->getExpressions();
 
             if (found.size() != expec.size()) {
-                _ctx.get()->reporter().error(*tcall, "Wrong number of arguments. Found " +
+                _ctx->reporter().error(*tcall, "Wrong number of arguments. Found " +
                                              utils::T_toString(found.size()) + " Expected " + utils::T_toString(expec.size()));
             }
 
@@ -68,10 +68,10 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
             */
 
         } else {
-            _ctx.get()->reporter().error(*tcall, "Expression is not a type constructor.");
+            _ctx->reporter().error(*tcall, "Expression is not a type constructor.");
         }
     } else {
-        _ctx.get()->reporter().fatal(*tcall, "Failed to create a type");
+        _ctx->reporter().fatal(*tcall, "Failed to create a type");
     }
 }
 
@@ -103,7 +103,7 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic
                 ts->getTypeDecl()->getExpression()->onVisit(this);
                 ts->setType(_created);
             } else {
-                _ctx.get()->reporter().error(pos, "A cyclic dependency was found");
+                _ctx->reporter().error(pos, "A cyclic dependency was found");
             }
 
         } else {

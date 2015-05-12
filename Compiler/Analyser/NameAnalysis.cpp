@@ -29,9 +29,9 @@ ScopePossessorVisitor::~ScopePossessorVisitor() {
 
 void ScopePossessorVisitor::tryAddSymbol(sym::Symbol* sym) {
     if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
-        _ctx.get()->reporter().error(*sym, std::string("Multiple definitions of symbol '") +
+        _ctx->reporter().error(*sym, std::string("Multiple definitions of symbol '") +
                                      sym->getName() + "' were found.");
-        _ctx.get()->reporter().info(*oldSymbol, "First instance here");
+        _ctx->reporter().info(*oldSymbol, "First instance here");
     }
 }
 
@@ -215,7 +215,7 @@ void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
             createTypeConstructor(static_cast<TypeIdentifier*>(call->getCallee()), call->getArgsTuple()); // TODO : safer cast
         }
         else {
-            _ctx.get()->reporter().error(*expr, "Argument should be an identifier");
+            _ctx->reporter().error(*expr, "Argument should be an identifier");
         }
     }
 */
@@ -264,7 +264,7 @@ void SymbolAssignation::visit(FunctionCreation* func) {
             // The var is already going to be created by the TypeSpecifier Node
             expr->onVisit(this);
         } else {
-            _ctx.get()->reporter().error(*expr, "Argument should be an identifier");
+            _ctx->reporter().error(*expr, "Argument should be an identifier");
         }
     }
 
@@ -322,7 +322,7 @@ void SymbolAssignation::assignIdentifier(T* id) {
     if (sym::Symbol* symbol = _curScope->getSymbol<sym::Symbol>(id->getValue())) {
         id->setSymbol(symbol);
     } else {
-        _ctx.get()->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
+        _ctx->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
     }
 }
 
@@ -350,7 +350,7 @@ void SymbolAssignation::assignFromStaticScope(T* mac, sym::Scoped* scoped, const
     if (sym::Symbol* resSymbol = scope->getSymbol<sym::Symbol>(id, false)) {
         mac->setSymbol(resSymbol);
     } else {
-        _ctx.get()->reporter().error(
+        _ctx->reporter().error(
                     *(mac->getMember()),
                     std::string("No member named '") + id + "' in " + typeName);
     }
@@ -361,7 +361,7 @@ void SymbolAssignation::assignFromTypeSymbol(T* mac, sym::TypeSymbol* tsym) {
     if (ClassDecl* clss = getClassDeclFromTypeSymbol(tsym, _ctx)) {
         assignFromStaticScope<T>(mac, clss, "class " + clss->getName());
     } else {
-        _ctx.get()->reporter().error(*mac->getMember(), "Type " + tsym->getName() + " cannot have any members");
+        _ctx->reporter().error(*mac->getMember(), "Type " + tsym->getName() + " cannot have any members");
     }
 }
 
