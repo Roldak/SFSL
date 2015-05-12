@@ -56,7 +56,7 @@ public:
     virtual std::string toString() const override;
 
     const std::vector<Kind*>& getArgKinds() const;
-    const Kind* getRetKind() const;
+    Kind* getRetKind() const;
 
 private:
 

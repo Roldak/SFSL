@@ -85,7 +85,26 @@ void KindChecking::visit(TypeConstructorCreation* tc) {
 }
 
 void KindChecking::visit(TypeConstructorCall* tcall) {
+    ASTVisitor::visit(tcall);
 
+    if (kind::TypeConstructorKind* k = kind::getIf<kind::TypeConstructorKind>(tcall->getCallee()->kind())) {
+
+        const std::vector<TypeExpression*> callArgs = tcall->getArgs();
+        const std::vector<kind::Kind*> argkinds = k->getArgKinds();
+
+        for (size_t i = 0; i < callArgs.size(); ++i) {
+            if (!callArgs[i]->kind()->isSubKindOf(argkinds[i])) {
+                _rep.error(*callArgs[i], "Kind mismatch. Expected " + argkinds[i]->toString() +
+                           ", found " + callArgs[i]->kind()->toString());
+                break;
+            }
+        }
+
+        tcall->setKind(k->getRetKind());
+
+    } else {
+        _rep.error(*tcall, "Kind mismatch. Expected type constructor, found " + tcall->getCallee()->kind()->toString());
+    }
 }
 
 void KindChecking::visit(TypeIdentifier* tident) {

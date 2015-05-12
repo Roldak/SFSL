@@ -124,7 +124,7 @@ const std::vector<Kind*>& TypeConstructorKind::getArgKinds() const {
     return _args;
 }
 
-const Kind* TypeConstructorKind::getRetKind() const {
+Kind* TypeConstructorKind::getRetKind() const {
     return _ret;
 }
 
