@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
         std::cout << "STARTING TYPECHECKING" << std::endl;
         std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
 
-        ast::TypeCheking typeCheck(ctx, res);
+        ast::TypeChecking typeCheck(ctx, res);
         prog->onVisit(&typeCheck);
 
         std::cout << "DONE" << std::endl;

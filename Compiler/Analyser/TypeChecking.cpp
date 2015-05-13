@@ -17,20 +17,20 @@ namespace ast {
 
 // TYPE CHECK
 
-TypeCheking::TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
+TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
     : ASTVisitor(ctx), _res(res), _rep(ctx->reporter()) {
 
 }
 
-TypeCheking::~TypeCheking() {
+TypeChecking::~TypeChecking() {
 
 }
 
-void TypeCheking::visit(ASTNode*) {
+void TypeChecking::visit(ASTNode*) {
 
 }
 
-void TypeCheking::visit(ClassDecl* clss) {
+void TypeChecking::visit(ClassDecl* clss) {
     ASTVisitor::visit(clss);
 
     if (Expression* par = clss->getParent()) {
@@ -42,7 +42,7 @@ void TypeCheking::visit(ClassDecl* clss) {
     }
 }
 
-void TypeCheking::visit(DefineDecl* decl) {
+void TypeChecking::visit(DefineDecl* decl) {
     if (_visitedDefs.find(decl) == _visitedDefs.end()) {
         _visitedDefs.emplace(decl);
 
@@ -54,17 +54,17 @@ void TypeCheking::visit(DefineDecl* decl) {
     }
 }
 
-void TypeCheking::visit(ExpressionStatement* exp) {
+void TypeChecking::visit(ExpressionStatement* exp) {
     ASTVisitor::visit(exp);
     exp->setType(exp->getExpression()->type());
 }
 
-void TypeCheking::visit(BinaryExpression* bin) {
+void TypeChecking::visit(BinaryExpression* bin) {
     ASTVisitor::visit(bin);
     bin->setType(bin->getLhs()->type()); // TODO : make it right
 }
 
-void TypeCheking::visit(AssignmentExpression* aex) {
+void TypeChecking::visit(AssignmentExpression* aex) {
     ASTVisitor::visit(aex);
 
     type::Type* lhsT = aex->getLhs()->type()->applyEnv({}, _ctx);
@@ -78,7 +78,7 @@ void TypeCheking::visit(AssignmentExpression* aex) {
     aex->setType(lhsT);
 }
 
-void TypeCheking::visit(TypeSpecifier* tps) {
+void TypeChecking::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
     tps->getTypeNode()->onVisit(this);
 
@@ -100,7 +100,7 @@ void TypeCheking::visit(TypeSpecifier* tps) {
     tps->setType(_res.Unit());
 }
 
-void TypeCheking::visit(Block* block) {
+void TypeChecking::visit(Block* block) {
     ASTVisitor::visit(block);
 
     const std::vector<Expression*>& stats = block->getStatements();
@@ -111,7 +111,7 @@ void TypeCheking::visit(Block* block) {
     }
 }
 
-void TypeCheking::visit(IfExpression* ifexpr) {
+void TypeChecking::visit(IfExpression* ifexpr) {
     ASTVisitor::visit(ifexpr);
 
     if (!ifexpr->getCondition()->type()->isSubTypeOf(_res.Bool())) {
@@ -136,7 +136,7 @@ void TypeCheking::visit(IfExpression* ifexpr) {
     }
 }
 
-void TypeCheking::visit(MemberAccess* dot) {
+void TypeChecking::visit(MemberAccess* dot) {
     dot->getAccessed()->onVisit(this);
 
     if (type::Type* t = dot->getAccessed()->type()) {
@@ -162,11 +162,11 @@ void TypeCheking::visit(MemberAccess* dot) {
     // TODO : static access
 }
 
-void TypeCheking::visit(Tuple* tuple) {
+void TypeChecking::visit(Tuple* tuple) {
     ASTVisitor::visit(tuple);
 }
 
-void TypeCheking::visit(FunctionCreation* func) {
+void TypeChecking::visit(FunctionCreation* func) {
     ASTVisitor::visit(func);
 
     _rep.info(*func->getArgs(), func->getBody()->type()->toString());
@@ -174,12 +174,12 @@ void TypeCheking::visit(FunctionCreation* func) {
     func->setType(func->getBody()->type()); // TODO : change it
 }
 
-void TypeCheking::visit(FunctionCall* call) {
+void TypeChecking::visit(FunctionCall* call) {
     ASTVisitor::visit(call);
     call->setType(call->getCallee()->type()->applyEnv(call->getCallee()->type()->getSubstitutionTable(), _ctx));
 }
 
-void TypeCheking::visit(Identifier* ident) {
+void TypeChecking::visit(Identifier* ident) {
     if (sym::Symbol* sym = ident->getSymbol()) {
         if (type::Type* t = tryGetTypeOfSymbol(sym)) {
             ident->setType(t);
@@ -187,15 +187,15 @@ void TypeCheking::visit(Identifier* ident) {
     }
 }
 
-void TypeCheking::visit(IntLitteral* intlit) {
+void TypeChecking::visit(IntLitteral* intlit) {
     intlit->setType(_res.Int());
 }
 
-void TypeCheking::visit(RealLitteral* reallit) {
+void TypeChecking::visit(RealLitteral* reallit) {
     reallit->setType(_res.Real());
 }
 
-type::Type* TypeCheking::tryGetTypeOfSymbol(sym::Symbol* sym) {
+type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
     if (sym->getSymbolType() == sym::SYM_VAR) {
         return static_cast<sym::VariableSymbol*>(sym)->type();
     } else if (sym->getSymbolType() == sym::SYM_DEF) {
@@ -211,7 +211,7 @@ type::Type* TypeCheking::tryGetTypeOfSymbol(sym::Symbol* sym) {
     return nullptr;
 }
 
-type::Type* TypeCheking::tryGetTypeOfField(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
+type::Type* TypeChecking::tryGetTypeOfField(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
     if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(id, false)) {
         return type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(sym))->applyEnv(subtable, _ctx);
     } else if (Expression* parent = clss->getParent()) {

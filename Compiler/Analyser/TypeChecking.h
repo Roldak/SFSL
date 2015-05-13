@@ -21,11 +21,11 @@ namespace ast {
     /**
      * @brief
      */
-    class TypeCheking : public ASTVisitor {
+    class TypeChecking : public ASTVisitor {
     public:
 
-        TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
-        virtual ~TypeCheking();
+        TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
+        virtual ~TypeChecking();
 
         virtual void visit(ASTNode*) override;
 
