@@ -41,38 +41,20 @@ void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
 
 void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
     tcall->getCallee()->onVisit(this);
-
     type::Type* ctr = _created;
 
-    if (type::Type* tmp = ctr->applyEnv({}, _ctx)) {
-        if (type::ConstructorType* constr = type::getIf<type::ConstructorType>(tmp)) {
-            /*
-            const std::vector<TypeExpression*>& found = tcall->getArgs();
-            const std::vector<TypeExpression*>& expec = constr->getTypeConstructor()->getArgs()->getExpressions();
+    const std::vector<TypeExpression*>& found = tcall->getArgs();
+    std::vector<type::Type*> args(found.size());
 
-            if (found.size() != expec.size()) {
-                _ctx->reporter().error(*tcall, "Wrong number of arguments. Found " +
-                                             utils::T_toString(found.size()) + " Expected " + utils::T_toString(expec.size()));
-            }
-
-            std::vector<type::Type*> args(found.size());
-
-            for (size_t i = 0; i < found.size(); ++i) {
-                if (!(args[i] = kindCheck(expec[i], found[i]))) {
-                    _created = nullptr;
-                    return;
-                }
-            }
-
-            _created = _mngr.New<type::ConstructorApplyType>(ctr, args, *tcall, _subTable);
-            */
-
-        } else {
-            _ctx->reporter().error(*tcall, "Expression is not a type constructor.");
+    for (size_t i = 0; i < found.size(); ++i) {
+        if (!(args[i] = createType(found[i], _ctx, _subTable))) {
+            _ctx->reporter().fatal(*found[i], "failed to create type");
+            _created = nullptr;
+            return;
         }
-    } else {
-        _ctx->reporter().fatal(*tcall, "Failed to create a type");
     }
+
+    _created = _mngr.New<type::ConstructorApplyType>(ctr, args, *tcall, _subTable);
 }
 
 void ASTTypeCreator::visit(TypeMemberAccess* mac) {
