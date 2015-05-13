@@ -9,6 +9,7 @@
 #include "Compiler/Parser/Parser.h"
 #include "Compiler/AST/Visitors/ASTPrinter.h"
 #include "Compiler/Analyser/NameAnalysis.h"
+#include "Compiler/Analyser/KindChecking.h"
 #include "Compiler/Analyser/TypeChecking.h"
 #include "Compiler/AST/Symbols/SymbolResolver.h"
 
@@ -86,6 +87,13 @@ int main(int argc, char** argv) {
         if (ctx.get()->reporter().getErrorCount() != 0) {
             return 1;
         }
+
+        std::cout << "STARTING KINDCHECKING" << std::endl;
+        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+
+        ast::KindChecking kindCheck(ctx);
+        prog->onVisit(&kindCheck);
+
 /*
         sym::SymbolResolver res(prog, ctx);
         res.setPredefClassesPath("sfsl.lang");

@@ -76,7 +76,7 @@ namespace sym {
     /**
      * @brief Represents the symbol associated to a type
      */
-    class TypeSymbol : public Symbol, public type::Typed, public kind::Kinded {
+    class TypeSymbol : public Symbol, public Scoped, public type::Typed, public kind::Kinded {
     public:
         TypeSymbol(const std::string& name, ast::TypeDecl* type);
         virtual ~TypeSymbol();

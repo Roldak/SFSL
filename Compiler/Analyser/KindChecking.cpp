@@ -9,7 +9,6 @@
 #include "KindChecking.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
-#include "../AST/Symbols/Scope.h"
 
 namespace sfsl {
 
@@ -38,7 +37,7 @@ void KindChecking::visit(TypeDecl* tdecl) {
 
         // kind inference
         tdecl->getName()->setKind(tdecl->getExpression()->kind());
-        static_cast<sym::TypeSymbol*>(tdecl->getSymbol())->setKind(tdecl->getExpression()->kind());
+        tdecl->getSymbol()->setKind(tdecl->getExpression()->kind());
     }
 }
 
@@ -123,8 +122,6 @@ kind::Kind* KindChecking::tryGetKindOfSymbol(sym::Symbol* sym) {
         }
 
         return tpesym->kind();
-    } else {
-        _rep.error(*sym, "Symbol '" + sym->getName() + "' is not kinded");
     }
 
     return nullptr;

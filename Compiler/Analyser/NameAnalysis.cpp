@@ -108,7 +108,11 @@ void ScopeGeneration::visit(ModuleDecl* module) {
 void ScopeGeneration::visit(TypeDecl* tdecl) {
     createSymbol(tdecl);
 
+    pushScope(tdecl->getSymbol(), true);
+
     ASTVisitor::visit(tdecl);
+
+    popScope();
 }
 
 void ScopeGeneration::visit(ClassDecl* clss) {
@@ -193,6 +197,14 @@ void SymbolAssignation::visit(DefineDecl* def) {
     SAVE_SCOPE(def->getSymbol())
 
     ASTVisitor::visit(def);
+
+    RESTORE_SCOPE
+}
+
+void SymbolAssignation::visit(TypeDecl *tdecl) {
+    SAVE_SCOPE(tdecl->getSymbol())
+
+    ASTVisitor::visit(tdecl);
 
     RESTORE_SCOPE
 }
@@ -315,6 +327,8 @@ void SymbolAssignation::createObjectType(TypeIdentifier *id) {
 
     sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
     arg->setType(createType(clss, _ctx));
+
+    type->setSymbol(arg);
 
     id->setKind(kind::TypeKind::create());
 
