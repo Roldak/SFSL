@@ -319,6 +319,7 @@ Expression* Parser::parsePrimary() {
             return parseBlock();
         } else {
             _ctx->reporter().error(*_currentToken, "unexpected token `"+ _currentToken->toString() +"`");
+            accept();
         }
         break;
 
@@ -329,6 +330,7 @@ Expression* Parser::parsePrimary() {
             return parseClass();
         } else {
             _ctx->reporter().error(*_currentToken, "unexpected keyword `" + _currentToken->toString() + "`");
+            accept();
         }
         break;
 
@@ -336,6 +338,7 @@ Expression* Parser::parsePrimary() {
         _ctx->reporter().error(*_currentToken,
                                "expected int litteral | real litteral | string litteral "
                                "| identifier | keyword; got " + _currentToken->toString());
+        accept();
     }
 
     return toRet;
@@ -421,6 +424,7 @@ TypeExpression* Parser::parseTypePrimary() {
         }
         else {
             _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
+            accept();
         }
         break;
 
@@ -429,6 +433,7 @@ TypeExpression* Parser::parseTypePrimary() {
             return parseClass();
         } else {
             _ctx->reporter().error(*_currentToken, "Unexpected keyword `" + _currentToken->toString() + "`");
+            accept();
         }
         break;
 
@@ -436,6 +441,7 @@ TypeExpression* Parser::parseTypePrimary() {
         _ctx->reporter().error(*_currentToken,
                                "expected identifier | type tuple | class "
                                "; got " + _currentToken->toString());
+        accept();
     }
 
     return toRet;

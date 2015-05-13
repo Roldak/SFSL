@@ -157,6 +157,26 @@ const std::string& TypeIdentifier::getValue() const {
     return _name;
 }
 
+// KIND SPECIFIER
+
+KindSpecifier::KindSpecifier(TypeIdentifier* specified, KindExpression* kind) : _specified(specified), _kind(kind) {
+
+}
+
+KindSpecifier::~KindSpecifier() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(KindSpecifier)
+
+TypeIdentifier *KindSpecifier::getSpecified() const {
+    return _specified;
+}
+
+KindExpression *KindSpecifier::getKindNode() const {
+    return _kind;
+}
+
 }
 
 }

@@ -18,6 +18,7 @@ namespace sfsl {
 namespace ast {
 
 class TypeIdentifier;
+class KindExpression;
 
 /**
  * @brief A superclass that represents a type expression.
@@ -208,7 +209,31 @@ private:
     const std::string _name;
 };
 
-// TODO : KindSpecifier
+/**
+ * @brief Represents a kind specifying expression, e.g `T: [*]->*`
+ */
+class KindSpecifier : public TypeExpression {
+public:
+    KindSpecifier(TypeIdentifier* specified, KindExpression* type);
+    virtual ~KindSpecifier();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The specified part
+     */
+    TypeIdentifier* getSpecified() const;
+
+    /**
+     * @return The type part
+     */
+    KindExpression* getKindNode() const;
+
+private:
+
+    TypeIdentifier* _specified;
+    KindExpression* _kind;
+};
 
 }
 
