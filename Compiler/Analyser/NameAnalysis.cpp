@@ -371,6 +371,7 @@ void SymbolAssignation::assignMemberAccess(T* mac) {
 
     if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
         switch (sym->getSymbolType()) {
+        case sym::SYM_VAR:      mac->setSymbol(nullptr); break;
         case sym::SYM_MODULE:   assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName()); break;
         case sym::SYM_TPE:      assignFromTypeSymbol(mac, static_cast<sym::TypeSymbol*>(sym)); break;
         default:

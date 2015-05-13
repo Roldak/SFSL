@@ -44,6 +44,12 @@ void KindChecking::visit(TypeDecl* tdecl) {
 void KindChecking::visit(ClassDecl* clss) {
     ASTVisitor::visit(clss);
 
+    if (TypeExpression* p = clss->getParent()) {
+        if (p->kind()->getKindGenre() != kind::TYPE_KIND) {
+            _rep.error(*p, "Kind mismatch. Expected proper type, found " + p->kind()->toString());
+        }
+    }
+
     clss->setKind(kind::TypeKind::create());
 }
 
