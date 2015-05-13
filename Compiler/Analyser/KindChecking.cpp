@@ -91,11 +91,19 @@ void KindChecking::visit(TypeConstructorCall* tcall) {
         const std::vector<TypeExpression*> callArgs = tcall->getArgs();
         const std::vector<kind::Kind*> argkinds = k->getArgKinds();
 
+        if (callArgs.size() != argkinds.size()) {
+            _rep.error(*tcall, "Wrong number of type arguments. Expected " +
+                       utils::T_toString(argkinds.size()) + ", found " + utils::T_toString(callArgs.size()));
+            tcall->setKind(kind::Kind::NotYetDefined());
+            return;
+        }
+
         for (size_t i = 0; i < callArgs.size(); ++i) {
             if (!callArgs[i]->kind()->isSubKindOf(argkinds[i])) {
                 _rep.error(*callArgs[i], "Kind mismatch. Expected " + argkinds[i]->toString() +
                            ", found " + callArgs[i]->kind()->toString());
-                break;
+                tcall->setKind(kind::Kind::NotYetDefined());
+                return;
             }
         }
 
