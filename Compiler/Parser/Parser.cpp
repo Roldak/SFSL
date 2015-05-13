@@ -82,7 +82,7 @@ Identifier* Parser::parseIdentifier(const std::string& errMsg) {
     return parseIdentifierHelper<Identifier>(errMsg);
 }
 
-TypeIdentifier *Parser::parseTypeIdentifier(const std::string &errMsg) {
+TypeIdentifier* Parser::parseTypeIdentifier(const std::string& errMsg) {
     return parseIdentifierHelper<TypeIdentifier>(errMsg);
 }
 
@@ -371,7 +371,9 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence) {
                 expr = _mngr.New<TypeConstructorCall>(left, parseTypeTuple());
                 break;
             case tok::OPER_FAT_ARROW:
-                expr = makeFuncOrTypeConstr<TypeConstructorCreation>(left, [&](){return parseTypeExpression();});
+                expr = _mngr.New<TypeConstructorCreation>(
+                            _currentTypeName.empty() ? AnonymousTypeConstructorName : _currentTypeName,
+                            left, parseTypeExpression());
                 break;
             case tok::OPER_DOT:
                 expr = _mngr.New<TypeMemberAccess>(left, parseTypeIdentifier("Expected member name"));
@@ -476,7 +478,9 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     if (accept(tok::OPER_L_PAREN)) {
         res = _mngr.New<FunctionCall>(left, parseTuple());
     } else if (accept(tok::OPER_FAT_ARROW)) {
-        res = makeFuncOrTypeConstr<FunctionCreation>(left, [&](){return parseExpression();});
+        res = _mngr.New<FunctionCreation>(
+                    _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
+                    left, parseExpression());
     } else if (accept(tok::OPER_DOT)) {
         res = _mngr.New<MemberAccess>(left, parseIdentifier("Expected attribute / method name"));
     } // no match is not an error
@@ -538,7 +542,7 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
 }
 
 template<typename RETURN_TYPE, typename EXPRESSION_TYPE, typename PARSING_FUNC>
-RETURN_TYPE *Parser::makeFuncOrTypeConstr(EXPRESSION_TYPE* left, const PARSING_FUNC& f) {
+RETURN_TYPE* Parser::makeFuncOrTypeConstr(EXPRESSION_TYPE* left, const PARSING_FUNC& f) {
     std::string name = _currentDefName.empty() ? AnonymousFunctionName : _currentDefName;
     return _mngr.New<RETURN_TYPE>(name, left, f());
 }
