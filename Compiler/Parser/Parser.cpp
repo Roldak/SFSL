@@ -409,10 +409,14 @@ TypeExpression* Parser::parseTypePrimary() {
 
     case tok::TOK_OPER:
         if (accept(tok::OPER_L_BRACKET)) {
-            TypeTuple* ttuple = static_cast<TypeTuple*>(toRet = parseTypeTuple());
-
-            if (ttuple->getExpressions().size() == 1) {
-                //toRet = ttuple->getExpressions()[0];
+            toRet = parseTypeTuple();
+        } else if (accept(tok::OPER_L_PAREN)) {
+            std::vector<TypeExpression*> exprs;
+            toRet = parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(exprs, [&](){return parseTypeExpression();});
+            if (exprs.size() != 1) {
+                _ctx->reporter().error(*toRet, "Tuples are not allowed in this context");
+            } else {
+                toRet = exprs[0];
             }
         }
         else {
