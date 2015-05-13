@@ -94,6 +94,10 @@ int main(int argc, char** argv) {
         ast::KindChecking kindCheck(ctx);
         prog->onVisit(&kindCheck);
 
+        if (ctx.get()->reporter().getErrorCount() != 0) {
+            return 1;
+        }
+
         sym::SymbolResolver res(prog, ctx);
         res.setPredefClassesPath("sfsl.lang");
 

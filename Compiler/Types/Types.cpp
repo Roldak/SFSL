@@ -218,7 +218,6 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
             subs[param->type()] = findSubstitution(env, _args[i])->applyEnv(env, ctx);
         }
 
-
         return findSubstitution(subs, ast::createType(ctr->getTypeConstructor()->getBody(), ctx, subs))->applyEnv(subs, ctx);
     } else {
         ctx.get()->reporter().fatal(_pos, "Must have been a type constructor");

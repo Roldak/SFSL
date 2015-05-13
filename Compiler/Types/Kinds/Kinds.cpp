@@ -101,7 +101,7 @@ bool TypeConstructorKind::isSubKindOf(Kind* other) const {
         return tck->getRetKind()->isSubKindOf(_ret);
 
     } else {
-        return true;
+        return false;
     }
 }
 
