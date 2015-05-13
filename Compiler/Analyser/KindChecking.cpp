@@ -68,18 +68,19 @@ void KindChecking::visit(TypeTuple* ttuple) {
 void KindChecking::visit(TypeConstructorCreation* tc) {
     ASTVisitor::visit(tc);
 
-    std::vector<kind::Kind*> argKinds;
+    std::vector<TypeExpression*> exprs;
+
+    if (isNodeOfType<TypeTuple>(tc->getArgs(), _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        exprs = static_cast<TypeTuple*>(tc->getArgs())->getExpressions();
+    } else { // form is `exp => ...` or `[exp] => ...`
+        exprs.push_back(tc->getArgs());
+    }
+
+    std::vector<kind::Kind*> argKinds(exprs.size());
     kind::Kind* retKind;
 
-    if (isNodeOfType<TypeTuple>(tc->getArgs(), _ctx)) {
-        const std::vector<TypeExpression*>& exprs = static_cast<TypeTuple*>(tc->getArgs())->getExpressions();
-        argKinds.resize(exprs.size());
-
-        for (size_t i = 0; i < exprs.size(); ++i) {
-            argKinds[i] = exprs[i]->kind();
-        }
-    } else {
-        // TODO : the rest
+    for (size_t i = 0; i < exprs.size(); ++i) {
+        argKinds[i] = exprs[i]->kind();
     }
 
     retKind = tc->getBody()->kind();
