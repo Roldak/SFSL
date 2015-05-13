@@ -178,7 +178,7 @@ ClassDecl* Parser::parseClass() {
         } else {
             Identifier* fieldName = parseIdentifier("expected field name | def");
             expect(tok::OPER_COLON, "`:`");
-            Expression* type = parseExpression();
+            TypeExpression* type = parseTypeExpression();
             expect(tok::OPER_SEMICOLON, "`;`");
 
             TypeSpecifier* field = _mngr.New<TypeSpecifier>(fieldName, type);
@@ -299,7 +299,7 @@ Expression* Parser::parsePrimary() {
         break;
     case tok::TOK_ID:
         toRet = parseIdentifier();
-        if (isType(tok::TOK_OPER) && as<tok::Operator>()->getOpType() == tok::OPER_COLON) {
+        if (accept(tok::OPER_COLON)) {
             toRet = parseTypeSpecifier(static_cast<Identifier*>(toRet));
         }
         break;
@@ -342,8 +342,8 @@ Expression* Parser::parsePrimary() {
 }
 
 TypeSpecifier* Parser::parseTypeSpecifier(Identifier* id) {
-    Expression* expr = parseBinary(id, tok::Operator(tok::OPER_COLON).getPrecedence());
-    TypeSpecifier* spec = _mngr.New<TypeSpecifier>(id, static_cast<BinaryExpression*>(expr)->getRhs());
+    TypeExpression* expr = parseTypeExpression();
+    TypeSpecifier* spec = _mngr.New<TypeSpecifier>(id, expr);
     spec->setPos(*id);
     spec->setEndPos(_lastTokenEndPos);
     return spec;

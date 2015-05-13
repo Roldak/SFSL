@@ -120,6 +120,14 @@ void KindChecking::visit(TypeIdentifier* tident) {
     }
 }
 
+void KindChecking::visit(TypeSpecifier* ts) {
+    ASTVisitor::visit(ts);
+
+    if (ts->getTypeNode()->kind()->getKindGenre() != kind::TYPE_KIND) {
+        _rep.error(*ts->getTypeNode(), "Kind mismatch. Expected proper type, found " + ts->getTypeNode()->kind()->toString());
+    }
+}
+
 kind::Kind* KindChecking::tryGetKindOfSymbol(sym::Symbol* sym) {
     if (sym->getSymbolType() == sym::SYM_TPE) {
         sym::TypeSymbol* tpesym = static_cast<sym::TypeSymbol*>(sym);

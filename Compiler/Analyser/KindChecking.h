@@ -29,14 +29,16 @@ namespace ast {
 
         virtual void visit(ASTNode*) override;
 
-        virtual void visit(TypeDecl* tdecl);
-        virtual void visit(ClassDecl* clss);
+        virtual void visit(TypeDecl* tdecl) override;
+        virtual void visit(ClassDecl* clss) override;
 
-        virtual void visit(TypeMemberAccess* tdot);
-        virtual void visit(TypeTuple* ttuple);
-        virtual void visit(TypeConstructorCreation* typeconstructor);
-        virtual void visit(TypeConstructorCall* tcall);
-        virtual void visit(TypeIdentifier* tident);
+        virtual void visit(TypeMemberAccess* tdot) override;
+        virtual void visit(TypeTuple* ttuple) override;
+        virtual void visit(TypeConstructorCreation* typeconstructor) override;
+        virtual void visit(TypeConstructorCall* tcall) override;
+        virtual void visit(TypeIdentifier* tident) override;
+
+        virtual void visit(TypeSpecifier* ts) override;
 
     private:
 

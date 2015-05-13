@@ -69,8 +69,8 @@ int main(int argc, char** argv) {
             return 1;
         }
 
-        ast::ASTPrinter printer(ctx);
-        prog->onVisit(&printer);
+        /*ast::ASTPrinter printer(ctx);
+        prog->onVisit(&printer);*/
 
         std::cout << "STARTING SCOPE GENERATION" << std::endl;
         std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
@@ -94,7 +94,6 @@ int main(int argc, char** argv) {
         ast::KindChecking kindCheck(ctx);
         prog->onVisit(&kindCheck);
 
-/*
         sym::SymbolResolver res(prog, ctx);
         res.setPredefClassesPath("sfsl.lang");
 
@@ -106,7 +105,7 @@ int main(int argc, char** argv) {
 
         std::cout << "DONE" << std::endl;
         std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
-*/
+
         if (ctx.get()->reporter().getErrorCount() != 0) {
             return 1;
         }

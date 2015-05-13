@@ -85,7 +85,7 @@ Expression* AssignmentExpression::getRhs() const {
 
 // TYPE SPECIFIER
 
-TypeSpecifier::TypeSpecifier(Identifier* specified, Expression* type) : _specified(specified), _type(type) {
+TypeSpecifier::TypeSpecifier(Identifier* specified, TypeExpression* type) : _specified(specified), _type(type) {
 
 }
 
@@ -99,7 +99,7 @@ Identifier* TypeSpecifier::getSpecified() const {
     return _specified;
 }
 
-Expression* TypeSpecifier::getTypeNode() const {
+TypeExpression* TypeSpecifier::getTypeNode() const {
     return _type;
 }
 
