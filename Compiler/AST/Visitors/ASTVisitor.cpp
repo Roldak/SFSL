@@ -67,6 +67,17 @@ void ASTVisitor::visit(DefineDecl* decl) {
     decl->getValue()->onVisit(this);
 }
 
+void ASTVisitor::visit(ProperTypeKindSpecifier* ptks) {
+
+}
+
+void ASTVisitor::visit(TypeConstructorKindSpecifier *tcks) {
+    for (auto arg : tcks->getArgs()) {
+        arg->onVisit(this);
+    }
+    tcks->getRet()->onVisit(this);
+}
+
 void ASTVisitor::visit(TypeMemberAccess *tdot) {
     tdot->getAccessed()->onVisit(this);
     tdot->getMember()->onVisit(this);
@@ -90,6 +101,11 @@ void ASTVisitor::visit(TypeConstructorCall *tcall) {
 
 void ASTVisitor::visit(TypeIdentifier*) {
 
+}
+
+void ASTVisitor::visit(KindSpecifier *ks) {
+    ks->getSpecified()->onVisit(this);
+    ks->getKindNode()->onVisit(this);
 }
 
 void ASTVisitor::visit(ExpressionStatement* exp) {

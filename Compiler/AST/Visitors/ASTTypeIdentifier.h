@@ -55,6 +55,14 @@ public:
         setIfSame<DefineDecl>();
     }
 
+    virtual void visit(ProperTypeKindSpecifier*) override {
+        setIfSame<ProperTypeKindSpecifier>();
+    }
+
+    virtual void visit(TypeConstructorKindSpecifier*) override {
+        setIfSame<TypeConstructorKindSpecifier>();
+    }
+
     virtual void visit(TypeMemberAccess*) override {
         setIfSame<TypeMemberAccess>();
     }
@@ -73,6 +81,10 @@ public:
 
     virtual void visit(TypeIdentifier*) override {
         setIfSame<TypeIdentifier>();
+    }
+
+    virtual void visit(KindSpecifier*) override {
+        setIfSame<KindSpecifier>();
     }
 
     virtual void visit(ExpressionStatement*) override {
