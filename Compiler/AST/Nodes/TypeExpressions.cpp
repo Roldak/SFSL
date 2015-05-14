@@ -169,11 +169,11 @@ KindSpecifier::~KindSpecifier() {
 
 SFSL_AST_ON_VISIT_CPP(KindSpecifier)
 
-TypeIdentifier *KindSpecifier::getSpecified() const {
+TypeIdentifier* KindSpecifier::getSpecified() const {
     return _specified;
 }
 
-KindSpecifyingExpression *KindSpecifier::getKindNode() const {
+KindSpecifyingExpression* KindSpecifier::getKindNode() const {
     return _kind;
 }
 

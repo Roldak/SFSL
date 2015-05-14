@@ -130,7 +130,9 @@ void KindChecking::visit(TypeIdentifier* tident) {
 
 void KindChecking::visit(KindSpecifier* ks) {
     ASTVisitor::visit(ks);
-    ks->getSpecified()->setKind(ASTKindCreator::createKind(ks->getKindNode(), _ctx));
+    kind::Kind* k = ASTKindCreator::createKind(ks->getKindNode(), _ctx);
+    ks->getSpecified()->setKind(k);
+    ks->setKind(k);
 }
 
 void KindChecking::visit(TypeSpecifier* ts) {

@@ -79,6 +79,7 @@ public:
     virtual void visit(TypeMemberAccess* tdot) override;
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
     virtual void visit(TypeIdentifier* tident) override;
+    virtual void visit(KindSpecifier* ks) override;
 
     virtual void visit(BinaryExpression* exp) override;
     virtual void visit(MemberAccess* mac) override;
@@ -90,7 +91,7 @@ public:
 private:
 
     void createVar(Identifier* id);
-    void createObjectType(TypeIdentifier* id);
+    void createObjectType(TypeIdentifier* id, TypeDecl* defaultType);
     void createTypeConstructor(TypeIdentifier* id, TypeTuple* ttuple);
 
     template<typename T, typename S>

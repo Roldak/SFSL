@@ -12,6 +12,7 @@
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTSymbolExtractor.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
+#include "../AST/Visitors/ASTKindCreator.h"
 
 namespace sfsl {
 
@@ -242,7 +243,9 @@ void SymbolAssignation::visit(TypeConstructorCreation* tc) {
 
     for (TypeExpression* expr : args) {
         if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `x`
-            createObjectType(static_cast<TypeIdentifier*>(expr));
+            createObjectType(static_cast<TypeIdentifier*>(expr),
+                             ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
+                                 _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(expr)->getValue(), _ctx));
         } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: type`
             // The var is already going to be created by the KindSpecifier Node
             expr->onVisit(this);
@@ -258,6 +261,14 @@ void SymbolAssignation::visit(TypeConstructorCreation* tc) {
 
 void SymbolAssignation::visit(TypeIdentifier *id) {
     assignIdentifier(id);
+}
+
+void SymbolAssignation::visit(KindSpecifier* ks) {
+    TypeDecl* defaultType = ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
+                ks->getKindNode(), ks->getSpecified()->getValue(), _ctx);
+
+    createObjectType(ks->getSpecified(), defaultType);
+    //ASTVisitor::visit(ks);
 }
 
 void SymbolAssignation::visit(BinaryExpression* exp) {
@@ -319,24 +330,12 @@ void SymbolAssignation::createVar(Identifier *id) {
     initCreated(id, arg);
 }
 
-void SymbolAssignation::createObjectType(TypeIdentifier *id) {
-    ClassDecl* clss = _mngr.New<ClassDecl>(id->getValue(), nullptr, std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
-    clss->setScope(_mngr.New<sym::Scope>(nullptr));
-
-    TypeDecl* type = _mngr.New<TypeDecl>(_mngr.New<TypeIdentifier>(id->getValue()), clss);
-
-    sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
-    arg->setType(ASTTypeCreator::createType(clss, _ctx));
-
-    type->setSymbol(arg);
-
-    id->setKind(kind::TypeKind::create());
-
-    initCreated(id, arg);
+void SymbolAssignation::createObjectType(TypeIdentifier* id, TypeDecl* defaultType) {
+    initCreated(id, defaultType->getSymbol());
 }
 
 void SymbolAssignation::createTypeConstructor(TypeIdentifier* id, TypeTuple *ttuple) {
-    for (Expression* expr : ttuple->getExpressions()) {
+    /*for (Expression* expr : ttuple->getExpressions()) {
         createObjectType(static_cast<TypeIdentifier*>(expr));
     }
     ClassDecl* resClass = _mngr.New<ClassDecl>(id->getValue(), nullptr, std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
@@ -346,7 +345,7 @@ void SymbolAssignation::createTypeConstructor(TypeIdentifier* id, TypeTuple *ttu
     TypeDecl* type = _mngr.New<TypeDecl>(id, typeconstuctor);
     sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
     arg->setType(ASTTypeCreator::createType(typeconstuctor, _ctx));
-    initCreated(id, arg);
+    initCreated(id, arg);*/
 }
 
 template<typename T, typename S>
