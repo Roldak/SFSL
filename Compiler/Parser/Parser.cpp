@@ -405,8 +405,8 @@ TypeExpression* Parser::parseTypePrimary() {
     switch (_currentToken->getTokenType()) {
     case tok::TOK_ID:
         toRet = parseTypeIdentifier();
-        if (isType(tok::TOK_OPER) && as<tok::Operator>()->getOpType() == tok::OPER_COLON) {
-            //toRet = parseTypeSpecifier(static_cast<Identifier*>(toRet));
+        if (accept(tok::OPER_COLON)) {
+            toRet = parseKindSpecifier(static_cast<TypeIdentifier*>(toRet));
         }
         break;
 
@@ -434,6 +434,58 @@ TypeExpression* Parser::parseTypePrimary() {
         } else {
             _ctx->reporter().error(*_currentToken, "Unexpected keyword `" + _currentToken->toString() + "`");
             accept();
+        }
+        break;
+
+    default:
+        _ctx->reporter().error(*_currentToken,
+                               "expected identifier | type tuple | class "
+                               "; got " + _currentToken->toString());
+        accept();
+    }
+
+    return toRet;
+}
+
+KindSpecifier* Parser::parseKindSpecifier(TypeIdentifier* id) {
+    KindSpecifyingExpression* expr = parseKindSpecifyingExpression();
+    KindSpecifier* spec = _mngr.New<KindSpecifier>(id, expr);
+    spec->setPos(*id);
+    spec->setEndPos(_lastTokenEndPos);
+    return spec;
+}
+
+KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
+    KindSpecifyingExpression* toRet = nullptr;
+    std::vector<KindSpecifyingExpression*> exprs;
+    bool arrowNecessary = false;
+
+    SAVE_POS(startPos)
+
+    switch (_currentToken->getTokenType()) {
+    case tok::TOK_OPER:
+        if (accept(tok::OPER_TIMES)) {
+            toRet = _mngr.New<ProperTypeKindSpecifier>();
+            toRet->setPos(startPos);
+            toRet->setEndPos(_lastTokenEndPos);
+            exprs.push_back(toRet);
+        } else if (accept(tok::OPER_L_BRACKET)) {
+            parseTuple<TypeConstructorKindSpecifier, tok::OPER_R_BRACKET, KindSpecifyingExpression>(
+                        exprs, [&](){return parseKindSpecifyingExpression();});
+
+            arrowNecessary = true;
+        }
+        else {
+            _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
+            accept();
+        }
+
+        if (arrowNecessary) {
+            expect(tok::OPER_THIN_ARROW, "Expected '->'");
+
+            toRet = _mngr.New<TypeConstructorKindSpecifier>(exprs, parseKindSpecifyingExpression());
+            toRet->setPos(startPos);
+            toRet->setEndPos(_lastTokenEndPos);
         }
         break;
 

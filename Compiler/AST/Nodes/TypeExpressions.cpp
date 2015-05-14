@@ -159,7 +159,7 @@ const std::string& TypeIdentifier::getValue() const {
 
 // KIND SPECIFIER
 
-KindSpecifier::KindSpecifier(TypeIdentifier* specified, KindExpression* kind) : _specified(specified), _kind(kind) {
+KindSpecifier::KindSpecifier(TypeIdentifier* specified, KindSpecifyingExpression* kind) : _specified(specified), _kind(kind) {
 
 }
 
@@ -173,7 +173,7 @@ TypeIdentifier *KindSpecifier::getSpecified() const {
     return _specified;
 }
 
-KindExpression *KindSpecifier::getKindNode() const {
+KindSpecifyingExpression *KindSpecifier::getKindNode() const {
     return _kind;
 }
 

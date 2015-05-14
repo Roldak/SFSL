@@ -24,10 +24,10 @@ class TypeIdentifier;
  * Cannot be constructed. This class is there just to provide
  * a lower upper bound for all the kind expressions than ASTNode
  */
-class KindExpression : public ASTNode, public kind::Kinded {
+class KindSpecifyingExpression : public ASTNode, public kind::Kinded {
 public:
 
-    virtual ~KindExpression();
+    virtual ~KindSpecifyingExpression();
 
     SFSL_AST_ON_VISIT_H
 };
@@ -35,7 +35,7 @@ public:
 /**
  * @brief Represents a tuple
  */
-class ProperTypeKindSpecifier : public KindExpression {
+class ProperTypeKindSpecifier : public KindSpecifyingExpression {
 public:
 
     ProperTypeKindSpecifier();
@@ -49,10 +49,10 @@ private:
 /**
  * @brief Represents a type constructor creation, e.g. `[T] => class { x: T; }`
  */
-class TypeConstructorKindSpecifier: public KindExpression {
+class TypeConstructorKindSpecifier: public KindSpecifyingExpression {
 public:
 
-    TypeConstructorKindSpecifier(const std::vector<KindExpression*>& args, KindExpression* ret);
+    TypeConstructorKindSpecifier(const std::vector<KindSpecifyingExpression*>& args, KindSpecifyingExpression* ret = nullptr);
     virtual ~TypeConstructorKindSpecifier();
 
     SFSL_AST_ON_VISIT_H
@@ -60,17 +60,23 @@ public:
     /**
      * @return The sequence of kind expressions that compose the type constructor specifier
      */
-    const std::vector<KindExpression*>& getArgs() const;
+    const std::vector<KindSpecifyingExpression*>& getArgs() const;
 
     /**
      * @return The ret kind of the type constructor
      */
-    KindExpression* getRet() const;
+    KindSpecifyingExpression* getRet() const;
+
+    /**
+     * @param expr The new kind specifying expression specifying the return kind
+     * of this type constructor specifier
+     */
+    void setRet(KindSpecifyingExpression* expr);
 
 private:
 
-    std::vector<KindExpression*> _args;
-    KindExpression* _ret;
+    std::vector<KindSpecifyingExpression*> _args;
+    KindSpecifyingExpression* _ret;
 };
 
 

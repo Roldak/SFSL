@@ -15,11 +15,11 @@ namespace ast {
 
 // TYPE EXPRESSION
 
-KindExpression::~KindExpression() {
+KindSpecifyingExpression::~KindSpecifyingExpression() {
 
 }
 
-SFSL_AST_ON_VISIT_CPP(KindExpression)
+SFSL_AST_ON_VISIT_CPP(KindSpecifyingExpression)
 
 ProperTypeKindSpecifier::ProperTypeKindSpecifier() {
 
@@ -31,7 +31,7 @@ ProperTypeKindSpecifier::~ProperTypeKindSpecifier() {
 
 SFSL_AST_ON_VISIT_CPP(ProperTypeKindSpecifier)
 
-TypeConstructorKindSpecifier::TypeConstructorKindSpecifier(const std::vector<KindExpression*>& args, KindExpression* ret)
+TypeConstructorKindSpecifier::TypeConstructorKindSpecifier(const std::vector<KindSpecifyingExpression*>& args, KindSpecifyingExpression* ret)
     : _args(args), _ret(ret) {
 
 }
@@ -40,12 +40,16 @@ TypeConstructorKindSpecifier::~TypeConstructorKindSpecifier() {
 
 }
 
-const std::vector<KindExpression*>& TypeConstructorKindSpecifier::getArgs() const {
+const std::vector<KindSpecifyingExpression*>& TypeConstructorKindSpecifier::getArgs() const {
     return _args;
 }
 
-KindExpression* TypeConstructorKindSpecifier::getRet() const {
+KindSpecifyingExpression* TypeConstructorKindSpecifier::getRet() const {
     return _ret;
+}
+
+void TypeConstructorKindSpecifier::setRet(KindSpecifyingExpression *expr) {
+    _ret = expr;
 }
 
 SFSL_AST_ON_VISIT_CPP(TypeConstructorKindSpecifier)

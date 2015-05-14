@@ -21,6 +21,8 @@
 
 #include "../AST/Nodes/Program.h"
 #include "../AST/Nodes/Expressions.h"
+#include "../AST/Nodes/TypeExpressions.h"
+#include "../AST/Nodes/KindExpressions.h"
 
 namespace sfsl {
 
@@ -95,6 +97,9 @@ private:
     ast::TypeExpression* parseTypeExpression();
     ast::TypeExpression* parseTypeBinary(ast::TypeExpression* left, int precedence);
     ast::TypeExpression* parseTypePrimary();
+    ast::KindSpecifier* parseKindSpecifier(ast::TypeIdentifier* id);
+
+    ast::KindSpecifyingExpression* parseKindSpecifyingExpression();
 
     ast::Block* parseBlock();
     ast::IfExpression* parseIf(bool asStatement);
