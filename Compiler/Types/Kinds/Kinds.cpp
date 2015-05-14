@@ -60,7 +60,7 @@ KIND_GENRE TypeKind::getKindGenre() const {
 }
 
 bool TypeKind::isSubKindOf(Kind* other) const {
-    return true;
+    return other->getKindGenre() == TYPE_KIND;
 }
 
 std::string TypeKind::toString() const {
