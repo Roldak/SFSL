@@ -48,6 +48,12 @@ kind::Kind* ASTKindCreator::getCreatedKind() const {
     return _created;
 }
 
+kind::Kind* ASTKindCreator::createKind(ASTNode* node, CompCtx_Ptr& ctx) {
+    ASTKindCreator creator(ctx);
+    node->onVisit(&creator);
+    return creator.getCreatedKind();
+}
+
 }
 
 }

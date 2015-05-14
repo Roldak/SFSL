@@ -34,7 +34,7 @@ void TypeChecking::visit(ClassDecl* clss) {
     ASTVisitor::visit(clss);
 
     if (Expression* par = clss->getParent()) {
-        if (type::Type* t = createType(par, _ctx)) {
+        if (type::Type* t = ASTTypeCreator::createType(par, _ctx)) {
             if (t->applyEnv({}, _ctx)->getTypeKind() != type::TYPE_OBJECT) {
                 _rep.error(*par, "Must inherit from a class");
             }
@@ -82,7 +82,7 @@ void TypeChecking::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
     tps->getTypeNode()->onVisit(this);
 
-    if (type::Type* tpe = createType(tps->getTypeNode(), _ctx)) {
+    if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx)) {
         Identifier* id = tps->getSpecified();
         type::Typed* tped = nullptr;
 
@@ -215,7 +215,7 @@ type::Type* TypeChecking::tryGetTypeOfField(ClassDecl* clss, const std::string& 
     if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(id, false)) {
         return type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(sym))->applyEnv(subtable, _ctx);
     } else if (Expression* parent = clss->getParent()) {
-        if (type::Type* t = createType(parent, _ctx)) {
+        if (type::Type* t = ASTTypeCreator::createType(parent, _ctx)) {
             type::Type* appliedT = type::Type::findSubstitution(subtable, t)->applyEnv(subtable, _ctx);
             if (type::ObjectType* obj = type::getIf<type::ObjectType>(appliedT)) {
                 return tryGetTypeOfField(obj->getClass(), id, obj->getSubstitutionTable());

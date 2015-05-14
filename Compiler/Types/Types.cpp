@@ -213,12 +213,12 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
 
         for (size_t i = 0; i < params.size(); ++i) {
             // can only be a TypeSymbol
-            sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(ast::extractSymbol(params[i], ctx));
+            sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(ast::ASTSymbolExtractor::extractSymbol(params[i], ctx));
 
             subs[param->type()] = findSubstitution(env, _args[i])->applyEnv(env, ctx);
         }
 
-        return findSubstitution(subs, ast::createType(ctr->getTypeConstructor()->getBody(), ctx, subs))->applyEnv(subs, ctx);
+        return findSubstitution(subs, ast::ASTTypeCreator::createType(ctr->getTypeConstructor()->getBody(), ctx, subs))->applyEnv(subs, ctx);
     } else {
         ctx.get()->reporter().fatal(_pos, "Must have been a type constructor");
     }

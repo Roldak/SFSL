@@ -243,10 +243,10 @@ void SymbolAssignation::visit(TypeConstructorCreation* tc) {
     for (TypeExpression* expr : args) {
         if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `x`
             createObjectType(static_cast<TypeIdentifier*>(expr));
-        } /*else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: type`
-            // The var is already going to be created by the TypeSpecifier Node
+        } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: type`
+            // The var is already going to be created by the KindSpecifier Node
             expr->onVisit(this);
-        } */else {
+        } else {
             _ctx->reporter().error(*expr, "Type argument should be an identifier");
         }
     }
@@ -326,7 +326,7 @@ void SymbolAssignation::createObjectType(TypeIdentifier *id) {
     TypeDecl* type = _mngr.New<TypeDecl>(_mngr.New<TypeIdentifier>(id->getValue()), clss);
 
     sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
-    arg->setType(createType(clss, _ctx));
+    arg->setType(ASTTypeCreator::createType(clss, _ctx));
 
     type->setSymbol(arg);
 
@@ -345,7 +345,7 @@ void SymbolAssignation::createTypeConstructor(TypeIdentifier* id, TypeTuple *ttu
 
     TypeDecl* type = _mngr.New<TypeDecl>(id, typeconstuctor);
     sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
-    arg->setType(createType(typeconstuctor, _ctx));
+    arg->setType(ASTTypeCreator::createType(typeconstuctor, _ctx));
     initCreated(id, arg);
 }
 
@@ -369,7 +369,7 @@ template<typename T>
 void SymbolAssignation::assignMemberAccess(T* mac) {
     mac->getAccessed()->onVisit(this);
 
-    if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
+    if (sym::Symbol* sym = ASTSymbolExtractor::extractSymbol(mac->getAccessed(), _ctx)) {
         switch (sym->getSymbolType()) {
         case sym::SYM_MODULE:   assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName()); break;
         case sym::SYM_TPE:      assignFromTypeSymbol(mac, static_cast<sym::TypeSymbol*>(sym)); break;

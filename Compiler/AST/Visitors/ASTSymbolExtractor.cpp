@@ -57,6 +57,12 @@ sym::Symbol* ASTSymbolExtractor::getSymbol() const {
     return _sym;
 }
 
+sym::Symbol* ASTSymbolExtractor::extractSymbol(ASTNode* node, CompCtx_Ptr& ctx) {
+    ASTSymbolExtractor extractor(ctx);
+    node->onVisit(&extractor);
+    return extractor.getSymbol();
+}
+
 }
 
 }

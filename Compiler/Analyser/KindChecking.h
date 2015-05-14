@@ -37,6 +37,7 @@ namespace ast {
         virtual void visit(TypeConstructorCreation* typeconstructor) override;
         virtual void visit(TypeConstructorCall* tcall) override;
         virtual void visit(TypeIdentifier* tident) override;
+        virtual void visit(KindSpecifier* ks) override;
 
         virtual void visit(TypeSpecifier* ts) override;
 

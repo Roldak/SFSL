@@ -9,6 +9,7 @@
 #include "KindChecking.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
+#include "../AST/Visitors/ASTKindCreator.h"
 
 namespace sfsl {
 
@@ -125,6 +126,11 @@ void KindChecking::visit(TypeIdentifier* tident) {
     if (sym::Symbol* s = tident->getSymbol()) {
         tident->setKind(tryGetKindOfSymbol(s));
     }
+}
+
+void KindChecking::visit(KindSpecifier* ks) {
+    ASTVisitor::visit(ks);
+    ks->getSpecified()->setKind(ASTKindCreator::createKind(ks->getKindNode(), _ctx));
 }
 
 void KindChecking::visit(TypeSpecifier* ts) {

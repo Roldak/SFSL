@@ -21,7 +21,7 @@ ASTTypeCreator::~ASTTypeCreator() {
 
 }
 
-void ASTTypeCreator::visit(ASTNode* node) {
+void ASTTypeCreator::visit(ASTNode*) {
     // do not throw an exception
 }
 
@@ -61,6 +61,12 @@ void ASTTypeCreator::visit(TypeIdentifier* ident) {
 
 type::Type* ASTTypeCreator::getCreatedType() const {
     return _created;
+}
+
+type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable) {
+    ASTTypeCreator creator(ctx, subTable);
+    node->onVisit(&creator);
+    return creator.getCreatedType();
 }
 
 void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos) {

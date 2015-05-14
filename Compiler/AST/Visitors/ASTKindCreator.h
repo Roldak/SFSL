@@ -41,24 +41,20 @@ public:
      */
     kind::Kind* getCreatedKind() const;
 
+    /**
+     * @brief Creates a kind from an ASTNode, if the node corresponds
+     * to a valid syntax of a kind specifying node.
+     *
+     * @param node The node from which to create the kind
+     * @param ctx The compilation context
+     * @return The generated kind
+     */
+    static kind::Kind* createKind(ASTNode* node, CompCtx_Ptr& ctx);
+
 protected:
 
     kind::Kind* _created;
 };
-
-/**
- * @brief Creates a kind from an ASTNode, if the node corresponds
- * to a valid syntax of a kind specifying node.
- *
- * @param node The node from which to create the kind
- * @param ctx The compilation context
- * @return The generated kind
- */
-inline kind::Kind* createKind(ASTNode* node, CompCtx_Ptr& ctx) {
-    ASTKindCreator creator(ctx);
-    node->onVisit(&creator);
-    return creator.getCreatedKind();
-}
 
 }
 
