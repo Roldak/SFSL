@@ -64,7 +64,7 @@ bool TypeKind::isSubKindOf(Kind* other) const {
 }
 
 std::string TypeKind::toString() const {
-    return "#";
+    return "*";
 }
 
 // no need to allocate a TypeKind everytime
