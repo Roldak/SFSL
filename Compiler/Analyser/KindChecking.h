@@ -48,6 +48,8 @@ namespace ast {
         common::AbstractReporter& _rep;
 
         std::set<TypeDecl*> _visitedTypeDefs;
+        std::set<TypeExpression*> _deferredExpressions;
+        bool _mustDefer;
     };
 }
 

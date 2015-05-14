@@ -18,12 +18,15 @@ namespace ast {
 // TYPE CHECK
 
 KindChecking::KindChecking(CompCtx_Ptr& ctx)
-    : ASTVisitor(ctx), _rep(ctx->reporter()) {
+    : ASTVisitor(ctx), _rep(ctx->reporter()), _mustDefer(true) {
 
 }
 
 KindChecking::~KindChecking() {
-
+    _mustDefer = false;
+    for (TypeExpression* expr : _deferredExpressions) {
+        expr->onVisit(this);
+    }
 }
 
 void KindChecking::visit(ASTNode*) {
@@ -43,15 +46,19 @@ void KindChecking::visit(TypeDecl* tdecl) {
 }
 
 void KindChecking::visit(ClassDecl* clss) {
-    ASTVisitor::visit(clss);
+    clss->setKind(kind::TypeKind::create());
 
-    if (TypeExpression* p = clss->getParent()) {
-        if (p->kind()->getKindGenre() != kind::TYPE_KIND) {
-            _rep.error(*p, "Kind mismatch. Expected proper type, found " + p->kind()->toString());
+    if (_mustDefer) {
+        _deferredExpressions.emplace(clss);
+    } else {
+        ASTVisitor::visit(clss);
+
+        if (TypeExpression* p = clss->getParent()) {
+            if (p->kind()->getKindGenre() != kind::TYPE_KIND) {
+                _rep.error(*p, "Kind mismatch. Expected proper type, found " + p->kind()->toString());
+            }
         }
     }
-
-    clss->setKind(kind::TypeKind::create());
 }
 
 void KindChecking::visit(TypeMemberAccess* tdot) {

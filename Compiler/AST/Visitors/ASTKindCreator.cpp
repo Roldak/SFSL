@@ -81,7 +81,6 @@ void ASTDefaultTypeFromKindCreator::visit(ProperTypeKindSpecifier*) {
 }
 
 void ASTDefaultTypeFromKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
-
     std::vector<TypeExpression*> args(tcks->getArgs().size());
     TypeExpression* ret;
 
