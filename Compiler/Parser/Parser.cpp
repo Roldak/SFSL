@@ -466,8 +466,6 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
     case tok::TOK_OPER:
         if (accept(tok::OPER_TIMES)) {
             toRet = _mngr.New<ProperTypeKindSpecifier>();
-            toRet->setPos(startPos);
-            toRet->setEndPos(_lastTokenEndPos);
             exprs.push_back(toRet);
         } else if (accept(tok::OPER_L_BRACKET)) {
             parseTuple<TypeConstructorKindSpecifier, tok::OPER_R_BRACKET, KindSpecifyingExpression>(
@@ -478,15 +476,15 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
         else {
             _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
             accept();
+            break;
         }
 
-        if (arrowNecessary) {
-            expect(tok::OPER_THIN_ARROW, "Expected '->'");
-
+        if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "Expected '->'")) || accept(tok::OPER_THIN_ARROW)) {
             toRet = _mngr.New<TypeConstructorKindSpecifier>(exprs, parseKindSpecifyingExpression());
-            toRet->setPos(startPos);
-            toRet->setEndPos(_lastTokenEndPos);
         }
+
+        toRet->setPos(startPos);
+        toRet->setEndPos(_lastTokenEndPos);
         break;
 
     default:
@@ -560,7 +558,7 @@ Tuple* Parser::parseTuple() {
     return parseTuple<Tuple, tok::OPER_R_PAREN, Expression>(exprs, [&](){return parseExpression();});
 }
 
-TypeTuple *Parser::parseTypeTuple() {
+TypeTuple* Parser::parseTypeTuple() {
     std::vector<TypeExpression*> exprs;
     return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression>(exprs, [&](){return parseTypeExpression();});
 }
