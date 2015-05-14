@@ -12,6 +12,7 @@
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTSymbolExtractor.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
+#include "../AST/Visitors/ASTKindCreator.h"
 
 namespace sfsl {
 
@@ -29,9 +30,9 @@ ScopePossessorVisitor::~ScopePossessorVisitor() {
 
 void ScopePossessorVisitor::tryAddSymbol(sym::Symbol* sym) {
     if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
-        _ctx.get()->reporter().error(*sym, std::string("Multiple definitions of symbol '") +
+        _ctx->reporter().error(*sym, std::string("Multiple definitions of symbol '") +
                                      sym->getName() + "' were found.");
-        _ctx.get()->reporter().info(*oldSymbol, "First instance here");
+        _ctx->reporter().info(*oldSymbol, "First instance here");
     }
 }
 
@@ -108,7 +109,11 @@ void ScopeGeneration::visit(ModuleDecl* module) {
 void ScopeGeneration::visit(TypeDecl* tdecl) {
     createSymbol(tdecl);
 
+    pushScope(tdecl->getSymbol(), true);
+
     ASTVisitor::visit(tdecl);
+
+    popScope();
 }
 
 void ScopeGeneration::visit(ClassDecl* clss) {
@@ -197,10 +202,22 @@ void SymbolAssignation::visit(DefineDecl* def) {
     RESTORE_SCOPE
 }
 
-void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
-    SAVE_SCOPE(typeconstructor)
+void SymbolAssignation::visit(TypeDecl *tdecl) {
+    SAVE_SCOPE(tdecl->getSymbol())
 
-    const std::vector<Expression*>& args = typeconstructor->getArgs()->getExpressions();
+    ASTVisitor::visit(tdecl);
+
+    RESTORE_SCOPE
+}
+
+void SymbolAssignation::visit(TypeMemberAccess* tmac) {
+    assignMemberAccess(tmac);
+}
+
+void SymbolAssignation::visit(TypeConstructorCreation* tc) {
+    SAVE_SCOPE(tc)
+
+    /*const std::vector<TypeExpression*>& args = typeconstructor->getArgs()->getExpressions();
 
     for (Expression* expr : args) {
         if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
@@ -208,16 +225,50 @@ void SymbolAssignation::visit(TypeConstructorCreation* typeconstructor) {
         }
         else if(isNodeOfType<TypeConstructorCall>(expr, _ctx)) {
             TypeConstructorCall* call = static_cast<TypeConstructorCall*>(expr);
-            createTypeConstructor(static_cast<Identifier*>(call->getCallee()), call->getArgsTuple()); // TODO : safer cast
+            createTypeConstructor(static_cast<TypeIdentifier*>(call->getCallee()), call->getArgsTuple()); // TODO : safer cast
         }
         else {
-            _ctx.get()->reporter().error(*expr, "Argument should be an identifier");
+            _ctx->reporter().error(*expr, "Argument should be an identifier");
+        }
+    }
+*/
+    TypeExpression* expr = tc->getArgs();
+    std::vector<TypeExpression*> args;
+
+    if (isNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        args = static_cast<TypeTuple*>(expr)->getExpressions();
+    } else { // form is `exp => ...` or `[exp] => ...`
+        args.push_back(expr);
+    }
+
+    for (TypeExpression* expr : args) {
+        if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `x`
+            createObjectType(static_cast<TypeIdentifier*>(expr),
+                             ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
+                                 _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(expr)->getValue(), _ctx));
+        } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: type`
+            // The var is already going to be created by the KindSpecifier Node
+            expr->onVisit(this);
+        } else {
+            _ctx->reporter().error(*expr, "Type argument should be an identifier");
         }
     }
 
-    typeconstructor->getBody()->onVisit(this);
+    tc->getBody()->onVisit(this);
 
     RESTORE_SCOPE
+}
+
+void SymbolAssignation::visit(TypeIdentifier *id) {
+    assignIdentifier(id);
+}
+
+void SymbolAssignation::visit(KindSpecifier* ks) {
+    TypeDecl* defaultType = ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
+                ks->getKindNode(), ks->getSpecified()->getValue(), _ctx);
+
+    createObjectType(ks->getSpecified(), defaultType);
+    //ASTVisitor::visit(ks);
 }
 
 void SymbolAssignation::visit(BinaryExpression* exp) {
@@ -226,17 +277,7 @@ void SymbolAssignation::visit(BinaryExpression* exp) {
 }
 
 void SymbolAssignation::visit(MemberAccess* mac) {
-    mac->getAccessed()->onVisit(this);
-
-    if (sym::Symbol* sym = extractSymbol(mac->getAccessed(), _ctx)) {
-        switch (sym->getSymbolType()) {
-        case sym::SYM_MODULE:   assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName()); break;
-        case sym::SYM_TPE:      assignFromTypeSymbol(mac, static_cast<sym::TypeSymbol*>(sym)); break;
-        default:
-            mac->setSymbol(nullptr);
-            break;
-        }
-    }
+    assignMemberAccess(mac);
 }
 
 void SymbolAssignation::visit(Block* block) {
@@ -266,7 +307,7 @@ void SymbolAssignation::visit(FunctionCreation* func) {
             // The var is already going to be created by the TypeSpecifier Node
             expr->onVisit(this);
         } else {
-            _ctx.get()->reporter().error(*expr, "Argument should be an identifier");
+            _ctx->reporter().error(*expr, "Argument should be an identifier");
         }
     }
 
@@ -281,11 +322,7 @@ void SymbolAssignation::visit(TypeSpecifier* tps) {
 }
 
 void SymbolAssignation::visit(Identifier* id) {
-    if (sym::Symbol* symbol = _curScope->getSymbol<sym::Symbol>(id->getValue())) {
-        id->setSymbol(symbol);
-    } else {
-        _ctx.get()->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
-    }
+    assignIdentifier(id);
 }
 
 void SymbolAssignation::createVar(Identifier *id) {
@@ -293,18 +330,13 @@ void SymbolAssignation::createVar(Identifier *id) {
     initCreated(id, arg);
 }
 
-void SymbolAssignation::createObjectType(Identifier *id) {
-    ClassDecl* clss = _mngr.New<ClassDecl>(id->getValue(), nullptr, std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
-    clss->setScope(_mngr.New<sym::Scope>(nullptr));
-    TypeDecl* type = _mngr.New<TypeDecl>(id, clss);
-    sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
-    arg->setType(createType(clss, _ctx));
-    initCreated(id, arg);
+void SymbolAssignation::createObjectType(TypeIdentifier* id, TypeDecl* defaultType) {
+    initCreated(id, defaultType->getSymbol());
 }
 
-void SymbolAssignation::createTypeConstructor(Identifier *id, TypeTuple *ttuple) {
-    for (Expression* expr : ttuple->getExpressions()) {
-        createObjectType(static_cast<Identifier*>(expr));
+void SymbolAssignation::createTypeConstructor(TypeIdentifier* id, TypeTuple *ttuple) {
+    /*for (Expression* expr : ttuple->getExpressions()) {
+        createObjectType(static_cast<TypeIdentifier*>(expr));
     }
     ClassDecl* resClass = _mngr.New<ClassDecl>(id->getValue(), nullptr, std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
     resClass->setScope(_mngr.New<sym::Scope>(nullptr));
@@ -312,34 +344,61 @@ void SymbolAssignation::createTypeConstructor(Identifier *id, TypeTuple *ttuple)
 
     TypeDecl* type = _mngr.New<TypeDecl>(id, typeconstuctor);
     sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
-    arg->setType(createType(typeconstuctor, _ctx));
-    initCreated(id, arg);
+    arg->setType(ASTTypeCreator::createType(typeconstuctor, _ctx));
+    initCreated(id, arg);*/
 }
 
-void SymbolAssignation::initCreated(Identifier *id, sym::Symbol *s) {
+template<typename T, typename S>
+void SymbolAssignation::initCreated(T* id, S* s) {
     s->setPos(*id);
     id->setSymbol(s);
     tryAddSymbol(s);
 }
 
-void SymbolAssignation::assignFromStaticScope(MemberAccess* mac, sym::Scoped* scoped, const std::string& typeName) {
+template<typename T>
+void SymbolAssignation::assignIdentifier(T* id) {
+    if (sym::Symbol* symbol = _curScope->getSymbol<sym::Symbol>(id->getValue())) {
+        id->setSymbol(symbol);
+    } else {
+        _ctx->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
+    }
+}
+
+template<typename T>
+void SymbolAssignation::assignMemberAccess(T* mac) {
+    mac->getAccessed()->onVisit(this);
+
+    if (sym::Symbol* sym = ASTSymbolExtractor::extractSymbol(mac->getAccessed(), _ctx)) {
+        switch (sym->getSymbolType()) {
+        case sym::SYM_MODULE:   assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName()); break;
+        case sym::SYM_TPE:      assignFromTypeSymbol(mac, static_cast<sym::TypeSymbol*>(sym)); break;
+        default:
+            mac->setSymbol(nullptr);
+            break;
+        }
+    }
+}
+
+template<typename T>
+void SymbolAssignation::assignFromStaticScope(T* mac, sym::Scoped* scoped, const std::string& typeName) {
     sym::Scope* scope = scoped->getScope();
     const std::string& id = mac->getMember()->getValue();
 
     if (sym::Symbol* resSymbol = scope->getSymbol<sym::Symbol>(id, false)) {
         mac->setSymbol(resSymbol);
     } else {
-        _ctx.get()->reporter().error(
+        _ctx->reporter().error(
                     *(mac->getMember()),
                     std::string("No member named '") + id + "' in " + typeName);
     }
 }
 
-void SymbolAssignation::assignFromTypeSymbol(MemberAccess* mac, sym::TypeSymbol* tsym) {
+template<typename T>
+void SymbolAssignation::assignFromTypeSymbol(T* mac, sym::TypeSymbol* tsym) {
     if (ClassDecl* clss = getClassDeclFromTypeSymbol(tsym, _ctx)) {
-        assignFromStaticScope(mac, clss, "class " + clss->getName());
+        assignFromStaticScope<T>(mac, clss, "class " + clss->getName());
     } else {
-        _ctx.get()->reporter().error(*mac->getMember(), "Type " + tsym->getName() + " cannot have any members");
+        _ctx->reporter().error(*mac->getMember(), "Type " + tsym->getName() + " cannot have any members");
     }
 }
 

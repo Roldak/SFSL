@@ -13,10 +13,18 @@ namespace sfsl {
 
 namespace ast {
 
+// TYPE EXPRESSION
+
+TypeExpression::~TypeExpression() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeExpression)
+
 // CLASS DECLARATION
 
 ClassDecl::ClassDecl(const std::string& name,
-                     Expression* parent,
+                     TypeExpression* parent,
                      const std::vector<TypeSpecifier*>& fields,
                      const std::vector<DefineDecl*>& defs)
 
@@ -35,7 +43,7 @@ const std::string& ClassDecl::getName() const {
     return _name;
 }
 
-Expression* ClassDecl::getParent() const {
+TypeExpression* ClassDecl::getParent() const {
     return _parent;
 }
 
@@ -47,9 +55,29 @@ const std::vector<DefineDecl*>& ClassDecl::getDefs() const{
     return _defs;
 }
 
+// TYPE MEMBER ACCESS
+
+TypeMemberAccess::TypeMemberAccess(TypeExpression* accessed, TypeIdentifier* member) : _accessed(accessed), _member(member) {
+
+}
+
+TypeMemberAccess::~TypeMemberAccess() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeMemberAccess)
+
+TypeExpression* TypeMemberAccess::getAccessed() const {
+    return _accessed;
+}
+
+TypeIdentifier* TypeMemberAccess::getMember() const {
+    return _member;
+}
+
 // TYPE TUPLE
 
-TypeTuple::TypeTuple(const std::vector<Expression*>& exprs) : _exprs(exprs) {
+TypeTuple::TypeTuple(const std::vector<TypeExpression*>& exprs) : _exprs(exprs) {
 
 }
 
@@ -59,13 +87,13 @@ TypeTuple::~TypeTuple() {
 
 SFSL_AST_ON_VISIT_CPP(TypeTuple)
 
-const std::vector<Expression*>& TypeTuple::getExpressions() {
+const std::vector<TypeExpression*>& TypeTuple::getExpressions() {
     return _exprs;
 }
 
 // TYPE CONSTRUCTOR CREATION
 
-TypeConstructorCreation::TypeConstructorCreation(const std::string &name, TypeTuple *args, Expression* body)
+TypeConstructorCreation::TypeConstructorCreation(const std::string &name, TypeExpression* args, TypeExpression* body)
     : _name(name), _args(args), _body(body) {
 
 }
@@ -80,17 +108,17 @@ const std::string& TypeConstructorCreation::getName() const {
     return _name;
 }
 
-TypeTuple* TypeConstructorCreation::getArgs() const {
+TypeExpression* TypeConstructorCreation::getArgs() const {
     return _args;
 }
 
-Expression* TypeConstructorCreation::getBody() const {
+TypeExpression* TypeConstructorCreation::getBody() const {
     return _body;
 }
 
 // TYPE CONSTRUCTOR CALL
 
-TypeConstructorCall::TypeConstructorCall(Expression* callee, TypeTuple* args)
+TypeConstructorCall::TypeConstructorCall(TypeExpression* callee, TypeTuple* args)
     : _callee(callee), _args(args) {
 
 }
@@ -101,16 +129,52 @@ TypeConstructorCall::~TypeConstructorCall() {
 
 SFSL_AST_ON_VISIT_CPP(TypeConstructorCall)
 
-Expression* TypeConstructorCall::getCallee() const {
+TypeExpression* TypeConstructorCall::getCallee() const {
     return _callee;
 }
 
-const std::vector<Expression*>& TypeConstructorCall::getArgs() const {
+const std::vector<TypeExpression*>& TypeConstructorCall::getArgs() const {
     return _args->getExpressions();
 }
 
 TypeTuple* TypeConstructorCall::getArgsTuple() const {
     return _args;
+}
+
+// TYPE IDENTIFIER
+
+TypeIdentifier::TypeIdentifier(const std::string &name) : _name(name) {
+
+}
+
+TypeIdentifier::~TypeIdentifier() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeIdentifier)
+
+const std::string& TypeIdentifier::getValue() const {
+    return _name;
+}
+
+// KIND SPECIFIER
+
+KindSpecifier::KindSpecifier(TypeIdentifier* specified, KindSpecifyingExpression* kind) : _specified(specified), _kind(kind) {
+
+}
+
+KindSpecifier::~KindSpecifier() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(KindSpecifier)
+
+TypeIdentifier* KindSpecifier::getSpecified() const {
+    return _specified;
+}
+
+KindSpecifyingExpression* KindSpecifier::getKindNode() const {
+    return _kind;
 }
 
 }

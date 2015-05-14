@@ -101,10 +101,34 @@ void ASTPrinter::visit(DefineDecl* decl) {
     decl->getValue()->onVisit(this);
 }
 
+void ASTPrinter::visit(ProperTypeKindSpecifier *ptks) {
+    std::cout << "*" << std::endl;
+}
+
+void ASTPrinter::visit(TypeConstructorKindSpecifier* tcks) {
+    std::cout << "[";
+    for (size_t i = 0; i < tcks->getArgs().size(); ++i) {
+        tcks->getArgs()[i]->onVisit(this);
+        if (i == tcks->getArgs().size() - 1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "->";
+    tcks->getRet()->onVisit(this);
+}
+
+void ASTPrinter::visit(TypeMemberAccess* tdot) {
+    std::cout << "(";
+    tdot->getAccessed()->onVisit(this);
+    std::cout << ".";
+    tdot->getMember()->onVisit(this);
+    std::cout << ")";
+}
+
 void ASTPrinter::visit(TypeTuple* ttuple) {
     std::cout << "[";
 
-    const std::vector<Expression*>& args(ttuple->getExpressions());
+    const std::vector<TypeExpression*>& args(ttuple->getExpressions());
 
     for (size_t i = 0, e = args.size(); i < e; ++i) {
         args[i]->onVisit(this);
@@ -123,6 +147,16 @@ void ASTPrinter::visit(TypeConstructorCreation* typeconstructor) {
     std::cout << " => ";
     typeconstructor->getBody()->onVisit(this);
     std::cout << ")";
+}
+
+void ASTPrinter::visit(TypeIdentifier* tident) {
+    std::cout << tident->getValue();
+}
+
+void ASTPrinter::visit(KindSpecifier* ks) {
+    ks->getSpecified()->onVisit(this);
+    std::cout << " : ";
+    ks->getKindNode()->onVisit(this);
 }
 
 void ASTPrinter::visit(ExpressionStatement* exp) {

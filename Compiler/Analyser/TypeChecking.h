@@ -21,20 +21,16 @@ namespace ast {
     /**
      * @brief
      */
-    class TypeCheking : public ASTVisitor {
+    class TypeChecking : public ASTVisitor {
     public:
 
-        TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
-        virtual ~TypeCheking();
+        TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
+        virtual ~TypeChecking();
 
         virtual void visit(ASTNode*) override;
 
-        virtual void visit(ModuleDecl* mod) override;
-        virtual void visit(TypeDecl* tdecl) override;
         virtual void visit(ClassDecl* clss) override;
         virtual void visit(DefineDecl* decl) override;
-
-        virtual void visit(TypeConstructorCreation* typeconstructor) override;
 
         virtual void visit(ExpressionStatement* exp) override;
 
@@ -58,7 +54,6 @@ namespace ast {
         type::ObjectType* applySubsitutions(type::ObjectType* inner, type::ObjectType* obj);
         type::ConstructorType* applySubsitutions(type::ConstructorType* inner, type::ObjectType* obj);
 
-        sym::Scope* _curScope;
         const sym::SymbolResolver& _res;
         common::AbstractReporter& _rep;
 

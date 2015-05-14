@@ -74,8 +74,12 @@ public:
     virtual void visit(ModuleDecl* mod) override;
     virtual void visit(ClassDecl* clss) override;
     virtual void visit(DefineDecl* decl) override;
+    virtual void visit(TypeDecl* tdecl) override;
 
+    virtual void visit(TypeMemberAccess* tdot) override;
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
+    virtual void visit(TypeIdentifier* tident) override;
+    virtual void visit(KindSpecifier* ks) override;
 
     virtual void visit(BinaryExpression* exp) override;
     virtual void visit(MemberAccess* mac) override;
@@ -87,12 +91,23 @@ public:
 private:
 
     void createVar(Identifier* id);
-    void createObjectType(Identifier* id);
-    void createTypeConstructor(Identifier* id, TypeTuple* ttuple);
-    void initCreated(Identifier* id, sym::Symbol* s);
+    void createObjectType(TypeIdentifier* id, TypeDecl* defaultType);
+    void createTypeConstructor(TypeIdentifier* id, TypeTuple* ttuple);
 
-    void assignFromStaticScope(MemberAccess* mac, sym::Scoped* scoped, const std::string& typeName);
-    void assignFromTypeSymbol(MemberAccess* mac, sym::TypeSymbol* tsym);
+    template<typename T, typename S>
+    void initCreated(T* id, S* s);
+
+    template<typename T>
+    void assignIdentifier(T* id);
+
+    template<typename T>
+    void assignMemberAccess(T* mac);
+
+    template<typename T>
+    void assignFromStaticScope(T* mac, sym::Scoped* scoped, const std::string& typeName);
+
+    template<typename T>
+    void assignFromTypeSymbol(T* mac, sym::TypeSymbol* tsym);
 
 };
 

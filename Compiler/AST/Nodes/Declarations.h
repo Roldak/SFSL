@@ -13,6 +13,7 @@
 #include <vector>
 #include "Expressions.h"
 #include "TypeExpressions.h"
+#include "KindExpressions.h"
 #include "../Symbols/Symbols.h"
 #include "../Symbols/Symbolic.h"
 
@@ -104,7 +105,7 @@ private:
 class TypeDecl : public Expression, public sym::Symbolic<sym::TypeSymbol> {
 public:
 
-    TypeDecl(Identifier* id, Expression* exp);
+    TypeDecl(TypeIdentifier* id, TypeExpression* exp);
     virtual ~TypeDecl();
 
     SFSL_AST_ON_VISIT_H
@@ -112,17 +113,17 @@ public:
     /**
      * @return The name of the type
      */
-    Identifier* getName() const;
+    TypeIdentifier* getName() const;
     
     /**
      * @return The type expression
      */
-    Expression* getExpression() const;
+    TypeExpression* getExpression() const;
 
 private:
 
-    Identifier* _name;
-    Expression* _exp;
+    TypeIdentifier* _name;
+    TypeExpression* _exp;
 };
 
 }

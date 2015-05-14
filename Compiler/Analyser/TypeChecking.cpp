@@ -17,98 +17,72 @@ namespace ast {
 
 // TYPE CHECK
 
-TypeCheking::TypeCheking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : ASTVisitor(ctx), _res(res), _rep(ctx.get()->reporter()) {
+TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
+    : ASTVisitor(ctx), _res(res), _rep(ctx->reporter()) {
 
 }
 
-TypeCheking::~TypeCheking() {
+TypeChecking::~TypeChecking() {
 
 }
 
-void TypeCheking::visit(ASTNode*) {
+void TypeChecking::visit(ASTNode*) {
 
 }
 
-void TypeCheking::visit(ModuleDecl* mod) {
-    SAVE_SCOPE(mod->getSymbol())
-
-    ASTVisitor::visit(mod);
-
-    RESTORE_SCOPE
-}
-
-void TypeCheking::visit(TypeDecl *tdecl) {
-    ASTVisitor::visit(tdecl);
-    tdecl->setType(_res.Unit());
-}
-
-void TypeCheking::visit(ClassDecl* clss) {
-    SAVE_SCOPE(clss)
-
+void TypeChecking::visit(ClassDecl* clss) {
     ASTVisitor::visit(clss);
 
     if (Expression* par = clss->getParent()) {
-        if (type::Type* t = createType(par, _ctx)) {
+        if (type::Type* t = ASTTypeCreator::createType(par, _ctx)) {
             if (t->applyEnv({}, _ctx)->getTypeKind() != type::TYPE_OBJECT) {
-                _ctx.get()->reporter().error(*par, "Must inherit from a class");
+                _rep.error(*par, "Must inherit from a class");
             }
         }
     }
-
-    RESTORE_SCOPE
 }
 
-void TypeCheking::visit(DefineDecl* decl) {
+void TypeChecking::visit(DefineDecl* decl) {
     if (_visitedDefs.find(decl) == _visitedDefs.end()) {
         _visitedDefs.emplace(decl);
-
-        SAVE_SCOPE(decl->getSymbol())
 
         decl->getValue()->onVisit(this);
 
         // type inference
         decl->getName()->setType(decl->getValue()->type());
         static_cast<sym::DefinitionSymbol*>(decl->getSymbol())->setType(decl->getValue()->type());
-
-        RESTORE_SCOPE
     }
 }
 
-void TypeCheking::visit(TypeConstructorCreation* typeconstructor) {
-    SAVE_SCOPE(typeconstructor)
-
-    ASTVisitor::visit(typeconstructor);
-
-    RESTORE_SCOPE
-}
-
-void TypeCheking::visit(ExpressionStatement* exp) {
+void TypeChecking::visit(ExpressionStatement* exp) {
     ASTVisitor::visit(exp);
     exp->setType(exp->getExpression()->type());
 }
 
-void TypeCheking::visit(BinaryExpression* bin) {
+void TypeChecking::visit(BinaryExpression* bin) {
     ASTVisitor::visit(bin);
     bin->setType(bin->getLhs()->type()); // TODO : make it right
 }
 
-void TypeCheking::visit(AssignmentExpression* aex) {
+void TypeChecking::visit(AssignmentExpression* aex) {
     ASTVisitor::visit(aex);
 
-    if (!aex->getRhs()->type()->isSubTypeOf(aex->getLhs()->type())) {
+    type::Type* lhsT = aex->getLhs()->type()->applyEnv({}, _ctx);
+    type::Type* rhsT = aex->getRhs()->type()->applyEnv({}, _ctx);
+
+    if (!rhsT->isSubTypeOf(lhsT)) {
         _rep.error(*aex, "Assigning incompatible type. Found " +
                    aex->getRhs()->type()->toString() + ", expected " + aex->getLhs()->type()->toString());
     }
 
-    aex->setType(aex->getLhs()->type());
+    aex->setType(lhsT);
 }
 
-void TypeCheking::visit(TypeSpecifier* tps) {
+void TypeChecking::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
     tps->getTypeNode()->onVisit(this);
 
-    if (type::Type* tpe = createType(tps->getTypeNode(), _ctx)) {
+    if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx)) {
         Identifier* id = tps->getSpecified();
         type::Typed* tped = nullptr;
 
@@ -120,15 +94,13 @@ void TypeCheking::visit(TypeSpecifier* tps) {
 
         tped->setType(tpe);
     } else {
-        _ctx.get()->reporter().error(*tps->getTypeNode(), "Expression is not a type");
+        _ctx->reporter().error(*tps->getTypeNode(), "Expression is not a type");
     }
 
     tps->setType(_res.Unit());
 }
 
-void TypeCheking::visit(Block* block) {
-    SAVE_SCOPE(block)
-
+void TypeChecking::visit(Block* block) {
     ASTVisitor::visit(block);
 
     const std::vector<Expression*>& stats = block->getStatements();
@@ -137,11 +109,9 @@ void TypeCheking::visit(Block* block) {
     } else {
         block->setType(_res.Unit());
     }
-
-    RESTORE_SCOPE
 }
 
-void TypeCheking::visit(IfExpression* ifexpr) {
+void TypeChecking::visit(IfExpression* ifexpr) {
     ASTVisitor::visit(ifexpr);
 
     if (!ifexpr->getCondition()->type()->isSubTypeOf(_res.Bool())) {
@@ -166,10 +136,11 @@ void TypeCheking::visit(IfExpression* ifexpr) {
     }
 }
 
-void TypeCheking::visit(MemberAccess* dot) {
+void TypeChecking::visit(MemberAccess* dot) {
     dot->getAccessed()->onVisit(this);
 
     if (type::Type* t = dot->getAccessed()->type()) {
+        t = t->applyEnv({}, _ctx);
         if (type::ObjectType* obj = type::getIf<type::ObjectType>(t)) {
             ClassDecl* clss = obj->getClass();
             const type::SubstitutionTable& subtable = obj->getSubstitutionTable();
@@ -191,44 +162,40 @@ void TypeCheking::visit(MemberAccess* dot) {
     // TODO : static access
 }
 
-void TypeCheking::visit(Tuple* tuple) {
+void TypeChecking::visit(Tuple* tuple) {
     ASTVisitor::visit(tuple);
 }
 
-void TypeCheking::visit(FunctionCreation* func) {
-    SAVE_SCOPE(func)
-
+void TypeChecking::visit(FunctionCreation* func) {
     ASTVisitor::visit(func);
 
     _rep.info(*func->getArgs(), func->getBody()->type()->toString());
 
     func->setType(func->getBody()->type()); // TODO : change it
-
-    RESTORE_SCOPE
 }
 
-void TypeCheking::visit(FunctionCall* call) {
+void TypeChecking::visit(FunctionCall* call) {
     ASTVisitor::visit(call);
     call->setType(call->getCallee()->type()->applyEnv(call->getCallee()->type()->getSubstitutionTable(), _ctx));
 }
 
-void TypeCheking::visit(Identifier* ident) {
+void TypeChecking::visit(Identifier* ident) {
     if (sym::Symbol* sym = ident->getSymbol()) {
         if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-            ident->setType(t->applyEnv({}, _ctx));
+            ident->setType(t);
         }
     }
 }
 
-void TypeCheking::visit(IntLitteral* intlit) {
+void TypeChecking::visit(IntLitteral* intlit) {
     intlit->setType(_res.Int());
 }
 
-void TypeCheking::visit(RealLitteral* reallit) {
+void TypeChecking::visit(RealLitteral* reallit) {
     reallit->setType(_res.Real());
 }
 
-type::Type* TypeCheking::tryGetTypeOfSymbol(sym::Symbol* sym) {
+type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
     if (sym->getSymbolType() == sym::SYM_VAR) {
         return static_cast<sym::VariableSymbol*>(sym)->type();
     } else if (sym->getSymbolType() == sym::SYM_DEF) {
@@ -244,19 +211,19 @@ type::Type* TypeCheking::tryGetTypeOfSymbol(sym::Symbol* sym) {
     return nullptr;
 }
 
-type::Type* TypeCheking::tryGetTypeOfField(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
+type::Type* TypeChecking::tryGetTypeOfField(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
     if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(id, false)) {
         return type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(sym))->applyEnv(subtable, _ctx);
     } else if (Expression* parent = clss->getParent()) {
-        if (type::Type* t = createType(parent, _ctx)) {
+        if (type::Type* t = ASTTypeCreator::createType(parent, _ctx)) {
             type::Type* appliedT = type::Type::findSubstitution(subtable, t)->applyEnv(subtable, _ctx);
             if (type::ObjectType* obj = type::getIf<type::ObjectType>(appliedT)) {
                 return tryGetTypeOfField(obj->getClass(), id, obj->getSubstitutionTable());
             } else {
-                _ctx.get()->reporter().error(*parent, "Class " + clss->getName() + " must inherit from a class type");
+                _rep.error(*parent, "Class " + clss->getName() + " must inherit from a class type");
             }
         } else {
-            _ctx.get()->reporter().error(*parent, "Expression is not a type");
+            _rep.error(*parent, "Expression is not a type");
         }
     }
     return nullptr;

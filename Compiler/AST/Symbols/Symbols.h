@@ -15,6 +15,7 @@
 #include "../../Common/Positionnable.h"
 #include "Scoped.h"
 #include "../../Types/Types.h"
+#include "../../Types/Kinds/Kinds.h"
 
 namespace sfsl {
 
@@ -75,7 +76,7 @@ namespace sym {
     /**
      * @brief Represents the symbol associated to a type
      */
-    class TypeSymbol : public Symbol, public type::Typed {
+    class TypeSymbol : public Symbol, public Scoped, public type::Typed, public kind::Kinded {
     public:
         TypeSymbol(const std::string& name, ast::TypeDecl* type);
         virtual ~TypeSymbol();

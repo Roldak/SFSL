@@ -22,6 +22,7 @@ namespace sfsl {
 namespace ast {
 
 class Identifier;
+class TypeExpression;
 
 /**
  * @brief A superclass that represents an expression.
@@ -124,7 +125,7 @@ private:
  */
 class TypeSpecifier : public Expression {
 public:
-    TypeSpecifier(Identifier* specified, Expression* type);
+    TypeSpecifier(Identifier* specified, TypeExpression* type);
     virtual ~TypeSpecifier();
 
     SFSL_AST_ON_VISIT_H
@@ -137,12 +138,12 @@ public:
     /**
      * @return The type part
      */
-    Expression* getTypeNode() const;
+    TypeExpression* getTypeNode() const;
 
 private:
 
     Identifier* _specified;
-    Expression* _type;
+    TypeExpression* _type;
 };
 
 /**
@@ -201,7 +202,7 @@ private:
 };
 
 /**
-// * @brief Represents a member access (with a dot operation, e.g. `point.x`)
+ * @brief Represents a member access (with a dot operation, e.g. `point.x`)
  */
 class MemberAccess : public Expression, public sym::Symbolic<sym::Symbol> {
 public:

@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <memory>
+#include <functional>
 
 #include "../Lexer/Lexer.h"
 #include "../Lexer/Tokens/Keyword.h"
@@ -20,6 +21,8 @@
 
 #include "../AST/Nodes/Program.h"
 #include "../AST/Nodes/Expressions.h"
+#include "../AST/Nodes/TypeExpressions.h"
+#include "../AST/Nodes/KindExpressions.h"
 
 namespace sfsl {
 
@@ -68,7 +71,11 @@ private:
 
     // Parsing
 
+    template<typename T>
+    T* parseIdentifierHelper(const std::string errMsg);
+
     ast::Identifier* parseIdentifier(const std::string& errMsg = "");
+    ast::TypeIdentifier* parseTypeIdentifier(const std::string& errMsg = "");
 
     ast::Program* parseProgram();
     ast::ModuleDecl* parseModule();
@@ -87,22 +94,29 @@ private:
     ast::Expression* parsePrimary();
     ast::TypeSpecifier* parseTypeSpecifier(ast::Identifier* id);
 
+    ast::TypeExpression* parseTypeExpression();
+    ast::TypeExpression* parseTypeBinary(ast::TypeExpression* left, int precedence);
+    ast::TypeExpression* parseTypePrimary();
+    ast::KindSpecifier* parseKindSpecifier(ast::TypeIdentifier* id);
+
+    ast::KindSpecifyingExpression* parseKindSpecifyingExpression();
+
     ast::Block* parseBlock();
     ast::IfExpression* parseIf(bool asStatement);
 
     ast::Expression* parseSpecialBinaryContinuity(ast::Expression* left);
     ast::Tuple* parseTuple();
     ast::TypeTuple* parseTypeTuple();
-    ast::Expression* parseDotOperation(ast::Expression* left);
 
         // others
 
-    template<typename T, tok::OPER_TYPE R_DELIM>
-    T* parseTuple(std::vector<ast::Expression*>& exprs);
+    template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
+    RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE*>& exprs, const PARSING_FUNC& f);
 
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
 
-    ast::Expression* makeFuncOrTypeConstr(Expression* left);
+    template<typename RETURN_TYPE, typename EXPRESSION_TYPE, typename PARSING_FUNC>
+    RETURN_TYPE* makeFuncOrTypeConstr(EXPRESSION_TYPE* left, const PARSING_FUNC& f);
 
     // Members
 

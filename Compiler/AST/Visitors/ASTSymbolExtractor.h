@@ -39,18 +39,24 @@ public:
     virtual void visit(Identifier* id) override;
     virtual void visit(MemberAccess* mac) override;
 
+    virtual void visit(TypeIdentifier* id) override;
+    virtual void visit(TypeMemberAccess* mac) override;
+
     sym::Symbol* getSymbol() const;
+
+    /**
+     * @brief Extracts the symbol of an ASTNode, if it has one
+     *
+     * @param node The node from which to extract the symbol
+     * @param ctx The compilation context
+     * @return The symbol that was extracted, or nullptr
+     */
+    static sym::Symbol* extractSymbol(ASTNode* node, CompCtx_Ptr& ctx);
 
 protected:
 
     sym::Symbol* _sym;
 };
-
-inline sym::Symbol* extractSymbol(ASTNode* node, CompCtx_Ptr& ctx) {
-    ASTSymbolExtractor extractor(ctx);
-    node->onVisit(&extractor);
-    return extractor.getSymbol();
-}
 
 }
 

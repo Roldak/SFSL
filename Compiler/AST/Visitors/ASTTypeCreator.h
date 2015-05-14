@@ -11,7 +11,6 @@
 
 #include <iostream>
 #include <set>
-#include <map>
 #include "ASTVisitor.h"
 #include "../Symbols/SymbolResolver.h"
 #include "../../Types/Types.h"
@@ -40,18 +39,27 @@ public:
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
     virtual void visit(TypeConstructorCall* tcall) override;
 
-    virtual void visit(MemberAccess* mac) override;
-    virtual void visit(Identifier *ident) override;
+    virtual void visit(TypeMemberAccess* mac) override;
+    virtual void visit(TypeIdentifier* ident) override;
 
     /**
      * @return The type created by the ASTTypeCreator
      */
     type::Type* getCreatedType() const;
 
+    /**
+     * @brief Creates a type from an ASTNode, if the node corresponds
+     * to a valid syntax of a type node.
+     *
+     * @param node The node from which to create the type
+     * @param ctx The compilation context
+     * @return The generated type
+     */
+    static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable = {});
+
 protected:
 
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
-    type::Type* kindCheck(Expression* expected, Expression* passed);
 
     type::Type* _created;
 
@@ -59,20 +67,6 @@ protected:
 
     std::set<sym::TypeSymbol*> _visitedTypes;
 };
-
-/**
- * @brief Creates a type from an ASTNode, if the node corresponds
- * to a valid syntax of a type node.
- *
- * @param node The node from which to create the type
- * @param ctx The compilation context
- * @return The generated type
- */
-inline type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable = {}) {
-    ASTTypeCreator creator(ctx, subTable);
-    node->onVisit(&creator);
-    return creator.getCreatedType();
-}
 
 /**
  * @brief Evaluates the type of the TypeSymbol and returns the ClassDecl
@@ -84,7 +78,7 @@ inline type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, const type::Subst
  * @return The ClassDecl is found, otherwise nullptr
  */
 inline ast::ClassDecl* getClassDeclFromTypeSymbol(sym::TypeSymbol* sym, CompCtx_Ptr& ctx) {
-    if (type::Type* t = createType(sym->getTypeDecl()->getExpression(), ctx)) {
+    if (type::Type* t = ASTTypeCreator::createType(sym->getTypeDecl()->getExpression(), ctx)) {
         if (type::ObjectType* o = type::getIf<type::ObjectType>(t)) {
             return o->getClass();
         }

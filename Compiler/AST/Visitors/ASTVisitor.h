@@ -49,9 +49,15 @@ public:
     virtual void visit(ClassDecl* clss);
     virtual void visit(DefineDecl* decl);
 
+    virtual void visit(ProperTypeKindSpecifier* ptks);
+    virtual void visit(TypeConstructorKindSpecifier* tcks);
+
+    virtual void visit(TypeMemberAccess* tdot);
     virtual void visit(TypeTuple* ttuple);
     virtual void visit(TypeConstructorCreation* typeconstructor);
     virtual void visit(TypeConstructorCall* tcall);
+    virtual void visit(TypeIdentifier* tident);
+    virtual void visit(KindSpecifier* ks);
 
     virtual void visit(ExpressionStatement* exp);
 

@@ -90,7 +90,7 @@ type::Type* SymbolResolver::Real() const {
 type::Type* SymbolResolver::createTypeFromSymbol(Symbol* sym) {
     if (sym) {
         if (sym->getSymbolType() == SYM_TPE) {
-            return _ctx.get()->memoryManager().New<type::ObjectType>(
+            return _ctx->memoryManager().New<type::ObjectType>(
                         ast::getClassDeclFromTypeSymbol(static_cast<sym::TypeSymbol*>(sym), _ctx));
         }
     }
