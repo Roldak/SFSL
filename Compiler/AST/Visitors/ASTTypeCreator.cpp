@@ -7,12 +7,6 @@
 //
 
 #include "ASTTypeCreator.h"
-#include "ASTTypeIdentifier.h"
-#include "../Symbols/Scope.h"
-#include "../Symbols/SymbolResolver.h"
-#include "../../Analyser/NameAnalysis.h"
-#include "../../Analyser/TypeChecking.h"
-#include "../../../Utils/Utils.h"
 
 namespace sfsl {
 

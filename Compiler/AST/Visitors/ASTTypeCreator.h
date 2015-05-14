@@ -11,7 +11,6 @@
 
 #include <iostream>
 #include <set>
-#include <map>
 #include "ASTVisitor.h"
 #include "../Symbols/SymbolResolver.h"
 #include "../../Types/Types.h"
