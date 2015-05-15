@@ -217,21 +217,6 @@ void SymbolAssignation::visit(TypeMemberAccess* tmac) {
 void SymbolAssignation::visit(TypeConstructorCreation* tc) {
     SAVE_SCOPE(tc)
 
-    /*const std::vector<TypeExpression*>& args = typeconstructor->getArgs()->getExpressions();
-
-    for (Expression* expr : args) {
-        if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
-            createObjectType(static_cast<Identifier*>(expr));
-        }
-        else if(isNodeOfType<TypeConstructorCall>(expr, _ctx)) {
-            TypeConstructorCall* call = static_cast<TypeConstructorCall*>(expr);
-            createTypeConstructor(static_cast<TypeIdentifier*>(call->getCallee()), call->getArgsTuple()); // TODO : safer cast
-        }
-        else {
-            _ctx->reporter().error(*expr, "Argument should be an identifier");
-        }
-    }
-*/
     TypeExpression* expr = tc->getArgs();
     std::vector<TypeExpression*> args;
 
@@ -259,7 +244,7 @@ void SymbolAssignation::visit(TypeConstructorCreation* tc) {
     RESTORE_SCOPE
 }
 
-void SymbolAssignation::visit(TypeIdentifier *id) {
+void SymbolAssignation::visit(TypeIdentifier* id) {
     assignIdentifier(id);
 }
 
@@ -285,6 +270,7 @@ void SymbolAssignation::visit(Block* block) {
 
     ASTVisitor::visit(block);
 
+    warnForUnusedVariableInCurrentScope();
     RESTORE_SCOPE
 }
 
@@ -313,39 +299,28 @@ void SymbolAssignation::visit(FunctionCreation* func) {
 
     func->getBody()->onVisit(this);
 
+    warnForUnusedVariableInCurrentScope();
     RESTORE_SCOPE
 }
 
 void SymbolAssignation::visit(TypeSpecifier* tps) {
     createVar(tps->getSpecified());
     ASTVisitor::visit(tps);
+    setVariableSymbolicUsed(tps->getSpecified(), false);
 }
 
 void SymbolAssignation::visit(Identifier* id) {
     assignIdentifier(id);
+    setVariableSymbolicUsed(id, true);
 }
 
-void SymbolAssignation::createVar(Identifier *id) {
+void SymbolAssignation::createVar(Identifier* id) {
     sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(id->getValue());
     initCreated(id, arg);
 }
 
 void SymbolAssignation::createObjectType(TypeIdentifier* id, TypeDecl* defaultType) {
     initCreated(id, defaultType->getSymbol());
-}
-
-void SymbolAssignation::createTypeConstructor(TypeIdentifier* id, TypeTuple *ttuple) {
-    /*for (Expression* expr : ttuple->getExpressions()) {
-        createObjectType(static_cast<TypeIdentifier*>(expr));
-    }
-    ClassDecl* resClass = _mngr.New<ClassDecl>(id->getValue(), nullptr, std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
-    resClass->setScope(_mngr.New<sym::Scope>(nullptr));
-    TypeConstructorCreation* typeconstuctor = _mngr.New<TypeConstructorCreation>(id->getValue(), ttuple, resClass);
-
-    TypeDecl* type = _mngr.New<TypeDecl>(id, typeconstuctor);
-    sym::TypeSymbol* arg = _mngr.New<sym::TypeSymbol>(id->getValue(), type);
-    arg->setType(ASTTypeCreator::createType(typeconstuctor, _ctx));
-    initCreated(id, arg);*/
 }
 
 template<typename T, typename S>
@@ -399,6 +374,26 @@ void SymbolAssignation::assignFromTypeSymbol(T* mac, sym::TypeSymbol* tsym) {
         assignFromStaticScope<T>(mac, clss, "class " + clss->getName());
     } else {
         _ctx->reporter().error(*mac->getMember(), "Type " + tsym->getName() + " cannot have any members");
+    }
+}
+
+template<typename T>
+void SymbolAssignation::setVariableSymbolicUsed(T* symbolic, bool val) {
+    if (sym::Symbol* s = symbolic->getSymbol()) {
+        if (s->getSymbolType() == sym::SYM_VAR) {
+            static_cast<sym::VariableSymbol*>(s)->setUsed(val);
+        }
+    }
+}
+
+void SymbolAssignation::warnForUnusedVariableInCurrentScope() {
+    for (const auto& s : _curScope->getAllSymbols()) {
+        if (s.second->getSymbolType() == sym::SYM_VAR) {
+            sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(s.second);
+            if (!var->isUsed()) {
+                _ctx->reporter().warning(*var, "Unused variable '" + var->getName() + "'");
+            }
+        }
     }
 }
 

@@ -57,6 +57,35 @@ inline T String_toT(const std::string& val) {
     return res;
 }
 
+/**
+ * @brief An interface to keep track of
+ * the used state of an object
+ */
+class UsageTrackable {
+protected:
+
+    UsageTrackable() : _used(false) {}
+
+public:
+
+    /**
+     * @brief Sets the used state to the given value
+     */
+    void setUsed(bool val) {
+        _used = val;
+    }
+
+    /**
+     * @return True if the object has been used, otherwise false
+     */
+    bool isUsed() const {
+        return _used;
+    }
+
+private:
+    bool _used;
+};
+
 //(http://stackoverflow.com/questions/236129/split-a-string-in-c)
 /**
  * @brief Splits the given strings according to a delimiter.
@@ -151,6 +180,8 @@ inline bool isSymbol(char c) {
 }
 
 }
+
+// NOT IN THE utils NAMESPACE ANYMORE
 
 /**
  * @brief The Integer type adapted to the host architecture (4 bytes or 8 bytes int)

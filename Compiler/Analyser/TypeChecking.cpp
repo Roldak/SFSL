@@ -35,7 +35,7 @@ void TypeChecking::visit(ClassDecl* clss) {
 
     if (Expression* par = clss->getParent()) {
         if (type::Type* t = ASTTypeCreator::createType(par, _ctx)) {
-            if (t->applyEnv({}, _ctx)->getTypeKind() != type::TYPE_OBJECT) {
+            if (t->applied(_ctx)->getTypeKind() != type::TYPE_OBJECT) {
                 _rep.error(*par, "Must inherit from a class");
             }
         }
@@ -67,12 +67,12 @@ void TypeChecking::visit(BinaryExpression* bin) {
 void TypeChecking::visit(AssignmentExpression* aex) {
     ASTVisitor::visit(aex);
 
-    type::Type* lhsT = aex->getLhs()->type()->applyEnv({}, _ctx);
-    type::Type* rhsT = aex->getRhs()->type()->applyEnv({}, _ctx);
+    type::Type* lhsT = aex->getLhs()->type();
+    type::Type* rhsT = aex->getRhs()->type();
 
-    if (!rhsT->isSubTypeOf(lhsT)) {
+    if (!rhsT->applied(_ctx)->isSubTypeOf(lhsT->applied(_ctx))) {
         _rep.error(*aex, "Assigning incompatible type. Found " +
-                   aex->getRhs()->type()->toString() + ", expected " + aex->getLhs()->type()->toString());
+                   lhsT->toString() + ", expected " + rhsT->toString());
     }
 
     aex->setType(lhsT);
@@ -114,7 +114,7 @@ void TypeChecking::visit(Block* block) {
 void TypeChecking::visit(IfExpression* ifexpr) {
     ASTVisitor::visit(ifexpr);
 
-    if (!ifexpr->getCondition()->type()->isSubTypeOf(_res.Bool())) {
+    if (!ifexpr->getCondition()->type()->applied(_ctx)->isSubTypeOf(_res.Bool())) {
         _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (Found " + ifexpr->getCondition()->type()->toString() + ")");
     }
 
@@ -122,9 +122,9 @@ void TypeChecking::visit(IfExpression* ifexpr) {
         type::Type* thenType = ifexpr->getThen()->type();
         type::Type* elseType = ifexpr->getElse()->type();
 
-        if (thenType->isSubTypeOf(elseType)) {
+        if (thenType->applied(_ctx)->isSubTypeOf(elseType->applied(_ctx))) {
             ifexpr->setType(elseType);
-        } else if (elseType->isSubTypeOf(thenType)) {
+        } else if (elseType->applied(_ctx)->isSubTypeOf(thenType->applied(_ctx))) {
             ifexpr->setType(thenType);
         } else {
             _rep.error(*ifexpr, "The then-part and else-part have different types. Found " +
@@ -132,6 +132,7 @@ void TypeChecking::visit(IfExpression* ifexpr) {
         }
 
     } else {
+        // TODO : correct this
         ifexpr->setType(ifexpr->getThen()->type());
     }
 }
@@ -140,7 +141,7 @@ void TypeChecking::visit(MemberAccess* dot) {
     dot->getAccessed()->onVisit(this);
 
     if (type::Type* t = dot->getAccessed()->type()) {
-        t = t->applyEnv({}, _ctx);
+        t = t->applied(_ctx);
         if (type::ObjectType* obj = type::getIf<type::ObjectType>(t)) {
             ClassDecl* clss = obj->getClass();
             const type::SubstitutionTable& subtable = obj->getSubstitutionTable();

@@ -42,6 +42,7 @@ public:
     virtual std::string toString() const = 0;
 
     virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const = 0;
+    Type* applied(CompCtx_Ptr& ctx) const;
 
     const SubstitutionTable& getSubstitutionTable() const;
 

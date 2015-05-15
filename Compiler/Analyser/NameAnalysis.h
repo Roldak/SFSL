@@ -92,7 +92,6 @@ private:
 
     void createVar(Identifier* id);
     void createObjectType(TypeIdentifier* id, TypeDecl* defaultType);
-    void createTypeConstructor(TypeIdentifier* id, TypeTuple* ttuple);
 
     template<typename T, typename S>
     void initCreated(T* id, S* s);
@@ -109,6 +108,10 @@ private:
     template<typename T>
     void assignFromTypeSymbol(T* mac, sym::TypeSymbol* tsym);
 
+    template<typename T>
+    void setVariableSymbolicUsed(T* symbolic, bool val);
+
+    void warnForUnusedVariableInCurrentScope();
 };
 
 }

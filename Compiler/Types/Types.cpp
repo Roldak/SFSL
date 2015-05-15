@@ -52,6 +52,12 @@ Type::~Type() {
 
 }
 
+const static SubstitutionTable DefaultTable = {};
+
+Type* Type::applied(CompCtx_Ptr& ctx) const {
+    return applyEnv(DefaultTable, ctx);
+}
+
 std::string Type::toString() const {
     std::string toRet = "";
     if (!_subTable.empty()) {
@@ -122,6 +128,8 @@ std::string ObjectType::toString() const {
 }
 
 Type* ObjectType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+    if (env.empty()) return (Type*)this;
+
     SubstitutionTable table = _subTable;
     applyEnvHelper(env, table);
     return ctx.get()->memoryManager().New<ObjectType>(_class, table);
@@ -155,6 +163,8 @@ std::string ConstructorType::toString() const {
 }
 
 Type* ConstructorType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+    if (env.empty()) return (Type*)this;
+
     SubstitutionTable table = _subTable;
     applyEnvHelper(env, table);
     return ctx.get()->memoryManager().New<ConstructorType>(_typeConstructor, table);
@@ -181,7 +191,7 @@ TYPE_KIND ConstructorApplyType::getTypeKind() const {
     return TYPE_CONSTRUCTOR_APPLY;
 }
 
-bool ConstructorApplyType::isSubTypeOf(const Type *other) const {
+bool ConstructorApplyType::isSubTypeOf(const Type* other) const {
     return false;
 }
 
@@ -197,33 +207,27 @@ std::string ConstructorApplyType::toString() const {
 }
 
 Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
-    Type* sub = findSubstitution(env, _callee)->applyEnv(env, ctx);
+    ConstructorType* ctr = static_cast<ConstructorType*>(findSubstitution(env, _callee)->applyEnv(env, ctx));
 
-    if (ConstructorType* ctr = getIf<ConstructorType>(sub)) {
-        ast::TypeExpression* expr = ctr->getTypeConstructor()->getArgs();
-        std::vector<ast::TypeExpression*> params;
+    ast::TypeExpression* expr = ctr->getTypeConstructor()->getArgs();
+    std::vector<ast::TypeExpression*> params;
 
-        if (ast::isNodeOfType<ast::TypeTuple>(expr, ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
-            params = static_cast<ast::TypeTuple*>(expr)->getExpressions();
-        } else { // form is `exp => ...` or `[exp] => ...`
-            params.push_back(expr);
-        }
-
-        SubstitutionTable subs;
-
-        for (size_t i = 0; i < params.size(); ++i) {
-            // can only be a TypeSymbol
-            sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(ast::ASTSymbolExtractor::extractSymbol(params[i], ctx));
-
-            subs[param->type()] = findSubstitution(env, _args[i])->applyEnv(env, ctx);
-        }
-
-        return findSubstitution(subs, ast::ASTTypeCreator::createType(ctr->getTypeConstructor()->getBody(), ctx, subs))->applyEnv(subs, ctx);
-    } else {
-        ctx.get()->reporter().fatal(_pos, "Must have been a type constructor");
+    if (ast::isNodeOfType<ast::TypeTuple>(expr, ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        params = static_cast<ast::TypeTuple*>(expr)->getExpressions();
+    } else { // form is `exp => ...` or `[exp] => ...`
+        params.push_back(expr);
     }
 
-    return Type::NotYetDefined();
+    SubstitutionTable subs;
+
+    for (size_t i = 0; i < params.size(); ++i) {
+        // can only be a TypeSymbol
+        sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(ast::ASTSymbolExtractor::extractSymbol(params[i], ctx));
+
+        subs[param->type()] = findSubstitution(env, _args[i])->applyEnv(env, ctx);
+    }
+
+    return findSubstitution(subs, ast::ASTTypeCreator::createType(ctr->getTypeConstructor()->getBody(), ctx, subs))->applyEnv(subs, ctx);
 }
 
 // TYPED
