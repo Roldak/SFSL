@@ -363,8 +363,6 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence) {
 
         if (newOpPrec >= precedence) {
 
-            SAVE_POS(startPos)
-
             TypeExpression* expr;
 
             accept();
@@ -386,7 +384,7 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence) {
                 continue;
             }
 
-            expr->setPos(startPos);
+            expr->setPos(*left);
             expr->setEndPos(_lastTokenEndPos);
 
             left = expr;
@@ -599,12 +597,6 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
     res->setPos(*left);
     res->setEndPos(_lastTokenEndPos);
     return res;
-}
-
-template<typename RETURN_TYPE, typename EXPRESSION_TYPE, typename PARSING_FUNC>
-RETURN_TYPE* Parser::makeFuncOrTypeConstr(EXPRESSION_TYPE* left, const PARSING_FUNC& f) {
-    std::string name = _currentDefName.empty() ? AnonymousFunctionName : _currentDefName;
-    return _mngr.New<RETURN_TYPE>(name, left, f());
 }
 
 }

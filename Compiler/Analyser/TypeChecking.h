@@ -29,7 +29,7 @@ namespace ast {
 
         virtual void visit(ASTNode*) override;
 
-        virtual void visit(ClassDecl* clss) override;
+        virtual void visit(TypeDecl* tdecl) override;
         virtual void visit(DefineDecl* decl) override;
 
         virtual void visit(ExpressionStatement* exp) override;

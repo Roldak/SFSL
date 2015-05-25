@@ -23,14 +23,16 @@ KindChecking::KindChecking(CompCtx_Ptr& ctx)
 }
 
 KindChecking::~KindChecking() {
-    _mustDefer = false;
-    for (TypeExpression* expr : _deferredExpressions) {
-        expr->onVisit(this);
-    }
+
 }
 
 void KindChecking::visit(ASTNode*) {
 
+}
+
+void KindChecking::visit(Program* prog) {
+    ASTVisitor::visit(prog);
+    visitDeferredExpressions();
 }
 
 void KindChecking::visit(TypeDecl* tdecl) {
@@ -51,7 +53,9 @@ void KindChecking::visit(ClassDecl* clss) {
     if (_mustDefer) {
         _deferredExpressions.emplace(clss);
     } else {
+        _mustDefer = true;
         ASTVisitor::visit(clss);
+        _mustDefer = false;
 
         if (TypeExpression* p = clss->getParent()) {
             if (p->kind()->getKindGenre() != kind::TYPE_KIND) {
@@ -125,7 +129,7 @@ void KindChecking::visit(TypeConstructorCall* tcall) {
         tcall->setKind(k->getRetKind());
 
     } else {
-        _rep.error(*tcall, "Kind mismatch. Expected type constructor, found " + tcall->getCallee()->kind()->toString());
+        _rep.error(*tcall->getCallee(), "Type expression " + tcall->getCallee()->kind()->toString() + " cannot be called.");
     }
 }
 
@@ -146,7 +150,21 @@ void KindChecking::visit(TypeSpecifier* ts) {
     ASTVisitor::visit(ts);
 
     if (ts->getTypeNode()->kind()->getKindGenre() != kind::TYPE_KIND) {
-        _rep.error(*ts->getTypeNode(), "Kind mismatch. Expected proper type, found " + ts->getTypeNode()->kind()->toString());
+        _rep.error(*ts, "Variable cannot have type " + ts->getTypeNode()->kind()->toString() + " which is not a proper type.");
+    }
+}
+
+void KindChecking::visitDeferredExpressions() {
+    while (!_deferredExpressions.empty()) {
+        std::cout << _deferredExpressions.size() << std::endl;
+
+        std::set<TypeExpression*> copy = _deferredExpressions;
+        _deferredExpressions.clear();
+
+        for (TypeExpression* expr : copy) {
+            _mustDefer = false;
+            expr->onVisit(this);
+        }
     }
 }
 

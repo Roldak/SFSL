@@ -165,7 +165,7 @@ void Lexer::handleStringLitteral(std::string &soFar) {
 
 bool Lexer::tryHandleComments(const std::string &soFar, char next) {
     if (soFar.size() >= 1) {
-        if (soFar[soFar.size() - 1] == '/') {
+        if (soFar.back() == '/') {
             switch (next) {
             case '*':   handleMultiLineComment(); return true;
             case '/':   handleSingleLineComment(); return true;

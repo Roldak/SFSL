@@ -30,16 +30,10 @@ void TypeChecking::visit(ASTNode*) {
 
 }
 
-void TypeChecking::visit(ClassDecl* clss) {
-    ASTVisitor::visit(clss);
+void TypeChecking::visit(TypeDecl* tdecl) {
+    ASTVisitor::visit(tdecl);
 
-    if (Expression* par = clss->getParent()) {
-        if (type::Type* t = ASTTypeCreator::createType(par, _ctx)) {
-            if (t->applied(_ctx)->getTypeKind() != type::TYPE_OBJECT) {
-                _rep.error(*par, "Must inherit from a class");
-            }
-        }
-    }
+    tdecl->setType(_res.Unit());
 }
 
 void TypeChecking::visit(DefineDecl* decl) {

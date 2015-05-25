@@ -29,6 +29,8 @@ namespace ast {
 
         virtual void visit(ASTNode*) override;
 
+        virtual void visit(Program* prog) override;
+
         virtual void visit(TypeDecl* tdecl) override;
         virtual void visit(ClassDecl* clss) override;
 
@@ -42,6 +44,8 @@ namespace ast {
         virtual void visit(TypeSpecifier* ts) override;
 
     private:
+
+        void visitDeferredExpressions();
 
         kind::Kind* tryGetKindOfSymbol(sym::Symbol* sym);
 
