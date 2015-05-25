@@ -30,7 +30,7 @@ void ASTKindCreator::visit(ASTNode* node) {
 }
 
 void ASTKindCreator::visit(ProperTypeKindSpecifier* ptks) {
-    _created = kind::TypeKind::create();
+    _created = kind::ProperKind::create();
 }
 
 void ASTKindCreator::visit(TypeConstructorKindSpecifier* tcks) {

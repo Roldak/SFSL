@@ -30,7 +30,7 @@ void ASTTypeCreator::visit(ClassDecl* clss) {
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
-    _created = _mngr.New<type::ConstructorType>(typeconstructor, _subTable);
+    _created = _mngr.New<type::TypeConstructorType>(typeconstructor, _subTable);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCall *tcall) {

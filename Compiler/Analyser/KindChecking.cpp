@@ -48,7 +48,7 @@ void KindChecking::visit(TypeDecl* tdecl) {
 }
 
 void KindChecking::visit(ClassDecl* clss) {
-    clss->setKind(kind::TypeKind::create());
+    clss->setKind(kind::ProperKind::create());
 
     if (_mustDefer) {
         _deferredExpressions.emplace(clss);
@@ -58,7 +58,7 @@ void KindChecking::visit(ClassDecl* clss) {
         _mustDefer = false;
 
         if (TypeExpression* p = clss->getParent()) {
-            if (p->kind()->getKindGenre() != kind::TYPE_KIND) {
+            if (p->kind()->getKindGenre() != kind::KIND_PROPER) {
                 _rep.error(*p, "Kind mismatch. Expected proper type, found " + p->kind()->toString());
             }
         }
@@ -149,7 +149,7 @@ void KindChecking::visit(KindSpecifier* ks) {
 void KindChecking::visit(TypeSpecifier* ts) {
     ASTVisitor::visit(ts);
 
-    if (ts->getTypeNode()->kind()->getKindGenre() != kind::TYPE_KIND) {
+    if (ts->getTypeNode()->kind()->getKindGenre() != kind::KIND_PROPER) {
         _rep.error(*ts, "Variable cannot have type " + ts->getTypeNode()->kind()->toString() + " which is not a proper type.");
     }
 }

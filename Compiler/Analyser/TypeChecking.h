@@ -52,7 +52,7 @@ namespace ast {
         type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
         type::Type* tryGetTypeOfField(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
         type::ProperType* applySubsitutions(type::ProperType* inner, type::ProperType* obj);
-        type::ConstructorType* applySubsitutions(type::ConstructorType* inner, type::ProperType* obj);
+        type::TypeConstructorType* applySubsitutions(type::TypeConstructorType* inner, type::ProperType* obj);
 
         const sym::SymbolResolver& _res;
         common::AbstractReporter& _rep;

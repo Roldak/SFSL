@@ -141,36 +141,36 @@ ast::ClassDecl* ProperType::getClass() const {
 
 // TYPE CONSTRUCTOR
 
-ConstructorType::ConstructorType(ast::TypeConstructorCreation*typeConstructor, const SubstitutionTable& substitutionTable)
+TypeConstructorType::TypeConstructorType(ast::TypeConstructorCreation*typeConstructor, const SubstitutionTable& substitutionTable)
     : Type(substitutionTable), _typeConstructor(typeConstructor) {
 
 }
 
-ConstructorType::~ConstructorType() {
+TypeConstructorType::~TypeConstructorType() {
 
 }
 
-TYPE_KIND ConstructorType::getTypeKind() const {
-    return TYPE_CONSTRUCTOR;
+TYPE_KIND TypeConstructorType::getTypeKind() const {
+    return TYPE_CONSTRUCTOR_TYPE;
 }
 
-bool ConstructorType::isSubTypeOf(const Type* other) const {
+bool TypeConstructorType::isSubTypeOf(const Type* other) const {
     return this == other;
 }
 
-std::string ConstructorType::toString() const {
+std::string TypeConstructorType::toString() const {
     return _typeConstructor->getName() + Type::toString();
 }
 
-Type* ConstructorType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+Type* TypeConstructorType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
     if (env.empty()) return (Type*)this;
 
     SubstitutionTable table = _subTable;
     applyEnvHelper(env, table);
-    return ctx.get()->memoryManager().New<ConstructorType>(_typeConstructor, table);
+    return ctx.get()->memoryManager().New<TypeConstructorType>(_typeConstructor, table);
 }
 
-ast::TypeConstructorCreation* ConstructorType::getTypeConstructor() const {
+ast::TypeConstructorCreation* TypeConstructorType::getTypeConstructor() const {
     return _typeConstructor;
 }
 
@@ -207,7 +207,7 @@ std::string ConstructorApplyType::toString() const {
 }
 
 Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
-    ConstructorType* ctr = static_cast<ConstructorType*>(findSubstitution(env, _callee)->applyEnv(env, ctx));
+    TypeConstructorType* ctr = static_cast<TypeConstructorType*>(findSubstitution(env, _callee)->applyEnv(env, ctx));
 
     ast::TypeExpression* expr = ctr->getTypeConstructor()->getArgs();
     std::vector<ast::TypeExpression*> params;

@@ -25,7 +25,7 @@ namespace ast {
 
 namespace type {
 
-enum TYPE_KIND { TYPE_NYD, TYPE_PROPER, TYPE_CONSTRUCTOR, TYPE_CONSTRUCTOR_APPLY };
+enum TYPE_KIND { TYPE_NYD, TYPE_PROPER, TYPE_CONSTRUCTOR_TYPE, TYPE_CONSTRUCTOR_APPLY };
 
 class Type;
 
@@ -76,11 +76,11 @@ private:
     ast::ClassDecl* _class;
 };
 
-class ConstructorType : public Type {
+class TypeConstructorType : public Type {
 public:
-    ConstructorType(ast::TypeConstructorCreation* typeConstructor, const SubstitutionTable& substitutionTable = {});
+    TypeConstructorType(ast::TypeConstructorCreation* typeConstructor, const SubstitutionTable& substitutionTable = {});
 
-    virtual ~ConstructorType();
+    virtual ~TypeConstructorType();
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other) const override;
@@ -150,8 +150,8 @@ inline ProperType* getIf(const Type* t) {
 }
 
 template<>
-inline ConstructorType* getIf(const Type* t) {
-    return t->getTypeKind() == TYPE_CONSTRUCTOR ? (ConstructorType*)t : nullptr;
+inline TypeConstructorType* getIf(const Type* t) {
+    return t->getTypeKind() == TYPE_CONSTRUCTOR_TYPE ? (TypeConstructorType*)t : nullptr;
 }
 
 template<>

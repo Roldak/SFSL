@@ -17,7 +17,7 @@ namespace sfsl {
 
 namespace kind {
 
-enum KIND_GENRE {KIND_NYD, TYPE_KIND, TYPE_CONSTRUCTOR_KIND};
+enum KIND_GENRE {KIND_NYD, KIND_PROPER, KIND_TYPE_CONSTRUCTOR};
 
 class Kind;
 
@@ -32,17 +32,17 @@ public:
     static Kind* NotYetDefined();
 };
 
-class TypeKind : public Kind {
+class ProperKind : public Kind {
 public:
-    TypeKind();
+    ProperKind();
 
-    virtual ~TypeKind();
+    virtual ~ProperKind();
 
     virtual KIND_GENRE getKindGenre() const override;
     virtual bool isSubKindOf(Kind* other) const override;
     virtual std::string toString() const override;
 
-    static TypeKind* create();
+    static ProperKind* create();
 };
 
 class TypeConstructorKind : public Kind {
@@ -95,13 +95,13 @@ inline T* getIf(const Kind* k) {
 }
 
 template<>
-inline TypeKind* getIf(const Kind* k) {
-    return k->getKindGenre() == TYPE_KIND ? (TypeKind*)k : nullptr;
+inline ProperKind* getIf(const Kind* k) {
+    return k->getKindGenre() == KIND_PROPER ? (ProperKind*)k : nullptr;
 }
 
 template<>
 inline TypeConstructorKind* getIf(const Kind* k) {
-    return k->getKindGenre() == TYPE_CONSTRUCTOR_KIND ? (TypeConstructorKind*)k : nullptr;
+    return k->getKindGenre() == KIND_TYPE_CONSTRUCTOR ? (TypeConstructorKind*)k : nullptr;
 }
 
 }

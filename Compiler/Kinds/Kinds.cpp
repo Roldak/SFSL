@@ -47,29 +47,29 @@ Kind* Kind::NotYetDefined() {
 
 // TYPE KIND
 
-TypeKind::TypeKind() {
+ProperKind::ProperKind() {
 
 }
 
-TypeKind::~TypeKind() {
+ProperKind::~ProperKind() {
 
 }
 
-KIND_GENRE TypeKind::getKindGenre() const {
-    return TYPE_KIND;
+KIND_GENRE ProperKind::getKindGenre() const {
+    return KIND_PROPER;
 }
 
-bool TypeKind::isSubKindOf(Kind* other) const {
-    return other->getKindGenre() == TYPE_KIND;
+bool ProperKind::isSubKindOf(Kind* other) const {
+    return other->getKindGenre() == KIND_PROPER;
 }
 
-std::string TypeKind::toString() const {
+std::string ProperKind::toString() const {
     return "*";
 }
 
 // no need to allocate a TypeKind everytime
-TypeKind* TypeKind::create() {
-    static kind::TypeKind k;
+ProperKind* ProperKind::create() {
+    static kind::ProperKind k;
     return &k;
 }
 
@@ -80,7 +80,7 @@ TypeConstructorKind::TypeConstructorKind(const std::vector<Kind*>& args, Kind* r
 }
 
 KIND_GENRE TypeConstructorKind::getKindGenre() const {
-    return TYPE_CONSTRUCTOR_KIND;
+    return KIND_TYPE_CONSTRUCTOR;
 }
 
 bool TypeConstructorKind::isSubKindOf(Kind* other) const {
