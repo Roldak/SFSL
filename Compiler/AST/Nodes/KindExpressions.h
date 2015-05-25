@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include "ASTNode.h"
-#include "../../Types/Kinds/Kinds.h"
+#include "../../Kinds/Kinds.h"
 
 namespace sfsl {
 

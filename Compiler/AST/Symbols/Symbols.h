@@ -15,7 +15,7 @@
 #include "../../Common/Positionnable.h"
 #include "Scoped.h"
 #include "../../Types/Types.h"
-#include "../../Types/Kinds/Kinds.h"
+#include "../../Kinds/Kinds.h"
 #include "../../../Utils/Utils.h"
 
 namespace sfsl {

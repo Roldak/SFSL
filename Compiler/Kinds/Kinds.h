@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <vector>
-#include "../../Common/MemoryManageable.h"
+#include "../Common/MemoryManageable.h"
 
 namespace sfsl {
 
