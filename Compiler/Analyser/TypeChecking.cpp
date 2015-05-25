@@ -136,12 +136,12 @@ void TypeChecking::visit(MemberAccess* dot) {
 
     if (type::Type* t = dot->getAccessed()->type()) {
         t = t->applied(_ctx);
-        if (type::ObjectType* obj = type::getIf<type::ObjectType>(t)) {
+        if (type::ProperType* obj = type::getIf<type::ProperType>(t)) {
             ClassDecl* clss = obj->getClass();
             const type::SubstitutionTable& subtable = obj->getSubstitutionTable();
 
             if (type::Type* tpe = tryGetTypeOfField(clss, dot->getMember()->getValue(), subtable)) {
-                if (type::ObjectType* t = type::getIf<type::ObjectType>(tpe)) {
+                if (type::ProperType* t = type::getIf<type::ProperType>(tpe)) {
                     dot->setType(t);
                 } else {
                     _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() +
@@ -212,7 +212,7 @@ type::Type* TypeChecking::tryGetTypeOfField(ClassDecl* clss, const std::string& 
     } else if (Expression* parent = clss->getParent()) {
         if (type::Type* t = ASTTypeCreator::createType(parent, _ctx)) {
             type::Type* appliedT = type::Type::findSubstitution(subtable, t)->applyEnv(subtable, _ctx);
-            if (type::ObjectType* obj = type::getIf<type::ObjectType>(appliedT)) {
+            if (type::ProperType* obj = type::getIf<type::ProperType>(appliedT)) {
                 return tryGetTypeOfField(obj->getClass(), id, obj->getSubstitutionTable());
             } else {
                 _rep.error(*parent, "Class " + clss->getName() + " must inherit from a class type");

@@ -228,7 +228,7 @@ void SymbolAssignation::visit(TypeConstructorCreation* tc) {
 
     for (TypeExpression* expr : args) {
         if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `x`
-            createObjectType(static_cast<TypeIdentifier*>(expr),
+            createProperType(static_cast<TypeIdentifier*>(expr),
                              ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
                                  _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(expr)->getValue(), _ctx));
         } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: type`
@@ -252,7 +252,7 @@ void SymbolAssignation::visit(KindSpecifier* ks) {
     TypeDecl* defaultType = ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
                 ks->getKindNode(), ks->getSpecified()->getValue(), _ctx);
 
-    createObjectType(ks->getSpecified(), defaultType);
+    createProperType(ks->getSpecified(), defaultType);
     //ASTVisitor::visit(ks);
 }
 
@@ -319,7 +319,7 @@ void SymbolAssignation::createVar(Identifier* id) {
     initCreated(id, arg);
 }
 
-void SymbolAssignation::createObjectType(TypeIdentifier* id, TypeDecl* defaultType) {
+void SymbolAssignation::createProperType(TypeIdentifier* id, TypeDecl* defaultType) {
     initCreated(id, defaultType->getSymbol());
 }
 

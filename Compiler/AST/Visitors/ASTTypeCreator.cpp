@@ -26,7 +26,7 @@ void ASTTypeCreator::visit(ASTNode*) {
 }
 
 void ASTTypeCreator::visit(ClassDecl* clss) {
-    _created = _mngr.New<type::ObjectType>(clss, _subTable);
+    _created = _mngr.New<type::ProperType>(clss, _subTable);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {

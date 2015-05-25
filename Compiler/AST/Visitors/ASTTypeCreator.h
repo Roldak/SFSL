@@ -70,7 +70,7 @@ protected:
 
 /**
  * @brief Evaluates the type of the TypeSymbol and returns the ClassDecl
- * associated to the ObjectType in case it evaluated to ObjectType,
+ * associated to the ProperType in case it evaluated to ProperType,
  * otherwise returns nullptr
  *
  * @param sym The TypeSymbol from which to get the ClassDecl
@@ -79,7 +79,7 @@ protected:
  */
 inline ast::ClassDecl* getClassDeclFromTypeSymbol(sym::TypeSymbol* sym, CompCtx_Ptr& ctx) {
     if (type::Type* t = ASTTypeCreator::createType(sym->getTypeDecl()->getExpression(), ctx)) {
-        if (type::ObjectType* o = type::getIf<type::ObjectType>(t)) {
+        if (type::ProperType* o = type::getIf<type::ProperType>(t)) {
             return o->getClass();
         }
     }

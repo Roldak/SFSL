@@ -91,7 +91,7 @@ public:
 private:
 
     void createVar(Identifier* id);
-    void createObjectType(TypeIdentifier* id, TypeDecl* defaultType);
+    void createProperType(TypeIdentifier* id, TypeDecl* defaultType);
 
     template<typename T, typename S>
     void initCreated(T* id, S* s);

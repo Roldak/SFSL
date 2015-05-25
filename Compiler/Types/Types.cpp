@@ -94,21 +94,21 @@ void Type::applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to) {
     }
 }
 
-// OBJECT TYPE
+// PROPER TYPE
 
-ObjectType::ObjectType(ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
+ProperType::ProperType(ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
     : Type(substitutionTable), _class(clss) {
 
 }
 
-ObjectType::~ObjectType() {
+ProperType::~ProperType() {
 
 }
 
-TYPE_KIND ObjectType::getTypeKind() const { return TYPE_OBJECT; }
+TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
 
-bool ObjectType::isSubTypeOf(const Type* other) const {
-    if (ObjectType* objother = getIf<ObjectType>(other)) {
+bool ProperType::isSubTypeOf(const Type* other) const {
+    if (ProperType* objother = getIf<ProperType>(other)) {
         if (_class == objother->_class) { // TODO : change that when inheritance is supported.
             const SubstitutionTable& osub = objother->getSubstitutionTable();
             for (const auto& pair : _subTable) {
@@ -123,19 +123,19 @@ bool ObjectType::isSubTypeOf(const Type* other) const {
     return false;
 }
 
-std::string ObjectType::toString() const {
+std::string ProperType::toString() const {
     return _class->getName() + Type::toString();
 }
 
-Type* ObjectType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+Type* ProperType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
     if (env.empty()) return (Type*)this;
 
     SubstitutionTable table = _subTable;
     applyEnvHelper(env, table);
-    return ctx.get()->memoryManager().New<ObjectType>(_class, table);
+    return ctx.get()->memoryManager().New<ProperType>(_class, table);
 }
 
-ast::ClassDecl* ObjectType::getClass() const {
+ast::ClassDecl* ProperType::getClass() const {
     return _class;
 }
 
