@@ -17,7 +17,7 @@ Positionnable::Positionnable() {
 
 }
 
-Positionnable::Positionnable(size_t startPos, size_t endPos, src::SFSLSourceName source) {
+Positionnable::Positionnable(size_t startPos, size_t endPos, src::InputSourceName source) {
     setPos(startPos, endPos, source);
 }
 
@@ -25,7 +25,7 @@ Positionnable::~Positionnable() {
 
 }
 
-void Positionnable::setPos(size_t startPos, size_t endPos, src::SFSLSourceName source) {
+void Positionnable::setPos(size_t startPos, size_t endPos, src::InputSourceName source) {
     _startPos = startPos;
     _endPos = endPos;
     _source = source;
@@ -51,7 +51,7 @@ size_t Positionnable::getEndPosition() const{
     return _endPos;
 }
 
-src::SFSLSourceName Positionnable::getSourceName() const {
+src::InputSourceName Positionnable::getSourceName() const {
     return _source;
 }
 

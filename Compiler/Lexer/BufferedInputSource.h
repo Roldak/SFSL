@@ -1,16 +1,16 @@
 //
-//  BufferedSFSLSource.h
+//  BufferedInputSource.h
 //  SFSL
 //
 //  Created by Romain Beguet on 25.11.14.
 //  Copyright (c) 2014 Romain Beguet. All rights reserved.
 //
 
-#ifndef __SFSL__BufferedSFSLSource__
-#define __SFSL__BufferedSFSLSource__
+#ifndef __SFSL__BufferedInputSource__
+#define __SFSL__BufferedInputSource__
 
 #include <iostream>
-#include "SFSLSource.h"
+#include "InputSource.h"
 
 namespace sfsl {
 
@@ -20,16 +20,16 @@ namespace src {
  * @brief A SFSL Source overlay that uses a buffer of a constant size
  * to store the next characters of the input.
  */
-class BufferedSFSLSource final {
+class BufferedInputSource final {
 public:
 
     /**
      * @brief Creates a BufferedSFSLSource from the input source
      * @param source The input source from which to fetch the data
      */
-    BufferedSFSLSource(SFSLSource& source, size_t maxBufferSize);
+    BufferedInputSource(InputSource& source, size_t maxBufferSize);
 
-    ~BufferedSFSLSource();
+    ~BufferedInputSource();
 
     /**
      * @return True if it is still possible to fetch characeters from the input
@@ -49,7 +49,7 @@ public:
     /**
      * @return The name of the source
      */
-    SFSLSourceName getSourceName() const;
+    InputSourceName getSourceName() const;
 
     /**
      * @return A Positionnable corresponding to the current position
@@ -60,7 +60,7 @@ private:
 
     void produceNext();
 
-    SFSLSource& _source;
+    InputSource& _source;
 
     size_t _maxBufferSize;
     char* _buffer;

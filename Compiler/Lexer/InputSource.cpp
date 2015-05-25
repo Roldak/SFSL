@@ -1,12 +1,12 @@
 //
-//  SFSLSource.cpp
+//  InputSource.cpp
 //  SFSL
 //
 //  Created by Romain Beguet on 13.11.14.
 //  Copyright (c) 2014 Romain Beguet. All rights reserved.
 //
 
-#include "SFSLSource.h"
+#include "InputSource.h"
 
 namespace sfsl {
 
@@ -14,25 +14,25 @@ namespace src {
 
 // SFSL SOURCE
 
-SFSLSource::SFSLSource(SFSLSourceName sourceName) : _position(0), _sourceName(sourceName) {
+InputSource::InputSource(InputSourceName sourceName) : _position(0), _sourceName(sourceName) {
 
 }
 
-size_t SFSLSource::getPosition() const {
+size_t InputSource::getPosition() const {
     return _position - 1;
 }
 
-SFSLSourceName SFSLSource::getSourceName() const {
+InputSourceName InputSource::getSourceName() const {
     return _sourceName;
 }
 
-common::Positionnable SFSLSource::currentPos() const {
+common::Positionnable InputSource::currentPos() const {
     return common::Positionnable(getPosition(), getPosition() + 1, getSourceName());
 }
 
 // INPUT STREAM SOURCE
 
-SFSLInputStream::SFSLInputStream(SFSLSourceName sourceName, std::istream& input) : SFSLSource(sourceName), _input(input) {
+SFSLInputStream::SFSLInputStream(InputSourceName sourceName, std::istream& input) : InputSource(sourceName), _input(input) {
     produceNext();
 }
 
@@ -57,8 +57,8 @@ void SFSLInputStream::produceNext() {
 
 // INPUT STRING SOURCE
 
-SFSLInputString::SFSLInputString(SFSLSourceName sourceName, const std::string &source)
-    : SFSLSource(sourceName), _input(source), _size(source.size()), _curIndex(0) {
+SFSLInputString::SFSLInputString(InputSourceName sourceName, const std::string &source)
+    : InputSource(sourceName), _input(source), _size(source.size()), _curIndex(0) {
 
 }
 

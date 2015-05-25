@@ -1,16 +1,16 @@
 //
-//  SFSLSource.h
+//  InputSource.h
 //  SFSL
 //
 //  Created by Romain Beguet on 13.11.14.
 //  Copyright (c) 2014 Romain Beguet. All rights reserved.
 //
 
-#ifndef __SFSL__SFSLSource__
-#define __SFSL__SFSLSource__
+#ifndef __SFSL__InputSource__
+#define __SFSL__InputSource__
 
 #include <iostream>
-#include "SFSLSourceName.h"
+#include "InputSourceName.h"
 #include "../Common/Positionnable.h"
 #include "../Common/CompilationContext.h"
 
@@ -21,10 +21,10 @@ namespace src {
     /**
      * @brief Abstract class representing a source of SFSL data
      */
-    class SFSLSource {
+    class InputSource {
     public:
 
-        SFSLSource(SFSLSourceName sourceName);
+        InputSource(InputSourceName sourceName);
 
         /**
          * @brief Fills the buffer with maxBufferSize characters (or less, if the end of this input
@@ -44,7 +44,7 @@ namespace src {
         /**
          * @return The name of the source
          */
-        src::SFSLSourceName getSourceName() const;
+        src::InputSourceName getSourceName() const;
 
         /**
          * @return A Positionnable corresponding to the current position
@@ -54,13 +54,13 @@ namespace src {
     protected:
 
         size_t _position;
-        src::SFSLSourceName _sourceName;
+        src::InputSourceName _sourceName;
     };
 
     /**
      * @brief A SFSLSource that uses an input stream as input for the SFSL datas
      */
-    class SFSLInputStream : public SFSLSource {
+    class SFSLInputStream : public InputSource {
     public:
 
         /**
@@ -68,7 +68,7 @@ namespace src {
          * @param sourceName the name of the source
          * @param input the std::istream input
          */
-        SFSLInputStream(SFSLSourceName sourceName, std::istream& input);
+        SFSLInputStream(InputSourceName sourceName, std::istream& input);
 
         virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
 
@@ -88,7 +88,7 @@ namespace src {
     /**
      * @brief A SFSLSource that uses a string as input for the SFSL datas
      */
-    class SFSLInputString : public SFSLSource {
+    class SFSLInputString : public InputSource {
     public:
 
         /**
@@ -96,7 +96,7 @@ namespace src {
          * @param sourceName the path to the source
          * @param source the std::string input
          */
-        SFSLInputString(SFSLSourceName sourceName, const std::string& source);
+        SFSLInputString(InputSourceName sourceName, const std::string& source);
 
         virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
 

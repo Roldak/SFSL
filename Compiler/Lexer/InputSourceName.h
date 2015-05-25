@@ -1,13 +1,13 @@
 //
-//  SFSLSourceName.h
+//  InputSourceName.h
 //  SFSL
 //
 //  Created by Romain Beguet on 09.04.15.
 //  Copyright (c) 2015 Romain Beguet. All rights reserved.
 //
 
-#ifndef __SFSL__SFSLSourceName__
-#define __SFSL__SFSLSourceName__
+#ifndef __SFSL__InputSourceName__
+#define __SFSL__InputSourceName__
 
 #include <iostream>
 #include "../Common/CompilationContext.h"
@@ -19,12 +19,10 @@ namespace src {
     /**
      * @brief Simple class containing the name of the SFSLSource, which can be automatically managed
      */
-    class SFSLSourceName final {
+    class InputSourceName final {
     public:
 
-        friend class SFSLSource;
-
-        SFSLSourceName();
+        InputSourceName();
 
         /**
          * @brief Creates a new SFSLsourceName object and make it managed automatically
@@ -32,13 +30,13 @@ namespace src {
          * @param name The name to the source file
          * @return The newly created SFSLSourceName
          */
-        static SFSLSourceName make(const CompCtx_Ptr& compilationContext, const std::string& name);
+        static InputSourceName make(const CompCtx_Ptr& compilationContext, const std::string& name);
 
         const std::string& getName() const;
 
     private:
 
-        SFSLSourceName(const std::string* name);
+        InputSourceName(const std::string* name);
 
         static const std::string unknown;
 

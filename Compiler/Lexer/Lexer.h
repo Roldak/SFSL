@@ -10,7 +10,7 @@
 #define __SFSL__Lexer__
 
 #include <iostream>
-#include "BufferedSFSLSource.h"
+#include "BufferedInputSource.h"
 #include "Tokens/Token.h"
 #include "../Common/CompilationContext.h"
 
@@ -31,7 +31,7 @@ namespace lex {
          * @param source The input source
          * @param sourceBufferSize The size of the buffer used by the source reader
          */
-        Lexer(CompCtx_Ptr& ctx, src::SFSLSource& source, size_t sourceBufferSize = 128);
+        Lexer(CompCtx_Ptr& ctx, src::InputSource& source, size_t sourceBufferSize = 128);
 
         /**
          * @return True if there are more tokens to come, otherwise false
@@ -74,7 +74,7 @@ namespace lex {
         void handleSingleLineComment();
 
         CompCtx_Ptr _ctx;
-        src::BufferedSFSLSource _source;
+        src::BufferedInputSource _source;
 
         tok::Token* _curToken;
 

@@ -21,7 +21,7 @@ using namespace tok;
 
 namespace lex {
 
-Lexer::Lexer(CompCtx_Ptr &ctx, src::SFSLSource& source, size_t sourceBufferSize) :
+Lexer::Lexer(CompCtx_Ptr &ctx, src::InputSource& source, size_t sourceBufferSize) :
     _ctx(ctx), _source(source, sourceBufferSize) {
 
     _lastChar.kind = CHR_EMPTY;
