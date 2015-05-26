@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
     auto ctx = common::CompilationContext::DefaultCompilationContext(DEFAULT_CHUNK_SIZE);
     std::istringstream input(source);
 
-    src::SFSLInputStream src(src::InputSourceName::make(ctx, sourceFile), input);
+    src::IStreamSource src(src::InputSourceName::make(ctx, sourceFile), input);
 
     try {
 

@@ -19,7 +19,7 @@ namespace sfsl {
 namespace src {
 
     /**
-     * @brief Abstract class representing a source of SFSL data
+     * @brief Abstract class representing a source of code
      */
     class InputSource {
     public:
@@ -58,17 +58,17 @@ namespace src {
     };
 
     /**
-     * @brief A SFSLSource that uses an input stream as input for the SFSL datas
+     * @brief An InputSource that uses an input stream as input for the source code
      */
-    class SFSLInputStream : public InputSource {
+    class IStreamSource : public InputSource {
     public:
 
         /**
-         * @brief Creates an SFSLInputStream
+         * @brief Creates an IStreamSource
          * @param sourceName the name of the source
          * @param input the std::istream input
          */
-        SFSLInputStream(InputSourceName sourceName, std::istream& input);
+        IStreamSource(InputSourceName sourceName, std::istream& input);
 
         virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
 
@@ -86,17 +86,17 @@ namespace src {
     };
 
     /**
-     * @brief A SFSLSource that uses a string as input for the SFSL datas
+     * @brief A StringSource that uses a string as input for the source code
      */
-    class SFSLInputString : public InputSource {
+    class StringSource : public InputSource {
     public:
 
         /**
-         * @brief Creates a SFSLInputString
+         * @brief Creates a StringSource
          * @param sourceName the path to the source
          * @param source the std::string input
          */
-        SFSLInputString(InputSourceName sourceName, const std::string& source);
+        StringSource(InputSourceName sourceName, const std::string& source);
 
         virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
 

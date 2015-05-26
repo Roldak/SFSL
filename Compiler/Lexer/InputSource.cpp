@@ -32,11 +32,11 @@ common::Positionnable InputSource::currentPos() const {
 
 // INPUT STREAM SOURCE
 
-SFSLInputStream::SFSLInputStream(InputSourceName sourceName, std::istream& input) : InputSource(sourceName), _input(input) {
+IStreamSource::IStreamSource(InputSourceName sourceName, std::istream& input) : InputSource(sourceName), _input(input) {
     produceNext();
 }
 
-size_t SFSLInputStream::getNexts(char* buffer, size_t maxBufferSize) {
+size_t IStreamSource::getNexts(char* buffer, size_t maxBufferSize) {
     size_t i = 0;
 
     while (_hasNext && i < maxBufferSize) {
@@ -47,9 +47,9 @@ size_t SFSLInputStream::getNexts(char* buffer, size_t maxBufferSize) {
     return i;
 }
 
-const int SFSLInputStream::CHAR_EOF = std::char_traits<char>::eof();
+const int IStreamSource::CHAR_EOF = std::char_traits<char>::eof();
 
-void SFSLInputStream::produceNext() {
+void IStreamSource::produceNext() {
     ++_position;
     _curChar = _input.get();
     _hasNext = (_curChar != CHAR_EOF);
@@ -57,12 +57,12 @@ void SFSLInputStream::produceNext() {
 
 // INPUT STRING SOURCE
 
-SFSLInputString::SFSLInputString(InputSourceName sourceName, const std::string &source)
+StringSource::StringSource(InputSourceName sourceName, const std::string &source)
     : InputSource(sourceName), _input(source), _size(source.size()), _curIndex(0) {
 
 }
 
-size_t SFSLInputString::getNexts(char* buffer, size_t maxBufferSize) {
+size_t StringSource::getNexts(char* buffer, size_t maxBufferSize) {
     size_t i = 0;
 
     while (_curIndex < _size && i < maxBufferSize) {
