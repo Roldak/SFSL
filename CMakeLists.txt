@@ -14,6 +14,7 @@ aux_source_directory(./Compiler/AST/Visitors/ SRC_LIST)
 aux_source_directory(./Compiler/Analyser/ SRC_LIST)
 aux_source_directory(./Compiler/Types/ SRC_LIST)
 aux_source_directory(./Compiler/Kinds/ SRC_LIST)
+aux_source_directory(./Compiler/CodeGen/ SRC_LIST)
 
 aux_source_directory(./Interpreter/ SRC_LIST)
 

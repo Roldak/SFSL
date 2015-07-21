@@ -52,7 +52,7 @@ Symbol* SymbolResolver::getSymbol(const std::string& fullPathName) const {
     return lastSym;
 }
 
-void SymbolResolver::setPredefClassesPath(const std::string &fullPathName) {
+void SymbolResolver::setPredefClassesPath(const std::string& fullPathName) {
     _unitType   = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + UNIT_CLASS_NAME));
     _boolType   = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + BOOL_CLASS_NAME));
     _intType    = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + INT_CLASS_NAME));

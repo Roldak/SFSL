@@ -24,7 +24,7 @@ class BufferedInputSource final {
 public:
 
     /**
-     * @brief Creates a BufferedSFSLSource from the input source
+     * @brief Creates a BufferedInputSource from the input source
      * @param source The input source from which to fetch the data
      */
     BufferedInputSource(InputSource& source, size_t maxBufferSize);
