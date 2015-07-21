@@ -17,7 +17,7 @@ namespace out {
 
 // TYPE CHECK
 
-CodeGenerator::CodeGenerator(CompCtx_Ptr& ctx, CodeGenOutput& out)
+CodeGenerator::CodeGenerator(CompCtx_Ptr& ctx, CodeGenOutput<int>& out)
     : ASTVisitor(ctx), _out(out) {
 
 }
@@ -39,6 +39,10 @@ void CodeGenerator::visit(ModuleDecl* module) {
 }
 
 void CodeGenerator::visit(TypeDecl* tdecl) {
+
+}
+
+void CodeGenerator::visit(ClassDecl* clss){
 
 }
 

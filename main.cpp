@@ -12,6 +12,7 @@
 #include "Compiler/Analyser/KindChecking.h"
 #include "Compiler/Analyser/TypeChecking.h"
 #include "Compiler/AST/Symbols/SymbolResolver.h"
+#include "Compiler/CodeGen/CodeGenOutput.h"
 
 #define DEFAULT_CHUNK_SIZE 2048
 

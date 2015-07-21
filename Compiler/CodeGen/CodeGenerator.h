@@ -27,7 +27,7 @@ namespace out {
     class CodeGenerator : public ASTVisitor {
     public:
 
-        CodeGenerator(CompCtx_Ptr& ctx, CodeGenOutput& out);
+        CodeGenerator(CompCtx_Ptr& ctx, CodeGenOutput<int>& out);
         virtual ~CodeGenerator();
 
         virtual void visit(ASTNode*) override;
@@ -66,7 +66,7 @@ namespace out {
 
     private:
 
-        CodeGenOutput& _out;
+        CodeGenOutput<int>& _out;
     };
 }
 

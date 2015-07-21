@@ -12,9 +12,13 @@ namespace sfsl {
 
 namespace out {
 
-// CODEGEN OUTPUT
+// CURSOR
 
-CodeGenOutput::~CodeGenOutput() {
+Cursor::Cursor() {
+
+}
+
+Cursor::~Cursor() {
 
 }
 
