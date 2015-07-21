@@ -26,6 +26,8 @@ namespace src {
 
         InputSource(InputSourceName sourceName);
 
+        virtual ~InputSource();
+
         /**
          * @brief Fills the buffer with maxBufferSize characters (or less, if the end of this input
          * was reached before getting to that number)
@@ -70,6 +72,8 @@ namespace src {
          */
         IStreamSource(InputSourceName sourceName, std::istream& input);
 
+        virtual ~IStreamSource();
+
         virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
 
     private:
@@ -97,6 +101,8 @@ namespace src {
          * @param source the std::string input
          */
         StringSource(InputSourceName sourceName, const std::string& source);
+
+        virtual ~StringSource();
 
         virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
 

@@ -18,6 +18,10 @@ InputSource::InputSource(InputSourceName sourceName) : _position(0), _sourceName
 
 }
 
+InputSource::~InputSource() {
+
+}
+
 size_t InputSource::getPosition() const {
     return _position - 1;
 }
@@ -34,6 +38,10 @@ common::Positionnable InputSource::currentPos() const {
 
 IStreamSource::IStreamSource(InputSourceName sourceName, std::istream& input) : InputSource(sourceName), _input(input) {
     produceNext();
+}
+
+IStreamSource::~IStreamSource() {
+
 }
 
 size_t IStreamSource::getNexts(char* buffer, size_t maxBufferSize) {
@@ -59,6 +67,10 @@ void IStreamSource::produceNext() {
 
 StringSource::StringSource(InputSourceName sourceName, const std::string &source)
     : InputSource(sourceName), _input(source), _size(source.size()), _curIndex(0) {
+
+}
+
+StringSource::~StringSource() {
 
 }
 

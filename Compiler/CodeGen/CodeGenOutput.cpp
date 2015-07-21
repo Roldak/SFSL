@@ -18,6 +18,10 @@ CodeGenOutput::CodeGenOutput() {
 
 }
 
+CodeGenOutput::~CodeGenOutput() {
+
+}
+
 }
 
 }

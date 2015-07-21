@@ -23,6 +23,8 @@ namespace out {
 
         CodeGenOutput();
 
+        virtual ~CodeGenOutput();
+
     protected:
 
     };
