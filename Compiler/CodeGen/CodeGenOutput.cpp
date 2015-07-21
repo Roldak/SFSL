@@ -12,11 +12,7 @@ namespace sfsl {
 
 namespace out {
 
-// SFSL SOURCE
-
-CodeGenOutput::CodeGenOutput() {
-
-}
+// CODEGEN OUTPUT
 
 CodeGenOutput::~CodeGenOutput() {
 

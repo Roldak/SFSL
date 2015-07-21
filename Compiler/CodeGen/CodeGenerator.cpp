@@ -13,12 +13,12 @@
 
 namespace sfsl {
 
-namespace ast {
+namespace out {
 
 // TYPE CHECK
 
-CodeGenerator::CodeGenerator(CompCtx_Ptr& ctx)
-    : ASTVisitor(ctx), _rep(ctx->reporter()) {
+CodeGenerator::CodeGenerator(CompCtx_Ptr& ctx, CodeGenOutput& out)
+    : ASTVisitor(ctx), _out(out) {
 
 }
 
@@ -30,11 +30,51 @@ void CodeGenerator::visit(ASTNode*) {
 
 }
 
+void CodeGenerator::visit(Program* prog) {
+
+}
+
+void CodeGenerator::visit(ModuleDecl* module) {
+
+}
+
 void CodeGenerator::visit(TypeDecl* tdecl) {
 
 }
 
 void CodeGenerator::visit(DefineDecl* decl) {
+
+}
+
+void CodeGenerator::visit(ProperTypeKindSpecifier* ptks) {
+
+}
+
+void CodeGenerator::visit(TypeConstructorKindSpecifier* tcks) {
+
+}
+
+void CodeGenerator::visit(TypeMemberAccess* tdot) {
+
+}
+
+void CodeGenerator::visit(TypeTuple* ttuple) {
+
+}
+
+void CodeGenerator::visit(TypeConstructorCreation* typeconstructor) {
+
+}
+
+void CodeGenerator::visit(TypeConstructorCall* tcall) {
+
+}
+
+void CodeGenerator::visit(TypeIdentifier* tident) {
+
+}
+
+void CodeGenerator::visit(KindSpecifier* ks) {
 
 }
 

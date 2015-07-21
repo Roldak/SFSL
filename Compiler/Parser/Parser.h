@@ -31,7 +31,7 @@ namespace ast {
 /**
  * @brief The Parser is used to transform a sequence of tokens into an Abstract Syntax Tree
  */
-class Parser {
+class Parser final {
 public:
 
     /**
