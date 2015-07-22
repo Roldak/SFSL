@@ -36,12 +36,12 @@ public:
     /**
      * @return The memory manager
      */
-    AbstractMemoryManager& memoryManager();
+    AbstractMemoryManager& memoryManager() const;
 
     /**
      * @return The info/warning/error reporter
      */
-    AbstractReporter& reporter();
+    AbstractReporter& reporter() const;
 
     /**
      * @return Creates the default CompilationContext, which uses :

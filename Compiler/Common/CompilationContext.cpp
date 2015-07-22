@@ -21,11 +21,11 @@ CompilationContext::~CompilationContext() {
     delete _rprt;
 }
 
-AbstractMemoryManager& CompilationContext::memoryManager() {
+AbstractMemoryManager& CompilationContext::memoryManager() const {
     return *_mngr;
 }
 
-AbstractReporter& CompilationContext::reporter() {
+AbstractReporter& CompilationContext::reporter() const {
     return *_rprt;
 }
 

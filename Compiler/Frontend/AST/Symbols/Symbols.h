@@ -13,10 +13,11 @@
 #include <map>
 #include "../../../Common/MemoryManageable.h"
 #include "../../../Common/Positionnable.h"
-#include "Scoped.h"
+#include "../../../Common/ManageableUserData.h"
+#include "../../../../Utils/Utils.h"
 #include "../../Types/Types.h"
 #include "../../Kinds/Kinds.h"
-#include "../../../../Utils/Utils.h"
+#include "Scoped.h"
 
 namespace sfsl {
 
@@ -111,7 +112,7 @@ namespace sym {
     /**
      * @brief Represents the symbol associated to a variable
      */
-    class VariableSymbol : public Symbol, public type::Typed, public utils::UsageTrackable {
+    class VariableSymbol : public Symbol, public type::Typed, public utils::UsageTrackable, public common::HasManageableUserdata {
     public:
         VariableSymbol(const std::string& name);
         virtual ~VariableSymbol();

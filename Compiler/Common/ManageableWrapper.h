@@ -19,7 +19,7 @@ namespace common {
     template<typename T>
     /**
      * @brief Utility class that adapts an non MemoryManageable object so that
-     * it can become managed.
+     * it can become managed
      */
     class ManageableWrapper : public common::MemoryManageable {
     public:
@@ -35,7 +35,7 @@ namespace common {
         /**
          * @return A reference towards the underlying object
          */
-        const T* getConstPtr() {
+        const T* getConstPtr() const {
             return &_value;
         }
 
