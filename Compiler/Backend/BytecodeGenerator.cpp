@@ -100,7 +100,18 @@ void BytecodeGenerator::visit(TypeSpecifier* tps) {
 }
 
 void BytecodeGenerator::visit(Block* block) {
-    ASTVisitor::visit(block);
+    const std::vector<Expression*>& exprs(block->getStatements());
+
+    for (size_t i = 0; i < exprs.size() - 1; ++i) {
+        exprs[i]->onVisit(this);
+        Emit<Pop>(*exprs[i]);
+    }
+
+    if (exprs.size() > 0) {
+        exprs.back()->onVisit(this);
+    } else {
+        Emit<PushConstUnit>(*block);
+    }
 }
 
 void BytecodeGenerator::visit(IfExpression* ifexpr) {
@@ -142,7 +153,9 @@ void BytecodeGenerator::visit(FunctionCreation* func) {
 
     Seek(funcBegin);
     Emit<MakeFunction>(*func, _currentVarCount);
+
     Seek(End());
+    Emit<Return>(*func);
 
     RESTORE_MEMBER(_currentVarCount);
 }

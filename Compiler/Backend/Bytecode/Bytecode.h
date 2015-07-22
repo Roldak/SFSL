@@ -57,6 +57,14 @@ namespace bc {
         size_t _varCount;
     };
 
+    class PushConstUnit : public BCInstruction {
+    public:
+        PushConstUnit();
+        virtual ~PushConstUnit();
+
+        virtual void appendTo(std::ostream &o) const override;
+    };
+
     class PushConstInt : public BCInstruction {
     public:
         PushConstInt(sfsl_int_t val);
@@ -95,6 +103,14 @@ namespace bc {
     public:
         Pop();
         virtual ~Pop();
+
+        virtual void appendTo(std::ostream &o) const override;
+    };
+
+    class Return : public BCInstruction {
+    public:
+        Return();
+        virtual ~Return();
 
         virtual void appendTo(std::ostream &o) const override;
     };

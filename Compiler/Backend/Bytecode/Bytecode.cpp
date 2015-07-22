@@ -43,6 +43,20 @@ void MakeFunction::appendTo(std::ostream& o) const {
     o << "mk_fn" << ARG_SEP << _varCount;
 }
 
+// PUSH CONSTANT UNIT
+
+PushConstUnit::PushConstUnit() {
+
+}
+
+PushConstUnit::~PushConstUnit() {
+
+}
+
+void PushConstUnit::appendTo(std::ostream &o) const {
+    o << "push_unit";
+}
+
 // PUSH CONSTANT INTEGER
 
 PushConstInt::PushConstInt(sfsl_int_t val) : _val(val) {
@@ -95,8 +109,22 @@ Pop::~Pop() {
 
 }
 
-void Pop::appendTo(std::ostream &o) const {
+void Pop::appendTo(std::ostream& o) const {
     o << "pop";
+}
+
+// RETURN
+
+Return::Return() {
+
+}
+
+Return::~Return() {
+
+}
+
+void Return::appendTo(std::ostream& o) const {
+    o << "ret";
 }
 
 // LABEL
