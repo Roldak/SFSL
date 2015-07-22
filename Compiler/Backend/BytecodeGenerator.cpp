@@ -8,6 +8,10 @@
 
 #include "BytecodeGenerator.h"
 
+#define SAVE_MEMBER(memberName) auto __old##memberName = memberName
+#define RESTORE_MEMBER(memberName) memberName = __old##memberName
+#define CURSOR_HERE(varName) out::Cursor* varName = Here()
+
 namespace sfsl {
 
 namespace bc {
@@ -92,7 +96,8 @@ void BytecodeGenerator::visit(AssignmentExpression* aex) {
 }
 
 void BytecodeGenerator::visit(TypeSpecifier* tps) {
-
+    sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(tps->getSpecified()->getSymbol());
+    var->setUserdata(_mngr.New<VarUserData>(_currentVarCount++));
 }
 
 void BytecodeGenerator::visit(Block* block) {
@@ -108,11 +113,23 @@ void BytecodeGenerator::visit(MemberAccess* dot) {
 }
 
 void BytecodeGenerator::visit(Tuple* tuple) {
-
+    ASTVisitor::visit(tuple);
 }
 
 void BytecodeGenerator::visit(FunctionCreation* func) {
+    SAVE_MEMBER(_currentVarCount);
+
+    _currentVarCount = 0;
+
+    CURSOR_HERE(funcBegin);
+
     ASTVisitor::visit(func);
+
+    Seek(funcBegin);
+    Emit<MakeFunction>(*func, _currentVarCount);
+    Seek(End());
+
+    RESTORE_MEMBER(_currentVarCount);
 }
 
 void BytecodeGenerator::visit(FunctionCall* call) {
@@ -120,7 +137,10 @@ void BytecodeGenerator::visit(FunctionCall* call) {
 }
 
 void BytecodeGenerator::visit(Identifier* ident) {
-
+    if (ident->getSymbol()->getSymbolType() == sym::SYM_VAR) {
+        sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(ident->getSymbol());
+        Emit<StackLoad>(*ident, var->getUserdata<VarUserData>()->getVarLoc());
+    }
 }
 
 void BytecodeGenerator::visit(IntLitteral* intlit) {
@@ -131,11 +151,37 @@ void BytecodeGenerator::visit(RealLitteral* reallit) {
     Emit<PushConstReal>(*reallit, reallit->getValue());
 }
 
+out::Cursor* BytecodeGenerator::Here() const {
+    return _out.here();
+}
+
+out::Cursor* BytecodeGenerator::End() const {
+    return _out.end();
+}
+
+void BytecodeGenerator::Seek(out::Cursor* cursor) {
+    _out.seek(cursor);
+}
+
 template<typename T, typename... Args>
 void BytecodeGenerator::Emit(const common::Positionnable& pos, Args... args) {
     T* instr = _mngr.New<T>(std::forward<Args>(args)...);
     instr->setPos(pos);
     _out << instr;
+}
+
+// VARIABLE USER DATA
+
+VarUserData::VarUserData(size_t loc) : _loc(loc) {
+
+}
+
+VarUserData::~VarUserData() {
+
+}
+
+size_t VarUserData::getVarLoc() const {
+    return _loc;
 }
 
 }

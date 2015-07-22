@@ -30,7 +30,7 @@ namespace bc {
          * to the given output stream
          * @param o The output stream to fill
          */
-        virtual void toString(std::ostream& o) const = 0;
+        virtual void appendTo(std::ostream& o) const = 0;
 
         /**
          * @return a string representation of the token with details
@@ -39,16 +39,30 @@ namespace bc {
     };
 
     inline std::ostream& operator <<(std::ostream& o, const BCInstruction& i) {
-        i.toString(o);
+        i.appendTo(o);
         return o;
     }
+
+    // OPCODES
+
+    class MakeFunction : public BCInstruction {
+    public:
+        MakeFunction(size_t varCount);
+        virtual ~MakeFunction();
+
+        virtual void appendTo(std::ostream& o) const override;
+
+    private:
+
+        size_t _varCount;
+    };
 
     class PushConstInt : public BCInstruction {
     public:
         PushConstInt(sfsl_int_t val);
         virtual ~PushConstInt();
 
-        virtual void toString(std::ostream& o) const override;
+        virtual void appendTo(std::ostream& o) const override;
 
     private:
         sfsl_int_t _val;
@@ -59,10 +73,22 @@ namespace bc {
         PushConstReal(sfsl_real_t val);
         virtual ~PushConstReal();
 
-        virtual void toString(std::ostream& o) const override;
+        virtual void appendTo(std::ostream& o) const override;
 
     private:
         sfsl_real_t _val;
+    };
+
+    class StackLoad : public BCInstruction {
+    public:
+        StackLoad(size_t index);
+        virtual ~StackLoad();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        size_t _index;
     };
 }
 

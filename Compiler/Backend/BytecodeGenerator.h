@@ -64,9 +64,27 @@ namespace bc {
 
     private:
 
+        out::Cursor* Here() const;
+        out::Cursor* End() const;
+        void Seek(out::Cursor* cursor);
+
         template<typename T, typename... Args>
         void Emit(const common::Positionnable& pos, Args... args);
 
+        size_t _currentVarCount;
+
+    };
+
+    class VarUserData final : public common::MemoryManageable {
+    public:
+        VarUserData(size_t loc);
+        virtual ~VarUserData();
+
+        size_t getVarLoc() const;
+
+    private:
+
+        size_t _loc;
     };
 }
 
