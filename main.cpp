@@ -5,14 +5,14 @@
 #include <ctime>
 #include <memory.h>
 #include "unistd.h"
-#include "Compiler/Lexer/Lexer.h"
-#include "Compiler/Parser/Parser.h"
-#include "Compiler/AST/Visitors/ASTPrinter.h"
-#include "Compiler/Analyser/NameAnalysis.h"
-#include "Compiler/Analyser/KindChecking.h"
-#include "Compiler/Analyser/TypeChecking.h"
-#include "Compiler/AST/Symbols/SymbolResolver.h"
-#include "Backend/BytecodeGenerator.h"
+#include "Compiler/Frontend/Lexer/Lexer.h"
+#include "Compiler/Frontend/Parser/Parser.h"
+#include "Compiler/Frontend/AST/Visitors/ASTPrinter.h"
+#include "Compiler/Frontend/Analyser/NameAnalysis.h"
+#include "Compiler/Frontend/Analyser/KindChecking.h"
+#include "Compiler/Frontend/Analyser/TypeChecking.h"
+#include "Compiler/Frontend/AST/Symbols/SymbolResolver.h"
+#include "Compiler/Backend/BytecodeGenerator.h"
 
 #define DEFAULT_CHUNK_SIZE 2048
 

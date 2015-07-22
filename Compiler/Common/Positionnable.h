@@ -10,7 +10,7 @@
 #define __SFSL__Positionnable__
 
 #include <iostream>
-#include "../Lexer/InputSourceName.h"
+#include "../Frontend/Lexer/InputSourceName.h"
 
 namespace sfsl {
 
