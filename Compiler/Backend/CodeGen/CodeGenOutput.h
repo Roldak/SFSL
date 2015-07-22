@@ -78,7 +78,7 @@ namespace out {
             T value;
         };
 
-        class LinkedListOutputCursor : public Cursor {
+        class LinkedListOutputCursor final : public Cursor {
         public:
 
             LinkedListOutputCursor(Node* node) : pos(node) {}
@@ -100,6 +100,9 @@ namespace out {
                     _end = _end->next;
                 }
                 _here = _here->next;
+            } else if (_end) {
+                _end->next = _ctx->memoryManager().New<Node>(_end->next, t);
+                _here = _end->next;
             } else {
                 _here = _ctx->memoryManager().New<Node>(nullptr, t);
                 _here->next = _here;
