@@ -15,6 +15,8 @@ aux_source_directory(./Compiler/Analyser/ SRC_LIST)
 aux_source_directory(./Compiler/Types/ SRC_LIST)
 aux_source_directory(./Compiler/Kinds/ SRC_LIST)
 aux_source_directory(./Compiler/CodeGen/ SRC_LIST)
+aux_source_directory(./Backend/ SRC_LIST)
+aux_source_directory(./Backend/Bytecode SRC_LIST)
 
 aux_source_directory(./Interpreter/ SRC_LIST)
 

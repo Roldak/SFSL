@@ -21,52 +21,23 @@ namespace out {
 
     using namespace ast;
 
+    template<typename T>
     /**
-     * @brief
+     * @brief Base class for visitors that generate code from the AST
      */
     class CodeGenerator : public ASTVisitor {
     public:
 
-        CodeGenerator(CompCtx_Ptr& ctx, CodeGenOutput<int>& out);
-        virtual ~CodeGenerator();
+        CodeGenerator(CompCtx_Ptr& ctx, CodeGenOutput<T>& out) : ASTVisitor(ctx), _out(out) {}
+        virtual ~CodeGenerator() {}
 
-        virtual void visit(ASTNode*) override;
+        virtual void visit(ASTNode*) override = 0;
 
-        virtual void visit(Program* prog);
+        virtual void visit(Program* prog) override = 0;
 
-        virtual void visit(ModuleDecl* module);
-        virtual void visit(TypeDecl* tdecl);
-        virtual void visit(ClassDecl* clss);
-        virtual void visit(DefineDecl* decl);
+    protected:
 
-        virtual void visit(ProperTypeKindSpecifier* ptks);
-        virtual void visit(TypeConstructorKindSpecifier* tcks);
-
-        virtual void visit(TypeMemberAccess* tdot);
-        virtual void visit(TypeTuple* ttuple);
-        virtual void visit(TypeConstructorCreation* typeconstructor);
-        virtual void visit(TypeConstructorCall* tcall);
-        virtual void visit(TypeIdentifier* tident);
-        virtual void visit(KindSpecifier* ks);
-
-        virtual void visit(ExpressionStatement* exp);
-
-        virtual void visit(BinaryExpression* bin);
-        virtual void visit(AssignmentExpression* aex);
-        virtual void visit(TypeSpecifier* tps);
-        virtual void visit(Block* block);
-        virtual void visit(IfExpression* ifexpr);
-        virtual void visit(MemberAccess* dot);
-        virtual void visit(Tuple* tuple);
-        virtual void visit(FunctionCreation* func);
-        virtual void visit(FunctionCall* call);
-        virtual void visit(Identifier* ident);
-        virtual void visit(IntLitteral* intlit);
-        virtual void visit(RealLitteral* reallit);
-
-    private:
-
-        CodeGenOutput<int>& _out;
+        CodeGenOutput<T>& _out;
     };
 }
 
