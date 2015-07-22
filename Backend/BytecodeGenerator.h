@@ -22,10 +22,10 @@ namespace bc {
     /**
      * @brief Base class for visitors that generate code from the AST
      */
-    class BytecodeGenerator : public out::CodeGenerator<BCInstruction> {
+    class BytecodeGenerator : public out::CodeGenerator<BCInstruction*> {
     public:
 
-        BytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction>& out);
+        BytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out);
         virtual ~BytecodeGenerator();
 
         virtual void visit(ASTNode*) override;
@@ -63,6 +63,10 @@ namespace bc {
         virtual void visit(RealLitteral* reallit) override;
 
     private:
+
+        template<typename T, typename... Args>
+        void Emit(const common::Positionnable& pos, Args... args);
+
     };
 }
 

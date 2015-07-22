@@ -11,6 +11,7 @@
 
 #include "../../Compiler/Common/MemoryManageable.h"
 #include "../../Compiler/Common/Positionnable.h"
+#include "../../Utils/Utils.h"
 
 namespace sfsl {
 
@@ -25,9 +26,11 @@ namespace bc {
         virtual ~BCInstruction();
 
         /**
-         * @return a string representation of the bytecode instruction
+         * @brief Appends a string representation of the bytecode instruction
+         * to the given output stream
+         * @param o The output stream to fill
          */
-        virtual std::string toString() const = 0;
+        virtual void toString(std::ostream& o) const = 0;
 
         /**
          * @return a string representation of the token with details
@@ -36,8 +39,31 @@ namespace bc {
     };
 
     inline std::ostream& operator <<(std::ostream& o, const BCInstruction& i) {
-        return o << i.toString();
+        i.toString(o);
+        return o;
     }
+
+    class PushConstInt : public BCInstruction {
+    public:
+        PushConstInt(sfsl_int_t val);
+        virtual ~PushConstInt();
+
+        virtual void toString(std::ostream& o) const override;
+
+    private:
+        sfsl_int_t _val;
+    };
+
+    class PushConstReal : public BCInstruction {
+    public:
+        PushConstReal(sfsl_real_t val);
+        virtual ~PushConstReal();
+
+        virtual void toString(std::ostream& o) const override;
+
+    private:
+        sfsl_real_t _val;
+    };
 }
 
 }

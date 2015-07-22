@@ -12,7 +12,7 @@
 #include "Compiler/Analyser/KindChecking.h"
 #include "Compiler/Analyser/TypeChecking.h"
 #include "Compiler/AST/Symbols/SymbolResolver.h"
-#include "Compiler/CodeGen/CodeGenOutput.h"
+#include "Backend/BytecodeGenerator.h"
 
 #define DEFAULT_CHUNK_SIZE 2048
 
@@ -108,8 +108,24 @@ int main(int argc, char** argv) {
         ast::TypeChecking typeCheck(ctx, res);
         prog->onVisit(&typeCheck);
 
+        if (ctx.get()->reporter().getErrorCount() != 0) {
+            return 1;
+        }
+
+        std::cout << "STARTING BYTECODE GENERATION" << std::endl;
+        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+
+        out::LinkedListOutput<bc::BCInstruction*> out(ctx);
+        bc::BytecodeGenerator gen(ctx, out);
+
+        prog->onVisit(&gen);
+
         std::cout << "DONE" << std::endl;
         std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+
+        for (const bc::BCInstruction* i : out.toVector()) {
+            std::cout << *i << std::endl;
+        }
 
         if (ctx.get()->reporter().getErrorCount() != 0) {
             return 1;
