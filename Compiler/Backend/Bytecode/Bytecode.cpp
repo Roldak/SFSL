@@ -31,7 +31,7 @@ std::string BCInstruction::toStringDetailed() const {
 // CREATE FUNCTION
 
 
-MakeFunction::MakeFunction(size_t varCount) : _varCount(varCount) {
+MakeFunction::MakeFunction(size_t varCount, Label* end) : _varCount(varCount), _end(end) {
 
 }
 
@@ -40,7 +40,35 @@ MakeFunction::~MakeFunction() {
 }
 
 void MakeFunction::appendTo(std::ostream& o) const {
-    o << "mk_fn" << ARG_SEP << _varCount;
+    o << "mk_fn" << ARG_SEP << _varCount << ARG_SEP << _end->getName();
+}
+
+// STORE CONSTANT
+
+StoreConst::StoreConst(size_t index) : _index(index) {
+
+}
+
+StoreConst::~StoreConst() {
+
+}
+
+void StoreConst::appendTo(std::ostream& o) const {
+    o << "store_cst" << ARG_SEP << _index;
+}
+
+// LOAD CONSTANT
+
+LoadConst::LoadConst(size_t index) : _index(index) {
+
+}
+
+LoadConst::~LoadConst() {
+
+}
+
+void LoadConst::appendTo(std::ostream &o) const {
+    o << "load_cst" << ARG_SEP << _index;
 }
 
 // PUSH CONSTANT UNIT

@@ -18,7 +18,8 @@ namespace bc {
 // BYTE CODE GENERATOR
 
 BytecodeGenerator::BytecodeGenerator(CompCtx_Ptr &ctx, out::CodeGenOutput<BCInstruction*> &out)
-    : out::CodeGenerator<BCInstruction*>(ctx, out) {
+    :   out::CodeGenerator<BCInstruction*>(ctx, out),
+        _currentConstCount(0), _currentVarCount(0) {
 
 }
 
@@ -47,7 +48,9 @@ void BytecodeGenerator::visit(ClassDecl* clss){
 }
 
 void BytecodeGenerator::visit(DefineDecl* decl) {
-    ASTVisitor::visit(decl);
+    decl->getValue()->onVisit(this);
+
+    Emit<StoreConst>(*decl, getDefLoc(decl->getSymbol()));
 }
 
 void BytecodeGenerator::visit(ProperTypeKindSpecifier* ptks) {
@@ -102,12 +105,11 @@ void BytecodeGenerator::visit(TypeSpecifier* tps) {
 void BytecodeGenerator::visit(Block* block) {
     const std::vector<Expression*>& exprs(block->getStatements());
 
-    for (size_t i = 0; i < exprs.size() - 1; ++i) {
-        exprs[i]->onVisit(this);
-        Emit<Pop>(*exprs[i]);
-    }
-
     if (exprs.size() > 0) {
+        for (size_t i = 0; i < exprs.size() - 1; ++i) {
+            exprs[i]->onVisit(this);
+            Emit<Pop>(*exprs[i]);
+        }
         exprs.back()->onVisit(this);
     } else {
         Emit<PushConstUnit>(*block);
@@ -150,12 +152,14 @@ void BytecodeGenerator::visit(FunctionCreation* func) {
     out::Cursor* funcBegin = Here();
 
     ASTVisitor::visit(func);
+    Emit<Return>(*func);
+    Label* funcEnd = MakeLabel(*func, "func_end");
+    BindLabel(funcEnd);
 
     Seek(funcBegin);
-    Emit<MakeFunction>(*func, _currentVarCount);
+    Emit<MakeFunction>(*func, _currentVarCount, funcEnd);
 
     Seek(End());
-    Emit<Return>(*func);
 
     RESTORE_MEMBER(_currentVarCount);
 }
@@ -165,9 +169,21 @@ void BytecodeGenerator::visit(FunctionCall* call) {
 }
 
 void BytecodeGenerator::visit(Identifier* ident) {
-    if (ident->getSymbol()->getSymbolType() == sym::SYM_VAR) {
+    switch (ident->getSymbol()->getSymbolType()) {
+    case sym::SYM_VAR: {
         sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(ident->getSymbol());
-        Emit<StackLoad>(*ident, var->getUserdata<VarUserData>()->getVarLoc());
+        Emit<StackLoad>(*ident, getVarLoc(var));
+        break;
+    }
+
+    case sym::SYM_DEF: {
+        sym::DefinitionSymbol* def = static_cast<sym::DefinitionSymbol*>(ident->getSymbol());
+        Emit<LoadConst>(*ident, getDefLoc(def));
+        break;
+    }
+
+    default:
+        break;
     }
 }
 
@@ -201,6 +217,19 @@ void BytecodeGenerator::BindLabel(Label* label) {
     Emit(label);
 }
 
+size_t BytecodeGenerator::getVarLoc(sym::VariableSymbol* var) {
+    return var->getUserdata<VarUserData>()->getVarLoc();
+}
+
+size_t BytecodeGenerator::getDefLoc(sym::DefinitionSymbol* def) {
+    if (DefUserData* ddata = def->getUserdata<DefUserData>()) {
+        return ddata->getDefLoc();
+    } else {
+        def->setUserdata(_mngr.New<DefUserData>(_currentConstCount++));
+        return _currentConstCount - 1;
+    }
+}
+
 template<typename T, typename... Args>
 T* BytecodeGenerator::Emit(const common::Positionnable& pos, Args... args) {
     T* instr = _mngr.New<T>(std::forward<Args>(args)...);
@@ -226,6 +255,18 @@ VarUserData::~VarUserData() {
 }
 
 size_t VarUserData::getVarLoc() const {
+    return _loc;
+}
+
+DefUserData::DefUserData(size_t loc) : _loc(loc) {
+
+}
+
+DefUserData::~DefUserData() {
+
+}
+
+size_t DefUserData::getDefLoc() const {
     return _loc;
 }
 

@@ -43,11 +43,27 @@ namespace bc {
         return o;
     }
 
-    // OPCODES
+    /*
+     *  BYTECODE INSTRUCTIONS
+     */
+
+    class Label : public BCInstruction {
+    public:
+        Label(const std::string& name);
+        virtual ~Label();
+
+        const std::string& getName() const;
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        std::string _name;
+    };
 
     class MakeFunction : public BCInstruction {
     public:
-        MakeFunction(size_t varCount);
+        MakeFunction(size_t varCount, Label* end);
         virtual ~MakeFunction();
 
         virtual void appendTo(std::ostream& o) const override;
@@ -55,6 +71,31 @@ namespace bc {
     private:
 
         size_t _varCount;
+        Label* _end;
+    };
+
+    class StoreConst : public BCInstruction {
+    public:
+        StoreConst(size_t index);
+        virtual ~StoreConst();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        size_t _index;
+    };
+
+    class LoadConst : public BCInstruction {
+    public:
+        LoadConst(size_t index);
+        virtual ~LoadConst();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        size_t _index;
     };
 
     class PushConstUnit : public BCInstruction {
@@ -113,20 +154,6 @@ namespace bc {
         virtual ~Return();
 
         virtual void appendTo(std::ostream &o) const override;
-    };
-
-    class Label : public BCInstruction {
-    public:
-        Label(const std::string& name);
-        virtual ~Label();
-
-        const std::string& getName() const;
-
-        virtual void appendTo(std::ostream &o) const override;
-
-    private:
-
-        std::string _name;
     };
 
     class IfFalse : public BCInstruction {

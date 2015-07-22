@@ -95,7 +95,7 @@ namespace sym {
     /**
      * @brief Represents the symbol associated to a definition
      */
-    class DefinitionSymbol : public Symbol, public Scoped, public type::Typed {
+    class DefinitionSymbol : public Symbol, public Scoped, public type::Typed, public common::HasManageableUserdata {
     public:
         DefinitionSymbol(const std::string& name, ast::DefineDecl* def);
         virtual ~DefinitionSymbol();

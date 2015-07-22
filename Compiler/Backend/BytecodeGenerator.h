@@ -77,6 +77,10 @@ namespace bc {
         template<typename T>
         T* Emit(T* instr);
 
+        size_t getVarLoc(sym::VariableSymbol* var);
+        size_t getDefLoc(sym::DefinitionSymbol* def);
+
+        size_t _currentConstCount;
         size_t _currentVarCount;
 
     };
@@ -87,6 +91,18 @@ namespace bc {
         virtual ~VarUserData();
 
         size_t getVarLoc() const;
+
+    private:
+
+        size_t _loc;
+    };
+
+    class DefUserData final : public common::MemoryManageable {
+    public:
+        DefUserData(size_t loc);
+        virtual ~DefUserData();
+
+        size_t getDefLoc() const;
 
     private:
 
