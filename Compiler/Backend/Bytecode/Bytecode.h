@@ -90,6 +90,52 @@ namespace bc {
 
         size_t _index;
     };
+
+    class Pop : public BCInstruction {
+    public:
+        Pop();
+        virtual ~Pop();
+
+        virtual void appendTo(std::ostream &o) const override;
+    };
+
+    class Label : public BCInstruction {
+    public:
+        Label(const std::string& name);
+        virtual ~Label();
+
+        const std::string& getName() const;
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        std::string _name;
+    };
+
+    class IfFalse : public BCInstruction {
+    public:
+        IfFalse(Label* label);
+        virtual ~IfFalse();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        Label* _label;
+    };
+
+    class Jump : public BCInstruction {
+    public:
+        Jump(Label* label);
+        virtual ~Jump();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        Label* _label;
+    };
 }
 
 }

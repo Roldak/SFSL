@@ -10,7 +10,6 @@
 
 #define SAVE_MEMBER(memberName) auto __old##memberName = memberName
 #define RESTORE_MEMBER(memberName) memberName = __old##memberName
-#define CURSOR_HERE(varName) out::Cursor* varName = Here()
 
 namespace sfsl {
 
@@ -105,7 +104,23 @@ void BytecodeGenerator::visit(Block* block) {
 }
 
 void BytecodeGenerator::visit(IfExpression* ifexpr) {
+    Label* elseLabel = MakeLabel(*ifexpr, "else");
+    Label* outLabel = MakeLabel(*ifexpr, "out");
 
+    // if cond is false, jump to the else label
+    ifexpr->getCondition()->onVisit(this);
+    Emit<IfFalse>(*ifexpr->getCondition(), elseLabel);
+
+    // code for the then part, plus the jump to the end of the if
+    ifexpr->getThen()->onVisit(this);
+    Emit<Jump>(*ifexpr->getThen(), outLabel);
+
+    // label and code for the else part
+    BindLabel(elseLabel);
+    ifexpr->getElse()->onVisit(this);
+
+    // label for the end of the if
+    BindLabel(outLabel);
 }
 
 void BytecodeGenerator::visit(MemberAccess* dot) {
@@ -121,7 +136,7 @@ void BytecodeGenerator::visit(FunctionCreation* func) {
 
     _currentVarCount = 0;
 
-    CURSOR_HERE(funcBegin);
+    out::Cursor* funcBegin = Here();
 
     ASTVisitor::visit(func);
 
@@ -163,11 +178,28 @@ void BytecodeGenerator::Seek(out::Cursor* cursor) {
     _out.seek(cursor);
 }
 
+Label* BytecodeGenerator::MakeLabel(const common::Positionnable &pos, const std::string& name) {
+    Label* label = _mngr.New<Label>(name);
+    label->setPos(pos);
+    return label;
+}
+
+void BytecodeGenerator::BindLabel(Label* label) {
+    Emit(label);
+}
+
 template<typename T, typename... Args>
-void BytecodeGenerator::Emit(const common::Positionnable& pos, Args... args) {
+T* BytecodeGenerator::Emit(const common::Positionnable& pos, Args... args) {
     T* instr = _mngr.New<T>(std::forward<Args>(args)...);
     instr->setPos(pos);
     _out << instr;
+    return instr;
+}
+
+template<typename T>
+T* BytecodeGenerator::Emit(T* instr) {
+    _out << instr;
+    return instr;
 }
 
 // VARIABLE USER DATA

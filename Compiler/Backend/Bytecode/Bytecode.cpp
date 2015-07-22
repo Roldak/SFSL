@@ -85,6 +85,67 @@ void StackLoad::appendTo(std::ostream& o) const {
     o << "load" << ARG_SEP << _index;
 }
 
+// POP
+
+Pop::Pop() {
+
+}
+
+Pop::~Pop() {
+
+}
+
+void Pop::appendTo(std::ostream &o) const {
+    o << "pop";
+}
+
+// LABEL
+
+Label::Label(const std::string& name) : _name(name) {
+
+}
+
+Label::~Label() {
+
+}
+
+const std::string& Label::getName() const {
+    return _name;
+}
+
+void Label::appendTo(std::ostream &o) const {
+    o << _name << ":";
+}
+
+// IF FALSE
+
+
+IfFalse::IfFalse(Label *label) : _label(label) {
+
+}
+
+IfFalse::~IfFalse() {
+
+}
+
+void IfFalse::appendTo(std::ostream &o) const {
+    o << "if_false" << ARG_SEP << _label->getName();
+}
+
+// JUMP
+
+Jump::Jump(Label *label) : _label(label) {
+
+}
+
+Jump::~Jump() {
+
+}
+
+void Jump::appendTo(std::ostream &o) const {
+    o << "jump" << ARG_SEP << _label->getName();
+}
+
 }
 
 }

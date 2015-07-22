@@ -68,8 +68,14 @@ namespace bc {
         out::Cursor* End() const;
         void Seek(out::Cursor* cursor);
 
+        Label* MakeLabel(const common::Positionnable& pos, const std::string& name);
+        void BindLabel(Label* label);
+
         template<typename T, typename... Args>
-        void Emit(const common::Positionnable& pos, Args... args);
+        T* Emit(const common::Positionnable& pos, Args... args);
+
+        template<typename T>
+        T* Emit(T* instr);
 
         size_t _currentVarCount;
 
