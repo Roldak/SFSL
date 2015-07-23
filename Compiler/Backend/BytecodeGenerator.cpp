@@ -15,10 +15,90 @@ namespace sfsl {
 
 namespace bc {
 
-// BYTE CODE GENERATOR
+// ASSIGN USER DATAS
 
-BytecodeGenerator::BytecodeGenerator(CompCtx_Ptr &ctx, out::CodeGenOutput<BCInstruction*> &out)
-    :   out::CodeGenerator<BCInstruction*>(ctx, out), _currentConstCount(0), _currentVarCount(0) {
+UserDataAssignment::UserDataAssignment(CompCtx_Ptr& ctx)
+    : ASTVisitor(ctx), _currentConstCount(0), _currentVarCount(0) {
+
+}
+
+UserDataAssignment::~UserDataAssignment() {
+
+}
+
+void UserDataAssignment::visit(ASTNode*) {
+
+}
+
+void UserDataAssignment::visit(DefineDecl* decl) {
+    ASTVisitor::visit(decl);
+    sym::DefinitionSymbol* def = decl->getSymbol();
+    def->setUserdata(_mngr.New<DefUserData>(_currentConstCount++));
+}
+
+void UserDataAssignment::visit(TypeSpecifier* tps) {
+    ASTVisitor::visit(tps);
+    sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(tps->getSpecified()->getSymbol());
+    var->setUserdata(_mngr.New<VarUserData>(_currentVarCount++));
+}
+
+void UserDataAssignment::visit(FunctionCreation* func) {
+    SAVE_MEMBER(_currentVarCount);
+    _currentVarCount = 0;
+
+    ASTVisitor::visit(func);
+
+    func->setUserdata(_mngr.New<FuncUserData>(_currentVarCount));
+
+    RESTORE_MEMBER(_currentVarCount);
+}
+
+// VARIABLE USER DATA
+
+VarUserData::VarUserData(size_t loc) : _loc(loc) {
+
+}
+
+VarUserData::~VarUserData() {
+
+}
+
+size_t VarUserData::getVarLoc() const {
+    return _loc;
+}
+
+// DEFINITION USER DATA
+
+DefUserData::DefUserData(size_t loc) : _loc(loc) {
+
+}
+
+DefUserData::~DefUserData() {
+
+}
+
+size_t DefUserData::getDefLoc() const {
+    return _loc;
+}
+
+// FUNCTION USER DATA
+
+FuncUserData::FuncUserData(size_t varCount) : _varCount(varCount) {
+
+}
+
+FuncUserData::~FuncUserData() {
+
+}
+
+size_t FuncUserData::getVarCount() const {
+    return _varCount;
+}
+
+// BYTECODE GENERATOR
+
+BytecodeGenerator::BytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out)
+    : CodeGenerator(ctx, out) {
 
 }
 
@@ -26,82 +106,128 @@ BytecodeGenerator::~BytecodeGenerator() {
 
 }
 
-void BytecodeGenerator::visit(ASTNode*) {
+out::Cursor* BytecodeGenerator::Here() const {
+    return _out.here();
+}
+
+out::Cursor* BytecodeGenerator::End() const {
+    return _out.end();
+}
+
+void BytecodeGenerator::Seek(out::Cursor* cursor) {
+    _out.seek(cursor);
+}
+
+Label* BytecodeGenerator::MakeLabel(const common::Positionnable& pos, const std::string& name) {
+    Label* label = _mngr.New<Label>(name);
+    label->setPos(pos);
+    return label;
+}
+
+void BytecodeGenerator::BindLabel(Label* label) {
+    Emit(label);
+}
+
+template<typename T, typename... Args>
+T* BytecodeGenerator::Emit(const common::Positionnable& pos, Args... args) {
+    T* instr = _mngr.New<T>(std::forward<Args>(args)...);
+    instr->setPos(pos);
+    _out << instr;
+    return instr;
+}
+
+template<typename T>
+T* BytecodeGenerator::Emit(T* instr) {
+    _out << instr;
+    return instr;
+}
+
+// DEFAULT BYTECODE GENERATOR
+
+DefaultBytecodeGenerator::DefaultBytecodeGenerator(CompCtx_Ptr &ctx, out::CodeGenOutput<BCInstruction*> &out)
+    :   BytecodeGenerator(ctx, out) {
 
 }
 
-void BytecodeGenerator::visit(Program* prog) {
+DefaultBytecodeGenerator::~DefaultBytecodeGenerator() {
+
+}
+
+void DefaultBytecodeGenerator::visit(ASTNode*) {
+
+}
+
+void DefaultBytecodeGenerator::visit(Program* prog) {
     ASTVisitor::visit(prog);
 }
 
-void BytecodeGenerator::visit(ModuleDecl* module) {
+void DefaultBytecodeGenerator::visit(ModuleDecl* module) {
     ASTVisitor::visit(module);
 }
 
-void BytecodeGenerator::visit(TypeDecl* tdecl) {
+void DefaultBytecodeGenerator::visit(TypeDecl* tdecl) {
 
 }
 
-void BytecodeGenerator::visit(ClassDecl* clss){
+void DefaultBytecodeGenerator::visit(ClassDecl* clss){
 
 }
 
-void BytecodeGenerator::visit(DefineDecl* decl) {
+void DefaultBytecodeGenerator::visit(DefineDecl* decl) {
     decl->getValue()->onVisit(this);
-
     Emit<StoreConst>(*decl, getDefLoc(decl->getSymbol()));
 }
 
-void BytecodeGenerator::visit(ProperTypeKindSpecifier* ptks) {
+void DefaultBytecodeGenerator::visit(ProperTypeKindSpecifier* ptks) {
 
 }
 
-void BytecodeGenerator::visit(TypeConstructorKindSpecifier* tcks) {
+void DefaultBytecodeGenerator::visit(TypeConstructorKindSpecifier* tcks) {
 
 }
 
-void BytecodeGenerator::visit(TypeMemberAccess* tdot) {
+void DefaultBytecodeGenerator::visit(TypeMemberAccess* tdot) {
 
 }
 
-void BytecodeGenerator::visit(TypeTuple* ttuple) {
+void DefaultBytecodeGenerator::visit(TypeTuple* ttuple) {
 
 }
 
-void BytecodeGenerator::visit(TypeConstructorCreation* typeconstructor) {
+void DefaultBytecodeGenerator::visit(TypeConstructorCreation* typeconstructor) {
 
 }
 
-void BytecodeGenerator::visit(TypeConstructorCall* tcall) {
+void DefaultBytecodeGenerator::visit(TypeConstructorCall* tcall) {
 
 }
 
-void BytecodeGenerator::visit(TypeIdentifier* tident) {
+void DefaultBytecodeGenerator::visit(TypeIdentifier* tident) {
 
 }
 
-void BytecodeGenerator::visit(KindSpecifier* ks) {
+void DefaultBytecodeGenerator::visit(KindSpecifier* ks) {
 
 }
 
-void BytecodeGenerator::visit(ExpressionStatement* exp) {
+void DefaultBytecodeGenerator::visit(ExpressionStatement* exp) {
     ASTVisitor::visit(exp);
 }
 
-void BytecodeGenerator::visit(BinaryExpression* bin) {
+void DefaultBytecodeGenerator::visit(BinaryExpression* bin) {
     ASTVisitor::visit(bin);
 }
 
-void BytecodeGenerator::visit(AssignmentExpression* aex) {
-    ASTVisitor::visit(aex);
+void DefaultBytecodeGenerator::visit(AssignmentExpression* aex) {
+    aex->getRhs()->onVisit(this);
+    //if (aex->getLhs()
 }
 
-void BytecodeGenerator::visit(TypeSpecifier* tps) {
-    sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(tps->getSpecified()->getSymbol());
-    var->setUserdata(_mngr.New<VarUserData>(_currentVarCount++));
+void DefaultBytecodeGenerator::visit(TypeSpecifier* tps) {
+
 }
 
-void BytecodeGenerator::visit(Block* block) {
+void DefaultBytecodeGenerator::visit(Block* block) {
     const std::vector<Expression*>& exprs(block->getStatements());
 
     if (exprs.size() > 0) {
@@ -115,7 +241,7 @@ void BytecodeGenerator::visit(Block* block) {
     }
 }
 
-void BytecodeGenerator::visit(IfExpression* ifexpr) {
+void DefaultBytecodeGenerator::visit(IfExpression* ifexpr) {
     Label* elseLabel = MakeLabel(*ifexpr, "else");
     Label* outLabel = MakeLabel(*ifexpr, "out");
 
@@ -135,39 +261,29 @@ void BytecodeGenerator::visit(IfExpression* ifexpr) {
     BindLabel(outLabel);
 }
 
-void BytecodeGenerator::visit(MemberAccess* dot) {
+void DefaultBytecodeGenerator::visit(MemberAccess* dot) {
 
 }
 
-void BytecodeGenerator::visit(Tuple* tuple) {
+void DefaultBytecodeGenerator::visit(Tuple* tuple) {
     ASTVisitor::visit(tuple);
 }
 
-void BytecodeGenerator::visit(FunctionCreation* func) {
-    SAVE_MEMBER(_currentVarCount);
-    _currentVarCount = 0;
-
-    out::Cursor* funcBegin = Here();
+void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
+    Label* funcEnd = MakeLabel(*func, "func_end");
+    Emit<MakeFunction>(*func, func->getUserdata<FuncUserData>()->getVarCount(), funcEnd);
 
     ASTVisitor::visit(func);
     Emit<Return>(*func);
 
-    Label* funcEnd = MakeLabel(*func, "func_end");
     BindLabel(funcEnd);
-
-    Seek(funcBegin);
-    Emit<MakeFunction>(*func, _currentVarCount, funcEnd);
-
-    Seek(End());
-
-    RESTORE_MEMBER(_currentVarCount);
 }
 
-void BytecodeGenerator::visit(FunctionCall* call) {
+void DefaultBytecodeGenerator::visit(FunctionCall* call) {
     ASTVisitor::visit(call);
 }
 
-void BytecodeGenerator::visit(Identifier* ident) {
+void DefaultBytecodeGenerator::visit(Identifier* ident) {
     switch (ident->getSymbol()->getSymbolType()) {
     case sym::SYM_VAR: {
         sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(ident->getSymbol());
@@ -186,87 +302,39 @@ void BytecodeGenerator::visit(Identifier* ident) {
     }
 }
 
-void BytecodeGenerator::visit(IntLitteral* intlit) {
+void DefaultBytecodeGenerator::visit(IntLitteral* intlit) {
     Emit<PushConstInt>(*intlit, intlit->getValue());
 }
 
-void BytecodeGenerator::visit(RealLitteral* reallit) {
+void DefaultBytecodeGenerator::visit(RealLitteral* reallit) {
     Emit<PushConstReal>(*reallit, reallit->getValue());
 }
 
-out::Cursor* BytecodeGenerator::Here() const {
-    return _out.here();
+size_t DefaultBytecodeGenerator::getDefLoc(sym::DefinitionSymbol* def) {
+    return def->getUserdata<DefUserData>()->getDefLoc();
 }
 
-out::Cursor* BytecodeGenerator::End() const {
-    return _out.end();
-}
-
-void BytecodeGenerator::Seek(out::Cursor* cursor) {
-    _out.seek(cursor);
-}
-
-Label* BytecodeGenerator::MakeLabel(const common::Positionnable &pos, const std::string& name) {
-    Label* label = _mngr.New<Label>(name);
-    label->setPos(pos);
-    return label;
-}
-
-void BytecodeGenerator::BindLabel(Label* label) {
-    Emit(label);
-}
-
-size_t BytecodeGenerator::getDefLoc(sym::DefinitionSymbol* def) {
-    if (DefUserData* ddata = def->getUserdata<DefUserData>()) {
-        return ddata->getDefLoc();
-    } else {
-        def->setUserdata(_mngr.New<DefUserData>(_currentConstCount));
-        return _currentConstCount++;
-    }
-}
-
-size_t BytecodeGenerator::getVarLoc(sym::VariableSymbol* var) {
+size_t DefaultBytecodeGenerator::getVarLoc(sym::VariableSymbol* var) {
     return var->getUserdata<VarUserData>()->getVarLoc();
 }
 
-template<typename T, typename... Args>
-T* BytecodeGenerator::Emit(const common::Positionnable& pos, Args... args) {
-    T* instr = _mngr.New<T>(std::forward<Args>(args)...);
-    instr->setPos(pos);
-    _out << instr;
-    return instr;
-}
+// ASSIGNMENT BYTECODE GENERATOR
 
-template<typename T>
-T* BytecodeGenerator::Emit(T* instr) {
-    _out << instr;
-    return instr;
-}
-
-// VARIABLE USER DATA
-
-VarUserData::VarUserData(size_t loc) : _loc(loc) {
+AssignmentBytecodeGenerator::AssignmentBytecodeGenerator(CompCtx_Ptr &ctx, out::CodeGenOutput<BCInstruction*>& out)
+    : BytecodeGenerator(ctx, out) {
 
 }
 
-VarUserData::~VarUserData() {
+AssignmentBytecodeGenerator::~AssignmentBytecodeGenerator() {
 
 }
 
-size_t VarUserData::getVarLoc() const {
-    return _loc;
-}
-
-DefUserData::DefUserData(size_t loc) : _loc(loc) {
+void AssignmentBytecodeGenerator::visit(ASTNode*) {
 
 }
 
-DefUserData::~DefUserData() {
+void AssignmentBytecodeGenerator::visit(Identifier* ident) {
 
-}
-
-size_t DefUserData::getDefLoc() const {
-    return _loc;
 }
 
 }

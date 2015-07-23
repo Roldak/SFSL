@@ -19,14 +19,89 @@ namespace bc {
 
     using namespace ast;
 
+    class UserDataAssignment : public ASTVisitor {
+    public:
+
+        UserDataAssignment(CompCtx_Ptr& ctx);
+        virtual ~UserDataAssignment();
+
+        virtual void visit(ASTNode*) override;
+
+        virtual void visit(DefineDecl* decl) override;
+        virtual void visit(TypeSpecifier* tps) override;
+        virtual void visit(FunctionCreation* func) override;
+
+    private:
+
+        size_t _currentConstCount;
+        size_t _currentVarCount;
+    };
+
+    class VarUserData final : public common::MemoryManageable {
+    public:
+        VarUserData(size_t loc);
+        virtual ~VarUserData();
+
+        size_t getVarLoc() const;
+
+    private:
+
+        size_t _loc;
+    };
+
+    class DefUserData final : public common::MemoryManageable {
+    public:
+        DefUserData(size_t loc);
+        virtual ~DefUserData();
+
+        size_t getDefLoc() const;
+
+    private:
+
+        size_t _loc;
+    };
+
+    class FuncUserData final : public common::MemoryManageable {
+    public:
+        FuncUserData(size_t varCount);
+        virtual ~FuncUserData();
+
+        size_t getVarCount() const;
+
+    private:
+
+        size_t _varCount;
+    };
+
+    class BytecodeGenerator : public out::CodeGenerator<BCInstruction*> {
+    public:
+        BytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out);
+        virtual ~BytecodeGenerator();
+
+    protected:
+
+        out::Cursor* Here() const;
+        out::Cursor* End() const;
+        void Seek(out::Cursor* cursor);
+
+        Label* MakeLabel(const common::Positionnable& pos, const std::string& name);
+        void BindLabel(Label* label);
+
+        template<typename T, typename... Args>
+        T* Emit(const common::Positionnable& pos, Args... args);
+
+        template<typename T>
+        T* Emit(T* instr);
+    };
+
     /**
      * @brief Base class for visitors that generate code from the AST
      */
-    class BytecodeGenerator : public out::CodeGenerator<BCInstruction*> {
+    class DefaultBytecodeGenerator : public BytecodeGenerator {
     public:
 
-        BytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out);
-        virtual ~BytecodeGenerator();
+        DefaultBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out);
+        virtual ~DefaultBytecodeGenerator();
 
         virtual void visit(ASTNode*) override;
 
@@ -64,48 +139,22 @@ namespace bc {
 
     private:
 
-        out::Cursor* Here() const;
-        out::Cursor* End() const;
-        void Seek(out::Cursor* cursor);
-
-        Label* MakeLabel(const common::Positionnable& pos, const std::string& name);
-        void BindLabel(Label* label);
-
-        template<typename T, typename... Args>
-        T* Emit(const common::Positionnable& pos, Args... args);
-
-        template<typename T>
-        T* Emit(T* instr);
-
         size_t getDefLoc(sym::DefinitionSymbol* def);
         size_t getVarLoc(sym::VariableSymbol* var);
-
-        size_t _currentConstCount;
-        size_t _currentVarCount;
     };
 
-    class VarUserData final : public common::MemoryManageable {
+    class AssignmentBytecodeGenerator : public BytecodeGenerator {
     public:
-        VarUserData(size_t loc);
-        virtual ~VarUserData();
 
-        size_t getVarLoc() const;
+        AssignmentBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out);
+        virtual ~AssignmentBytecodeGenerator();
+
+        virtual void visit(ASTNode*) override;
+
+        virtual void visit(Identifier* ident) override;
 
     private:
 
-        size_t _loc;
-    };
-
-    class DefUserData final : public common::MemoryManageable {
-    public:
-        DefUserData(size_t loc);
-        virtual ~DefUserData();
-
-        size_t getDefLoc() const;
-
-    private:
-
-        size_t _loc;
     };
 }
 

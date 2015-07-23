@@ -116,8 +116,10 @@ int main(int argc, char** argv) {
         std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
 
         out::LinkedListOutput<bc::BCInstruction*> out(ctx);
-        bc::BytecodeGenerator gen(ctx, out);
+        bc::UserDataAssignment uda(ctx);
+        bc::DefaultBytecodeGenerator gen(ctx, out);
 
+        prog->onVisit(&uda);
         prog->onVisit(&gen);
 
         std::cout << "DONE" << std::endl;

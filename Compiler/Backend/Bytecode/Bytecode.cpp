@@ -113,7 +113,7 @@ void PushConstReal::appendTo(std::ostream& o) const {
     o << "push_r" << ARG_SEP << _val;
 }
 
-// STACK LOAD
+// LOAD STACK
 
 LoadStack::LoadStack(size_t index) : _index(index) {
 
@@ -125,6 +125,20 @@ LoadStack::~LoadStack() {
 
 void LoadStack::appendTo(std::ostream& o) const {
     o << "load" << ARG_SEP << _index;
+}
+
+// STORE STACK
+
+StoreStack::StoreStack(size_t index) : _index(index) {
+
+}
+
+StoreStack::~StoreStack() {
+
+}
+
+void StoreStack::appendTo(std::ostream& o) const {
+    o << "store" << ARG_SEP << _index;
 }
 
 // POP

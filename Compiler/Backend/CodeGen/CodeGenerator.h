@@ -33,8 +33,6 @@ namespace out {
 
         virtual void visit(ASTNode*) override = 0;
 
-        virtual void visit(Program* prog) override = 0;
-
     protected:
 
         common::AbstractMemoryManager& _mngr;

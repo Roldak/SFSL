@@ -253,7 +253,7 @@ private:
 /**
  * @brief Represents a function creation, e.g. `(x) => 2 * x`
  */
-class FunctionCreation : public Expression, public sym::Scoped {
+class FunctionCreation : public Expression, public sym::Scoped, public common::HasManageableUserdata {
 public:
 
     FunctionCreation(const std::string& name, Expression* args, Expression* body);

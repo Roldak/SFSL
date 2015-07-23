@@ -140,6 +140,18 @@ namespace bc {
         size_t _index;
     };
 
+    class StoreStack : public BCInstruction {
+    public:
+        StoreStack(size_t index);
+        virtual ~StoreStack();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        size_t _index;
+    };
+
     class Pop : public BCInstruction {
     public:
         Pop();

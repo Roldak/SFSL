@@ -65,7 +65,7 @@ namespace out {
 
     template<typename T>
     /**
-     * @brief Implementation of the CodeGenOutput interface writing the emitted code into a vector
+     * @brief Implementation of the CodeGenOutput interface writing the emitted code into a linked list
      */
     class LinkedListOutput : public CodeGenOutput<T> {
     protected:
