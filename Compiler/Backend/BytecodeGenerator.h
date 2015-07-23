@@ -92,6 +92,9 @@ namespace bc {
 
         template<typename T>
         T* Emit(T* instr);
+
+        size_t getDefLoc(sym::DefinitionSymbol* def);
+        size_t getVarLoc(sym::VariableSymbol* var);
     };
 
     /**
@@ -139,22 +142,19 @@ namespace bc {
 
     private:
 
-        size_t getDefLoc(sym::DefinitionSymbol* def);
-        size_t getVarLoc(sym::VariableSymbol* var);
-    };
+        class AssignmentBytecodeGenerator : public BytecodeGenerator {
+        public:
 
-    class AssignmentBytecodeGenerator : public BytecodeGenerator {
-    public:
+            AssignmentBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out);
+            virtual ~AssignmentBytecodeGenerator();
 
-        AssignmentBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out);
-        virtual ~AssignmentBytecodeGenerator();
+            virtual void visit(ASTNode*) override;
 
-        virtual void visit(ASTNode*) override;
+            virtual void visit(Identifier* ident) override;
 
-        virtual void visit(Identifier* ident) override;
+        private:
 
-    private:
-
+        };
     };
 }
 

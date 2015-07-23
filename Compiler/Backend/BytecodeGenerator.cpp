@@ -142,6 +142,14 @@ T* BytecodeGenerator::Emit(T* instr) {
     return instr;
 }
 
+size_t BytecodeGenerator::getDefLoc(sym::DefinitionSymbol* def) {
+    return def->getUserdata<DefUserData>()->getDefLoc();
+}
+
+size_t BytecodeGenerator::getVarLoc(sym::VariableSymbol* var) {
+    return var->getUserdata<VarUserData>()->getVarLoc();
+}
+
 // DEFAULT BYTECODE GENERATOR
 
 DefaultBytecodeGenerator::DefaultBytecodeGenerator(CompCtx_Ptr &ctx, out::CodeGenOutput<BCInstruction*> &out)
@@ -220,11 +228,12 @@ void DefaultBytecodeGenerator::visit(BinaryExpression* bin) {
 
 void DefaultBytecodeGenerator::visit(AssignmentExpression* aex) {
     aex->getRhs()->onVisit(this);
-    //if (aex->getLhs()
+    AssignmentBytecodeGenerator abg(_ctx, _out);
+    aex->getLhs()->onVisit(&abg);
 }
 
 void DefaultBytecodeGenerator::visit(TypeSpecifier* tps) {
-
+    Emit<PushConstUnit>(*tps);
 }
 
 void DefaultBytecodeGenerator::visit(Block* block) {
@@ -273,7 +282,7 @@ void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
     Label* funcEnd = MakeLabel(*func, "func_end");
     Emit<MakeFunction>(*func, func->getUserdata<FuncUserData>()->getVarCount(), funcEnd);
 
-    ASTVisitor::visit(func);
+    func->getBody()->onVisit(this);
     Emit<Return>(*func);
 
     BindLabel(funcEnd);
@@ -310,31 +319,24 @@ void DefaultBytecodeGenerator::visit(RealLitteral* reallit) {
     Emit<PushConstReal>(*reallit, reallit->getValue());
 }
 
-size_t DefaultBytecodeGenerator::getDefLoc(sym::DefinitionSymbol* def) {
-    return def->getUserdata<DefUserData>()->getDefLoc();
-}
-
-size_t DefaultBytecodeGenerator::getVarLoc(sym::VariableSymbol* var) {
-    return var->getUserdata<VarUserData>()->getVarLoc();
-}
-
 // ASSIGNMENT BYTECODE GENERATOR
 
-AssignmentBytecodeGenerator::AssignmentBytecodeGenerator(CompCtx_Ptr &ctx, out::CodeGenOutput<BCInstruction*>& out)
+DefaultBytecodeGenerator::AssignmentBytecodeGenerator::AssignmentBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out)
     : BytecodeGenerator(ctx, out) {
 
 }
 
-AssignmentBytecodeGenerator::~AssignmentBytecodeGenerator() {
+DefaultBytecodeGenerator::AssignmentBytecodeGenerator::~AssignmentBytecodeGenerator() {
 
 }
 
-void AssignmentBytecodeGenerator::visit(ASTNode*) {
+void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(ASTNode*) {
 
 }
 
-void AssignmentBytecodeGenerator::visit(Identifier* ident) {
-
+void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(Identifier* ident) {
+    sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(ident->getSymbol());
+    Emit<StoreStack>(*ident, getVarLoc(var));
 }
 
 }
