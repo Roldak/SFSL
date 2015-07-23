@@ -12,6 +12,7 @@
 #include "Compiler/Frontend/Analyser/KindChecking.h"
 #include "Compiler/Frontend/Analyser/TypeChecking.h"
 #include "Compiler/Frontend/AST/Symbols/SymbolResolver.h"
+#include "Compiler/Backend/UserDataAssignment.h"
 #include "Compiler/Backend/BytecodeGenerator.h"
 
 #define DEFAULT_CHUNK_SIZE 2048
