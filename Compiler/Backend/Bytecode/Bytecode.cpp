@@ -115,15 +115,15 @@ void PushConstReal::appendTo(std::ostream& o) const {
 
 // STACK LOAD
 
-StackLoad::StackLoad(size_t index) : _index(index) {
+LoadStack::LoadStack(size_t index) : _index(index) {
 
 }
 
-StackLoad::~StackLoad() {
+LoadStack::~LoadStack() {
 
 }
 
-void StackLoad::appendTo(std::ostream& o) const {
+void LoadStack::appendTo(std::ostream& o) const {
     o << "load" << ARG_SEP << _index;
 }
 

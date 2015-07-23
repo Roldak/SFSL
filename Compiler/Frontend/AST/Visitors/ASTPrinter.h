@@ -23,7 +23,7 @@ namespace ast {
 class ASTPrinter : public ASTVisitor {
 public:
 
-    ASTPrinter(CompCtx_Ptr& ctx);
+    ASTPrinter(CompCtx_Ptr& ctx, std::ostream& ostream);
 
     virtual ~ASTPrinter();
 
@@ -60,6 +60,8 @@ private :
     void printIndents();
 
     size_t _indentCount;
+
+    std::ostream& _ostream;
 };
 
 }

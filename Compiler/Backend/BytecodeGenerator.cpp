@@ -18,8 +18,7 @@ namespace bc {
 // BYTE CODE GENERATOR
 
 BytecodeGenerator::BytecodeGenerator(CompCtx_Ptr &ctx, out::CodeGenOutput<BCInstruction*> &out)
-    :   out::CodeGenerator<BCInstruction*>(ctx, out),
-        _currentConstCount(0), _currentVarCount(0) {
+    :   out::CodeGenerator<BCInstruction*>(ctx, out), _currentConstCount(0), _currentVarCount(0) {
 
 }
 
@@ -146,13 +145,13 @@ void BytecodeGenerator::visit(Tuple* tuple) {
 
 void BytecodeGenerator::visit(FunctionCreation* func) {
     SAVE_MEMBER(_currentVarCount);
-
     _currentVarCount = 0;
 
     out::Cursor* funcBegin = Here();
 
     ASTVisitor::visit(func);
     Emit<Return>(*func);
+
     Label* funcEnd = MakeLabel(*func, "func_end");
     BindLabel(funcEnd);
 
@@ -165,14 +164,14 @@ void BytecodeGenerator::visit(FunctionCreation* func) {
 }
 
 void BytecodeGenerator::visit(FunctionCall* call) {
-
+    ASTVisitor::visit(call);
 }
 
 void BytecodeGenerator::visit(Identifier* ident) {
     switch (ident->getSymbol()->getSymbolType()) {
     case sym::SYM_VAR: {
         sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(ident->getSymbol());
-        Emit<StackLoad>(*ident, getVarLoc(var));
+        Emit<LoadStack>(*ident, getVarLoc(var));
         break;
     }
 
@@ -217,17 +216,17 @@ void BytecodeGenerator::BindLabel(Label* label) {
     Emit(label);
 }
 
-size_t BytecodeGenerator::getVarLoc(sym::VariableSymbol* var) {
-    return var->getUserdata<VarUserData>()->getVarLoc();
-}
-
 size_t BytecodeGenerator::getDefLoc(sym::DefinitionSymbol* def) {
     if (DefUserData* ddata = def->getUserdata<DefUserData>()) {
         return ddata->getDefLoc();
     } else {
-        def->setUserdata(_mngr.New<DefUserData>(_currentConstCount++));
-        return _currentConstCount - 1;
+        def->setUserdata(_mngr.New<DefUserData>(_currentConstCount));
+        return _currentConstCount++;
     }
+}
+
+size_t BytecodeGenerator::getVarLoc(sym::VariableSymbol* var) {
+    return var->getUserdata<VarUserData>()->getVarLoc();
 }
 
 template<typename T, typename... Args>

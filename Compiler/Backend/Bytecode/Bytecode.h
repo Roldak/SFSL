@@ -128,10 +128,10 @@ namespace bc {
         sfsl_real_t _val;
     };
 
-    class StackLoad : public BCInstruction {
+    class LoadStack : public BCInstruction {
     public:
-        StackLoad(size_t index);
-        virtual ~StackLoad();
+        LoadStack(size_t index);
+        virtual ~LoadStack();
 
         virtual void appendTo(std::ostream &o) const override;
 

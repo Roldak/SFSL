@@ -77,12 +77,11 @@ namespace bc {
         template<typename T>
         T* Emit(T* instr);
 
-        size_t getVarLoc(sym::VariableSymbol* var);
         size_t getDefLoc(sym::DefinitionSymbol* def);
+        size_t getVarLoc(sym::VariableSymbol* var);
 
         size_t _currentConstCount;
         size_t _currentVarCount;
-
     };
 
     class VarUserData final : public common::MemoryManageable {

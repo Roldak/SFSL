@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
             return 1;
         }
 
-        /*ast::ASTPrinter printer(ctx);
+        /*ast::ASTPrinter printer(ctx, std::cout);
         prog->onVisit(&printer);*/
 
         std::cout << "STARTING SCOPE GENERATION" << std::endl;
