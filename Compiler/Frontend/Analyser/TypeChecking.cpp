@@ -9,6 +9,7 @@
 #include "TypeChecking.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
+#include "../AST/Visitors/ASTAssignmentChecker.h"
 #include "../AST/Symbols/Scope.h"
 
 namespace sfsl {
@@ -60,6 +61,10 @@ void TypeChecking::visit(BinaryExpression* bin) {
 
 void TypeChecking::visit(AssignmentExpression* aex) {
     ASTVisitor::visit(aex);
+
+    if (!ASTAssignmentChecker::isExpressionAssignable(aex->getLhs(), _ctx)) {
+        _rep.error(*aex, "Left hand side is not an assignable expression");
+    }
 
     type::Type* lhsT = aex->getLhs()->type();
     type::Type* rhsT = aex->getRhs()->type();
