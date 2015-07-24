@@ -61,6 +61,19 @@ namespace bc {
         std::string _name;
     };
 
+    class MakeClass : public BCInstruction {
+    public:
+        MakeClass(size_t attrCount, size_t defCount);
+        virtual ~MakeClass();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        size_t _attrCount;
+        size_t _defCount;
+    };
+
     class MakeFunction : public BCInstruction {
     public:
         MakeFunction(size_t varCount, Label* end);

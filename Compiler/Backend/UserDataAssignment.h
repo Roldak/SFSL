@@ -29,6 +29,7 @@ namespace bc {
 
         virtual void visit(ASTNode*) override;
 
+        virtual void visit(ClassDecl* clss) override;
         virtual void visit(DefineDecl* decl) override;
         virtual void visit(TypeSpecifier* tps) override;
         virtual void visit(FunctionCreation* func) override;
@@ -37,6 +38,34 @@ namespace bc {
 
         size_t _currentConstCount;
         size_t _currentVarCount;
+    };
+
+    class ClassUserData final : public common::MemoryManageable {
+    public:
+        ClassUserData(size_t loc, size_t attrCount, size_t defCount);
+        virtual ~ClassUserData();
+
+        size_t getClassLoc() const;
+        size_t getAttrCount() const;
+        size_t getDefCount() const;
+
+    private:
+
+        size_t _loc;
+        size_t _attrCount;
+        size_t _defCount;
+    };
+
+    class FuncUserData final : public common::MemoryManageable {
+    public:
+        FuncUserData(size_t varCount);
+        virtual ~FuncUserData();
+
+        size_t getVarCount() const;
+
+    private:
+
+        size_t _varCount;
     };
 
     class VarUserData final : public common::MemoryManageable {
@@ -61,18 +90,6 @@ namespace bc {
     private:
 
         size_t _loc;
-    };
-
-    class FuncUserData final : public common::MemoryManageable {
-    public:
-        FuncUserData(size_t varCount);
-        virtual ~FuncUserData();
-
-        size_t getVarCount() const;
-
-    private:
-
-        size_t _varCount;
     };
 }
 

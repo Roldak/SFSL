@@ -39,7 +39,7 @@ public:
  *  - Its fields
  *  - Its definitions
  */
-class ClassDecl : public TypeExpression, public sym::Scoped {
+class ClassDecl : public TypeExpression, public sym::Scoped, public common::HasManageableUserdata {
 public:
 
     ClassDecl(const std::string& name, TypeExpression* parent, const std::vector<TypeSpecifier*>& fields, const std::vector<DefineDecl*>& defs);

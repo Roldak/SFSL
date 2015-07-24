@@ -40,6 +40,7 @@ namespace bc {
         template<typename T>
         T* Emit(T* instr);
 
+        size_t getClassLoc(ast::ClassDecl* clss);
         size_t getDefLoc(sym::DefinitionSymbol* def);
         size_t getVarLoc(sym::VariableSymbol* var);
     };

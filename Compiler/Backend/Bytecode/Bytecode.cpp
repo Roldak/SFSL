@@ -28,7 +28,21 @@ std::string BCInstruction::toStringDetailed() const {
             + ":" + utils::T_toString(getEndPosition()) + ">\t" + ss.str();
 }
 
-// CREATE FUNCTION
+// MAKE CLASS
+
+MakeClass::MakeClass(size_t attrCount, size_t defCount) : _attrCount(attrCount), _defCount(defCount) {
+
+}
+
+MakeClass::~MakeClass() {
+
+}
+
+void MakeClass::appendTo(std::ostream& o) const {
+    o << "mk_class" << ARG_SEP << _attrCount << ARG_SEP << _defCount;
+}
+
+// MAKE FUNCTION
 
 
 MakeFunction::MakeFunction(size_t varCount, Label* end) : _varCount(varCount), _end(end) {

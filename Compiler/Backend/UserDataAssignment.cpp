@@ -27,6 +27,14 @@ void UserDataAssignment::visit(ASTNode*) {
 
 }
 
+void UserDataAssignment::visit(ClassDecl* clss) {
+    ASTVisitor::visit(clss);
+    size_t clssLoc = _currentConstCount++;
+    size_t attrCount = clss->getFields().size();
+    size_t defCount = clss->getDefs().size();
+    clss->setUserdata(_mngr.New<ClassUserData>(clssLoc, attrCount, defCount));
+}
+
 void UserDataAssignment::visit(DefineDecl* decl) {
     ASTVisitor::visit(decl);
     sym::DefinitionSymbol* def = decl->getSymbol();
@@ -48,6 +56,43 @@ void UserDataAssignment::visit(FunctionCreation* func) {
     func->setUserdata(_mngr.New<FuncUserData>(_currentVarCount));
 
     RESTORE_MEMBER(_currentVarCount);
+}
+
+// CLASS USER DATA
+
+ClassUserData::ClassUserData(size_t loc, size_t attrCount, size_t defCount)
+    : _loc(loc), _attrCount(attrCount), _defCount(defCount) {
+
+}
+
+ClassUserData::~ClassUserData() {
+
+}
+
+size_t ClassUserData::getClassLoc() const {
+    return _loc;
+}
+
+size_t ClassUserData::getAttrCount() const {
+    return _attrCount;
+}
+
+size_t ClassUserData::getDefCount() const {
+    return _defCount;
+}
+
+// FUNCTION USER DATA
+
+FuncUserData::FuncUserData(size_t varCount) : _varCount(varCount) {
+
+}
+
+FuncUserData::~FuncUserData() {
+
+}
+
+size_t FuncUserData::getVarCount() const {
+    return _varCount;
 }
 
 // VARIABLE USER DATA
@@ -76,20 +121,6 @@ DefUserData::~DefUserData() {
 
 size_t DefUserData::getDefLoc() const {
     return _loc;
-}
-
-// FUNCTION USER DATA
-
-FuncUserData::FuncUserData(size_t varCount) : _varCount(varCount) {
-
-}
-
-FuncUserData::~FuncUserData() {
-
-}
-
-size_t FuncUserData::getVarCount() const {
-    return _varCount;
 }
 
 }

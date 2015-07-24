@@ -214,7 +214,7 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
 type::Type* TypeChecking::tryGetTypeOfField(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
     if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(id, false)) {
         return type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(sym))->applyEnv(subtable, _ctx);
-    } else if (Expression* parent = clss->getParent()) {
+    } else if (TypeExpression* parent = clss->getParent()) {
         if (type::Type* t = ASTTypeCreator::createType(parent, _ctx)) {
             type::Type* appliedT = type::Type::findSubstitution(subtable, t)->applyEnv(subtable, _ctx);
             if (type::ProperType* obj = type::getIf<type::ProperType>(appliedT)) {
