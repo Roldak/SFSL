@@ -269,6 +269,34 @@ void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(ASTNode*) {
 
 }
 
+void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(TypeSpecifier* tps) {
+    tps->getSpecified()->onVisit(this);
+}
+
+void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(IfExpression* ifexpr) {
+    Label* elseLabel = MakeLabel(*ifexpr, "else");
+    Label* outLabel = MakeLabel(*ifexpr, "out");
+
+    // if cond is false, jump to the else label
+    DefaultBytecodeGenerator dbg(_ctx, _out);
+    ifexpr->getCondition()->onVisit(&dbg);
+    Emit<IfFalse>(*ifexpr->getCondition(), elseLabel);
+
+    // code for the then part, plus the jump to the end of the if
+    ifexpr->getThen()->onVisit(this);
+    Emit<Jump>(*ifexpr->getThen(), outLabel);
+
+    // label and code for the else part
+    BindLabel(elseLabel);
+
+    if (ifexpr->getElse()) {
+        ifexpr->getElse()->onVisit(this);
+    }
+
+    // label for the end of the if
+    BindLabel(outLabel);
+}
+
 void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(Identifier* ident) {
     sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(ident->getSymbol());
     Emit<StoreStack>(*ident, getVarLoc(var));

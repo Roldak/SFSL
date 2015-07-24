@@ -96,6 +96,9 @@ namespace bc {
             virtual ~AssignmentBytecodeGenerator();
 
             virtual void visit(ASTNode*) override;
+
+            virtual void visit(TypeSpecifier* tps) override;
+            virtual void visit(IfExpression* ifexpr) override;
             virtual void visit(Identifier* ident) override;
         };
     };
