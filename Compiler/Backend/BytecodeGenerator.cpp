@@ -181,7 +181,10 @@ void DefaultBytecodeGenerator::visit(IfExpression* ifexpr) {
 
     // label and code for the else part
     BindLabel(elseLabel);
-    ifexpr->getElse()->onVisit(this);
+
+    if (ifexpr->getElse()) {
+        ifexpr->getElse()->onVisit(this);
+    }
 
     // label for the end of the if
     BindLabel(outLabel);

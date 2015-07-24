@@ -128,29 +128,6 @@ private:
     std::string _currentDefName;
 };
 
-// Template methods implementations
-
-template<typename T>
-bool Parser::expect(T type, const std::string& expected, bool fatal) {
-   tok::Token* lastTok = _currentToken;
-
-   if (!accept(type)) {
-       if (fatal) {
-           _ctx->reporter().fatal(*lastTok, "expected " + expected + " but got `" + lastTok->toString() + "`");
-       } else {
-           _ctx->reporter().error(*lastTok, "expected " + expected + " but got `" + lastTok->toString() + "`");
-       }
-       return false;
-   }
-
-   return true;
-}
-
-template<typename T>
-T* Parser::as() {
-    return static_cast<T*>(_currentToken);
-}
-
 }
 
 }

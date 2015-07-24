@@ -91,16 +91,11 @@ namespace bc {
 
         class AssignmentBytecodeGenerator : public BytecodeGenerator {
         public:
-
             AssignmentBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out);
             virtual ~AssignmentBytecodeGenerator();
 
             virtual void visit(ASTNode*) override;
-
             virtual void visit(Identifier* ident) override;
-
-        private:
-
         };
     };
 }

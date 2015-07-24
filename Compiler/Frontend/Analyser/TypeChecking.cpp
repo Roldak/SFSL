@@ -71,7 +71,7 @@ void TypeChecking::visit(AssignmentExpression* aex) {
 
     if (!rhsT->applied(_ctx)->isSubTypeOf(lhsT->applied(_ctx))) {
         _rep.error(*aex, "Assigning incompatible type. Found " +
-                   lhsT->toString() + ", expected " + rhsT->toString());
+                   rhsT->toString() + ", expected " + lhsT->toString());
     }
 
     aex->setType(lhsT);
