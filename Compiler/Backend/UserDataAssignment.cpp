@@ -29,9 +29,11 @@ void UserDataAssignment::visit(ASTNode*) {
 
 void UserDataAssignment::visit(ClassDecl* clss) {
     ASTVisitor::visit(clss);
+
     size_t clssLoc = _currentConstCount++;
     size_t attrCount = clss->getFields().size();
     size_t defCount = clss->getDefs().size();
+
     clss->setUserdata(_mngr.New<ClassUserData>(clssLoc, attrCount, defCount));
 }
 

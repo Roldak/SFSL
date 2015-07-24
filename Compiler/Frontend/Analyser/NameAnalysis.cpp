@@ -20,7 +20,7 @@ namespace ast {
 
 // SCOPE POSSESSOR VISITOR
 
-ScopePossessorVisitor::ScopePossessorVisitor(CompCtx_Ptr &ctx) : ASTVisitor(ctx), _curScope(nullptr) {
+ScopePossessorVisitor::ScopePossessorVisitor(CompCtx_Ptr& ctx) : ASTVisitor(ctx), _curScope(nullptr) {
 
 }
 
@@ -47,7 +47,7 @@ T* ScopePossessorVisitor::createSymbol(U* node) {
     return sym;
 }
 
-sym::DefinitionSymbol* ScopePossessorVisitor::createSymbol(DefineDecl *node) {
+sym::DefinitionSymbol* ScopePossessorVisitor::createSymbol(DefineDecl* node) {
     sym::DefinitionSymbol* sym = _mngr.New<sym::DefinitionSymbol>(node->getName()->getValue(), node);
     sym->setPos(*node);
 
@@ -171,7 +171,7 @@ void ScopeGeneration::popScope() {
 
 // SYMBOL ASSIGNATION
 
-SymbolAssignation::SymbolAssignation(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
+SymbolAssignation::SymbolAssignation(CompCtx_Ptr& ctx) : ScopePossessorVisitor(ctx) {
 }
 
 SymbolAssignation::~SymbolAssignation() {
@@ -186,7 +186,7 @@ void SymbolAssignation::visit(ModuleDecl* mod) {
     RESTORE_SCOPE
 }
 
-void SymbolAssignation::visit(ClassDecl *clss) {
+void SymbolAssignation::visit(ClassDecl* clss) {
     SAVE_SCOPE(clss)
 
     ASTVisitor::visit(clss);
@@ -202,7 +202,7 @@ void SymbolAssignation::visit(DefineDecl* def) {
     RESTORE_SCOPE
 }
 
-void SymbolAssignation::visit(TypeDecl *tdecl) {
+void SymbolAssignation::visit(TypeDecl* tdecl) {
     SAVE_SCOPE(tdecl->getSymbol())
 
     ASTVisitor::visit(tdecl);

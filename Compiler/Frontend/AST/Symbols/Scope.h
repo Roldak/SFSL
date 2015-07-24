@@ -55,7 +55,7 @@ namespace sym {
         /**
          * @return The map containing all the symbols
          */
-        const std::map<std::string, Symbol*> getAllSymbols() const;
+        const std::map<std::string, Symbol*>& getAllSymbols() const;
 
     private:
 
@@ -70,7 +70,7 @@ namespace sym {
 
     template<>
     inline Symbol* Scope::getSymbol(const std::string& name, bool recursive) const {
-        return _getSymbol(name, (SYM_TYPE)-1, recursive);
+        return _getSymbol(name, static_cast<SYM_TYPE>(-1), recursive);
     }
 
     template<>

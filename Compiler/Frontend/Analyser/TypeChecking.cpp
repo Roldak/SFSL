@@ -92,11 +92,10 @@ void TypeChecking::visit(TypeSpecifier* tps) {
         }
 
         tped->setType(tpe);
+        tps->setType(tpe);
     } else {
         _ctx->reporter().error(*tps->getTypeNode(), "Expression is not a type");
     }
-
-    tps->setType(_res.Unit());
 }
 
 void TypeChecking::visit(Block* block) {
@@ -140,8 +139,7 @@ void TypeChecking::visit(MemberAccess* dot) {
     dot->getAccessed()->onVisit(this);
 
     if (type::Type* t = dot->getAccessed()->type()) {
-        t = t->applied(_ctx);
-        if (type::ProperType* obj = type::getIf<type::ProperType>(t)) {
+        if (type::ProperType* obj = type::getIf<type::ProperType>(t->applied(_ctx))) {
             ClassDecl* clss = obj->getClass();
             const type::SubstitutionTable& subtable = obj->getSubstitutionTable();
 

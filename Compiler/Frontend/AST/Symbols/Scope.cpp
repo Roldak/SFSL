@@ -12,7 +12,7 @@ namespace sfsl {
 
 namespace sym {
 
-Scope::Scope(Scope *parent, bool isDefScope) : _parent(parent), _isDefScope(isDefScope) {
+Scope::Scope(Scope* parent, bool isDefScope) : _parent(parent), _isDefScope(isDefScope) {
 
 }
 
@@ -20,7 +20,7 @@ Scope::~Scope() {
 
 }
 
-Symbol* Scope::addSymbol(Symbol *sym) {
+Symbol* Scope::addSymbol(Symbol* sym) {
     auto res = _symbols.insert(std::map<std::string, Symbol*>::value_type(sym->getName(), sym));
     return res.second ? nullptr : (*res.first).second;
 }
@@ -29,11 +29,11 @@ Scope* Scope::getParent() const {
     return _parent;
 }
 
-const std::map<std::string, Symbol *> Scope::getAllSymbols() const {
+const std::map<std::string, Symbol*>& Scope::getAllSymbols() const {
     return _symbols;
 }
 
-Symbol* Scope::_getSymbol(const std::string &name, SYM_TYPE symType, bool recursive) const {
+Symbol* Scope::_getSymbol(const std::string& name, SYM_TYPE symType, bool recursive) const {
     if (_isDefScope && symType == SYM_VAR) {
         return nullptr;
     }
