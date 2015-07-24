@@ -129,7 +129,7 @@ namespace out {
 
         std::vector<T> toVector() const {
             std::vector<T> toRet;
-            if (_here) {
+            if (_end) {
                 for (Node* cur = _end->next; cur != _end; cur = cur->next) {
                     toRet.push_back(cur->value);
                 }

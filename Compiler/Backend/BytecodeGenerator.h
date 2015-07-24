@@ -27,6 +27,8 @@ namespace bc {
 
     protected:
 
+        BytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out, std::shared_ptr<out::Cursor*> constantPoolCursor);
+
         out::Cursor* Here() const;
         out::Cursor* End() const;
         void Seek(out::Cursor* cursor);
@@ -43,6 +45,8 @@ namespace bc {
         size_t getClassLoc(ast::ClassDecl* clss);
         size_t getDefLoc(sym::DefinitionSymbol* def);
         size_t getVarLoc(sym::VariableSymbol* var);
+
+        std::shared_ptr<out::Cursor*> _constantPoolCursor;
     };
 
     /**
@@ -52,6 +56,7 @@ namespace bc {
     public:
 
         DefaultBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out);
+        DefaultBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out, std::shared_ptr<out::Cursor*> constantPoolCursor);
         virtual ~DefaultBytecodeGenerator();
 
         virtual void visit(ASTNode*) override;
@@ -93,6 +98,7 @@ namespace bc {
         class AssignmentBytecodeGenerator : public BytecodeGenerator {
         public:
             AssignmentBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out);
+            AssignmentBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out, std::shared_ptr<out::Cursor*> constantPoolCursor);
             virtual ~AssignmentBytecodeGenerator();
 
             virtual void visit(ASTNode*) override;

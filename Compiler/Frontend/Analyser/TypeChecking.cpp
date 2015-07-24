@@ -32,12 +32,14 @@ void TypeChecking::visit(ASTNode*) {
 }
 
 void TypeChecking::visit(TypeDecl* tdecl) {
-    ASTVisitor::visit(tdecl);
-
     tdecl->setType(_res.Unit());
+
+    ASTVisitor::visit(tdecl);
 }
 
 void TypeChecking::visit(DefineDecl* decl) {
+    decl->setType(_res.Unit());
+
     if (_visitedDefs.find(decl) == _visitedDefs.end()) {
         _visitedDefs.emplace(decl);
 

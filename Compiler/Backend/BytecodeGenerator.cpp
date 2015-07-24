@@ -8,6 +8,18 @@
 
 #include "BytecodeGenerator.h"
 
+#define START_WRITING_TO_CONSTANT_POOL \
+    out::Cursor* __old = Here(); \
+    Seek(*_constantPoolCursor);
+
+#define RESTART_WRITING_TO_CONSTANT_POOL \
+    __old = Here(); \
+    Seek(*_constantPoolCursor);
+
+#define STOP_WRITING_TO_CONSTANT_POOL \
+    *_constantPoolCursor = Here(); \
+    Seek(__old);
+
 namespace sfsl {
 
 namespace bc {
@@ -15,11 +27,16 @@ namespace bc {
 // BYTECODE GENERATOR
 
 BytecodeGenerator::BytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out)
-    : CodeGenerator(ctx, out) {
+    : CodeGenerator(ctx, out), _constantPoolCursor(std::make_shared<out::Cursor*>(Here())) {
 
 }
 
 BytecodeGenerator::~BytecodeGenerator() {
+
+}
+
+BytecodeGenerator::BytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out, std::shared_ptr<out::Cursor*> constantPoolCursor)
+    : CodeGenerator(ctx, out), _constantPoolCursor(constantPoolCursor) {
 
 }
 
@@ -73,8 +90,13 @@ size_t BytecodeGenerator::getVarLoc(sym::VariableSymbol* var) {
 
 // DEFAULT BYTECODE GENERATOR
 
-DefaultBytecodeGenerator::DefaultBytecodeGenerator(CompCtx_Ptr &ctx, out::CodeGenOutput<BCInstruction*> &out)
+DefaultBytecodeGenerator::DefaultBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out)
     :   BytecodeGenerator(ctx, out) {
+
+}
+
+DefaultBytecodeGenerator::DefaultBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out, std::shared_ptr<out::Cursor*> constantPoolCursor)
+    :   BytecodeGenerator(ctx, out, constantPoolCursor) {
 
 }
 
@@ -103,6 +125,8 @@ void DefaultBytecodeGenerator::visit(ClassDecl* clss){
         def->onVisit(this);
     }
 
+    START_WRITING_TO_CONSTANT_POOL
+
     for (DefineDecl* def : clss->getDefs()) {
         Emit<LoadConst>(*def, getDefLoc(def->getSymbol()));
     }
@@ -111,11 +135,17 @@ void DefaultBytecodeGenerator::visit(ClassDecl* clss){
 
     Emit<MakeClass>(*clss, clssData->getAttrCount(), clssData->getDefCount());
     Emit<StoreConst>(*clss, getClassLoc(clss));
+
+    STOP_WRITING_TO_CONSTANT_POOL
 }
 
 void DefaultBytecodeGenerator::visit(DefineDecl* decl) {
+    START_WRITING_TO_CONSTANT_POOL
+
     decl->getValue()->onVisit(this);
     Emit<StoreConst>(*decl, getDefLoc(decl->getSymbol()));
+
+    STOP_WRITING_TO_CONSTANT_POOL
 }
 
 void DefaultBytecodeGenerator::visit(ProperTypeKindSpecifier* ptks) {
@@ -160,7 +190,7 @@ void DefaultBytecodeGenerator::visit(BinaryExpression* bin) {
 
 void DefaultBytecodeGenerator::visit(AssignmentExpression* aex) {
     aex->getRhs()->onVisit(this);
-    AssignmentBytecodeGenerator abg(_ctx, _out);
+    AssignmentBytecodeGenerator abg(_ctx, _out, _constantPoolCursor);
     aex->getLhs()->onVisit(&abg);
 }
 
@@ -261,6 +291,11 @@ DefaultBytecodeGenerator::AssignmentBytecodeGenerator::AssignmentBytecodeGenerat
 
 }
 
+DefaultBytecodeGenerator::AssignmentBytecodeGenerator::AssignmentBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out, std::shared_ptr<out::Cursor*> constantPoolCursor)
+    : BytecodeGenerator(ctx, out, constantPoolCursor) {
+
+}
+
 DefaultBytecodeGenerator::AssignmentBytecodeGenerator::~AssignmentBytecodeGenerator() {
 
 }
@@ -278,7 +313,7 @@ void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(IfExpression* 
     Label* outLabel = MakeLabel(*ifexpr, "out");
 
     // if cond is false, jump to the else label
-    DefaultBytecodeGenerator dbg(_ctx, _out);
+    DefaultBytecodeGenerator dbg(_ctx, _out, _constantPoolCursor);
     ifexpr->getCondition()->onVisit(&dbg);
     Emit<IfFalse>(*ifexpr->getCondition(), elseLabel);
 
@@ -288,10 +323,7 @@ void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(IfExpression* 
 
     // label and code for the else part
     BindLabel(elseLabel);
-
-    if (ifexpr->getElse()) {
-        ifexpr->getElse()->onVisit(this);
-    }
+    ifexpr->getElse()->onVisit(this); // no need to check if it has an else part because it is a requirement
 
     // label for the end of the if
     BindLabel(outLabel);
