@@ -165,6 +165,30 @@ namespace bc {
         size_t _index;
     };
 
+    class LoadField : public BCInstruction {
+    public:
+        LoadField(size_t index);
+        virtual ~LoadField();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        size_t _index;
+    };
+
+    class StoreField : public BCInstruction {
+    public:
+        StoreField(size_t index);
+        virtual ~StoreField();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        size_t _index;
+    };
+
     class Pop : public BCInstruction {
     public:
         Pop();

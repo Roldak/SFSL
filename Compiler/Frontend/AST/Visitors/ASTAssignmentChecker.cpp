@@ -112,8 +112,8 @@ void ASTAssignmentChecker::visit(IfExpression* ifexpr) {
     _isValid = isThenValid && isElseValid;
 }
 
-void ASTAssignmentChecker::visit(MemberAccess*) {
-
+void ASTAssignmentChecker::visit(MemberAccess* dot) {
+    _isValid = dot->getSymbol()->getSymbolType() == sym::SYM_VAR;
 }
 
 void ASTAssignmentChecker::visit(Tuple* tuple) {

@@ -195,7 +195,7 @@ void DefaultBytecodeGenerator::visit(AssignmentExpression* aex) {
 }
 
 void DefaultBytecodeGenerator::visit(TypeSpecifier* tps) {
-    Emit<PushConstUnit>(*tps);
+    tps->getSpecified()->onVisit(this);
 }
 
 void DefaultBytecodeGenerator::visit(Block* block) {
@@ -236,7 +236,11 @@ void DefaultBytecodeGenerator::visit(IfExpression* ifexpr) {
 }
 
 void DefaultBytecodeGenerator::visit(MemberAccess* dot) {
+    dot->getAccessed()->onVisit(this);
 
+    if (dot->getSymbol()->getSymbolType() == sym::SYM_VAR) {
+        Emit<LoadField>(*dot, getVarLoc(static_cast<sym::VariableSymbol*>(dot->getSymbol())));
+    }
 }
 
 void DefaultBytecodeGenerator::visit(Tuple* tuple) {
@@ -306,6 +310,15 @@ void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(ASTNode*) {
 
 void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
+}
+
+void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(MemberAccess* dot) {
+    DefaultBytecodeGenerator dbg(_ctx, _out, _constantPoolCursor);
+    dot->getAccessed()->onVisit(&dbg);
+
+    if (dot->getSymbol()->getSymbolType() == sym::SYM_VAR) {
+        Emit<StoreField>(*dot, getVarLoc(static_cast<sym::VariableSymbol*>(dot->getSymbol())));
+    }
 }
 
 void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(IfExpression* ifexpr) {

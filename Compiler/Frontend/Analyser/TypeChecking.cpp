@@ -145,8 +145,12 @@ void TypeChecking::visit(MemberAccess* dot) {
             ClassDecl* clss = obj->getClass();
             const type::SubstitutionTable& subtable = obj->getSubstitutionTable();
 
-            if (type::Type* tpe = tryGetTypeOfField(clss, dot->getMember()->getValue(), subtable)) {
-                if (type::ProperType* t = type::getIf<type::ProperType>(tpe)) {
+            FieldInfo field = tryGetFieldInfo(clss, dot->getMember()->getValue(), subtable);
+
+            if (field.s && field.t) {
+                dot->setSymbol(field.s);
+
+                if (type::ProperType* t = type::getIf<type::ProperType>(field.t)) {
                     dot->setType(t);
                 } else {
                     _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() +
@@ -244,6 +248,24 @@ void TypeChecking::visit(RealLitteral* reallit) {
     reallit->setType(_res.Real());
 }
 
+TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
+    if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(id, false)) {
+        return {sym, type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(sym))->applyEnv(subtable, _ctx)};
+    } else if (TypeExpression* parent = clss->getParent()) {
+        if (type::Type* t = ASTTypeCreator::createType(parent, _ctx)) {
+            type::Type* appliedT = type::Type::findSubstitution(subtable, t)->applyEnv(subtable, _ctx);
+            if (type::ProperType* obj = type::getIf<type::ProperType>(appliedT)) {
+                return tryGetFieldInfo(obj->getClass(), id, obj->getSubstitutionTable());
+            } else {
+                _rep.error(*parent, "Class " + clss->getName() + " must inherit from a class type");
+            }
+        } else {
+            _rep.error(*parent, "Expression is not a type");
+        }
+    }
+    return {nullptr, nullptr};
+}
+
 type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
     if (sym->getSymbolType() == sym::SYM_VAR) {
         return static_cast<sym::VariableSymbol*>(sym)->type();
@@ -260,22 +282,10 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
     return nullptr;
 }
 
-type::Type* TypeChecking::tryGetTypeOfField(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
-    if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(id, false)) {
-        return type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(sym))->applyEnv(subtable, _ctx);
-    } else if (TypeExpression* parent = clss->getParent()) {
-        if (type::Type* t = ASTTypeCreator::createType(parent, _ctx)) {
-            type::Type* appliedT = type::Type::findSubstitution(subtable, t)->applyEnv(subtable, _ctx);
-            if (type::ProperType* obj = type::getIf<type::ProperType>(appliedT)) {
-                return tryGetTypeOfField(obj->getClass(), id, obj->getSubstitutionTable());
-            } else {
-                _rep.error(*parent, "Class " + clss->getName() + " must inherit from a class type");
-            }
-        } else {
-            _rep.error(*parent, "Expression is not a type");
-        }
-    }
-    return nullptr;
+// FIELD INFO
+
+TypeChecking::FieldInfo::FieldInfo(sym::Symbol* sy, type::Type* ty) : s(sy), t(ty) {
+
 }
 
 }

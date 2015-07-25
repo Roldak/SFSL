@@ -49,8 +49,16 @@ namespace ast {
 
     private:
 
+        struct FieldInfo final {
+            FieldInfo(sym::Symbol* sy, type::Type* ty);
+
+            sym::Symbol* s;
+            type::Type* t;
+        };
+
+        FieldInfo tryGetFieldInfo(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
+
         type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
-        type::Type* tryGetTypeOfField(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
         type::ProperType* applySubsitutions(type::ProperType* inner, type::ProperType* obj);
         type::TypeConstructorType* applySubsitutions(type::TypeConstructorType* inner, type::ProperType* obj);
 

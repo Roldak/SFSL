@@ -155,6 +155,35 @@ void StoreStack::appendTo(std::ostream& o) const {
     o << "store" << ARG_SEP << _index;
 }
 
+// LOAD FIELD
+
+
+LoadField::LoadField(size_t index) : _index(index) {
+
+}
+
+LoadField::~LoadField() {
+
+}
+
+void LoadField::appendTo(std::ostream& o) const {
+    o << "ld_field" << ARG_SEP << _index;
+}
+
+// STORE FIELD
+
+StoreField::StoreField(size_t index) : _index(index) {
+
+}
+
+StoreField::~StoreField() {
+
+}
+
+void StoreField::appendTo(std::ostream& o) const {
+    o << "st_field" << ARG_SEP << _index;
+}
+
 // POP
 
 Pop::Pop() {
