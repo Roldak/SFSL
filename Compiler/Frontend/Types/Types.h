@@ -25,7 +25,7 @@ namespace ast {
 
 namespace type {
 
-enum TYPE_KIND { TYPE_NYD, TYPE_PROPER, TYPE_CONSTRUCTOR_TYPE, TYPE_CONSTRUCTOR_APPLY };
+enum TYPE_KIND { TYPE_NYD, TYPE_PROPER, TYPE_FUNCTION, TYPE_CONSTRUCTOR_TYPE, TYPE_CONSTRUCTOR_APPLY };
 
 class Type;
 
@@ -71,9 +71,30 @@ public:
 
     ast::ClassDecl* getClass() const;
 
-private:
+protected:
 
     ast::ClassDecl* _class;
+};
+
+class FunctionType : public ProperType {
+public:
+    FunctionType(const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable = {});
+
+    virtual ~FunctionType();
+
+    virtual TYPE_KIND getTypeKind() const override;
+    virtual bool isSubTypeOf(const Type* other) const override;
+    virtual std::string toString() const override;
+
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const override;
+
+    const std::vector<Type*>& getArgTypes() const;
+    Type* getRetType() const;
+
+private:
+
+    std::vector<Type*> _argTypes;
+    Type* _retType;
 };
 
 class TypeConstructorType : public Type {
@@ -146,7 +167,12 @@ inline T* getIf(const Type* t) {
 
 template<>
 inline ProperType* getIf(const Type* t) {
-    return t->getTypeKind() == TYPE_PROPER ? (ProperType*)t : nullptr;
+    return (t->getTypeKind() == TYPE_PROPER || t->getTypeKind() == TYPE_FUNCTION) ? (ProperType*)t : nullptr;
+}
+
+template<>
+inline FunctionType* getIf(const Type* t) {
+    return t->getTypeKind() == TYPE_FUNCTION ? (FunctionType*)t : nullptr;
 }
 
 template<>

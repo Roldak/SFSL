@@ -139,6 +139,76 @@ ast::ClassDecl* ProperType::getClass() const {
     return _class;
 }
 
+// FUNCTION TYPE
+
+FunctionType::FunctionType(const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
+    : ProperType(clss, substitutionTable), _argTypes(argTypes), _retType(retType) {
+
+}
+
+FunctionType::~FunctionType() {
+
+}
+
+TYPE_KIND FunctionType::getTypeKind() const {
+    return TYPE_FUNCTION;
+}
+
+bool FunctionType::isSubTypeOf(const Type* other) const {
+    if (FunctionType* f = getIf<FunctionType>(other)) {
+        const std::vector<Type*>& oArgTypes = f->getArgTypes();
+        const Type* oRetType = f->getRetType();
+
+        if (_argTypes.size() != oArgTypes.size()) {
+            return false;
+        }
+
+        for (size_t i = 0; i < _argTypes.size(); ++i) {
+            if (!_argTypes[i]->isSubTypeOf(oArgTypes[i])) {
+                return false;
+            }
+        }
+
+        return oRetType->isSubTypeOf(_retType);
+    }
+
+    return false;
+}
+
+std::string FunctionType::toString() const {
+    std::string toRet = "(";
+
+    if (_argTypes.size() > 0) {
+        for (size_t i = 0; i < _argTypes.size() - 1; ++i) {
+            toRet += _argTypes[i]->toString() + ", ";
+        }
+        toRet += _argTypes.back()->toString();
+    }
+
+    return toRet + ")->" + _retType->toString();
+}
+
+Type* FunctionType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+    std::vector<Type*> newArgTypes;
+    Type* newRetType;
+
+    for (Type* t : _argTypes) {
+        newArgTypes.push_back(findSubstitution(env, t)->applyEnv(env, ctx));
+    }
+
+    newRetType = findSubstitution(env, _retType)->applyEnv(env, ctx);
+
+    return ctx->memoryManager().New<FunctionType>(newArgTypes, newRetType, _class, _subTable);
+}
+
+const std::vector<Type*>& FunctionType::getArgTypes() const {
+    return _argTypes;
+}
+
+Type* FunctionType::getRetType() const {
+    return _retType;
+}
+
 // TYPE CONSTRUCTOR
 
 TypeConstructorType::TypeConstructorType(ast::TypeConstructorCreation*typeConstructor, const SubstitutionTable& substitutionTable)

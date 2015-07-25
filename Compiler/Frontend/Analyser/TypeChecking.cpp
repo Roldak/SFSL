@@ -169,14 +169,63 @@ void TypeChecking::visit(Tuple* tuple) {
 void TypeChecking::visit(FunctionCreation* func) {
     ASTVisitor::visit(func);
 
-    _rep.info(*func->getArgs(), func->getBody()->type()->toString());
+    Expression* expr = func->getArgs();
+    std::vector<Expression*> args;
 
-    func->setType(func->getBody()->type()); // TODO : change it
+    if (isNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
+        args = static_cast<Tuple*>(expr)->getExpressions();
+    } else { // form is `exp => ...` or `(exp) => ...`
+        args.push_back(expr);
+    }
+
+    std::vector<type::Type*> argTypes(args.size());
+    type::Type* retType = func->getBody()->type();
+
+    for (size_t i = 0; i < args.size(); ++i) {
+        argTypes[i] = args[i]->type();
+    }
+
+    func->setType(_mngr.New<type::FunctionType>(argTypes, retType, nullptr));
+
+
+    _rep.info(*func->getArgs(), func->type()->toString());
 }
 
 void TypeChecking::visit(FunctionCall* call) {
     ASTVisitor::visit(call);
-    call->setType(call->getCallee()->type()->applyEnv(call->getCallee()->type()->getSubstitutionTable(), _ctx));
+
+    type::Type* calleeT = call->getCallee()->type();
+
+    const std::vector<Expression*>& callArgs = call->getArgs();
+    std::vector<type::Type*> callArgTypes(callArgs.size());
+
+    for (size_t i = 0; i < callArgs.size(); ++i) {
+        callArgTypes[i] = callArgs[i]->type();
+    }
+
+    if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
+        const std::vector<type::Type*>& expectedArgTypes = ft->getArgTypes();
+
+        if (callArgTypes.size() != expectedArgTypes.size()) {
+            _rep.error(*call->getArgsTuple(),
+                       "Wrong number of argument. Found " + utils::T_toString(callArgTypes.size()) +
+                       ", expected " + utils::T_toString(expectedArgTypes.size()));
+            return;
+        }
+
+        for (size_t i = 0; i < expectedArgTypes.size(); ++i) {
+            if (!callArgTypes[i]->isSubTypeOf(expectedArgTypes[i])) {
+                _rep.error(*callArgs[i],
+                           "Argument type mismatch. Found " + callArgTypes[i]->toString() +
+                           ", expected " + expectedArgTypes[i]->toString());
+            }
+        }
+
+        call->setType(ft->getRetType());
+
+    } else {
+        _rep.error(*call, "Expression is not callable");
+    }
 }
 
 void TypeChecking::visit(Identifier* ident) {
