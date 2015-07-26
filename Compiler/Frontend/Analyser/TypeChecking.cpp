@@ -262,29 +262,36 @@ void TypeChecking::visit(FunctionCall* call) {
         callArgTypes[i] = callArgs[i]->type();
     }
 
+    const std::vector<type::Type*>* expectedArgTypes = nullptr;
+    type::Type* retType = nullptr;
+
     if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
-        const std::vector<type::Type*>& expectedArgTypes = ft->getArgTypes();
-
-        if (callArgTypes.size() != expectedArgTypes.size()) {
-            _rep.error(*call->getArgsTuple(),
-                       "Wrong number of argument. Found " + utils::T_toString(callArgTypes.size()) +
-                       ", expected " + utils::T_toString(expectedArgTypes.size()));
-            return;
-        }
-
-        for (size_t i = 0; i < expectedArgTypes.size(); ++i) {
-            if (!callArgTypes[i]->isSubTypeOf(expectedArgTypes[i])) {
-                _rep.error(*callArgs[i],
-                           "Argument type mismatch. Found " + callArgTypes[i]->toString() +
-                           ", expected " + expectedArgTypes[i]->toString());
-            }
-        }
-
-        call->setType(ft->getRetType());
-
+        expectedArgTypes = &ft->getArgTypes();
+        retType = ft->getRetType();
+    } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
+        expectedArgTypes = &mt->getArgTypes();
+        retType = mt->getRetType();
     } else {
         _rep.error(*call, "Expression is not callable");
+        return;
     }
+
+    if (callArgTypes.size() != expectedArgTypes->size()) {
+        _rep.error(*call->getArgsTuple(),
+                   "Wrong number of argument. Found " + utils::T_toString(callArgTypes.size()) +
+                   ", expected " + utils::T_toString(expectedArgTypes->size()));
+        return;
+    }
+
+    for (size_t i = 0; i < expectedArgTypes->size(); ++i) {
+        if (!callArgTypes[i]->isSubTypeOf(expectedArgTypes->operator [](i))) {
+            _rep.error(*callArgs[i],
+                       "Argument type mismatch. Found " + callArgTypes[i]->toString() +
+                       ", expected " + expectedArgTypes->operator [](i)->toString());
+        }
+    }
+
+    call->setType(retType);
 }
 
 void TypeChecking::visit(Identifier* ident) {

@@ -7,6 +7,7 @@
 //
 
 #include "BytecodeGenerator.h"
+#include "../Frontend/AST/Visitors/ASTTypeIdentifier.h"
 
 #define START_WRITING_TO_CONSTANT_POOL \
     out::Cursor* __old = Here(); \
@@ -264,7 +265,26 @@ void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
 }
 
 void DefaultBytecodeGenerator::visit(FunctionCall* call) {
-    ASTVisitor::visit(call);
+    if (call->type()->getTypeKind() == type::TYPE_METHOD) {
+        Label* afterCall = MakeLabel(*call, "after_call");
+
+        if (isNodeOfType<MemberAccess>(call->getCallee(), _ctx)) {
+            MemberAccess* dot = static_cast<MemberAccess*>(call->getCallee());
+            dot->getAccessed()->onVisit(this);
+
+
+        }
+
+        Emit<PushLabel>(*call, afterCall);
+
+        for (Expression* expr : call->getArgs()) {
+            expr->onVisit(this);
+        }
+
+        Emit<VCall>(*call, 0, call->getArgs().size());
+
+        BindLabel(afterCall);
+    }
 }
 
 void DefaultBytecodeGenerator::visit(Identifier* ident) {

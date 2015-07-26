@@ -127,6 +127,20 @@ void PushConstReal::appendTo(std::ostream& o) const {
     o << "push_r" << ARG_SEP << _val;
 }
 
+// PUSH LABEL
+
+PushLabel::PushLabel(Label *label) : _label(label) {
+
+}
+
+PushLabel::~PushLabel() {
+
+}
+
+void PushLabel::appendTo(std::ostream& o) const {
+    o << "label" << ARG_SEP << _label->getName();
+}
+
 // LOAD STACK
 
 LoadStack::LoadStack(size_t index) : _index(index) {
@@ -257,6 +271,18 @@ Jump::~Jump() {
 
 void Jump::appendTo(std::ostream &o) const {
     o << "jump" << ARG_SEP << _label->getName();
+}
+
+VCall::VCall(size_t methodIndex, size_t argCount) : _methodIndex(methodIndex), _argCount(argCount) {
+
+}
+
+VCall::~VCall() {
+
+}
+
+void VCall::appendTo(std::ostream& o) const {
+    o << "vcall" << ARG_SEP << _methodIndex << ARG_SEP << _argCount;
 }
 
 }

@@ -127,6 +127,7 @@ namespace bc {
         virtual void appendTo(std::ostream& o) const override;
 
     private:
+
         sfsl_int_t _val;
     };
 
@@ -138,7 +139,20 @@ namespace bc {
         virtual void appendTo(std::ostream& o) const override;
 
     private:
+
         sfsl_real_t _val;
+    };
+
+    class PushLabel : public BCInstruction {
+    public:
+        PushLabel(Label* label);
+        virtual ~PushLabel();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        Label* _label;
     };
 
     class LoadStack : public BCInstruction {
@@ -227,6 +241,19 @@ namespace bc {
     private:
 
         Label* _label;
+    };
+
+    class VCall : public BCInstruction {
+    public:
+        VCall(size_t methodIndex, size_t argCount);
+        virtual ~VCall();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        size_t _methodIndex;
+        size_t _argCount;
     };
 }
 
