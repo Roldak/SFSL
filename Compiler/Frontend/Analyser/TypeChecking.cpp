@@ -16,10 +16,45 @@ namespace sfsl {
 
 namespace ast {
 
-// TYPE CHECK
+// TYPE CHECKER
+
+TypeChecker::TypeChecker(CompCtx_Ptr& ctx, const sym::SymbolResolver& res) : ASTVisitor(ctx), _res(res), _rep(ctx->reporter()) {
+
+}
+
+TypeChecker::~TypeChecker() {
+
+}
+
+// TOP LEVEL TYPE CHECKING
+
+TopLevelTypeChecking::TopLevelTypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res) : TypeChecker(ctx, res) {
+
+}
+
+TopLevelTypeChecking::~TopLevelTypeChecking() {
+
+}
+
+void TopLevelTypeChecking::visit(ASTNode* node) {
+
+}
+
+void TopLevelTypeChecking::visit(ClassDecl* clss) {
+    ASTVisitor::visit(clss);
+
+    for (TypeSpecifier* tps : clss->getFields()) {
+        if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx)) {
+            static_cast<sym::VariableSymbol*>(tps->getSpecified()->getSymbol())->setType(tpe);
+            tps->setType(tpe);
+        }
+    }
+}
+
+// TYPE CHECKING
 
 TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : ASTVisitor(ctx), _res(res), _rep(ctx->reporter()), _currentThis(nullptr), _nextDef(nullptr) {
+    : TypeChecker(ctx, res), _currentThis(nullptr), _nextDef(nullptr) {
 
 }
 
@@ -86,8 +121,7 @@ void TypeChecking::visit(AssignmentExpression* aex) {
 }
 
 void TypeChecking::visit(TypeSpecifier* tps) {
-    tps->getSpecified()->onVisit(this);
-    tps->getTypeNode()->onVisit(this);
+    ASTVisitor::visit(tps);
 
     if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx)) {
         Identifier* id = tps->getSpecified();

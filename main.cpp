@@ -74,16 +74,13 @@ int main(int argc, char** argv) {
         /*ast::ASTPrinter printer(ctx, std::cout);
         prog->onVisit(&printer);*/
 
-        std::cout << "STARTING SCOPE GENERATION" << std::endl;
+        std::cout << "STARTING NAME ANALYSIS" << std::endl;
         std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
 
         ast::ScopeGeneration scopeGen(ctx);
-        prog->onVisit(&scopeGen);
-
-        std::cout << "STARTING SYMBOL ASSIGNATION" << std::endl;
-        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
-
         ast::SymbolAssignation symAssign(ctx);
+
+        prog->onVisit(&scopeGen);
         prog->onVisit(&symAssign);
 
         if (ctx.get()->reporter().getErrorCount() != 0) {
@@ -106,7 +103,10 @@ int main(int argc, char** argv) {
         std::cout << "STARTING TYPECHECKING" << std::endl;
         std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
 
+        ast::TopLevelTypeChecking topleveltypecheck(ctx, res);
         ast::TypeChecking typeCheck(ctx, res);
+
+        prog->onVisit(&topleveltypecheck);
         prog->onVisit(&typeCheck);
 
         if (ctx.get()->reporter().getErrorCount() != 0) {

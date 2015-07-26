@@ -21,7 +21,34 @@ namespace ast {
     /**
      * @brief
      */
-    class TypeChecking : public ASTVisitor {
+    class TypeChecker : public ASTVisitor {
+    public:
+        TypeChecker(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
+        virtual ~TypeChecker();
+
+    protected:
+
+        const sym::SymbolResolver& _res;
+        common::AbstractReporter& _rep;
+    };
+
+    /**
+     * @brief
+     */
+    class TopLevelTypeChecking : public TypeChecker {
+    public:
+        TopLevelTypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
+        virtual ~TopLevelTypeChecking();
+
+        virtual void visit(ASTNode* node) override;
+
+        virtual void visit(ClassDecl* clss) override;
+    };
+
+    /**
+     * @brief
+     */
+    class TypeChecking : public TypeChecker {
     public:
 
         TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
@@ -63,9 +90,6 @@ namespace ast {
         type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
         type::ProperType* applySubsitutions(type::ProperType* inner, type::ProperType* obj);
         type::TypeConstructorType* applySubsitutions(type::TypeConstructorType* inner, type::ProperType* obj);
-
-        const sym::SymbolResolver& _res;
-        common::AbstractReporter& _rep;
 
         TypeExpression* _currentThis;
         Expression* _nextDef;

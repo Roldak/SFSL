@@ -18,6 +18,9 @@ namespace bc {
 
     using namespace ast;
 
+    /**
+     * @brief
+     */
     class UserDataAssignment : public ASTVisitor {
     public:
 
