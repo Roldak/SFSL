@@ -209,6 +209,77 @@ Type* FunctionType::getRetType() const {
     return _retType;
 }
 
+// METHOD TYPE
+
+MethodType::MethodType(ast::ClassDecl* owner, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable)
+    : Type(substitutionTable), _owner(owner), _argTypes(argTypes), _retType(retType) {
+
+}
+
+MethodType::~MethodType() {
+
+}
+
+TYPE_KIND MethodType::getTypeKind() const {
+    return TYPE_METHOD;
+}
+
+bool MethodType::isSubTypeOf(const Type* other) const {
+    if (FunctionType* f = getIf<FunctionType>(other)) {
+        const std::vector<Type*>& oArgTypes = f->getArgTypes();
+        const Type* oRetType = f->getRetType();
+
+        if (_argTypes.size() != oArgTypes.size()) {
+            return false;
+        }
+
+        for (size_t i = 0; i < _argTypes.size(); ++i) {
+            if (!_argTypes[i]->isSubTypeOf(oArgTypes[i])) {
+                return false;
+            }
+        }
+
+        return oRetType->isSubTypeOf(_retType);
+    }
+
+    return false;
+}
+
+std::string MethodType::toString() const {
+    std::string toRet = "([" + _owner->getName() + "]";
+
+    for (size_t i = 0; i < _argTypes.size(); ++i) {
+        toRet += ", " + _argTypes[i]->toString();
+    }
+
+    return toRet + ")->" + _retType->toString();
+}
+
+Type* MethodType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+    std::vector<Type*> newArgTypes;
+    Type* newRetType;
+
+    for (Type* t : _argTypes) {
+        newArgTypes.push_back(findSubstitution(env, t)->applyEnv(env, ctx));
+    }
+
+    newRetType = findSubstitution(env, _retType)->applyEnv(env, ctx);
+
+    return ctx->memoryManager().New<MethodType>(_owner, newArgTypes, newRetType, _subTable);
+}
+
+ast::ClassDecl *MethodType::getOwner() const {
+    return _owner;
+}
+
+const std::vector<Type*>& MethodType::getArgTypes() const {
+    return _argTypes;
+}
+
+Type* MethodType::getRetType() const {
+    return _retType;
+}
+
 // TYPE CONSTRUCTOR
 
 TypeConstructorType::TypeConstructorType(ast::TypeConstructorCreation*typeConstructor, const SubstitutionTable& substitutionTable)

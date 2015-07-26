@@ -25,7 +25,7 @@ namespace ast {
 
 namespace type {
 
-enum TYPE_KIND { TYPE_NYD, TYPE_PROPER, TYPE_FUNCTION, TYPE_CONSTRUCTOR_TYPE, TYPE_CONSTRUCTOR_APPLY };
+enum TYPE_KIND { TYPE_NYD, TYPE_PROPER, TYPE_FUNCTION, TYPE_METHOD, TYPE_CONSTRUCTOR_TYPE, TYPE_CONSTRUCTOR_APPLY };
 
 class Type;
 
@@ -93,6 +93,29 @@ public:
 
 private:
 
+    std::vector<Type*> _argTypes;
+    Type* _retType;
+};
+
+class MethodType : public Type {
+public:
+    MethodType(ast::ClassDecl* owner, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable = {});
+
+    virtual ~MethodType();
+
+    virtual TYPE_KIND getTypeKind() const override;
+    virtual bool isSubTypeOf(const Type *other) const override;
+    virtual std::string toString() const override;
+
+    virtual Type* applyEnv(const SubstitutionTable &env, CompCtx_Ptr &ctx) const override;
+
+    ast::ClassDecl* getOwner() const;
+    const std::vector<Type*>& getArgTypes() const;
+    Type* getRetType() const;
+
+private:
+
+    ast::ClassDecl* _owner;
     std::vector<Type*> _argTypes;
     Type* _retType;
 };
@@ -173,6 +196,11 @@ inline ProperType* getIf(const Type* t) {
 template<>
 inline FunctionType* getIf(const Type* t) {
     return t->getTypeKind() == TYPE_FUNCTION ? (FunctionType*)t : nullptr;
+}
+
+template<>
+inline MethodType* getIf(const Type *t) {
+    return t->getTypeKind() == TYPE_METHOD ? (MethodType*)t : nullptr;
 }
 
 template<>

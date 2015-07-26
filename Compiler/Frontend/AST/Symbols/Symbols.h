@@ -22,8 +22,9 @@
 namespace sfsl {
 
 namespace ast {
-    class DefineDecl;
+    class TypeExpression;
     class TypeDecl;
+    class DefineDecl;
 }
 
 namespace sym {
@@ -97,16 +98,18 @@ namespace sym {
      */
     class DefinitionSymbol : public Symbol, public Scoped, public type::Typed, public common::HasManageableUserdata {
     public:
-        DefinitionSymbol(const std::string& name, ast::DefineDecl* def);
+        DefinitionSymbol(const std::string& name, ast::DefineDecl* def, ast::TypeExpression* owner = nullptr);
         virtual ~DefinitionSymbol();
 
         virtual SYM_TYPE getSymbolType() const override;
 
         ast::DefineDecl* getDef() const;
+        ast::TypeExpression* getOwner() const;
 
     private:
 
         ast::DefineDecl* _def;
+        ast::TypeExpression* _owner;
     };
 
     /**

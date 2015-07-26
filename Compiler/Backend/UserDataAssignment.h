@@ -12,9 +12,6 @@
 #include <iostream>
 #include "../Frontend/AST/Visitors/ASTVisitor.h"
 
-#define SAVE_MEMBER(memberName) auto __old##memberName = memberName
-#define RESTORE_MEMBER(memberName) memberName = __old##memberName
-
 namespace sfsl {
 
 namespace bc {

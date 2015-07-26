@@ -52,6 +52,8 @@ namespace ast {
         struct FieldInfo final {
             FieldInfo(sym::Symbol* sy, type::Type* ty);
 
+            bool isValid() const;
+
             sym::Symbol* s;
             type::Type* t;
         };
@@ -64,6 +66,9 @@ namespace ast {
 
         const sym::SymbolResolver& _res;
         common::AbstractReporter& _rep;
+
+        TypeExpression* _currentThis;
+        Expression* _nextDef;
 
         std::set<DefineDecl*> _visitedDefs;
     };

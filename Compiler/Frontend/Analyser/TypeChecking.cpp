@@ -19,7 +19,7 @@ namespace ast {
 // TYPE CHECK
 
 TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : ASTVisitor(ctx), _res(res), _rep(ctx->reporter()) {
+    : ASTVisitor(ctx), _res(res), _rep(ctx->reporter()), _currentThis(nullptr), _nextDef(nullptr) {
 
 }
 
@@ -43,7 +43,13 @@ void TypeChecking::visit(DefineDecl* decl) {
     if (_visitedDefs.find(decl) == _visitedDefs.end()) {
         _visitedDefs.emplace(decl);
 
+        SAVE_MEMBER_AND_SET(_currentThis, decl->getSymbol()->getOwner())
+        SAVE_MEMBER_AND_SET(_nextDef, decl->getValue())
+
         decl->getValue()->onVisit(this);
+
+        RESTORE_MEMBER(_nextDef)
+        RESTORE_MEMBER(_currentThis)
 
         // type inference
         decl->getName()->setType(decl->getValue()->type());
@@ -147,7 +153,7 @@ void TypeChecking::visit(MemberAccess* dot) {
 
             FieldInfo field = tryGetFieldInfo(clss, dot->getMember()->getValue(), subtable);
 
-            if (field.s && field.t) {
+            if (field.isValid()) {
                 dot->setSymbol(field.s);
 
                 if (type::ProperType* t = type::getIf<type::ProperType>(field.t)) {
@@ -189,8 +195,15 @@ void TypeChecking::visit(FunctionCreation* func) {
         argTypes[i] = args[i]->type();
     }
 
-    func->setType(_mngr.New<type::FunctionType>(argTypes, retType, nullptr));
-
+    if (func == _nextDef && _currentThis) {
+        if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
+            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), argTypes, retType));
+        } else {
+            _rep.fatal(*func, "Unknown type of `this`");
+        }
+    } else {
+        func->setType(_mngr.New<type::FunctionType>(argTypes, retType, nullptr));
+    }
 
     _rep.info(*func->getArgs(), func->type()->toString());
 }
@@ -286,6 +299,10 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
 
 TypeChecking::FieldInfo::FieldInfo(sym::Symbol* sy, type::Type* ty) : s(sy), t(ty) {
 
+}
+
+bool TypeChecking::FieldInfo::isValid() const {
+    return s && t;
 }
 
 }

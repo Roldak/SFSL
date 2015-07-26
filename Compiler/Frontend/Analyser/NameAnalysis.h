@@ -27,7 +27,7 @@ protected:
     template<typename T, typename U>
     T* createSymbol(U* node);
 
-    sym::DefinitionSymbol* createSymbol(DefineDecl* node);
+    sym::DefinitionSymbol* createSymbol(DefineDecl* node, TypeExpression* currentThis);
     sym::TypeSymbol* createSymbol(TypeDecl* node);
 
     void tryAddSymbol(sym::Symbol* sym);
@@ -60,6 +60,8 @@ private:
 
     void pushScope(sym::Scoped* scoped = nullptr, bool isDefScope = false);
     void popScope();
+
+    TypeExpression* _currentThis;
 };
 
 /**
@@ -72,9 +74,9 @@ public:
     virtual ~SymbolAssignation();
 
     virtual void visit(ModuleDecl* mod) override;
+    virtual void visit(TypeDecl* tdecl) override;
     virtual void visit(ClassDecl* clss) override;
     virtual void visit(DefineDecl* decl) override;
-    virtual void visit(TypeDecl* tdecl) override;
 
     virtual void visit(TypeMemberAccess* tdot) override;
     virtual void visit(TypeConstructorCreation* typeconstructor) override;

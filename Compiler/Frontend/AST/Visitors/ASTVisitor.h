@@ -18,6 +18,12 @@
     _curScope = (expr)->getScope();
 #define RESTORE_SCOPE _curScope = __last_scope__;
 
+#define SAVE_MEMBER(memberName) auto __old##memberName = memberName;
+#define SAVE_MEMBER_AND_SET(memberName, value) \
+    SAVE_MEMBER(memberName) \
+    memberName = value;
+#define RESTORE_MEMBER(memberName) memberName = __old##memberName;
+
 namespace sfsl {
 
 namespace ast {

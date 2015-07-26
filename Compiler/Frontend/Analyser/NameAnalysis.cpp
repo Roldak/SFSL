@@ -47,8 +47,8 @@ T* ScopePossessorVisitor::createSymbol(U* node) {
     return sym;
 }
 
-sym::DefinitionSymbol* ScopePossessorVisitor::createSymbol(DefineDecl* node) {
-    sym::DefinitionSymbol* sym = _mngr.New<sym::DefinitionSymbol>(node->getName()->getValue(), node);
+sym::DefinitionSymbol* ScopePossessorVisitor::createSymbol(DefineDecl* node, TypeExpression* currentThis) {
+    sym::DefinitionSymbol* sym = _mngr.New<sym::DefinitionSymbol>(node->getName()->getValue(), node, currentThis);
     sym->setPos(*node);
 
     node->setSymbol(sym);
@@ -69,7 +69,7 @@ sym::TypeSymbol* ScopePossessorVisitor::createSymbol(TypeDecl* node) {
 
 // SCOPE GENERATION
 
-ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx) {
+ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx), _currentThis(nullptr) {
 }
 
 ScopeGeneration::~ScopeGeneration() {
@@ -94,7 +94,6 @@ void ScopeGeneration::visit(ModuleDecl* module) {
         ASTVisitor::visit(module);
 
         _curScope = last;
-
     } else {
         createSymbol<sym::ModuleSymbol>(module);
 
@@ -119,17 +118,25 @@ void ScopeGeneration::visit(TypeDecl* tdecl) {
 void ScopeGeneration::visit(ClassDecl* clss) {
     pushScope(clss, true);
 
+    SAVE_MEMBER_AND_SET(_currentThis, clss)
+
     ASTVisitor::visit(clss);
+
+    RESTORE_MEMBER(_currentThis)
 
     popScope();
 }
 
 void ScopeGeneration::visit(DefineDecl* def) {
-    createSymbol(def);
+    createSymbol(def, _currentThis);
 
     pushScope(def->getSymbol(), true);
 
+    SAVE_MEMBER_AND_SET(_currentThis, nullptr)
+
     ASTVisitor::visit(def);
+
+    RESTORE_MEMBER(_currentThis)
 
     popScope();
 }
@@ -186,6 +193,14 @@ void SymbolAssignation::visit(ModuleDecl* mod) {
     RESTORE_SCOPE
 }
 
+void SymbolAssignation::visit(TypeDecl* tdecl) {
+    SAVE_SCOPE(tdecl->getSymbol())
+
+    ASTVisitor::visit(tdecl);
+
+    RESTORE_SCOPE
+}
+
 void SymbolAssignation::visit(ClassDecl* clss) {
     SAVE_SCOPE(clss)
 
@@ -198,14 +213,6 @@ void SymbolAssignation::visit(DefineDecl* def) {
     SAVE_SCOPE(def->getSymbol())
 
     ASTVisitor::visit(def);
-
-    RESTORE_SCOPE
-}
-
-void SymbolAssignation::visit(TypeDecl* tdecl) {
-    SAVE_SCOPE(tdecl->getSymbol())
-
-    ASTVisitor::visit(tdecl);
 
     RESTORE_SCOPE
 }

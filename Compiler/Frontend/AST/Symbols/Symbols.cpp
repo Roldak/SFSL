@@ -60,7 +60,8 @@ ast::TypeDecl* TypeSymbol::getTypeDecl() const {
 
 // DEFINITION SYMBOL
 
-DefinitionSymbol::DefinitionSymbol(const std::string &name, ast::DefineDecl* def) : Symbol(name), _def(def) {
+DefinitionSymbol::DefinitionSymbol(const std::string &name, ast::DefineDecl* def, ast::TypeExpression* owner)
+    : Symbol(name), _def(def), _owner(owner) {
 
 }
 
@@ -72,8 +73,12 @@ SYM_TYPE DefinitionSymbol::getSymbolType() const {
     return SYM_DEF;
 }
 
-ast::DefineDecl *DefinitionSymbol::getDef() const {
+ast::DefineDecl* DefinitionSymbol::getDef() const {
     return _def;
+}
+
+ast::TypeExpression* DefinitionSymbol::getOwner() const {
+    return _owner;
 }
 
 // VARIABLE SYMBOL

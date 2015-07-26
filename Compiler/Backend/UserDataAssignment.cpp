@@ -50,14 +50,13 @@ void UserDataAssignment::visit(TypeSpecifier* tps) {
 }
 
 void UserDataAssignment::visit(FunctionCreation* func) {
-    SAVE_MEMBER(_currentVarCount);
-    _currentVarCount = 0;
+    SAVE_MEMBER_AND_SET(_currentVarCount, 0)
 
     ASTVisitor::visit(func);
 
     func->setUserdata(_mngr.New<FuncUserData>(_currentVarCount));
 
-    RESTORE_MEMBER(_currentVarCount);
+    RESTORE_MEMBER(_currentVarCount)
 }
 
 // CLASS USER DATA
