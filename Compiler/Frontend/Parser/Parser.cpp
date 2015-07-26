@@ -382,7 +382,7 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence) {
         tok::Operator* op = as<tok::Operator>();
         int newOpPrec = op->getPrecedence();
 
-        if (newOpPrec >= precedence && op->getOpType() != tok::OPER_EQ && op->getOpType() != tok::OPER_FAT_ARROW) {
+        if (newOpPrec >= precedence && op->getOpType() != tok::OPER_EQ) {
 
             TypeExpression* expr;
 
