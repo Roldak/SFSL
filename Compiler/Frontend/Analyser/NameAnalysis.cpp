@@ -260,7 +260,6 @@ void SymbolAssignation::visit(KindSpecifier* ks) {
                 ks->getKindNode(), ks->getSpecified()->getValue(), _ctx);
 
     createProperType(ks->getSpecified(), defaultType);
-    //ASTVisitor::visit(ks);
 }
 
 void SymbolAssignation::visit(BinaryExpression* exp) {
@@ -278,6 +277,7 @@ void SymbolAssignation::visit(Block* block) {
     ASTVisitor::visit(block);
 
     warnForUnusedVariableInCurrentScope();
+
     RESTORE_SCOPE
 }
 
@@ -307,6 +307,7 @@ void SymbolAssignation::visit(FunctionCreation* func) {
     func->getBody()->onVisit(this);
 
     warnForUnusedVariableInCurrentScope();
+
     RESTORE_SCOPE
 }
 

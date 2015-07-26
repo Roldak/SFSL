@@ -158,8 +158,9 @@ void TypeChecking::visit(IfExpression* ifexpr) {
         _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (Found " + ifexpr->getCondition()->type()->toString() + ")");
     }
 
+    type::Type* thenType = ifexpr->getThen()->type();
+
     if (ifexpr->getElse()) {
-        type::Type* thenType = ifexpr->getThen()->type();
         type::Type* elseType = ifexpr->getElse()->type();
 
         if (thenType->applied(_ctx)->isSubTypeOf(elseType->applied(_ctx))) {
@@ -172,8 +173,11 @@ void TypeChecking::visit(IfExpression* ifexpr) {
         }
 
     } else {
-        // TODO : correct this
-        ifexpr->setType(ifexpr->getThen()->type());
+        if (!thenType->applied(_ctx)->isSubTypeOf(_res.Unit())) {
+            _rep.error(*ifexpr->getThen(), "An if-expression without else-part must have its then-part evaluate to unit. Found " +
+                       thenType->toString());
+        }
+        ifexpr->setType(_res.Unit());
     }
 }
 
@@ -190,8 +194,8 @@ void TypeChecking::visit(MemberAccess* dot) {
             if (field.isValid()) {
                 dot->setSymbol(field.s);
 
-                if (type::ProperType* t = type::getIf<type::ProperType>(field.t)) {
-                    dot->setType(t);
+                if (type::getIf<type::ProperType>(field.t) || type::getIf<type::MethodType>(field.t)) {
+                    dot->setType(field.t);
                 } else {
                     _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() +
                                " of class " + clss->getName() + " is not a value");
@@ -208,6 +212,10 @@ void TypeChecking::visit(MemberAccess* dot) {
 
 void TypeChecking::visit(Tuple* tuple) {
     ASTVisitor::visit(tuple);
+
+    if (tuple->getExpressions().size() == 0) {
+        tuple->setType(_res.Unit());
+    }
 }
 
 void TypeChecking::visit(FunctionCreation* func) {

@@ -229,6 +229,8 @@ void DefaultBytecodeGenerator::visit(IfExpression* ifexpr) {
 
     if (ifexpr->getElse()) {
         ifexpr->getElse()->onVisit(this);
+    } else {
+        Emit<PushConstUnit>(*ifexpr->getThen());
     }
 
     // label for the end of the if
@@ -245,6 +247,10 @@ void DefaultBytecodeGenerator::visit(MemberAccess* dot) {
 
 void DefaultBytecodeGenerator::visit(Tuple* tuple) {
     ASTVisitor::visit(tuple);
+
+    if (tuple->getExpressions().size() == 0) {
+        Emit<PushConstUnit>(*tuple);
+    }
 }
 
 void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
