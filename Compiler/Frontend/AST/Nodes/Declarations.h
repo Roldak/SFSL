@@ -80,7 +80,7 @@ private:
 class DefineDecl : public Expression, public sym::Symbolic<sym::DefinitionSymbol> {
 public:
 
-    DefineDecl(Identifier* name, Expression* value);
+    DefineDecl(Identifier* name, Expression* value, bool isRedef);
     virtual ~DefineDecl();
 
     SFSL_AST_ON_VISIT_H
@@ -95,10 +95,16 @@ public:
      */
     Expression* getValue() const;
 
+    /**
+     * @return True if the definition is supposed to override another one
+     */
+    bool isRedef() const;
+
 private:
 
     Identifier* _name;
     Expression* _value;
+    bool _isRedef;
 
 };
 

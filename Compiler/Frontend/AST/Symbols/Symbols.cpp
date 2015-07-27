@@ -61,7 +61,7 @@ ast::TypeDecl* TypeSymbol::getTypeDecl() const {
 // DEFINITION SYMBOL
 
 DefinitionSymbol::DefinitionSymbol(const std::string &name, ast::DefineDecl* def, ast::TypeExpression* owner)
-    : Symbol(name), _def(def), _owner(owner) {
+    : Symbol(name), _def(def), _owner(owner), _overriden(nullptr) {
 
 }
 
@@ -79,6 +79,14 @@ ast::DefineDecl* DefinitionSymbol::getDef() const {
 
 ast::TypeExpression* DefinitionSymbol::getOwner() const {
     return _owner;
+}
+
+void DefinitionSymbol::setOverridenSymbol(DefinitionSymbol* def) {
+    _overriden = def;
+}
+
+DefinitionSymbol *DefinitionSymbol::getOverridenSymbol() const {
+    return _overriden;
 }
 
 // VARIABLE SYMBOL

@@ -156,8 +156,6 @@ void KindChecking::visit(TypeSpecifier* ts) {
 
 void KindChecking::visitDeferredExpressions() {
     while (!_deferredExpressions.empty()) {
-        std::cout << _deferredExpressions.size() << std::endl;
-
         std::set<TypeExpression*> copy = _deferredExpressions;
         _deferredExpressions.clear();
 

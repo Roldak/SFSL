@@ -10,6 +10,7 @@
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTAssignmentChecker.h"
+#include "../AST/Visitors/ASTOverrideFinder.h"
 #include "../AST/Symbols/Scope.h"
 
 namespace sfsl {
@@ -66,6 +67,14 @@ void TypeChecking::visit(ASTNode*) {
 
 }
 
+void TypeChecking::visit(Program* prog) {
+    ASTVisitor::visit(prog);
+
+    for (DefineDecl* redef : _redefs) {
+        redef->getSymbol()->setOverridenSymbol(findOverridenSymbol(redef->getSymbol()));
+    }
+}
+
 void TypeChecking::visit(TypeDecl* tdecl) {
     tdecl->setType(_res.Unit());
 
@@ -88,7 +97,11 @@ void TypeChecking::visit(DefineDecl* decl) {
 
         // type inference
         decl->getName()->setType(decl->getValue()->type());
-        static_cast<sym::DefinitionSymbol*>(decl->getSymbol())->setType(decl->getValue()->type());
+        decl->getSymbol()->setType(decl->getValue()->type());
+
+        if (decl->isRedef()) {
+            _redefs.push_back(decl);
+        }
     }
 }
 
@@ -342,6 +355,16 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
         return defsym->type();
     }
     return nullptr;
+}
+
+sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* def) {
+    if (sym::DefinitionSymbol* overriden = ASTOverrideFinder::findOverridenSymbol(def, _ctx)) {
+        return overriden;
+    } else {
+        _rep.error(*def, "Could not find the definition overriden by " +
+                   def->getName() + " (which has type " + def->type()->toString() + ")");
+        return nullptr;
+    }
 }
 
 // FIELD INFO

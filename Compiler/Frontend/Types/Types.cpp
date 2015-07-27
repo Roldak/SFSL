@@ -225,9 +225,9 @@ TYPE_KIND MethodType::getTypeKind() const {
 }
 
 bool MethodType::isSubTypeOf(const Type* other) const {
-    if (FunctionType* f = getIf<FunctionType>(other)) {
-        const std::vector<Type*>& oArgTypes = f->getArgTypes();
-        const Type* oRetType = f->getRetType();
+    if (MethodType* m = getIf<MethodType>(other)) {
+        const std::vector<Type*>& oArgTypes = m->getArgTypes();
+        const Type* oRetType = m->getRetType();
 
         if (_argTypes.size() != oArgTypes.size()) {
             return false;

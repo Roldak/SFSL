@@ -140,7 +140,7 @@ ModuleDecl* Parser::parseModule() {
         } else if (accept(tok::KW_TPE)) {
             types.push_back(parseType(false));
         } else if (accept(tok::KW_DEF)) {
-            decls.push_back(parseDef(false));
+            decls.push_back(parseDef(false, false));
         } else {
             expect(tok::OPER_R_BRACE, "`}`");
             break;
@@ -154,7 +154,7 @@ ModuleDecl* Parser::parseModule() {
     return modDecl;
 }
 
-DefineDecl* Parser::parseDef(bool asStatement) {
+DefineDecl* Parser::parseDef(bool asStatement, bool isRedef) {
 
     Identifier* defName = parseIdentifier("expected definition name");
 
@@ -167,7 +167,7 @@ DefineDecl* Parser::parseDef(bool asStatement) {
         expect(tok::OPER_SEMICOLON, "`;`");
     }
 
-    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, expr);
+    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, expr, isRedef);
     defDecl->setPos(*defName);
     defDecl->setEndPos(_lastTokenEndPos);
     return defDecl;
@@ -195,7 +195,9 @@ ClassDecl* Parser::parseClass() {
 
     while (!accept(tok::OPER_R_BRACE)) {
         if (accept(tok::KW_DEF)) {
-            defs.push_back(parseDef(false));
+            defs.push_back(parseDef(false, false));
+        } else if (accept(tok::KW_REDEF)) {
+            defs.push_back(parseDef(false, true));
         } else {
             Identifier* fieldName = parseIdentifier("expected field name | def");
             expect(tok::OPER_COLON, "`:`");
@@ -243,7 +245,7 @@ Expression* Parser::parseStatement() {
         accept();
 
         switch (kw) {
-        case tok::KW_DEF:   return parseDef(true);
+        case tok::KW_DEF:   return parseDef(true, false);
         case tok::KW_IF:    return parseIf(true);
         case tok::KW_TPE:   return parseType(true);
         default:            return nullptr;

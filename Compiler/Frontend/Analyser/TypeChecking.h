@@ -56,6 +56,8 @@ namespace ast {
 
         virtual void visit(ASTNode*) override;
 
+        virtual void visit(Program* prog) override;
+
         virtual void visit(TypeDecl* tdecl) override;
         virtual void visit(DefineDecl* decl) override;
 
@@ -91,10 +93,13 @@ namespace ast {
         type::ProperType* applySubsitutions(type::ProperType* inner, type::ProperType* obj);
         type::TypeConstructorType* applySubsitutions(type::TypeConstructorType* inner, type::ProperType* obj);
 
+        sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);
+
         TypeExpression* _currentThis;
         Expression* _nextDef;
 
         std::set<DefineDecl*> _visitedDefs;
+        std::vector<DefineDecl*> _redefs;
     };
 }
 

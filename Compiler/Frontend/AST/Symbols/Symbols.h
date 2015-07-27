@@ -70,10 +70,6 @@ namespace sym {
         virtual ~ModuleSymbol();
 
         virtual SYM_TYPE getSymbolType() const override;
-
-        ModuleSymbol* getModule(const std::string& name) const;
-        TypeSymbol* getClass(const std::string& name) const;
-        DefinitionSymbol* getDefinition(const std::string& name) const;
     };
 
     /**
@@ -106,10 +102,15 @@ namespace sym {
         ast::DefineDecl* getDef() const;
         ast::TypeExpression* getOwner() const;
 
+        void setOverridenSymbol(DefinitionSymbol* def);
+        DefinitionSymbol* getOverridenSymbol() const;
+
     private:
 
         ast::DefineDecl* _def;
         ast::TypeExpression* _owner;
+
+        DefinitionSymbol* _overriden;
     };
 
     /**

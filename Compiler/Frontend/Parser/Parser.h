@@ -79,7 +79,7 @@ private:
 
     ast::Program* parseProgram();
     ast::ModuleDecl* parseModule();
-    ast::DefineDecl* parseDef(bool asStatement);
+    ast::DefineDecl* parseDef(bool asStatement, bool isRedef);
     ast::ClassDecl* parseClass();
     ast::TypeDecl* parseType(bool asStatement);
 

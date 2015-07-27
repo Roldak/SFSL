@@ -7,6 +7,7 @@
 //
 
 #include "UserDataAssignment.h"
+#include "../Frontend/AST/Visitors/ASTTypeCreator.h"
 
 namespace sfsl {
 
@@ -29,6 +30,10 @@ void UserDataAssignment::visit(ASTNode*) {
 
 void UserDataAssignment::visit(ClassDecl* clss) {
     ASTVisitor::visit(clss);
+
+    if (clss->getParent()) {
+//        type::ProperType* parent = static_cast<type::ProperType*>(ASTTypeCreator::createType(clss->getParent(), _ctx)->applied(_ctx));
+    }
 
     size_t clssLoc = _currentConstCount++;
     size_t attrCount = clss->getFields().size();
