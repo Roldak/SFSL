@@ -21,7 +21,7 @@ using namespace tok;
 
 namespace lex {
 
-Lexer::Lexer(CompCtx_Ptr &ctx, src::InputSource& source, size_t sourceBufferSize) :
+Lexer::Lexer(CompCtx_Ptr& ctx, src::InputSource& source, size_t sourceBufferSize) :
     _ctx(ctx), _source(source, sourceBufferSize) {
 
     _lastChar.kind = CHR_EMPTY;
@@ -109,7 +109,7 @@ Lexer::CharInfo Lexer::readCharInfo() {
     };
 }
 
-Token* Lexer::buildToken(STR_KIND kind, const std::string &soFar) const {
+Token* Lexer::buildToken(STR_KIND kind, const std::string& soFar) const {
     switch (kind) {
     case STR_SYMBOL:        return _ctx->memoryManager().New<Operator>(Operator::OperTypeFromString(soFar));
     case STR_ID:            return getRightTokenFromIdentifier(soFar);
@@ -120,17 +120,21 @@ Token* Lexer::buildToken(STR_KIND kind, const std::string &soFar) const {
     }
 }
 
-Token* Lexer::getRightTokenFromIdentifier(const std::string &str) const{
+Token* Lexer::getRightTokenFromIdentifier(const std::string& str) const{
     if (isValidKeyword(str)) {
         return _ctx->memoryManager().New<Keyword>(Keyword::KeywordTypeFromString(str));
     } else if (Operator::OperTypeFromIdentifierString(str) != OPER_UNKNOWN) {
         return _ctx->memoryManager().New<Operator>(Operator::OperTypeFromString(str));
+    } else if (str == "true") {
+        return _ctx->memoryManager().New<BoolLitteral>(true);
+    } else if (str == "false") {
+        return _ctx->memoryManager().New<BoolLitteral>(false);
     } else {
         return _ctx->memoryManager().New<Identifier>(str);
     }
 }
 
-void Lexer::handleStringLitteral(std::string &soFar) {
+void Lexer::handleStringLitteral(std::string& soFar) {
     soFar = "";
     soFar += _lastChar.chr;
 
@@ -163,7 +167,7 @@ void Lexer::handleStringLitteral(std::string &soFar) {
     }
 }
 
-bool Lexer::tryHandleComments(const std::string &soFar, char next) {
+bool Lexer::tryHandleComments(const std::string& soFar, char next) {
     if (soFar.size() >= 1) {
         if (soFar.back() == '/') {
             switch (next) {
@@ -208,11 +212,11 @@ bool Lexer::isStillValid(STR_KIND strKind, const std::string& soFar, CHR_KIND ch
     }
 }
 
-bool Lexer::isValidSymbol(const std::string &str) {
+bool Lexer::isValidSymbol(const std::string& str) {
     return Operator::OperTypeFromString(str) != OPER_UNKNOWN;
 }
 
-bool Lexer::isValidKeyword(const std::string &str) {
+bool Lexer::isValidKeyword(const std::string& str) {
     return Keyword::KeywordTypeFromString(str) != KW_UNKNOWN;
 }
 

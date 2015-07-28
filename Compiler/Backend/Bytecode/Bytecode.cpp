@@ -96,7 +96,21 @@ PushConstUnit::~PushConstUnit() {
 }
 
 void PushConstUnit::appendTo(std::ostream &o) const {
-    o << "push_unit";
+    o << "push_u";
+}
+
+// PUSH CONSTANT BOOLEAN
+
+PushConstBool::PushConstBool(sfsl_bool_t val) : _val(val) {
+
+}
+
+PushConstBool::~PushConstBool() {
+
+}
+
+void PushConstBool::appendTo(std::ostream& o) const {
+    o << "push_b" << ARG_SEP << (_val ? 1 : 0);
 }
 
 // PUSH CONSTANT INTEGER
@@ -113,7 +127,7 @@ void PushConstInt::appendTo(std::ostream& o) const {
     o << "push_i" << ARG_SEP << _val;
 }
 
-// PUSH CONSTANT INTEGER
+// PUSH CONSTANT REAL
 
 PushConstReal::PushConstReal(sfsl_real_t val) : _val(val) {
 

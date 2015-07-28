@@ -323,6 +323,10 @@ void TypeChecking::visit(This* ths) {
     }
 }
 
+void TypeChecking::visit(BoolLitteral* boollit) {
+    boollit->setType(_res.Bool());
+}
+
 void TypeChecking::visit(IntLitteral* intlit) {
     intlit->setType(_res.Int());
 }

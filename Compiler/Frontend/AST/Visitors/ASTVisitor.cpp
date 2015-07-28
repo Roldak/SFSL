@@ -172,6 +172,10 @@ void ASTVisitor::visit(This* ths) {
 
 }
 
+void ASTVisitor::visit(BoolLitteral* boollit) {
+
+}
+
 void ASTVisitor::visit(IntLitteral*) {
 
 }

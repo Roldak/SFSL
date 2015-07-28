@@ -30,21 +30,20 @@ void ASTOverrideFinder::visit(ASTNode*) {
 
 void ASTOverrideFinder::visit(ClassDecl* clss){
     for (DefineDecl* decl : clss->getDefs()) {
-        if (_overridingSymbol->getName() == decl->getName()->getValue()) {
-            if (_overridingSymbol != decl->getSymbol()) {
-                if (_overridingSymbol->type()->isSubTypeOf(decl->getSymbol()->type()->applyEnv(_currentType->getSubstitutionTable(), _ctx))) {
-                    if (decl->isRedef()) {
-                        if (sym::DefinitionSymbol* alreadyOverriden = decl->getSymbol()->getOverridenSymbol()) {
-                            _overridenSymbol = alreadyOverriden;
-                            return;
-                        } else {
-                            break;
-                        }
-                    } else {
-                        _overridenSymbol = decl->getSymbol();
-                        return;
-                    }
+        if (    _overridingSymbol->getName() == decl->getName()->getValue() &&
+                _overridingSymbol != decl->getSymbol() &&
+                _overridingSymbol->type()->isSubTypeOf(decl->getSymbol()->type()->applyEnv(_currentType->getSubstitutionTable(), _ctx))) {
+
+            if (decl->isRedef()) {
+                if (sym::DefinitionSymbol* alreadyOverriden = decl->getSymbol()->getOverridenSymbol()) {
+                    _overridenSymbol = alreadyOverriden;
+                    return;
+                } else {
+                    break;
                 }
+            } else {
+                _overridenSymbol = decl->getSymbol();
+                return;
             }
         }
     }

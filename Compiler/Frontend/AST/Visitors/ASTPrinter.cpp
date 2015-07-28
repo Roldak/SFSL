@@ -261,6 +261,10 @@ void ASTPrinter::visit(This*) {
     _ostream << "this";
 }
 
+void ASTPrinter::visit(BoolLitteral* boollit) {
+    _ostream << (boollit->getValue() ? "true" : "false");
+}
+
 void ASTPrinter::visit(IntLitteral* intlit) {
     _ostream << intlit->getValue();
 }

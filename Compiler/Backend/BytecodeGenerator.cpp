@@ -306,6 +306,10 @@ void DefaultBytecodeGenerator::visit(This* ths) {
     Emit<LoadStack>(*ths, 0);
 }
 
+void DefaultBytecodeGenerator::visit(BoolLitteral* boollit) {
+    Emit<PushConstBool>(*boollit, boollit->getValue());
+}
+
 void DefaultBytecodeGenerator::visit(IntLitteral* intlit) {
     Emit<PushConstInt>(*intlit, intlit->getValue());
 }

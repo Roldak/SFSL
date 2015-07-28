@@ -142,6 +142,10 @@ void ASTAssignmentChecker::visit(This*) {
 
 }
 
+void ASTAssignmentChecker::visit(BoolLitteral*) {
+
+}
+
 void ASTAssignmentChecker::visit(IntLitteral*) {
 
 }

@@ -119,6 +119,18 @@ namespace bc {
         virtual void appendTo(std::ostream &o) const override;
     };
 
+    class PushConstBool : public BCInstruction {
+    public:
+        PushConstBool(sfsl_bool_t val);
+        virtual ~PushConstBool();
+
+        virtual void appendTo(std::ostream &o) const override;
+
+    private:
+
+        sfsl_bool_t _val;
+    };
+
     class PushConstInt : public BCInstruction {
     public:
         PushConstInt(sfsl_int_t val);

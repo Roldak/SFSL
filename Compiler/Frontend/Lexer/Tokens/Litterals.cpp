@@ -12,6 +12,28 @@ namespace sfsl {
 
 namespace tok {
 
+// BOOLS
+
+BoolLitteral::BoolLitteral(sfsl_bool_t value) : _value(value) {
+
+}
+
+BoolLitteral::~BoolLitteral() {
+
+}
+
+TOK_TYPE BoolLitteral::getTokenType() const {
+    return TOK_BOOL_LIT;
+}
+
+std::string BoolLitteral::toString() const {
+    return _value ? "true" : "false";
+}
+
+sfsl_bool_t BoolLitteral::getValue() const {
+    return _value;
+}
+
 // INTS
 
 IntLitteral::IntLitteral(sfsl_int_t value)  : _value(value) {

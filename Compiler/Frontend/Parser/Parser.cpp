@@ -310,6 +310,12 @@ Expression* Parser::parsePrimary() {
     Expression* toRet = nullptr;
 
     switch (_currentToken->getTokenType()) {
+    case tok::TOK_BOOL_LIT:
+        toRet = _mngr.New<BoolLitteral>(as<tok::BoolLitteral>()->getValue());
+        toRet->setPos(*_currentToken);
+        accept();
+        break;
+
     case tok::TOK_INT_LIT:
         toRet = _mngr.New<IntLitteral>(as<tok::IntLitteral>()->getValue());
         toRet->setPos(*_currentToken);
@@ -323,7 +329,9 @@ Expression* Parser::parsePrimary() {
         break;
 
     case tok::TOK_STR_LIT:
+        accept();
         break;
+
     case tok::TOK_ID:
         toRet = parseIdentifier();
         if (accept(tok::OPER_COLON)) {

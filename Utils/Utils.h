@@ -184,6 +184,11 @@ inline bool isSymbol(char c) {
 // NOT IN THE utils NAMESPACE ANYMORE
 
 /**
+ * @brief The Boolean type adapted to the host architecture
+ */
+typedef bool sfsl_bool_t;
+
+/**
  * @brief The Integer type adapted to the host architecture (4 bytes or 8 bytes int)
  */
 typedef utils::AdaptedType<PTR_SIZE>::adapted_int sfsl_int_t;

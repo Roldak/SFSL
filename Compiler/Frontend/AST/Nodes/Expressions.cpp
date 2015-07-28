@@ -258,6 +258,22 @@ This::~This() {
 
 SFSL_AST_ON_VISIT_CPP(This)
 
+// BOOL LITTERAL
+
+BoolLitteral::BoolLitteral(const sfsl_bool_t value) : _value(value) {
+
+}
+
+BoolLitteral::~BoolLitteral() {
+
+}
+
+sfsl_bool_t BoolLitteral::getValue() const {
+    return _value;
+}
+
+SFSL_AST_ON_VISIT_CPP(BoolLitteral)
+
 // INT LITTERAL
 
 IntLitteral::IntLitteral(const sfsl_int_t value) : _value(value) {

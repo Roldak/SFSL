@@ -351,6 +351,24 @@ public:
 };
 
 /**
+ * @brief Represents a boolean litteral
+ */
+class BoolLitteral : public Expression {
+public:
+
+    BoolLitteral(const sfsl_bool_t value);
+    virtual ~BoolLitteral();
+
+    SFSL_AST_ON_VISIT_H
+
+    sfsl_bool_t getValue() const;
+
+private:
+
+    const sfsl_bool_t _value;
+};
+
+/**
  * @brief Represents an Integer litteral.
  */
 class IntLitteral : public Expression {

@@ -17,6 +17,29 @@ namespace sfsl {
 namespace tok {
 
     /**
+     * @brief Represents a Boolean litteral (true or false)
+     */
+    class BoolLitteral : public Token {
+    public:
+
+        /**
+         * @brief Creates a Boolean litteral Token
+         * @param value the value of the litteral
+         */
+        BoolLitteral(sfsl_bool_t value);
+        virtual ~BoolLitteral();
+
+        virtual TOK_TYPE getTokenType() const override;
+        virtual std::string toString() const override;
+
+        sfsl_bool_t getValue() const;
+
+    private:
+
+        const sfsl_bool_t _value;
+    };
+
+    /**
      * @brief Represents an Integer litteral (e.g. 42)
      */
     class IntLitteral : public Token {

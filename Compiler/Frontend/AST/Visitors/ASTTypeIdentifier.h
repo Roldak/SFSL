@@ -131,6 +131,10 @@ public:
         setIfSame<This>();
     }
 
+    virtual void visit(BoolLitteral*) override {
+        setIfSame<BoolLitteral>();
+    }
+
     virtual void visit(IntLitteral*) override {
         setIfSame<IntLitteral>();
     }
