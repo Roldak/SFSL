@@ -103,6 +103,7 @@ private:
 
     ast::Block* parseBlock();
     ast::IfExpression* parseIf(bool asStatement);
+    ast::This* parseThis(const common::Positionnable& pos);
 
     ast::Expression* parseSpecialBinaryContinuity(ast::Expression* left);
     ast::Tuple* parseTuple();

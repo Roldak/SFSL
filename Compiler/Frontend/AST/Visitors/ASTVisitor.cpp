@@ -168,6 +168,10 @@ void ASTVisitor::visit(Identifier*) {
 
 }
 
+void ASTVisitor::visit(This* ths) {
+
+}
+
 void ASTVisitor::visit(IntLitteral*) {
 
 }

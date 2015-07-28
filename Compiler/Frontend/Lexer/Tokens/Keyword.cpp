@@ -39,6 +39,7 @@ std::string Keyword::KeywordTypeToString(KW_TYPE type) {
     case KW_REDEF:      return "redef";
     case KW_TPE:        return "type";
     case KW_CLASS:      return "class";
+    case KW_THIS:       return "this";
     case KW_IF:         return "if";
     case KW_ELSE:       return "else";
     case KW_WHILE:      return "while";
@@ -54,6 +55,7 @@ std::unordered_map<std::string, KW_TYPE> createKeywordsMap() {
     map["redef"] = KW_REDEF;
     map["type"] = KW_TPE;
     map["class"] = KW_CLASS;
+    map["this"] = KW_THIS;
     map["if"] = KW_IF;
     map["else"] = KW_ELSE;
     map["while"] = KW_WHILE;

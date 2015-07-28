@@ -62,16 +62,18 @@ void UserDataAssignment::visit(ClassDecl* clss) {
             localDecls[i]->onVisit(this);
 
             sym::DefinitionSymbol* defsym = localDecls[i]->getSymbol();
+            size_t virtualLoc;
+
             if (localDecls[i]->isRedef()) {
                 sym::DefinitionSymbol* overridenSym = defsym->getOverridenSymbol();
-
-                size_t virtualLoc = overridenSym->getUserdata<VirtualDefUserData>()->getVirtualLocation();
-                defsym->getUserdata<VirtualDefUserData>()->setVirtualLocation(virtualLoc);
-                defs[virtualLoc] = defsym;
+                virtualLoc = overridenSym->getUserdata<VirtualDefUserData>()->getVirtualLocation();
             } else {
-                defsym->getUserdata<VirtualDefUserData>()->setVirtualLocation(defs.size());
-                defs.push_back(defsym);
+                virtualLoc = defs.size();
+                defs.resize(defs.size() + 1);
             }
+
+            defsym->getUserdata<VirtualDefUserData>()->setVirtualLocation(virtualLoc);
+            defs[virtualLoc] = defsym;
         }
 
         size_t clssLoc = _currentConstCount++;

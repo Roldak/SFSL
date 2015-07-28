@@ -246,6 +246,18 @@ const std::string& Identifier::getValue() const {
 
 SFSL_AST_ON_VISIT_CPP(Identifier)
 
+// THIS
+
+This::This() {
+
+}
+
+This::~This() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(This)
+
 // INT LITTERAL
 
 IntLitteral::IntLitteral(const sfsl_int_t value) : _value(value) {

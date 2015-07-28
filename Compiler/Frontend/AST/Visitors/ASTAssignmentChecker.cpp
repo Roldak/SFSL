@@ -138,6 +138,10 @@ void ASTAssignmentChecker::visit(Identifier* id) {
     _isValid = id->getSymbol()->getSymbolType() == sym::SYM_VAR;
 }
 
+void ASTAssignmentChecker::visit(This*) {
+
+}
+
 void ASTAssignmentChecker::visit(IntLitteral*) {
 
 }

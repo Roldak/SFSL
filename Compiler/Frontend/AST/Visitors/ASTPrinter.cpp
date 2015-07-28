@@ -257,6 +257,10 @@ void ASTPrinter::visit(Identifier* ident) {
     _ostream << ident->getValue();
 }
 
+void ASTPrinter::visit(This*) {
+    _ostream << "this";
+}
+
 void ASTPrinter::visit(IntLitteral* intlit) {
     _ostream << intlit->getValue();
 }

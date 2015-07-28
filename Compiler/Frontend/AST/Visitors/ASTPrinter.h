@@ -52,6 +52,7 @@ public:
     virtual void visit(Tuple* tuple) override;
     virtual void visit(FunctionCreation* func) override;
     virtual void visit(Identifier* ident) override;
+    virtual void visit(This* ths) override;
     virtual void visit(IntLitteral* intlit) override;
     virtual void visit(RealLitteral* reallit) override;
 

@@ -77,6 +77,7 @@ public:
     virtual void visit(FunctionCreation* func);
     virtual void visit(FunctionCall* call);
     virtual void visit(Identifier* ident);
+    virtual void visit(This* ths);
     virtual void visit(IntLitteral* intlit);
     virtual void visit(RealLitteral* reallit);
 

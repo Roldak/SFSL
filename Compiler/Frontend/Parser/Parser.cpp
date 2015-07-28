@@ -240,6 +240,8 @@ TypeDecl* Parser::parseType(bool asStatement) {
 }
 
 Expression* Parser::parseStatement() {
+    SAVE_POS(startPos)
+
     if (isType(tok::TOK_KW)) {
         tok::KW_TYPE kw = as<tok::Keyword>()->getKwType();
         accept();
@@ -248,12 +250,14 @@ Expression* Parser::parseStatement() {
         case tok::KW_DEF:   return parseDef(true, false);
         case tok::KW_IF:    return parseIf(true);
         case tok::KW_TPE:   return parseType(true);
-        default:            return nullptr;
+        case tok::KW_THIS:  return parseThis(startPos);
+        default:
+            _ctx->reporter().error(startPos, "Unexpected keyword `" + tok::Keyword::KeywordTypeToString(kw) + "`");
+            return nullptr;
         }
     } else if (accept(tok::OPER_L_BRACE)) {
         return parseBlock();
     } else {
-        SAVE_POS(startPos)
         ExpressionStatement* expr = _mngr.New<ExpressionStatement>(parseExpression());
         expect(tok::OPER_SEMICOLON, "`;`");
         expr->setPos(startPos);
@@ -303,6 +307,7 @@ Expression* Parser::parseBinary(Expression* left, int precedence) {
 }
 
 Expression* Parser::parsePrimary() {
+    SAVE_POS(startPos)
     Expression* toRet = nullptr;
 
     switch (_currentToken->getTokenType()) {
@@ -349,8 +354,8 @@ Expression* Parser::parsePrimary() {
     case tok::TOK_KW:
         if (accept(tok::KW_IF)) {
             return parseIf(false);
-        } else if (accept(tok::KW_CLASS)) {
-            return parseClass();
+        } else if (accept(tok::KW_THIS)) {
+            return parseThis(startPos);
         } else {
             _ctx->reporter().error(*_currentToken, "unexpected keyword `" + _currentToken->toString() + "`");
             accept();
@@ -551,6 +556,12 @@ IfExpression* Parser::parseIf(bool asStatement) {
     ifexpr->setEndPos(_lastTokenEndPos);
 
     return ifexpr;
+}
+
+This* Parser::parseThis(const common::Positionnable& pos) {
+    This* ths = _mngr.New<This>();
+    ths->setPos(pos);
+    return ths;
 }
 
 Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {

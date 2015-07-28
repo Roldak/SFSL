@@ -317,8 +317,7 @@ private:
 };
 
 /**
- * @brief Represents an Identifier, which
- * refers to a symbol.
+ * @brief Represents an Identifier, which refers to a symbol.
  */
 class Identifier : public Expression, public sym::Symbolic<sym::Symbol> {
 public:
@@ -337,6 +336,18 @@ private:
 
     const std::string _name;
 
+};
+
+/**
+ * @brief Represents the "this" identifier
+ */
+class This : public Expression {
+public:
+
+    This();
+    virtual ~This();
+
+    SFSL_AST_ON_VISIT_H
 };
 
 /**

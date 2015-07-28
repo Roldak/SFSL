@@ -127,6 +127,10 @@ public:
         setIfSame<Identifier>();
     }
 
+    virtual void visit(This*) override {
+        setIfSame<This>();
+    }
+
     virtual void visit(IntLitteral*) override {
         setIfSame<IntLitteral>();
     }
