@@ -434,36 +434,21 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence) {
 
 TypeExpression* Parser::parseTypePrimary() {
     SAVE_POS(startPos)
-    TypeExpression* toRet = nullptr;
+    std::vector<TypeExpression*> exprs;
 
     switch (_currentToken->getTokenType()) {
     case tok::TOK_ID:
-        toRet = parseTypeIdentifier();
+        exprs.push_back(parseTypeIdentifier());
         if (accept(tok::OPER_COLON)) {
-            toRet = parseKindSpecifier(static_cast<TypeIdentifier*>(toRet));
+            exprs[0] = parseKindSpecifier(static_cast<TypeIdentifier*>(exprs[0]));
         }
         break;
 
     case tok::TOK_OPER:
         if (accept(tok::OPER_L_BRACKET)) {
-            toRet = parseTypeTuple();
+            exprs.push_back(parseTypeTuple());
         } else if (accept(tok::OPER_L_PAREN)) {
-            bool arrowNecessary = false;
-            std::vector<TypeExpression*> exprs;
-            toRet = parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(exprs, [&](){return parseTypeExpression();});
-
-            if (exprs.size() != 1) {
-                arrowNecessary = true; // while waiting for tuples
-            } else {
-                toRet = exprs[0];
-            }
-
-            if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
-                toRet = _mngr.New<FunctionTypeDecl>(exprs, parseTypeExpression());
-            }
-
-            toRet->setPos(startPos);
-            toRet->setEndPos(_lastTokenEndPos);
+            parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(exprs, [&](){return parseTypeExpression();});
         } else {
             _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
             accept();
@@ -484,6 +469,24 @@ TypeExpression* Parser::parseTypePrimary() {
                                "Expected identifier | type tuple | class "
                                "; got " + _currentToken->toString());
         accept();
+    }
+
+    bool arrowNecessary = false;
+    TypeExpression* toRet = nullptr;
+
+    if (exprs.size() != 1) {
+        arrowNecessary = true; // while waiting for tuples
+    } else {
+        toRet = exprs[0];
+    }
+
+    if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
+        toRet = _mngr.New<FunctionTypeDecl>(exprs, parseTypeExpression());
+    }
+
+    if (toRet) {
+        toRet->setPos(startPos);
+        toRet->setEndPos(_lastTokenEndPos);
     }
 
     return toRet;
