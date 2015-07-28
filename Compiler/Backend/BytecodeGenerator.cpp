@@ -8,6 +8,7 @@
 
 #include "BytecodeGenerator.h"
 #include "../Frontend/AST/Visitors/ASTTypeIdentifier.h"
+#include "../Frontend/AST/Visitors/ASTSymbolExtractor.h"
 
 #define START_WRITING_TO_CONSTANT_POOL \
     out::Cursor* __old = Here(); \
@@ -128,11 +129,11 @@ void DefaultBytecodeGenerator::visit(ClassDecl* clss){
 
     START_WRITING_TO_CONSTANT_POOL
 
-    for (DefineDecl* def : clss->getDefs()) {
-        Emit<LoadConst>(*def, getDefLoc(def->getSymbol()));
-    }
-
     ClassUserData* clssData = clss->getUserdata<ClassUserData>();
+
+    for (sym::DefinitionSymbol* def : clssData->getDefs()) {
+        Emit<LoadConst>(*clss, getDefLoc(def));
+    }
 
     Emit<MakeClass>(*clss, clssData->getAttrCount(), clssData->getDefCount());
     Emit<StoreConst>(*clss, getClassLoc(clss));
@@ -265,15 +266,16 @@ void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
 }
 
 void DefaultBytecodeGenerator::visit(FunctionCall* call) {
-    if (call->type()->getTypeKind() == type::TYPE_METHOD) {
+    if (call->getCallee()->type()->getTypeKind() == type::TYPE_METHOD) {
         Label* afterCall = MakeLabel(*call, "after_call");
 
         if (isNodeOfType<MemberAccess>(call->getCallee(), _ctx)) {
             MemberAccess* dot = static_cast<MemberAccess*>(call->getCallee());
             dot->getAccessed()->onVisit(this);
-
-
         }
+
+        sym::DefinitionSymbol* def = static_cast<sym::DefinitionSymbol*>(ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx));
+        size_t virtualLoc = def->getUserdata<VirtualDefUserData>()->getVirtualLocation();
 
         Emit<PushLabel>(*call, afterCall);
 
@@ -281,7 +283,7 @@ void DefaultBytecodeGenerator::visit(FunctionCall* call) {
             expr->onVisit(this);
         }
 
-        Emit<VCall>(*call, 0, call->getArgs().size());
+        Emit<VCall>(*call, virtualLoc, call->getArgs().size());
 
         BindLabel(afterCall);
     }

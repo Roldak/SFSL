@@ -358,13 +358,12 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
 }
 
 sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* def) {
-    if (sym::DefinitionSymbol* overriden = ASTOverrideFinder::findOverridenSymbol(def, _ctx)) {
-        return overriden;
-    } else {
+    sym::DefinitionSymbol* overriden = ASTOverrideFinder::findOverridenSymbol(def, _ctx);
+    if (!overriden) {
         _rep.error(*def, "Could not find the definition overriden by " +
                    def->getName() + " (which has type " + def->type()->toString() + ")");
-        return nullptr;
     }
+    return overriden;
 }
 
 // FIELD INFO

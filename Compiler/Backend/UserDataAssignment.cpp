@@ -29,23 +29,57 @@ void UserDataAssignment::visit(ASTNode*) {
 }
 
 void UserDataAssignment::visit(ClassDecl* clss) {
-    ASTVisitor::visit(clss);
+    if (_visitedClasses.find(clss) == _visitedClasses.end()) {
+        _visitedClasses.emplace(clss);
 
-    if (clss->getParent()) {
-//        type::ProperType* parent = static_cast<type::ProperType*>(ASTTypeCreator::createType(clss->getParent(), _ctx)->applied(_ctx));
+        ASTVisitor::visit(clss);
+
+        std::vector<sym::VariableSymbol*> fields;
+        std::vector<sym::DefinitionSymbol*> defs;
+
+        if (clss->getParent()) {
+            type::ProperType* parent = static_cast<type::ProperType*>(ASTTypeCreator::createType(clss->getParent(), _ctx)->applied(_ctx));
+            parent->getClass()->onVisit(this);
+
+            ClassUserData* parentUD = parent->getClass()->getUserdata<ClassUserData>();
+
+            fields = parentUD->getFields();
+            defs = parentUD->getDefs();
+        }
+
+        for (TypeSpecifier* tps : clss->getFields()) {
+            fields.push_back(static_cast<sym::VariableSymbol*>(tps->getSpecified()->getSymbol()));
+        }
+
+        for (size_t i = 0; i < clss->getDefs().size(); ++i) {
+            sym::DefinitionSymbol* defsym = clss->getDefs()[i]->getSymbol();
+            if (clss->getDefs()[i]->isRedef()) {
+                sym::DefinitionSymbol* overridenSym = defsym->getOverridenSymbol();
+
+                size_t virtualLoc = overridenSym->getUserdata<VirtualDefUserData>()->getVirtualLocation();
+                defsym->getUserdata<VirtualDefUserData>()->setVirtualLocation(virtualLoc);
+                defs[virtualLoc] = defsym;
+            } else {
+                defsym->getUserdata<VirtualDefUserData>()->setVirtualLocation(defs.size());
+                defs.push_back(defsym);
+            }
+        }
+
+        size_t clssLoc = _currentConstCount++;
+
+        clss->setUserdata(_mngr.New<ClassUserData>(clssLoc, fields, defs));
     }
-
-    size_t clssLoc = _currentConstCount++;
-    size_t attrCount = clss->getFields().size();
-    size_t defCount = clss->getDefs().size();
-
-    clss->setUserdata(_mngr.New<ClassUserData>(clssLoc, attrCount, defCount));
 }
 
 void UserDataAssignment::visit(DefineDecl* decl) {
     ASTVisitor::visit(decl);
     sym::DefinitionSymbol* def = decl->getSymbol();
-    def->setUserdata(_mngr.New<DefUserData>(_currentConstCount++));
+
+    if (def->type()->getTypeKind() == type::TYPE_METHOD) {
+        def->setUserdata(_mngr.New<VirtualDefUserData>(_currentConstCount++));
+    } else {
+        def->setUserdata(_mngr.New<DefUserData>(_currentConstCount++));
+    }
 }
 
 void UserDataAssignment::visit(TypeSpecifier* tps) {
@@ -66,8 +100,8 @@ void UserDataAssignment::visit(FunctionCreation* func) {
 
 // CLASS USER DATA
 
-ClassUserData::ClassUserData(size_t loc, size_t attrCount, size_t defCount)
-    : _loc(loc), _attrCount(attrCount), _defCount(defCount) {
+ClassUserData::ClassUserData(size_t loc, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs)
+    : _loc(loc), _fields(fields), _defs(defs) {
 
 }
 
@@ -80,11 +114,39 @@ size_t ClassUserData::getClassLoc() const {
 }
 
 size_t ClassUserData::getAttrCount() const {
-    return _attrCount;
+    return _fields.size();
 }
 
 size_t ClassUserData::getDefCount() const {
-    return _defCount;
+    return _defs.size();
+}
+
+const std::vector<sym::VariableSymbol*>& ClassUserData::getFields() const {
+    return _fields;
+}
+
+const std::vector<sym::DefinitionSymbol*>& ClassUserData::getDefs() const {
+    return _defs;
+}
+
+bool ClassUserData::indexOf(sym::VariableSymbol* field, size_t* index) const {
+    for (size_t i = 0; i < _fields.size(); ++i) {
+        if (_fields[i] == field) {
+            *index = i;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ClassUserData::indexOf(sym::DefinitionSymbol* def, size_t* index) const {
+    for (size_t i = 0; i < _defs.size(); ++i) {
+        if (_defs[i] == def) {
+            *index = i;
+            return true;
+        }
+    }
+    return false;
 }
 
 // FUNCTION USER DATA
@@ -127,6 +189,24 @@ DefUserData::~DefUserData() {
 
 size_t DefUserData::getDefLoc() const {
     return _loc;
+}
+
+// VIRTUAL DEFINITION USER DATA
+
+VirtualDefUserData::VirtualDefUserData(size_t loc) : DefUserData(loc) {
+
+}
+
+VirtualDefUserData::~VirtualDefUserData() {
+
+}
+
+void VirtualDefUserData::setVirtualLocation(size_t virtLoc) {
+    _virtLoc = virtLoc;
+}
+
+size_t VirtualDefUserData::getVirtualLocation() const {
+    return _virtLoc;
 }
 
 }

@@ -10,6 +10,7 @@
 #define __SFSL__UserDataAssignment__
 
 #include <iostream>
+#include <set>
 #include "../Frontend/AST/Visitors/ASTVisitor.h"
 
 namespace sfsl {
@@ -38,22 +39,30 @@ namespace bc {
 
         size_t _currentConstCount;
         size_t _currentVarCount;
+
+        std::set<ClassDecl*> _visitedClasses;
     };
 
     class ClassUserData final : public common::MemoryManageable {
     public:
-        ClassUserData(size_t loc, size_t attrCount, size_t defCount);
+        ClassUserData(size_t loc, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs);
         virtual ~ClassUserData();
 
         size_t getClassLoc() const;
         size_t getAttrCount() const;
         size_t getDefCount() const;
 
+        const std::vector<sym::VariableSymbol*>& getFields() const;
+        const std::vector<sym::DefinitionSymbol*>& getDefs() const;
+
+        bool indexOf(sym::VariableSymbol* field, size_t* index) const;
+        bool indexOf(sym::DefinitionSymbol* def, size_t* index) const;
+
     private:
 
         size_t _loc;
-        size_t _attrCount;
-        size_t _defCount;
+        std::vector<sym::VariableSymbol*> _fields;
+        std::vector<sym::DefinitionSymbol*> _defs;
     };
 
     class FuncUserData final : public common::MemoryManageable {
@@ -80,7 +89,7 @@ namespace bc {
         size_t _loc;
     };
 
-    class DefUserData final : public common::MemoryManageable {
+    class DefUserData : public common::MemoryManageable {
     public:
         DefUserData(size_t loc);
         virtual ~DefUserData();
@@ -90,6 +99,20 @@ namespace bc {
     private:
 
         size_t _loc;
+    };
+
+    class VirtualDefUserData : public DefUserData {
+    public:
+        VirtualDefUserData(size_t loc);
+        virtual ~VirtualDefUserData();
+
+        void setVirtualLocation(size_t virtLoc);
+
+        size_t getVirtualLocation() const;
+
+    private:
+
+        size_t _virtLoc;
     };
 }
 
