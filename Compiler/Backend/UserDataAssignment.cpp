@@ -32,12 +32,12 @@ void UserDataAssignment::visit(ClassDecl* clss) {
     if (_visitedClasses.find(clss) == _visitedClasses.end()) {
         _visitedClasses.emplace(clss);
 
-        ASTVisitor::visit(clss);
-
         std::vector<sym::VariableSymbol*> fields;
         std::vector<sym::DefinitionSymbol*> defs;
 
         if (clss->getParent()) {
+            clss->getParent()->onVisit(this);
+
             type::ProperType* parent = static_cast<type::ProperType*>(ASTTypeCreator::createType(clss->getParent(), _ctx)->applied(_ctx));
             parent->getClass()->onVisit(this);
 
@@ -47,13 +47,22 @@ void UserDataAssignment::visit(ClassDecl* clss) {
             defs = parentUD->getDefs();
         }
 
+        SAVE_MEMBER_AND_SET(_currentVarCount, fields.size())
+
         for (TypeSpecifier* tps : clss->getFields()) {
+            tps->onVisit(this);
             fields.push_back(static_cast<sym::VariableSymbol*>(tps->getSpecified()->getSymbol()));
         }
 
-        for (size_t i = 0; i < clss->getDefs().size(); ++i) {
-            sym::DefinitionSymbol* defsym = clss->getDefs()[i]->getSymbol();
-            if (clss->getDefs()[i]->isRedef()) {
+        RESTORE_MEMBER(_currentVarCount)
+
+        const std::vector<DefineDecl*>& localDecls(clss->getDefs());
+
+        for (size_t i = 0; i < localDecls.size(); ++i) {
+            localDecls[i]->onVisit(this);
+
+            sym::DefinitionSymbol* defsym = localDecls[i]->getSymbol();
+            if (localDecls[i]->isRedef()) {
                 sym::DefinitionSymbol* overridenSym = defsym->getOverridenSymbol();
 
                 size_t virtualLoc = overridenSym->getUserdata<VirtualDefUserData>()->getVirtualLocation();
