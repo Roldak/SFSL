@@ -66,9 +66,9 @@ bool Parser::expect(T type, const std::string& expected, bool fatal) {
 
    if (!accept(type)) {
        if (fatal) {
-           _ctx->reporter().fatal(*lastTok, "expected " + expected + " but got `" + lastTok->toString() + "`");
+           _ctx->reporter().fatal(*lastTok, "Expected " + expected + " but got `" + lastTok->toString() + "`");
        } else {
-           _ctx->reporter().error(*lastTok, "expected " + expected + " but got `" + lastTok->toString() + "`");
+           _ctx->reporter().error(*lastTok, "Expected " + expected + " but got `" + lastTok->toString() + "`");
        }
        return false;
    }
@@ -127,7 +127,7 @@ Program* Parser::parseProgram() {
 
 ModuleDecl* Parser::parseModule() {
 
-    Identifier* moduleName = parseIdentifier("expected module name");
+    Identifier* moduleName = parseIdentifier("Expected module name");
     std::vector<ModuleDecl*> mods;
     std::vector<TypeDecl*> types;
     std::vector<DefineDecl*> decls;
@@ -156,7 +156,7 @@ ModuleDecl* Parser::parseModule() {
 
 DefineDecl* Parser::parseDef(bool asStatement, bool isRedef) {
 
-    Identifier* defName = parseIdentifier("expected definition name");
+    Identifier* defName = parseIdentifier("Expected definition name");
 
     if (!(isType(tok::TOK_OPER) && as<tok::Operator>()->getOpType() == tok::OPER_L_PAREN))
         expect(tok::OPER_EQ, "`=`");
@@ -199,7 +199,7 @@ ClassDecl* Parser::parseClass() {
         } else if (accept(tok::KW_REDEF)) {
             defs.push_back(parseDef(false, true));
         } else {
-            Identifier* fieldName = parseIdentifier("expected field name | def");
+            Identifier* fieldName = parseIdentifier("Expected field name | def");
             expect(tok::OPER_COLON, "`:`");
             TypeExpression* type = parseTypeExpression();
             expect(tok::OPER_SEMICOLON, "`;`");
@@ -219,7 +219,7 @@ ClassDecl* Parser::parseClass() {
 }
 
 TypeDecl* Parser::parseType(bool asStatement) {
-    TypeIdentifier* typeName = parseTypeIdentifier("expected type name");
+    TypeIdentifier* typeName = parseTypeIdentifier("Expected type name");
     accept(tok::OPER_EQ);
 
     std::string lastTypeName = _currentTypeName;
@@ -345,7 +345,7 @@ Expression* Parser::parsePrimary() {
         else if (accept(tok::OPER_L_BRACE)) {
             return parseBlock();
         } else {
-            _ctx->reporter().error(*_currentToken, "unexpected token `"+ _currentToken->toString() +"`");
+            _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
             accept();
         }
         break;
@@ -356,14 +356,14 @@ Expression* Parser::parsePrimary() {
         } else if (accept(tok::KW_THIS)) {
             return parseThis(startPos);
         } else {
-            _ctx->reporter().error(*_currentToken, "unexpected keyword `" + _currentToken->toString() + "`");
+            _ctx->reporter().error(*_currentToken, "Unexpected keyword `" + _currentToken->toString() + "`");
             accept();
         }
         break;
 
     default:
         _ctx->reporter().error(*_currentToken,
-                               "expected int litteral | real litteral | string litteral "
+                               "Expected int litteral | real litteral | string litteral "
                                "| identifier | keyword; got " + _currentToken->toString());
         accept();
     }
@@ -464,7 +464,7 @@ TypeExpression* Parser::parseTypePrimary() {
 
     default:
         _ctx->reporter().error(*_currentToken,
-                               "expected identifier | type tuple | class "
+                               "Expected identifier | type tuple | class "
                                "; got " + _currentToken->toString());
         accept();
     }
@@ -514,7 +514,7 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
 
     default:
         _ctx->reporter().error(*_currentToken,
-                               "expected identifier | type tuple | class "
+                               "Expected identifier | type tuple | class "
                                "; got " + _currentToken->toString());
         accept();
     }
