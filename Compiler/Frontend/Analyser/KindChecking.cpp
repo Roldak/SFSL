@@ -65,6 +65,10 @@ void KindChecking::visit(ClassDecl* clss) {
     }
 }
 
+void KindChecking::visit(FunctionTypeDecl* ftdecl) {
+    ftdecl->setKind(kind::ProperKind::create());
+}
+
 void KindChecking::visit(TypeMemberAccess* tdot) {
     tdot->getAccessed()->onVisit(this);
 

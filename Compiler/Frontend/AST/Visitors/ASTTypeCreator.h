@@ -36,6 +36,7 @@ public:
     virtual void visit(ASTNode* node) override;
 
     virtual void visit(ClassDecl* clss) override;
+    virtual void visit(FunctionTypeDecl* ftdecl) override;
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
     virtual void visit(TypeConstructorCall* tcall) override;
 

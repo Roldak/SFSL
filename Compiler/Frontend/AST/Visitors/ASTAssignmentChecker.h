@@ -42,6 +42,7 @@ public:
     virtual void visit(ProperTypeKindSpecifier* ptks) override;
     virtual void visit(TypeConstructorKindSpecifier* tcks) override;
 
+    virtual void visit(FunctionTypeDecl* ftdecl) override;
     virtual void visit(TypeMemberAccess* tdot) override;
     virtual void visit(TypeTuple* ttuple) override;
     virtual void visit(TypeConstructorCreation* typeconstructor) override;

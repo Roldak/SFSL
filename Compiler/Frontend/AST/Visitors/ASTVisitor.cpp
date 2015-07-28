@@ -71,14 +71,21 @@ void ASTVisitor::visit(ProperTypeKindSpecifier* ptks) {
 
 }
 
-void ASTVisitor::visit(TypeConstructorKindSpecifier *tcks) {
-    for (auto arg : tcks->getArgs()) {
+void ASTVisitor::visit(TypeConstructorKindSpecifier* tcks) {
+    for (KindSpecifyingExpression* arg : tcks->getArgs()) {
         arg->onVisit(this);
     }
     tcks->getRet()->onVisit(this);
 }
 
-void ASTVisitor::visit(TypeMemberAccess *tdot) {
+void ASTVisitor::visit(FunctionTypeDecl* ftdecl) {
+    for (TypeExpression* arg : ftdecl->getArgTypes()) {
+        arg->onVisit(this);
+    }
+    ftdecl->getRetType()->onVisit(this);
+}
+
+void ASTVisitor::visit(TypeMemberAccess* tdot) {
     tdot->getAccessed()->onVisit(this);
     tdot->getMember()->onVisit(this);
 }
@@ -89,12 +96,12 @@ void ASTVisitor::visit(TypeTuple* ttuple) {
     }
 }
 
-void ASTVisitor::visit(TypeConstructorCreation *typeconstructor) {
+void ASTVisitor::visit(TypeConstructorCreation* typeconstructor) {
     typeconstructor->getArgs()->onVisit(this);
     typeconstructor->getBody()->onVisit(this);
 }
 
-void ASTVisitor::visit(TypeConstructorCall *tcall) {
+void ASTVisitor::visit(TypeConstructorCall* tcall) {
     tcall->getCallee()->onVisit(this);
     tcall->getArgsTuple()->onVisit(this);
 }
@@ -103,7 +110,7 @@ void ASTVisitor::visit(TypeIdentifier*) {
 
 }
 
-void ASTVisitor::visit(KindSpecifier *ks) {
+void ASTVisitor::visit(KindSpecifier* ks) {
     ks->getSpecified()->onVisit(this);
     ks->getKindNode()->onVisit(this);
 }

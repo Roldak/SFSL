@@ -53,6 +53,10 @@ void ASTAssignmentChecker::visit(TypeConstructorKindSpecifier*) {
 
 }
 
+void ASTAssignmentChecker::visit(FunctionTypeDecl*) {
+
+}
+
 void ASTAssignmentChecker::visit(TypeMemberAccess*) {
 
 }

@@ -92,7 +92,6 @@ void ASTPrinter::visit(ClassDecl* clss) {
 }
 
 void ASTPrinter::visit(DefineDecl* decl) {
-
     _ostream << "def ";
 
     decl->getName()->onVisit(this);
@@ -114,8 +113,20 @@ void ASTPrinter::visit(TypeConstructorKindSpecifier* tcks) {
             _ostream << ", ";
         }
     }
-    _ostream << "->";
+    _ostream << "]->";
     tcks->getRet()->onVisit(this);
+}
+
+void ASTPrinter::visit(FunctionTypeDecl* ftdecl) {
+    _ostream << "(";
+    for (size_t i = 0; i < ftdecl->getArgTypes().size(); ++i) {
+        ftdecl->getArgTypes()[i]->onVisit(this);
+        if (i == ftdecl->getArgTypes().size() - 1) {
+            _ostream << ", ";
+        }
+    }
+    _ostream << ")->";
+    ftdecl->getRetType()->onVisit(this);
 }
 
 void ASTPrinter::visit(TypeMemberAccess* tdot) {

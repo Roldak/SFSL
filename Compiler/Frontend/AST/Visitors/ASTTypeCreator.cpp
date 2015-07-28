@@ -29,6 +29,19 @@ void ASTTypeCreator::visit(ClassDecl* clss) {
     _created = _mngr.New<type::ProperType>(clss, _subTable);
 }
 
+void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
+    const std::vector<TypeExpression*>& argTypeExprs(ftdecl->getArgTypes());
+
+    std::vector<type::Type*> argTypes(argTypeExprs.size());
+    type::Type* retType = createType(ftdecl->getRetType(), _ctx);
+
+    for (size_t i = 0; i < argTypes.size(); ++i) {
+        argTypes[i] = createType(argTypeExprs[i], _ctx);
+    }
+
+    _created = _mngr.New<type::FunctionType>(argTypes, retType, nullptr, _subTable);
+}
+
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
     _created = _mngr.New<type::TypeConstructorType>(typeconstructor, _subTable);
 }

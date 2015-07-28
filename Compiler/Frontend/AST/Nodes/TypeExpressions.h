@@ -76,6 +76,33 @@ private:
 };
 
 /**
+ * @brief Represents a function type declaration (e.g. (int, real)->int)
+ */
+class FunctionTypeDecl : public TypeExpression {
+public:
+
+    FunctionTypeDecl(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType);
+    virtual ~FunctionTypeDecl();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The TypeExpressions defining the types of the arguments
+     */
+    const std::vector<TypeExpression*>& getArgTypes() const;
+
+    /**
+     * @return The TypeExpression defining the return type of the function
+     */
+    TypeExpression* getRetType() const;
+
+private:
+
+    std::vector<TypeExpression*> _argTypes;
+    TypeExpression* _retType;
+};
+
+/**
  * @brief Represents a type member access (with a dot operation, e.g. `module.class`)
  */
 class TypeMemberAccess : public TypeExpression, public sym::Symbolic<sym::Symbol> {

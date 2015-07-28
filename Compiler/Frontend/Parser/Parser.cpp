@@ -433,6 +433,7 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence) {
 }
 
 TypeExpression* Parser::parseTypePrimary() {
+    SAVE_POS(startPos)
     TypeExpression* toRet = nullptr;
 
     switch (_currentToken->getTokenType()) {
@@ -447,15 +448,23 @@ TypeExpression* Parser::parseTypePrimary() {
         if (accept(tok::OPER_L_BRACKET)) {
             toRet = parseTypeTuple();
         } else if (accept(tok::OPER_L_PAREN)) {
+            bool arrowNecessary = false;
             std::vector<TypeExpression*> exprs;
             toRet = parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(exprs, [&](){return parseTypeExpression();});
+
             if (exprs.size() != 1) {
-                _ctx->reporter().error(*toRet, "Tuples are not allowed in this context");
+                arrowNecessary = true; // while waiting for tuples
             } else {
                 toRet = exprs[0];
             }
-        }
-        else {
+
+            if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
+                toRet = _mngr.New<FunctionTypeDecl>(exprs, parseTypeExpression());
+            }
+
+            toRet->setPos(startPos);
+            toRet->setEndPos(_lastTokenEndPos);
+        } else {
             _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
             accept();
         }
@@ -512,7 +521,7 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
             break;
         }
 
-        if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "Expected '->'")) || accept(tok::OPER_THIN_ARROW)) {
+        if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
             toRet = _mngr.New<TypeConstructorKindSpecifier>(exprs, parseKindSpecifyingExpression());
         }
 

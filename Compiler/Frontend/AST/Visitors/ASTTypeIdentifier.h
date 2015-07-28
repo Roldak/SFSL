@@ -63,6 +63,10 @@ public:
         setIfSame<TypeConstructorKindSpecifier>();
     }
 
+    virtual void visit(FunctionTypeDecl*) override {
+        setIfSame<FunctionTypeDecl>();
+    }
+
     virtual void visit(TypeMemberAccess*) override {
         setIfSame<TypeMemberAccess>();
     }

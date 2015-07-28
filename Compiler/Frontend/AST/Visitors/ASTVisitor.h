@@ -58,6 +58,7 @@ public:
     virtual void visit(ProperTypeKindSpecifier* ptks);
     virtual void visit(TypeConstructorKindSpecifier* tcks);
 
+    virtual void visit(FunctionTypeDecl* ftdecl);
     virtual void visit(TypeMemberAccess* tdot);
     virtual void visit(TypeTuple* ttuple);
     virtual void visit(TypeConstructorCreation* typeconstructor);

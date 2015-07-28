@@ -55,6 +55,27 @@ const std::vector<DefineDecl*>& ClassDecl::getDefs() const{
     return _defs;
 }
 
+// FUNCTION TYPE DECLARATION
+
+FunctionTypeDecl::FunctionTypeDecl(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType)
+    : _argTypes(argTypes), _retType(retType) {
+
+}
+
+FunctionTypeDecl::~FunctionTypeDecl() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(FunctionTypeDecl)
+
+const std::vector<TypeExpression*>& FunctionTypeDecl::getArgTypes() const {
+    return _argTypes;
+}
+
+TypeExpression* FunctionTypeDecl::getRetType() const {
+    return _retType;
+}
+
 // TYPE MEMBER ACCESS
 
 TypeMemberAccess::TypeMemberAccess(TypeExpression* accessed, TypeIdentifier* member) : _accessed(accessed), _member(member) {
