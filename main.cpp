@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     // LOAD FILE
 
     char* sourceFile = NULL;
-    bool compileOnly = false;
+    bool checkOnly = false;
     int option;
 
     while((option = getopt(argc, argv, "s:c")) != -1){
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
             sourceFile = optarg;
             break;
         case 'c':
-            compileOnly = true;
+            checkOnly = true;
             break;
         default:
             std::cerr<<"unexpected program argument : " << option << std::endl;
@@ -63,11 +63,11 @@ int main(int argc, char** argv) {
         ast::Parser parser(ctx, lexer);
 
         std::cout << "STARTING PARSER" << std::endl;
-        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+        std::cout << ctx->memoryManager().getInfos() << std::endl << std::endl;
 
         ast::Program* prog = parser.parse();
 
-        if (ctx.get()->reporter().getErrorCount() != 0) {
+        if (ctx->reporter().getErrorCount() != 0) {
             return 1;
         }
 
@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
         prog->onVisit(&printer);*/
 
         std::cout << "STARTING NAME ANALYSIS" << std::endl;
-        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+        std::cout << ctx->memoryManager().getInfos() << std::endl << std::endl;
 
         ast::ScopeGeneration scopeGen(ctx);
         ast::SymbolAssignation symAssign(ctx);
@@ -83,17 +83,17 @@ int main(int argc, char** argv) {
         prog->onVisit(&scopeGen);
         prog->onVisit(&symAssign);
 
-        if (ctx.get()->reporter().getErrorCount() != 0) {
+        if (ctx->reporter().getErrorCount() != 0) {
             return 1;
         }
 
         std::cout << "STARTING KINDCHECKING" << std::endl;
-        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+        std::cout << ctx->memoryManager().getInfos() << std::endl << std::endl;
 
         ast::KindChecking kindCheck(ctx);
         prog->onVisit(&kindCheck);
 
-        if (ctx.get()->reporter().getErrorCount() != 0) {
+        if (ctx->reporter().getErrorCount() != 0) {
             return 1;
         }
 
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
         res.setPredefClassesPath("sfsl.lang");
 
         std::cout << "STARTING TYPECHECKING" << std::endl;
-        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+        std::cout << ctx->memoryManager().getInfos() << std::endl << std::endl;
 
         ast::TopLevelTypeChecking topleveltypecheck(ctx, res);
         ast::TypeChecking typeCheck(ctx, res);
@@ -109,12 +109,16 @@ int main(int argc, char** argv) {
         prog->onVisit(&topleveltypecheck);
         prog->onVisit(&typeCheck);
 
-        if (ctx.get()->reporter().getErrorCount() != 0) {
+        if (ctx->reporter().getErrorCount() != 0) {
             return 1;
         }
 
+        if (checkOnly) {
+            return 0;
+        }
+
         std::cout << "STARTING BYTECODE GENERATION" << std::endl;
-        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+        std::cout << ctx->memoryManager().getInfos() << std::endl << std::endl;
 
         out::LinkedListOutput<bc::BCInstruction*> out(ctx);
         bc::UserDataAssignment uda(ctx);
@@ -124,23 +128,19 @@ int main(int argc, char** argv) {
         prog->onVisit(&gen);
 
         std::cout << "DONE" << std::endl;
-        std::cout << ctx.get()->memoryManager().getInfos() << std::endl << std::endl;
+        std::cout << ctx->memoryManager().getInfos() << std::endl << std::endl;
 
         for (const bc::BCInstruction* i : out.toVector()) {
             std::cout << *i << std::endl;
         }
 
-        if (ctx.get()->reporter().getErrorCount() != 0) {
+        if (ctx->reporter().getErrorCount() != 0) {
             return 1;
         }
+
+        std::cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << std::endl << std::endl;
 
     } catch(const sfsl::common::CompilationFatalError& ex) {
         std::cerr << ex.what() << std::endl;
     }
-
-    if (compileOnly) {
-        return 0;
-    }
-
-    std::cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << std::endl << std::endl;
 }

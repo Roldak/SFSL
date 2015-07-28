@@ -267,8 +267,6 @@ void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
 
 void DefaultBytecodeGenerator::visit(FunctionCall* call) {
     if (call->getCallee()->type()->getTypeKind() == type::TYPE_METHOD) {
-        Label* afterCall = MakeLabel(*call, "after_call");
-
         if (isNodeOfType<MemberAccess>(call->getCallee(), _ctx)) {
             MemberAccess* dot = static_cast<MemberAccess*>(call->getCallee());
             dot->getAccessed()->onVisit(this);
@@ -277,15 +275,11 @@ void DefaultBytecodeGenerator::visit(FunctionCall* call) {
         sym::DefinitionSymbol* def = static_cast<sym::DefinitionSymbol*>(ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx));
         size_t virtualLoc = def->getUserdata<VirtualDefUserData>()->getVirtualLocation();
 
-        Emit<PushLabel>(*call, afterCall);
-
         for (Expression* expr : call->getArgs()) {
             expr->onVisit(this);
         }
 
         Emit<VCall>(*call, virtualLoc, call->getArgs().size());
-
-        BindLabel(afterCall);
     }
 }
 

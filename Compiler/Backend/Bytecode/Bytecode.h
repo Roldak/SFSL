@@ -143,18 +143,6 @@ namespace bc {
         sfsl_real_t _val;
     };
 
-    class PushLabel : public BCInstruction {
-    public:
-        PushLabel(Label* label);
-        virtual ~PushLabel();
-
-        virtual void appendTo(std::ostream &o) const override;
-
-    private:
-
-        Label* _label;
-    };
-
     class LoadStack : public BCInstruction {
     public:
         LoadStack(size_t index);
