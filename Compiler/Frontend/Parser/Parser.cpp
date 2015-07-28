@@ -242,7 +242,7 @@ TypeDecl* Parser::parseType(bool asStatement) {
 Expression* Parser::parseStatement() {
     SAVE_POS(startPos)
 
-    if (isType(tok::TOK_KW)) {
+    if (isType(tok::TOK_KW) && as<tok::Keyword>()->getKwType() != tok::KW_THIS) {
         tok::KW_TYPE kw = as<tok::Keyword>()->getKwType();
         accept();
 
@@ -250,7 +250,6 @@ Expression* Parser::parseStatement() {
         case tok::KW_DEF:   return parseDef(true, false);
         case tok::KW_IF:    return parseIf(true);
         case tok::KW_TPE:   return parseType(true);
-        case tok::KW_THIS:  return parseThis(startPos);
         default:
             _ctx->reporter().error(startPos, "Unexpected keyword `" + tok::Keyword::KeywordTypeToString(kw) + "`");
             return nullptr;

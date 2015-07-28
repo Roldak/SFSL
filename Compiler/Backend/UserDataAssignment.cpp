@@ -100,7 +100,7 @@ void UserDataAssignment::visit(TypeSpecifier* tps) {
 }
 
 void UserDataAssignment::visit(FunctionCreation* func) {
-    SAVE_MEMBER_AND_SET(_currentVarCount, 0)
+    SAVE_MEMBER_AND_SET(_currentVarCount, func->type()->getTypeKind() == type::TYPE_FUNCTION ? 0 : 1)
 
     ASTVisitor::visit(func);
 

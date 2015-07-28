@@ -317,7 +317,7 @@ void TypeChecking::visit(Identifier* ident) {
 
 void TypeChecking::visit(This* ths) {
     if (!_currentThis) {
-        _ctx->reporter().error(*ths, "Using `this` is forbidden outside of a method's scope");
+        _ctx->reporter().error(*ths, "`this` is forbidden outside of a method scope");
     } else {
         ths->setType(ASTTypeCreator::createType(_currentThis, _ctx));
     }
