@@ -84,9 +84,7 @@ void TypeChecking::visit(TypeDecl* tdecl) {
 void TypeChecking::visit(DefineDecl* decl) {
     decl->setType(_res.Unit());
 
-    if (_visitedDefs.find(decl) == _visitedDefs.end()) {
-        _visitedDefs.emplace(decl);
-
+    if (TRY_INSERT(_visitedDefs, decl)) {
         SAVE_MEMBER_AND_SET(_currentThis, decl->getSymbol()->getOwner())
         SAVE_MEMBER_AND_SET(_nextDef, decl->getValue())
 

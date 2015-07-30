@@ -36,9 +36,7 @@ void KindChecking::visit(Program* prog) {
 }
 
 void KindChecking::visit(TypeDecl* tdecl) {
-    if (_visitedTypeDefs.find(tdecl) == _visitedTypeDefs.end()) {
-        _visitedTypeDefs.emplace(tdecl);
-
+    if (TRY_INSERT(_visitedTypeDefs, tdecl)) {
         tdecl->getExpression()->onVisit(this);
 
         // kind inference

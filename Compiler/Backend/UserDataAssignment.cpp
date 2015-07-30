@@ -29,9 +29,7 @@ void UserDataAssignment::visit(ASTNode*) {
 }
 
 void UserDataAssignment::visit(ClassDecl* clss) {
-    if (_visitedClasses.find(clss) == _visitedClasses.end()) {
-        _visitedClasses.emplace(clss);
-
+    if (TRY_INSERT(_visitedClasses, clss)) {
         std::vector<sym::VariableSymbol*> fields;
         std::vector<sym::DefinitionSymbol*> defs;
 

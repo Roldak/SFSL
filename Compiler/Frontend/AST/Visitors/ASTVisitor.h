@@ -24,6 +24,8 @@
     memberName = value;
 #define RESTORE_MEMBER(memberName) memberName = __old##memberName;
 
+#define TRY_INSERT(colName, value) (colName.insert(value).second)
+
 namespace sfsl {
 
 namespace ast {

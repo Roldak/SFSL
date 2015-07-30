@@ -92,9 +92,7 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic
 
         if (ts->type() == type::Type::NotYetDefined()) {
 
-            if (_visitedTypes.find(ts) == _visitedTypes.end()) {
-                _visitedTypes.emplace(ts);
-
+            if (TRY_INSERT(_visitedTypes, ts)) {
                 ts->getTypeDecl()->getExpression()->onVisit(this);
                 ts->setType(_created);
             } else {
