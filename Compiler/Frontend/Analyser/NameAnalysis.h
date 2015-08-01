@@ -10,6 +10,7 @@
 #define __SFSL__NameAnalysis__
 
 #include <iostream>
+#include <set>
 #include "../AST/Visitors/ASTVisitor.h"
 
 namespace sfsl {
@@ -114,6 +115,8 @@ private:
     void setVariableSymbolicUsed(T* symbolic, bool val);
 
     void warnForUnusedVariableInCurrentScope();
+
+    std::set<TypeExpression*> _visitedTypes;
 };
 
 }

@@ -49,10 +49,9 @@ public:
     static Type* NotYetDefined();
 
     static Type* findSubstitution(const SubstitutionTable& table, Type* toFind);
+    static void applyEnvHelper(const SubstitutionTable& env, SubstitutionTable &to);
 
 protected:
-
-    static void applyEnvHelper(const SubstitutionTable& env, SubstitutionTable &to);
 
     const SubstitutionTable _subTable;
 };

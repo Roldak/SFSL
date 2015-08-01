@@ -49,6 +49,11 @@ namespace sym {
         virtual SYM_TYPE getSymbolType() const = 0;
 
         /**
+         * @return True if this symbol is overloadable with the given one
+         */
+        virtual bool isOverloadableWith(sym::Symbol* other) const;
+
+        /**
          * @return The name of this symbol
          */
         const std::string& getName() const;
@@ -99,6 +104,8 @@ namespace sym {
 
         virtual SYM_TYPE getSymbolType() const override;
 
+        virtual bool isOverloadableWith(sym::Symbol* other) const override;
+
         ast::DefineDecl* getDef() const;
         ast::TypeExpression* getOwner() const;
 
@@ -123,7 +130,6 @@ namespace sym {
 
         virtual SYM_TYPE getSymbolType() const override;
     };
-
 }
 
 }

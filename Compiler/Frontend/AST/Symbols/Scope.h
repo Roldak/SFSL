@@ -18,6 +18,11 @@ namespace sfsl {
 
 namespace sym {
 
+    struct SymbolData final {
+        sym::Symbol* symbol;
+        type::SubstitutionTable env;
+    };
+
     class Scope final : public common::MemoryManageable {
     public:
 
@@ -32,6 +37,12 @@ namespace sym {
          * @return The symbol of the same name in the current scope if any, otherwise nullptr
          */
         Symbol* addSymbol(Symbol* sym);
+
+        /**
+         * @brief Copies all the symbols from the given scope into this one
+         * @param other The scope from which to copy the symbol
+         */
+        void copySymbolsFrom(const Scope* other, const type::SubstitutionTable& env);
 
         template<typename T>
         /**
@@ -55,7 +66,7 @@ namespace sym {
         /**
          * @return The map containing all the symbols
          */
-        const std::map<std::string, Symbol*>& getAllSymbols() const;
+        const std::multimap<std::string, SymbolData>& getAllSymbols() const;
 
     private:
 
@@ -64,8 +75,7 @@ namespace sym {
         Scope* _parent;
         bool _isDefScope;
 
-        std::map<std::string, Symbol*> _symbols;
-
+        std::multimap<std::string, SymbolData> _symbols;
     };
 
     template<>

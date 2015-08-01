@@ -202,11 +202,27 @@ void SymbolAssignation::visit(TypeDecl* tdecl) {
 }
 
 void SymbolAssignation::visit(ClassDecl* clss) {
-    SAVE_SCOPE(clss)
+    if (TRY_INSERT(_visitedTypes, clss)) {
+        SAVE_SCOPE(clss)
 
-    ASTVisitor::visit(clss);
+        if (clss->getParent()) {
+            clss->getParent()->onVisit(this);
+            type::ProperType* parent = type::getIf<type::ProperType>(ASTTypeCreator::createType(clss->getParent(), _ctx)->applied(_ctx));
+            if (parent) {
+                parent->getClass()->onVisit(this);
+                _curScope->copySymbolsFrom(parent->getClass()->getScope(), parent->getSubstitutionTable());
+            }
+        }
 
-    RESTORE_SCOPE
+        for (TypeSpecifier* field : clss->getFields()) {
+            field->onVisit(this);
+        }
+        for (DefineDecl* def : clss->getDefs()) {
+            def->onVisit(this);
+        }
+
+        RESTORE_SCOPE
+    }
 }
 
 void SymbolAssignation::visit(DefineDecl* def) {
@@ -396,8 +412,8 @@ void SymbolAssignation::setVariableSymbolicUsed(T* symbolic, bool val) {
 
 void SymbolAssignation::warnForUnusedVariableInCurrentScope() {
     for (const auto& s : _curScope->getAllSymbols()) {
-        if (s.second->getSymbolType() == sym::SYM_VAR) {
-            sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(s.second);
+        if (s.second.symbol->getSymbolType() == sym::SYM_VAR) {
+            sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(s.second.symbol);
             if (!var->isUsed()) {
                 _ctx->reporter().warning(*var, "Unused variable '" + var->getName() + "'");
             }
