@@ -130,6 +130,11 @@ namespace sym {
 
         virtual SYM_TYPE getSymbolType() const override;
     };
+
+    struct SymbolData final {
+        sym::Symbol* symbol;
+        type::SubstitutionTable env;
+    };
 }
 
 }

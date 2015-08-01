@@ -31,10 +31,10 @@ Symbol* Scope::addSymbol(Symbol* sym) {
 }
 
 void Scope::copySymbolsFrom(const Scope* other, const type::SubstitutionTable& env) {
-    _symbols.insert(other->_symbols.begin(), other->_symbols.end());
     for (const std::pair<std::string, SymbolData>& entry : other->getAllSymbols()) {
         auto it = _symbols.insert(entry);
         type::Type::applyEnvHelper(env, it->second.env);
+        it->second.env.insert(env.begin(), env.end());
     }
 }
 

@@ -18,11 +18,6 @@ namespace sfsl {
 
 namespace sym {
 
-    struct SymbolData final {
-        sym::Symbol* symbol;
-        type::SubstitutionTable env;
-    };
-
     class Scope final : public common::MemoryManageable {
     public:
 

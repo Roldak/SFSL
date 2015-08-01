@@ -8,6 +8,7 @@
 
 #include "ASTOverrideFinder.h"
 #include "ASTTypeCreator.h"
+#include "../Symbols/Scope.h"
 
 namespace sfsl {
 
@@ -29,34 +30,27 @@ void ASTOverrideFinder::visit(ASTNode*) {
 
 
 void ASTOverrideFinder::visit(ClassDecl* clss){
-    for (DefineDecl* decl : clss->getDefs()) {
-        if (    _overridingSymbol->getName() == decl->getName()->getValue() &&
-                _overridingSymbol != decl->getSymbol() &&
-                _overridingSymbol->type()->isSubTypeOf(decl->getSymbol()->type()->applyEnv(_currentType->getSubstitutionTable(), _ctx))) {
+    const std::multimap<std::string, sym::SymbolData>& symbols(clss->getScope()->getAllSymbols());
+    const auto& itPair = symbols.equal_range(_overridingSymbol->getName());
 
-            if (decl->isRedef()) {
-                if (sym::DefinitionSymbol* alreadyOverriden = decl->getSymbol()->getOverridenSymbol()) {
-                    _overridenSymbol = alreadyOverriden;
-                    return;
+    for (auto it = itPair.first; it != itPair.second; ++it) {
+        const sym::SymbolData& data = it->second;
+        if (it->second.symbol != _overridingSymbol && data.symbol->getSymbolType() == sym::SYM_DEF) {
+            sym::DefinitionSymbol* def = static_cast<sym::DefinitionSymbol*>(data.symbol);
+            if (_overridingSymbol->type()->isSubTypeOf(def->type()->applyEnv(data.env, _ctx))) {
+                if (def->getDef()->isRedef()) {
+                    if (sym::DefinitionSymbol* alreadyOverriden = def->getOverridenSymbol()) {
+                        _overridenSymbol = alreadyOverriden;
+                        return;
+                    } else {
+                        continue;
+                    }
                 } else {
-                    break;
+                    _overridenSymbol = def;
+                    return;
                 }
-            } else {
-                _overridenSymbol = decl->getSymbol();
-                return;
             }
         }
-    }
-
-    if (clss->getParent()) {
-        SAVE_MEMBER_AND_SET(
-                    _currentType,
-                    static_cast<type::ProperType*>(
-                        ASTTypeCreator::createType(clss->getParent(), _ctx)->applyEnv(_currentType->getSubstitutionTable(), _ctx)))
-
-        _currentType->getClass()->onVisit(this);
-
-        RESTORE_MEMBER(_currentType)
     }
 }
 
