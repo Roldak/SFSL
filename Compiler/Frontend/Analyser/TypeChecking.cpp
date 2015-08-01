@@ -10,7 +10,6 @@
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTAssignmentChecker.h"
-#include "../AST/Visitors/ASTOverrideFinder.h"
 #include "../AST/Symbols/Scope.h"
 
 namespace sfsl {
@@ -334,21 +333,16 @@ void TypeChecking::visit(RealLitteral* reallit) {
 }
 
 TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
-    if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(id, false)) {
-        return {sym, type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(sym))->applyEnv(subtable, _ctx)};
-    } else if (TypeExpression* parent = clss->getParent()) {
-        if (type::Type* t = ASTTypeCreator::createType(parent, _ctx)) {
-            type::Type* appliedT = type::Type::findSubstitution(subtable, t)->applyEnv(subtable, _ctx);
-            if (type::ProperType* obj = type::getIf<type::ProperType>(appliedT)) {
-                return tryGetFieldInfo(obj->getClass(), id, obj->getSubstitutionTable());
-            } else {
-                _rep.error(*parent, "Class " + clss->getName() + " must inherit from a class type");
-            }
-        } else {
-            _rep.error(*parent, "Expression is not a type");
-        }
+    const auto& it = clss->getScope()->getAllSymbols().find(id);
+
+    if (it == clss->getScope()->getAllSymbols().end()) {
+        return {nullptr, nullptr};
     }
-    return {nullptr, nullptr};
+
+    const sym::SymbolData& data = it->second;
+    type::Type* tp = type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(data.symbol))->applyEnv(subtable, _ctx);
+
+    return {data.symbol, type::Type::findSubstitution(data.env, tp)->applyEnv(data.env, _ctx)};
 }
 
 type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
@@ -368,12 +362,40 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
 }
 
 sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* def) {
-    sym::DefinitionSymbol* overriden = ASTOverrideFinder::findOverridenSymbol(def, _ctx);
-    if (!overriden) {
-        _rep.error(*def, "Could not find the definition overriden by " +
-                   def->getName() + " (which has type " + def->type()->toString() + ")");
+    sym::Scoped* scoped;
+
+    if (isNodeOfType<ClassDecl>(def->getOwner(), _ctx)) {
+        scoped = static_cast<ClassDecl*>(def->getOwner());
+    } else {
+        _rep.fatal(*def, "Owner of " + def->getName() + " is unexpected");
+        return nullptr;
     }
-    return overriden;
+
+    const auto& itPair = scoped->getScope()->getAllSymbols().equal_range(def->getName());
+
+    for (auto it = itPair.first; it != itPair.second; ++it) {
+        const sym::SymbolData& data = it->second;
+
+        if (it->second.symbol != def && data.symbol->getSymbolType() == sym::SYM_DEF) {
+            sym::DefinitionSymbol* potentialDef = static_cast<sym::DefinitionSymbol*>(data.symbol);
+            if (def->type()->isSubTypeOf(potentialDef->type()->applyEnv(data.env, _ctx))) {
+                if (potentialDef->getDef()->isRedef()) {
+                    if (sym::DefinitionSymbol* alreadyOverriden = potentialDef->getOverridenSymbol()) {
+                        return alreadyOverriden;
+                    } else {
+                        continue;
+                    }
+                } else {
+                    return potentialDef;
+                }
+            }
+        }
+    }
+
+    _rep.error(*def, "Could not find the definition overriden by " +
+               def->getName() + " (which has type " + def->type()->toString() + ")");
+
+    return nullptr;
 }
 
 // FIELD INFO
