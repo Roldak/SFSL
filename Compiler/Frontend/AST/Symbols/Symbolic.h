@@ -9,7 +9,15 @@
 #ifndef __SFSL__Symbolic__
 #define __SFSL__Symbolic__
 
+#include <vector>
+#include <map>
+
 namespace sfsl {
+
+namespace type {
+    class Type;
+    typedef std::map<Type*, Type*> SubstitutionTable;
+}
 
 namespace sym {
 
@@ -21,7 +29,7 @@ template<typename Symbol_Type>
 class Symbolic {
 public:
 
-    Symbolic() : _symbol(nullptr) {}
+    Symbolic() : _symbols({SymbolData{.symbol = nullptr, .env = nullptr}}) {}
 
     virtual ~Symbolic() {}
 
@@ -29,19 +37,26 @@ public:
      * @param symbol The symbol to assign to the this Symbolic
      */
     void setSymbol(Symbol_Type* symbol) {
-        _symbol = symbol;
+        _symbols[0] = SymbolData{.symbol = symbol, .env = nullptr};
     }
 
     /**
      * @return The symbol that was assigned to this Symbolic
      */
     Symbol_Type* getSymbol() const {
-        return _symbol;
+        return _symbols[0].symbol;
     }
 
 private:
 
-    Symbol_Type* _symbol;
+    friend class Scope;
+
+    struct SymbolData {
+        Symbol_Type* symbol;
+        const type::SubstitutionTable* env;
+    };
+
+    std::vector<SymbolData> _symbols;
 };
 
 }

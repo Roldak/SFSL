@@ -357,9 +357,7 @@ void SymbolAssignation::initCreated(T* id, S* s) {
 
 template<typename T>
 void SymbolAssignation::assignIdentifier(T* id) {
-    if (sym::Symbol* symbol = _curScope->getSymbol<sym::Symbol>(id->getValue())) {
-        id->setSymbol(symbol);
-    } else {
+    if (!_curScope->assignSymbolic<sym::Symbol>(*id, id->getValue())) {
         _ctx->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
     }
 }
@@ -384,9 +382,7 @@ void SymbolAssignation::assignFromStaticScope(T* mac, sym::Scoped* scoped, const
     sym::Scope* scope = scoped->getScope();
     const std::string& id = mac->getMember()->getValue();
 
-    if (sym::Symbol* resSymbol = scope->getSymbol<sym::Symbol>(id, false)) {
-        mac->setSymbol(resSymbol);
-    } else {
+    if (!scope->assignSymbolic<sym::Symbol>(*mac, id)) {
         _ctx->reporter().error(
                     *(mac->getMember()),
                     std::string("No member named '") + id + "' in " + typeName);

@@ -62,6 +62,23 @@ Symbol* Scope::_getSymbol(const std::string& name, SYM_TYPE symType, bool recurs
     }
 }
 
+bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& id) const {
+    const auto& itPair = _symbols.equal_range(id);
+
+    if (itPair.first != itPair.second) {
+        symbolic._symbols.clear();
+        for (auto it = itPair.first; it != itPair.second; ++it) {
+            const SymbolData& data = it->second;
+            symbolic._symbols.push_back(Symbolic<Symbol>::SymbolData{.symbol = data.symbol, .env = &data.env});
+        }
+        return true;
+    } else if (_parent) {
+        return _parent->_assignSymbolic(symbolic, id);
+    } else {
+        return false;
+    }
+}
+
 }
 
 }

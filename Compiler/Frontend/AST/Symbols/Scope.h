@@ -13,6 +13,7 @@
 #include <map>
 #include "../../../Common/MemoryManageable.h"
 #include "Symbols.h"
+#include "Symbolic.h"
 
 namespace sfsl {
 
@@ -53,6 +54,9 @@ namespace sym {
             return nullptr;
         }
 
+        template<typename T>
+        bool assignSymbolic(sym::Symbolic<T>& symbolic, const std::string& id);
+
         /**
          * @return The parent if this scope
          */
@@ -66,12 +70,18 @@ namespace sym {
     private:
 
         Symbol* _getSymbol(const std::string& name, SYM_TYPE symType, bool recursive) const;
+        bool _assignSymbolic(Symbolic<Symbol>& symbolic, const std::string& id) const;
 
         Scope* _parent;
         bool _isDefScope;
 
         std::multimap<std::string, SymbolData> _symbols;
     };
+
+    template<typename T>
+    bool Scope::assignSymbolic(Symbolic<T>& symbolic, const std::string& id) {
+        return _assignSymbolic(static_cast<Symbolic<Symbol>&>(symbolic), id);
+    }
 
     template<>
     inline Symbol* Scope::getSymbol(const std::string& name, bool recursive) const {
