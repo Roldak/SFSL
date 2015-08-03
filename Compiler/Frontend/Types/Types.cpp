@@ -359,6 +359,10 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
         params.push_back(expr);
     }
 
+    if (params.size() != _args.size()) { // can happen if this is called before kind checking occurs
+        return NotYetDefined();
+    }
+
     SubstitutionTable subs;
 
     for (size_t i = 0; i < params.size(); ++i) {

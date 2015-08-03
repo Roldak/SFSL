@@ -383,7 +383,7 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
                     if (sym::DefinitionSymbol* alreadyOverriden = potentialDef->getOverridenSymbol()) {
                         return alreadyOverriden;
                     } else {
-                        continue;
+                        continue; // for readability
                     }
                 } else {
                     return potentialDef;

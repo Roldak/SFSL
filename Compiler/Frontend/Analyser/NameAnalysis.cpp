@@ -207,10 +207,11 @@ void SymbolAssignation::visit(ClassDecl* clss) {
 
         if (clss->getParent()) {
             clss->getParent()->onVisit(this);
-            type::ProperType* parent = type::getIf<type::ProperType>(ASTTypeCreator::createType(clss->getParent(), _ctx)->applied(_ctx));
-            if (parent) {
-                parent->getClass()->onVisit(this);
-                _curScope->copySymbolsFrom(parent->getClass()->getScope(), parent->getSubstitutionTable());
+            if (type::Type* parentType = ASTTypeCreator::createType(clss->getParent(), _ctx)) {
+                if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->applied(_ctx))) {
+                    parent->getClass()->onVisit(this);
+                    _curScope->copySymbolsFrom(parent->getClass()->getScope(), parent->getSubstitutionTable());
+                }
             }
         }
 
