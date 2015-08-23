@@ -19,6 +19,10 @@ namespace type {
     typedef std::map<Type*, Type*> SubstitutionTable;
 }
 
+namespace ast {
+    class TypeChecking;
+}
+
 namespace sym {
 
 template<typename Symbol_Type>
@@ -28,6 +32,7 @@ template<typename Symbol_Type>
  */
 class Symbolic {
     friend class Scope;
+    friend class ast::TypeChecking;
 
     struct SymbolData {
         Symbol_Type* symbol;
@@ -36,7 +41,7 @@ class Symbolic {
 
 public:
 
-    Symbolic() : _symbols({SymbolData{.symbol = nullptr, .env = nullptr}}) {}
+    Symbolic() : _symbols({SymbolData{nullptr, nullptr}}) {}
 
     virtual ~Symbolic() {}
 
@@ -44,7 +49,9 @@ public:
      * @param symbol The symbol to assign to the this Symbolic
      */
     void setSymbol(Symbol_Type* symbol) {
-        _symbols[0] = SymbolData{.symbol = symbol, .env = nullptr};
+        _symbols.resize(1);
+        _symbols[0].symbol = symbol;
+        _symbols[0].env = nullptr;
     }
 
     /**
