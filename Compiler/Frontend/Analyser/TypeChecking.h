@@ -43,6 +43,13 @@ namespace ast {
         virtual void visit(ASTNode* node) override;
 
         virtual void visit(ClassDecl* clss) override;
+        virtual void visit(DefineDecl* def) override;
+
+        virtual void visit(FunctionCreation* func) override;
+
+    private:
+
+        Expression* _nextDef;
     };
 
     /**

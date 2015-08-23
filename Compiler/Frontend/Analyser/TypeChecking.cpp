@@ -51,6 +51,43 @@ void TopLevelTypeChecking::visit(ClassDecl* clss) {
     }
 }
 
+void TopLevelTypeChecking::visit(DefineDecl* def) {
+    _nextDef = def->getValue();
+    def->getValue()->onVisit(this);
+    def->getSymbol()->setType(def->getValue()->type());
+}
+
+void TopLevelTypeChecking::visit(FunctionCreation* func) {
+    if (func == _nextDef) {
+        // to be able to resolve overloads without having to fully typecheck the body of the function
+
+        Expression* expr = func->getArgs();
+        std::vector<Expression*> args;
+
+        if (isNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
+            args = static_cast<Tuple*>(expr)->getExpressions();
+        } else { // form is `exp => ...` or `(exp) => ...`
+            args.push_back(expr);
+        }
+
+        std::vector<type::Type*> argTypes(args.size());
+
+        for (size_t i = 0; i < args.size(); ++i) {
+            if (isNodeOfType<TypeSpecifier>(args[i], _ctx)) {
+                TypeSpecifier* tps = static_cast<TypeSpecifier*>(args[i]);
+                argTypes[i] = ASTTypeCreator::createType(tps->getTypeNode(), _ctx);
+            } else {
+                _rep.error(*args[i], "Omitting the type of the argument is forbidden in this case");
+                argTypes[i] = type::Type::NotYetDefined();
+            }
+        }
+
+        func->setType(_mngr.New<type::FunctionType>(argTypes, type::Type::NotYetDefined(), nullptr));
+    }
+
+    ASTVisitor::visit(func);
+}
+
 // TYPE CHECKING
 
 TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
@@ -420,6 +457,7 @@ type::Type* TypeChecking::resolveOverload(sym::Symbolic<sym::Symbol>* symbolic, 
     for (const sym::Symbolic::SymbolData& data : datas) {
 
     }*/
+    return type::Type::NotYetDefined();
 }
 
 // FIELD INFO
