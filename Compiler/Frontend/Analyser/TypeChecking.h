@@ -89,6 +89,12 @@ namespace ast {
             type::Type* t;
         };
 
+        struct ExpectedInfo final {
+            const std::vector<type::Type*>* args;
+            type::Type* ret;
+            ASTNode* node;
+        };
+
         FieldInfo tryGetFieldInfo(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
 
         type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
@@ -96,9 +102,12 @@ namespace ast {
         type::TypeConstructorType* applySubsitutions(type::TypeConstructorType* inner, type::ProperType* obj);
 
         sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);
+        type::Type* resolveOverload(sym::Symbolic<sym::Symbol>* symbolic, const type::SubstitutionTable& subTable);
 
         TypeExpression* _currentThis;
         Expression* _nextDef;
+
+        ExpectedInfo _expectedInfo;
 
         std::set<DefineDecl*> _visitedDefs;
         std::vector<DefineDecl*> _redefs;

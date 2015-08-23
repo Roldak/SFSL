@@ -27,6 +27,13 @@ template<typename Symbol_Type>
  * and are therefore Symbolics
  */
 class Symbolic {
+    friend class Scope;
+
+    struct SymbolData {
+        Symbol_Type* symbol;
+        const type::SubstitutionTable* env;
+    };
+
 public:
 
     Symbolic() : _symbols({SymbolData{.symbol = nullptr, .env = nullptr}}) {}
@@ -47,14 +54,21 @@ public:
         return _symbols[0].symbol;
     }
 
+    /**
+     * @return The number of symbols that was assigned to this Symbolic
+     */
+    size_t getSymbolCount() const {
+        return _symbols.size();
+    }
+
+    /**
+     * @return Every SymbolDatas that this symbolic holds
+     */
+    const std::vector<SymbolData>& getSymbolDatas() {
+        return _symbols;
+    }
+
 private:
-
-    friend class Scope;
-
-    struct SymbolData {
-        Symbol_Type* symbol;
-        const type::SubstitutionTable* env;
-    };
 
     std::vector<SymbolData> _symbols;
 };

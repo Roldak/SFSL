@@ -54,7 +54,7 @@ void TopLevelTypeChecking::visit(ClassDecl* clss) {
 // TYPE CHECKING
 
 TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : TypeChecker(ctx, res), _currentThis(nullptr), _nextDef(nullptr) {
+    : TypeChecker(ctx, res), _currentThis(nullptr), _nextDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr} {
 
 }
 
@@ -261,9 +261,7 @@ void TypeChecking::visit(FunctionCreation* func) {
 }
 
 void TypeChecking::visit(FunctionCall* call) {
-    ASTVisitor::visit(call);
-
-    type::Type* calleeT = call->getCallee()->type();
+    call->getArgsTuple()->onVisit(this);
 
     const std::vector<Expression*>& callArgs = call->getArgs();
     std::vector<type::Type*> callArgTypes(callArgs.size());
@@ -271,6 +269,18 @@ void TypeChecking::visit(FunctionCall* call) {
     for (size_t i = 0; i < callArgs.size(); ++i) {
         callArgTypes[i] = callArgs[i]->type();
     }
+
+    SAVE_MEMBER(_expectedInfo)
+
+    _expectedInfo.args = &callArgTypes;
+    _expectedInfo.ret = nullptr;
+    _expectedInfo.node = call->getCallee();
+
+    call->getCallee()->onVisit(this);
+
+    RESTORE_MEMBER(_expectedInfo)
+
+    type::Type* calleeT = call->getCallee()->type();
 
     const std::vector<type::Type*>* expectedArgTypes = nullptr;
     type::Type* retType = nullptr;
@@ -294,10 +304,10 @@ void TypeChecking::visit(FunctionCall* call) {
     }
 
     for (size_t i = 0; i < expectedArgTypes->size(); ++i) {
-        if (!callArgTypes[i]->isSubTypeOf(expectedArgTypes->operator [](i))) {
+        if (!callArgTypes[i]->applied(_ctx)->isSubTypeOf((*expectedArgTypes)[i]->applied(_ctx))) {
             _rep.error(*callArgs[i],
-                       "Argument type mismatch. Found " + callArgTypes[i]->toString() +
-                       ", expected " + expectedArgTypes->operator [](i)->toString());
+                       "Argument type mismatch. Found " + callArgTypes[i]->applied(_ctx)->toString() +
+                       ", expected " + (*expectedArgTypes)[i]->applied(_ctx)->toString());
         }
     }
 
@@ -305,10 +315,16 @@ void TypeChecking::visit(FunctionCall* call) {
 }
 
 void TypeChecking::visit(Identifier* ident) {
-    if (sym::Symbol* sym = ident->getSymbol()) {
-        if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-            ident->setType(t);
+    if (ident->getSymbolCount() == 1) {
+        if (sym::Symbol* sym = ident->getSymbol()) {
+            if (type::Type* t = tryGetTypeOfSymbol(sym)) {
+                ident->setType(t);
+            }
         }
+    } else if (_expectedInfo.node == ident) {
+        ident->setType(resolveOverload(ident, {}));
+    } else {
+        _rep.error(*ident, "Not enough information are provided to determine the right symbol");
     }
 }
 
@@ -396,6 +412,14 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
                def->getName() + " (which has type " + def->type()->toString() + ")");
 
     return nullptr;
+}
+
+type::Type* TypeChecking::resolveOverload(sym::Symbolic<sym::Symbol>* symbolic, const type::SubstitutionTable& subTable) {
+    /*const std::vector<sym::Symbolic::SymbolData>& datas(symbolic->getSymbolDatas());
+
+    for (const sym::Symbolic::SymbolData& data : datas) {
+
+    }*/
 }
 
 // FIELD INFO
