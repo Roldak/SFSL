@@ -6,6 +6,8 @@
 //  Copyright (c) 2014 Romain Beguet. All rights reserved.
 //
 
+#include <algorithm>
+
 #include "TypeChecking.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
@@ -359,7 +361,9 @@ void TypeChecking::visit(Identifier* ident) {
             }
         }
     } else if (_expectedInfo.node == ident) {
-        ident->setType(resolveOverload(ident, {}));
+        FieldInfo info = resolveOverload(*ident, ident, {});
+        ident->setSymbol(info.s);
+        ident->setType(info.t);
     } else {
         _rep.error(*ident, "Not enough information are provided to determine the right symbol");
     }
@@ -451,13 +455,151 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
     return nullptr;
 }
 
-type::Type* TypeChecking::resolveOverload(sym::Symbolic<sym::Symbol>* symbolic, const type::SubstitutionTable& subTable) {
-    /*const std::vector<sym::Symbolic::SymbolData>& datas(symbolic->getSymbolDatas());
+template<typename T>
+T* applyEnvsHelper(T* t, const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx) {
+    t = static_cast<T*>(type::Type::findSubstitution(subtable, t)->applyEnv(subtable, ctx));
+    t = static_cast<T*>(type::Type::findSubstitution(*env, t)->applyEnv(*env, ctx));
+    return t;
+}
 
-    for (const sym::Symbolic::SymbolData& data : datas) {
+class OverloadedDefSymbolCandidate final {
+public:
 
-    }*/
-    return type::Type::NotYetDefined();
+    OverloadedDefSymbolCandidate() {}
+
+    size_t argCount() const {
+        return _args->size();
+    }
+
+    type::Type* arg(size_t index) const {
+        return (*_args)[index];
+    }
+
+    void incrScore() {
+        ++_score;
+    }
+
+    uint32_t score() const {
+        return _score;
+    }
+
+    sym::DefinitionSymbol* symbol() const {
+        return _symbol;
+    }
+
+    type::Type* appliedType() const {
+        return _appliedType;
+    }
+
+    static void append(std::vector<OverloadedDefSymbolCandidate>& vec, sym::DefinitionSymbol* s, type::Type* t, size_t expectedArgCount,
+                       const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx) {
+        if (type::FunctionType* ft = type::getIf<type::FunctionType>(t)) {
+            if (ft->getArgTypes().size() == expectedArgCount) {
+                vec.push_back(OverloadedDefSymbolCandidate(s, applyEnvsHelper(ft, subtable, env, ctx)));
+            }
+        } else if (type::MethodType* mt = type::getIf<type::MethodType>(t)) {
+            if (mt->getArgTypes().size() == expectedArgCount) {
+                vec.push_back(OverloadedDefSymbolCandidate(s, applyEnvsHelper(mt, subtable, env, ctx)));
+            }
+        }
+    }
+
+private:
+
+    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, type::FunctionType* ft)
+        : _symbol(s), _args(&ft->getArgTypes()), _ret(ft->getRetType()), _score(0), _appliedType(ft)
+    { }
+
+    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, type::MethodType* mt)
+        : _symbol(s), _args(&mt->getArgTypes()), _ret(mt->getRetType()), _score(0), _appliedType(mt)
+    { }
+
+    sym::DefinitionSymbol* _symbol;
+    const std::vector<type::Type*>* _args;
+    type::Type* _ret;
+    uint32_t _score;
+
+    type::Type* _appliedType;
+};
+
+TypeChecking::FieldInfo TypeChecking::resolveOverload(const common::Positionnable& pos, sym::Symbolic<sym::Symbol>* symbolic, const type::SubstitutionTable& subtable) {
+    const std::vector<sym::Symbolic<sym::Symbol>::SymbolData>& datas(symbolic->getSymbolDatas());
+    std::vector<OverloadedDefSymbolCandidate> candidates;
+
+    size_t expectedArgCount = _expectedInfo.args->size();
+
+    for (const sym::Symbolic<sym::Symbol>::SymbolData& data : datas) {
+        if (data.symbol->getSymbolType() == sym::SYM_DEF) {
+            sym::DefinitionSymbol* defsymbol = static_cast<sym::DefinitionSymbol*>(data.symbol);
+            OverloadedDefSymbolCandidate::append(candidates, defsymbol, defsymbol->type(), expectedArgCount, subtable, data.env, _ctx);
+        }
+    }
+
+    size_t candidateCount = candidates.size();
+
+    for (size_t a = 0; a < expectedArgCount; ++a) {
+        for (size_t i = 0; i < candidateCount; ++i) {
+            type::Type* iType = candidates[i].arg(a);
+
+            for (size_t j = i + 1; j < candidateCount; ++j) {
+                type::Type* jType = candidates[j].arg(a);
+
+                if (iType->isSubTypeOf(jType)) { candidates[i].incrScore(); }
+                if (jType->isSubTypeOf(iType)) { candidates[j].incrScore(); }
+            }
+        }
+    }
+
+    std::sort(candidates.begin(), candidates.end(), [](const OverloadedDefSymbolCandidate& a, const OverloadedDefSymbolCandidate& b) {
+        return a.score() > b.score();
+    });
+
+    for (const OverloadedDefSymbolCandidate& candidate : candidates) {
+        std::string args = "[Candidate] score=" + utils::T_toString(candidate.score()) + " (";
+        if (candidate.argCount() > 0) {
+            for (size_t i = 0; i < candidate.argCount() - 1; ++i) {
+                args += candidate.arg(i)->toString() + ", ";
+            }
+            args += candidate.arg(candidate.argCount() - 1)->toString();
+        }
+        args += ")";
+
+        _rep.info(*candidate.symbol(), args);
+    }
+
+    std::vector<OverloadedDefSymbolCandidate*> theChosenOnes;
+
+    for (OverloadedDefSymbolCandidate& candidate : candidates) {
+        bool ok = true;
+
+        for (size_t a = 0; a < expectedArgCount; ++a) {
+            if (!((*_expectedInfo.args)[a]->isSubTypeOf(candidate.arg(a)))) {
+                ok = false;
+                break;
+            }
+        }
+
+        if (ok && (theChosenOnes.size() > 0) && (theChosenOnes[0]->score() > candidate.score())) {
+           break;
+        } else if (ok) {
+           theChosenOnes.push_back(&candidate);
+        }
+    }
+
+    switch (theChosenOnes.size()) {
+    case 0:
+        _rep.error(pos, "No viable candidate found among the " + utils::T_toString(candidates.size()) + " overloads found");
+        return FieldInfo(nullptr, type::Type::NotYetDefined());
+
+    default:
+        _rep.error(pos, "Ambiguous symbol access. Multiple candidates match the required type:");
+        for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
+            _rep.info(*candidate->symbol(), "Is a viable candidate");
+        }
+
+    case 1:
+        return FieldInfo(theChosenOnes[0]->symbol(), theChosenOnes[0]->appliedType());
+    }
 }
 
 // FIELD INFO
