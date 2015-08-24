@@ -397,9 +397,11 @@ TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ClassDecl* clss, const std
     }
 
     const sym::SymbolData& data = it.first->second;
-    type::Type* tp = type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(data.symbol))->applyEnv(subtable, _ctx);
 
-    return {data.symbol, type::Type::findSubstitution(data.env, tp)->applyEnv(data.env, _ctx)};
+    type::SubstitutionTable env = data.env;
+    type::Type::applyEnvHelper(subtable, env);
+
+    return {data.symbol, type::Type::findSubstitution(env, tryGetTypeOfSymbol(data.symbol))->applyEnv(env, _ctx)};
 }
 
 type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
@@ -457,9 +459,10 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
 
 template<typename T>
 T* applyEnvsHelper(T* t, const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx) {
-    t = static_cast<T*>(type::Type::findSubstitution(subtable, t)->applyEnv(subtable, ctx));
-    t = static_cast<T*>(type::Type::findSubstitution(*env, t)->applyEnv(*env, ctx));
-    return t;
+    type::SubstitutionTable envcopy = *env;
+    type::Type::applyEnvHelper(subtable, envcopy);
+
+    return static_cast<T*>(type::Type::findSubstitution(envcopy, t)->applyEnv(envcopy, ctx));
 }
 
 class OverloadedDefSymbolCandidate final {
@@ -492,7 +495,8 @@ public:
     }
 
     static void append(std::vector<OverloadedDefSymbolCandidate>& vec, sym::DefinitionSymbol* s, type::Type* t, size_t expectedArgCount,
-                       const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx) {
+                       const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx)
+    {
         if (type::FunctionType* ft = type::getIf<type::FunctionType>(t)) {
             if (ft->getArgTypes().size() == expectedArgCount) {
                 vec.push_back(OverloadedDefSymbolCandidate(s, applyEnvsHelper(ft, subtable, env, ctx)));
