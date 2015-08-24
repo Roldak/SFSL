@@ -11,6 +11,7 @@
 
 #include <sstream>
 #include <vector>
+#include <iterator>
 
 #define PTR_SIZE sizeof(void*)
 
@@ -103,6 +104,38 @@ inline size_t split(std::vector<std::string>& toFill, const std::string& str, ch
     }
     return toFill.size();
 }
+
+template<typename Iterator>
+/**
+ * @brief An iterator adapter which returns
+ * the second member of the underlying iterator's value
+ */
+class TakeSecond : public std::iterator<std::input_iterator_tag, typename Iterator::value_type> {
+public:
+    TakeSecond(const Iterator& it)
+        : _it(it) { }
+
+    typename Iterator::value_type::second_type operator *() const {
+        return _it->second;
+    }
+
+    TakeSecond<Iterator>& operator ++() {
+        ++_it;
+        return *this;
+    }
+
+    bool operator ==(const TakeSecond<Iterator>& other) const {
+        return _it == other._it;
+    }
+
+    bool operator !=(const TakeSecond<Iterator>& other) const {
+        return _it != other._it;
+    }
+
+private:
+
+    Iterator _it;
+};
 
 }
 
