@@ -87,6 +87,8 @@ namespace ast {
 
     private:
 
+        typedef sym::Symbolic<sym::Symbol>::SymbolData AnySymbolicData;
+
         struct FieldInfo final {
             FieldInfo(sym::Symbol* sy, type::Type* ty);
 
@@ -111,7 +113,7 @@ namespace ast {
         sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);
 
         template<typename SymbolIterator>
-        sym::Symbolic<sym::Symbol>::SymbolData resolveOverload(
+        AnySymbolicData resolveOverload(
                 ASTNode* triggerer, const SymbolIterator& begin, const SymbolIterator& end, const type::SubstitutionTable& subtable);
 
         TypeExpression* _currentThis;

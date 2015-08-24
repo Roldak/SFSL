@@ -369,22 +369,7 @@ void TypeChecking::visit(FunctionCall* call) {
 }
 
 void TypeChecking::visit(Identifier* ident) {
-    /*if (ident->getSymbolCount() == 1) {
-        if (sym::Symbol* sym = ident->getSymbol()) {
-            if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-                ident->setType(t);
-            }
-        }
-    } else if (_expectedInfo.node == ident) {
-        if (sym::Symbol* sym = resolveOverload(ident, ident->getSymbolDatas().cbegin(), ident->getSymbolDatas().cend(), {}).symbol) {
-            ident->setSymbol(sym);
-            ident->setType(tryGetTypeOfSymbol(sym));
-        }
-    } else {
-
-    }
-*/
-    const sym::Symbolic<sym::Symbol>::SymbolData data = resolveOverload(ident, ident->getSymbolDatas().cbegin(), ident->getSymbolDatas().cend(), {});
+    const AnySymbolicData data = resolveOverload(ident, ident->getSymbolDatas().cbegin(), ident->getSymbolDatas().cend(), {});
     if (sym::Symbol* sym = data.symbol) {
         ident->setSymbol(sym);
         if (type::Type* t = tryGetTypeOfSymbol(sym)) {
@@ -422,7 +407,7 @@ TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(MemberAccess* dot, ClassDe
 
     auto b = utils::TakeSecond<decltype(it.first)>(it.first);
     auto e = utils::TakeSecond<decltype(it.second)>(it.second);
-    const sym::Symbolic<sym::Symbol>::SymbolData data = resolveOverload(dot, b, e, subtable);
+    const AnySymbolicData data = resolveOverload(dot, b, e, subtable);
 
     if (data.symbol) {
         return {data.symbol, applyEnvsHelper(tryGetTypeOfSymbol(data.symbol), subtable, data.env, _ctx)};
@@ -567,14 +552,14 @@ void debugReportCandidateScores(const std::vector<OverloadedDefSymbolCandidate>&
 }
 
 template<typename SymbolIterator>
-sym::Symbolic<sym::Symbol>::SymbolData TypeChecking::resolveOverload(
+TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         ASTNode* triggerer,
         const SymbolIterator& begin, const SymbolIterator& end,
         const type::SubstitutionTable& subtable)
 {
     if (std::distance(begin, end) == 1) {
         const auto& val = *begin;
-        return sym::Symbolic<sym::Symbol>::SymbolData(val.symbol, val.env);
+        return AnySymbolicData(val.symbol, val.env);
     } else if (_expectedInfo.node != triggerer) {
         _rep.error(*triggerer, "Not enough information are provided to determine the right symbol");
         return {nullptr, nullptr};
@@ -585,7 +570,7 @@ sym::Symbolic<sym::Symbol>::SymbolData TypeChecking::resolveOverload(
 
     for (SymbolIterator it = begin; it != end; ++it) {
         const auto& val = *it;
-        const sym::Symbolic<sym::Symbol>::SymbolData data(val.symbol, val.env);
+        const AnySymbolicData data(val.symbol, val.env);
         if (data.symbol->getSymbolType() == sym::SYM_DEF) {
             sym::DefinitionSymbol* defsymbol = static_cast<sym::DefinitionSymbol*>(data.symbol);
             OverloadedDefSymbolCandidate::append(candidates, defsymbol, defsymbol->type(), expectedArgCount, subtable, data.env, _ctx);
