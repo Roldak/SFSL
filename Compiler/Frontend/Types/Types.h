@@ -37,19 +37,21 @@ public:
 
     virtual ~Type();
 
+    virtual Type* copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const = 0;
+
     virtual TYPE_KIND getTypeKind() const = 0;
     virtual bool isSubTypeOf(const Type* other) const = 0;
     virtual std::string toString() const = 0;
 
-    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const = 0;
+    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const;
     Type* applied(CompCtx_Ptr& ctx) const;
 
     const SubstitutionTable& getSubstitutionTable() const;
 
     static Type* NotYetDefined();
 
-    static Type* findSubstitution(const SubstitutionTable& table, Type* toFind);
-    static void applyEnvHelper(const SubstitutionTable& env, SubstitutionTable &to);
+    static Type* findSubstitution(const SubstitutionTable& table, Type* toFind, bool* matched = nullptr);
+    static bool applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to);
 
 protected:
 
@@ -62,11 +64,11 @@ public:
 
     virtual ~ProperType();
 
+    virtual Type* copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other) const override;
     virtual std::string toString() const override;
-
-    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const override;
 
     ast::ClassDecl* getClass() const;
 
@@ -80,6 +82,8 @@ public:
     FunctionType(const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable = {});
 
     virtual ~FunctionType();
+
+    virtual Type* copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other) const override;
@@ -101,6 +105,8 @@ public:
     MethodType(ast::ClassDecl* owner, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable = {});
 
     virtual ~MethodType();
+
+    virtual Type* copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type *other) const override;
@@ -125,11 +131,11 @@ public:
 
     virtual ~TypeConstructorType();
 
+    virtual Type* copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other) const override;
     virtual std::string toString() const override;
-
-    virtual Type* applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const override;
 
     ast::TypeConstructorCreation* getTypeConstructor() const;
 
@@ -143,6 +149,8 @@ public:
     ConstructorApplyType(Type* callee, const std::vector<Type*>& args, const common::Positionnable& pos, const SubstitutionTable& substitutionTable = {});
 
     virtual ~ConstructorApplyType();
+
+    virtual Type* copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other) const override;
