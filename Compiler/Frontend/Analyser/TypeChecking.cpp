@@ -6,16 +6,32 @@
 //  Copyright (c) 2014 Romain Beguet. All rights reserved.
 //
 
+#include <algorithm>
+
 #include "TypeChecking.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTAssignmentChecker.h"
-#include "../AST/Visitors/ASTOverrideFinder.h"
 #include "../AST/Symbols/Scope.h"
 
 namespace sfsl {
 
 namespace ast {
+
+// HELPER
+
+template<typename T>
+T* applyEnvsHelper(T* t, const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx) {
+    type::Type* tmpT;
+
+    if (env) {
+        tmpT = type::Type::findSubstitution(*env, t)->applyEnv(*env, ctx);
+    }
+
+    tmpT = type::Type::findSubstitution(subtable, tmpT)->applyEnv(subtable, ctx);
+
+    return static_cast<T*>(tmpT);
+}
 
 // TYPE CHECKER
 
@@ -52,10 +68,47 @@ void TopLevelTypeChecking::visit(ClassDecl* clss) {
     }
 }
 
+void TopLevelTypeChecking::visit(DefineDecl* def) {
+    _nextDef = def->getValue();
+    def->getValue()->onVisit(this);
+    def->getSymbol()->setType(def->getValue()->type());
+}
+
+void TopLevelTypeChecking::visit(FunctionCreation* func) {
+    if (func == _nextDef) {
+        // to be able to resolve overloads without having to fully typecheck the body of the function
+
+        Expression* expr = func->getArgs();
+        std::vector<Expression*> args;
+
+        if (isNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
+            args = static_cast<Tuple*>(expr)->getExpressions();
+        } else { // form is `exp => ...` or `(exp) => ...`
+            args.push_back(expr);
+        }
+
+        std::vector<type::Type*> argTypes(args.size());
+
+        for (size_t i = 0; i < args.size(); ++i) {
+            if (isNodeOfType<TypeSpecifier>(args[i], _ctx)) {
+                TypeSpecifier* tps = static_cast<TypeSpecifier*>(args[i]);
+                argTypes[i] = ASTTypeCreator::createType(tps->getTypeNode(), _ctx);
+            } else {
+                _rep.error(*args[i], "Omitting the type of the argument is forbidden in this case");
+                argTypes[i] = type::Type::NotYetDefined();
+            }
+        }
+
+        func->setType(_mngr.New<type::FunctionType>(argTypes, type::Type::NotYetDefined(), nullptr));
+    }
+
+    ASTVisitor::visit(func);
+}
+
 // TYPE CHECKING
 
 TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : TypeChecker(ctx, res), _currentThis(nullptr), _nextDef(nullptr) {
+    : TypeChecker(ctx, res), _currentThis(nullptr), _nextDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr} {
 
 }
 
@@ -200,7 +253,7 @@ void TypeChecking::visit(MemberAccess* dot) {
             ClassDecl* clss = obj->getClass();
             const type::SubstitutionTable& subtable = obj->getSubstitutionTable();
 
-            FieldInfo field = tryGetFieldInfo(clss, dot->getMember()->getValue(), subtable);
+            FieldInfo field = tryGetFieldInfo(dot, clss, dot->getMember()->getValue(), subtable);
 
             if (field.isValid()) {
                 dot->setSymbol(field.s);
@@ -262,9 +315,7 @@ void TypeChecking::visit(FunctionCreation* func) {
 }
 
 void TypeChecking::visit(FunctionCall* call) {
-    ASTVisitor::visit(call);
-
-    type::Type* calleeT = call->getCallee()->type();
+    call->getArgsTuple()->onVisit(this);
 
     const std::vector<Expression*>& callArgs = call->getArgs();
     std::vector<type::Type*> callArgTypes(callArgs.size());
@@ -272,6 +323,18 @@ void TypeChecking::visit(FunctionCall* call) {
     for (size_t i = 0; i < callArgs.size(); ++i) {
         callArgTypes[i] = callArgs[i]->type();
     }
+
+    SAVE_MEMBER(_expectedInfo)
+
+    _expectedInfo.args = &callArgTypes;
+    _expectedInfo.ret = nullptr;
+    _expectedInfo.node = call->getCallee();
+
+    call->getCallee()->onVisit(this);
+
+    RESTORE_MEMBER(_expectedInfo)
+
+    type::Type* calleeT = call->getCallee()->type();
 
     const std::vector<type::Type*>* expectedArgTypes = nullptr;
     type::Type* retType = nullptr;
@@ -295,10 +358,10 @@ void TypeChecking::visit(FunctionCall* call) {
     }
 
     for (size_t i = 0; i < expectedArgTypes->size(); ++i) {
-        if (!callArgTypes[i]->isSubTypeOf(expectedArgTypes->operator [](i))) {
+        if (!callArgTypes[i]->applied(_ctx)->isSubTypeOf((*expectedArgTypes)[i]->applied(_ctx))) {
             _rep.error(*callArgs[i],
-                       "Argument type mismatch. Found " + callArgTypes[i]->toString() +
-                       ", expected " + expectedArgTypes->operator [](i)->toString());
+                       "Argument type mismatch. Found " + callArgTypes[i]->applied(_ctx)->toString() +
+                       ", expected " + (*expectedArgTypes)[i]->applied(_ctx)->toString());
         }
     }
 
@@ -306,9 +369,11 @@ void TypeChecking::visit(FunctionCall* call) {
 }
 
 void TypeChecking::visit(Identifier* ident) {
-    if (sym::Symbol* sym = ident->getSymbol()) {
+    const AnySymbolicData data = resolveOverload(ident, ident->getSymbolDatas().cbegin(), ident->getSymbolDatas().cend(), {});
+    if (sym::Symbol* sym = data.symbol) {
+        ident->setSymbol(sym);
         if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-            ident->setType(t);
+            ident->setType(applyEnvsHelper(t, {}, data.env, _ctx));
         }
     }
 }
@@ -333,22 +398,22 @@ void TypeChecking::visit(RealLitteral* reallit) {
     reallit->setType(_res.Real());
 }
 
-TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
-    if (sym::Symbol* sym = clss->getScope()->getSymbol<sym::Symbol>(id, false)) {
-        return {sym, type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(sym))->applyEnv(subtable, _ctx)};
-    } else if (TypeExpression* parent = clss->getParent()) {
-        if (type::Type* t = ASTTypeCreator::createType(parent, _ctx)) {
-            type::Type* appliedT = type::Type::findSubstitution(subtable, t)->applyEnv(subtable, _ctx);
-            if (type::ProperType* obj = type::getIf<type::ProperType>(appliedT)) {
-                return tryGetFieldInfo(obj->getClass(), id, obj->getSubstitutionTable());
-            } else {
-                _rep.error(*parent, "Class " + clss->getName() + " must inherit from a class type");
-            }
-        } else {
-            _rep.error(*parent, "Expression is not a type");
-        }
+TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(MemberAccess* dot, ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
+    const auto& it = clss->getScope()->getAllSymbols().equal_range(id);
+
+    if (it.first == it.second) {
+        return {nullptr, nullptr};
     }
-    return {nullptr, nullptr};
+
+    auto b = utils::TakeSecond<decltype(it.first)>(it.first);
+    auto e = utils::TakeSecond<decltype(it.second)>(it.second);
+    const AnySymbolicData data = resolveOverload(dot, b, e, subtable);
+
+    if (data.symbol) {
+        return {data.symbol, applyEnvsHelper(tryGetTypeOfSymbol(data.symbol), subtable, data.env, _ctx)};
+    } else {
+        return {nullptr, nullptr};
+    }
 }
 
 type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
@@ -368,12 +433,202 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
 }
 
 sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* def) {
-    sym::DefinitionSymbol* overriden = ASTOverrideFinder::findOverridenSymbol(def, _ctx);
-    if (!overriden) {
-        _rep.error(*def, "Could not find the definition overriden by " +
-                   def->getName() + " (which has type " + def->type()->toString() + ")");
+    sym::Scoped* scoped;
+
+    if (isNodeOfType<ClassDecl>(def->getOwner(), _ctx)) {
+        scoped = static_cast<ClassDecl*>(def->getOwner());
+    } else {
+        _rep.fatal(*def, "Owner of " + def->getName() + " is unexpected");
+        return nullptr;
     }
-    return overriden;
+
+    const auto& itPair = scoped->getScope()->getAllSymbols().equal_range(def->getName());
+
+    for (auto it = itPair.first; it != itPair.second; ++it) {
+        const sym::SymbolData& data = it->second;
+
+        if (it->second.symbol != def && data.symbol->getSymbolType() == sym::SYM_DEF) {
+            sym::DefinitionSymbol* potentialDef = static_cast<sym::DefinitionSymbol*>(data.symbol);
+            if (def->type()->isSubTypeOf(potentialDef->type()->applyEnv(data.env, _ctx))) {
+                if (potentialDef->getDef()->isRedef()) {
+                    if (sym::DefinitionSymbol* alreadyOverriden = potentialDef->getOverridenSymbol()) {
+                        return alreadyOverriden;
+                    } else {
+                        continue; // for readability
+                    }
+                } else {
+                    return potentialDef;
+                }
+            }
+        }
+    }
+
+    _rep.error(*def, "Could not find the definition overriden by " +
+               def->getName() + " (which has type " + def->type()->toString() + ")");
+
+    return nullptr;
+}
+
+class OverloadedDefSymbolCandidate final {
+public:
+
+    OverloadedDefSymbolCandidate() {}
+
+    sym::DefinitionSymbol* symbol() const {
+        return _symbol;
+    }
+
+    const type::SubstitutionTable* env() const {
+        return _env;
+    }
+
+    size_t argCount() const {
+        return _args->size();
+    }
+
+    type::Type* arg(size_t index) const {
+        return (*_args)[index];
+    }
+
+    void incrScore() {
+        ++_score;
+    }
+
+    uint32_t score() const {
+        return _score;
+    }
+
+    type::Type* appliedType() const {
+        return _appliedType;
+    }
+
+    static void append(std::vector<OverloadedDefSymbolCandidate>& vec, sym::DefinitionSymbol* s, type::Type* t, size_t expectedArgCount,
+                       const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx)
+    {
+        if (type::FunctionType* ft = type::getIf<type::FunctionType>(t)) {
+            if (ft->getArgTypes().size() == expectedArgCount) {
+                vec.push_back(OverloadedDefSymbolCandidate(s, env, applyEnvsHelper(ft, subtable, env, ctx)));
+            }
+        } else if (type::MethodType* mt = type::getIf<type::MethodType>(t)) {
+            if (mt->getArgTypes().size() == expectedArgCount) {
+                vec.push_back(OverloadedDefSymbolCandidate(s, env, applyEnvsHelper(mt, subtable, env, ctx)));
+            }
+        }
+    }
+
+private:
+
+    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, const type::SubstitutionTable* env, type::FunctionType* ft)
+        : _symbol(s), _env(env), _args(&ft->getArgTypes()), _ret(ft->getRetType()), _score(0), _appliedType(ft)
+    { }
+
+    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, const type::SubstitutionTable* env, type::MethodType* mt)
+        : _symbol(s), _env(env), _args(&mt->getArgTypes()), _ret(mt->getRetType()), _score(0), _appliedType(mt)
+    { }
+
+    sym::DefinitionSymbol* _symbol;
+    const type::SubstitutionTable* _env;
+
+    const std::vector<type::Type*>* _args;
+    type::Type* _ret;
+    uint32_t _score;
+
+    type::Type* _appliedType;
+};
+
+void debugReportCandidateScores(const std::vector<OverloadedDefSymbolCandidate>& candidates, CompCtx_Ptr& ctx) {
+    for (const OverloadedDefSymbolCandidate& candidate : candidates) {
+        std::string args = "[Candidate] score=" + utils::T_toString(candidate.score()) + " (";
+        if (candidate.argCount() > 0) {
+            for (size_t i = 0; i < candidate.argCount() - 1; ++i) {
+                args += candidate.arg(i)->toString() + ", ";
+            }
+            args += candidate.arg(candidate.argCount() - 1)->toString();
+        }
+        args += ")";
+
+        ctx->reporter().info(*candidate.symbol(), args);
+    }
+}
+
+template<typename SymbolIterator>
+TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
+        ASTNode* triggerer,
+        const SymbolIterator& begin, const SymbolIterator& end,
+        const type::SubstitutionTable& subtable)
+{
+    if (std::distance(begin, end) == 1) {
+        const auto& val = *begin;
+        return AnySymbolicData(val.symbol, val.env);
+    } else if (_expectedInfo.node != triggerer) {
+        _rep.error(*triggerer, "Not enough information are provided to determine the right symbol");
+        return {nullptr, nullptr};
+    }
+
+    std::vector<OverloadedDefSymbolCandidate> candidates;
+    size_t expectedArgCount = _expectedInfo.args->size();
+
+    for (SymbolIterator it = begin; it != end; ++it) {
+        const auto& val = *it;
+        const AnySymbolicData data(val.symbol, val.env);
+        if (data.symbol->getSymbolType() == sym::SYM_DEF) {
+            sym::DefinitionSymbol* defsymbol = static_cast<sym::DefinitionSymbol*>(data.symbol);
+            OverloadedDefSymbolCandidate::append(candidates, defsymbol, defsymbol->type(), expectedArgCount, subtable, data.env, _ctx);
+        }
+    }
+
+    size_t candidateCount = candidates.size();
+
+    for (size_t a = 0; a < expectedArgCount; ++a) {
+        for (size_t i = 0; i < candidateCount; ++i) {
+            type::Type* iType = candidates[i].arg(a);
+
+            for (size_t j = i + 1; j < candidateCount; ++j) {
+                type::Type* jType = candidates[j].arg(a);
+
+                if (iType->isSubTypeOf(jType)) { candidates[i].incrScore(); }
+                if (jType->isSubTypeOf(iType)) { candidates[j].incrScore(); }
+            }
+        }
+    }
+
+    std::sort(candidates.begin(), candidates.end(), [](const OverloadedDefSymbolCandidate& a, const OverloadedDefSymbolCandidate& b) {
+        return a.score() > b.score();
+    });
+
+    std::vector<OverloadedDefSymbolCandidate*> theChosenOnes;
+
+    for (OverloadedDefSymbolCandidate& candidate : candidates) {
+        bool ok = true;
+
+        for (size_t a = 0; a < expectedArgCount; ++a) {
+            if (!((*_expectedInfo.args)[a]->isSubTypeOf(candidate.arg(a)))) {
+                ok = false;
+                break;
+            }
+        }
+
+        if (ok && (theChosenOnes.size() > 0) && (theChosenOnes[0]->score() > candidate.score())) {
+           break;
+        } else if (ok) {
+           theChosenOnes.push_back(&candidate);
+        }
+    }
+
+    switch (theChosenOnes.size()) {
+    case 0:
+        _rep.error(*triggerer, "No viable candidate found among " + utils::T_toString(candidates.size()) + " overloads");
+        return {nullptr, nullptr};
+
+    default:
+        _rep.error(*triggerer, "Ambiguous symbol access. Multiple candidates match the required type:");
+        for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
+            _rep.info(*candidate->symbol(), "Is a viable candidate (has type " + candidate->appliedType()->toString() + ")");
+        }
+
+    case 1:
+        return {theChosenOnes[0]->symbol(), theChosenOnes[0]->env()};
+    }
 }
 
 // FIELD INFO

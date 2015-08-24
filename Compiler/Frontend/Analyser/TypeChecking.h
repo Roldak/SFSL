@@ -43,6 +43,13 @@ namespace ast {
         virtual void visit(ASTNode* node) override;
 
         virtual void visit(ClassDecl* clss) override;
+        virtual void visit(DefineDecl* def) override;
+
+        virtual void visit(FunctionCreation* func) override;
+
+    private:
+
+        Expression* _nextDef;
     };
 
     /**
@@ -80,6 +87,8 @@ namespace ast {
 
     private:
 
+        typedef sym::Symbolic<sym::Symbol>::SymbolData AnySymbolicData;
+
         struct FieldInfo final {
             FieldInfo(sym::Symbol* sy, type::Type* ty);
 
@@ -89,7 +98,13 @@ namespace ast {
             type::Type* t;
         };
 
-        FieldInfo tryGetFieldInfo(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
+        struct ExpectedInfo final {
+            const std::vector<type::Type*>* args;
+            type::Type* ret;
+            ASTNode* node;
+        };
+
+        FieldInfo tryGetFieldInfo(MemberAccess* dot, ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
 
         type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
         type::ProperType* applySubsitutions(type::ProperType* inner, type::ProperType* obj);
@@ -97,8 +112,14 @@ namespace ast {
 
         sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);
 
+        template<typename SymbolIterator>
+        AnySymbolicData resolveOverload(
+                ASTNode* triggerer, const SymbolIterator& begin, const SymbolIterator& end, const type::SubstitutionTable& subtable);
+
         TypeExpression* _currentThis;
         Expression* _nextDef;
+
+        ExpectedInfo _expectedInfo;
 
         std::set<DefineDecl*> _visitedDefs;
         std::vector<DefineDecl*> _redefs;

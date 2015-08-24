@@ -13,6 +13,7 @@
 #include <map>
 #include "../../../Common/MemoryManageable.h"
 #include "Symbols.h"
+#include "Symbolic.h"
 
 namespace sfsl {
 
@@ -33,6 +34,12 @@ namespace sym {
          */
         Symbol* addSymbol(Symbol* sym);
 
+        /**
+         * @brief Copies all the symbols from the given scope into this one
+         * @param other The scope from which to copy the symbol
+         */
+        void copySymbolsFrom(const Scope* other, const type::SubstitutionTable& env);
+
         template<typename T>
         /**
          * @brief Tries to retrieve the symbol with the given name in the current scope
@@ -47,6 +54,9 @@ namespace sym {
             return nullptr;
         }
 
+        template<typename T>
+        bool assignSymbolic(sym::Symbolic<T>& symbolic, const std::string& id);
+
         /**
          * @return The parent if this scope
          */
@@ -55,18 +65,23 @@ namespace sym {
         /**
          * @return The map containing all the symbols
          */
-        const std::map<std::string, Symbol*>& getAllSymbols() const;
+        const std::multimap<std::string, SymbolData>& getAllSymbols() const;
 
     private:
 
         Symbol* _getSymbol(const std::string& name, SYM_TYPE symType, bool recursive) const;
+        bool _assignSymbolic(Symbolic<Symbol>& symbolic, const std::string& id) const;
 
         Scope* _parent;
         bool _isDefScope;
 
-        std::map<std::string, Symbol*> _symbols;
-
+        std::multimap<std::string, SymbolData> _symbols;
     };
+
+    template<typename T>
+    bool Scope::assignSymbolic(Symbolic<T>& symbolic, const std::string& id) {
+        return _assignSymbolic(static_cast<Symbolic<Symbol>&>(symbolic), id);
+    }
 
     template<>
     inline Symbol* Scope::getSymbol(const std::string& name, bool recursive) const {

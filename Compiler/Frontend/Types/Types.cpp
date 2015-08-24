@@ -25,6 +25,10 @@ public:
 
     virtual ~TypeNotYetDefined() {}
 
+    virtual Type* copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override {
+        return (Type*)this;
+    }
+
     virtual TYPE_KIND getTypeKind() const {
         return TYPE_NYD;
     }
@@ -50,6 +54,18 @@ Type::Type(const SubstitutionTable &substitutionTable) : _subTable(substitutionT
 
 Type::~Type() {
 
+}
+
+Type* Type::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+    if (env.empty() || _subTable.empty()) return (Type*)this;
+
+    SubstitutionTable table = _subTable;
+
+    if (applyEnvHelper(env, table)) {
+        return copyWithSubtable(env, ctx);
+    } else {
+        return (Type*)this;
+    }
 }
 
 const static SubstitutionTable DefaultTable = {};
@@ -79,19 +95,31 @@ Type* Type::NotYetDefined() {
     return &nyd; // all we want is a unique memory area
 }
 
-Type* Type::findSubstitution(const SubstitutionTable& table, Type* toFind) {
+Type* Type::findSubstitution(const SubstitutionTable& table, Type* toFind, bool* matched) {
     auto found = table.find(toFind);
+    bool lmatched = false;
+
     while (found != table.end()) {
+        lmatched = true;
         toFind = found->second;
         found = table.find(toFind);
     }
+
+    if (matched) {
+        *matched = lmatched;
+    }
+
     return toFind;
 }
 
-void Type::applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to) {
+bool Type::applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to) {
+    bool matched = false;
     for (auto& pair : to) {
-        pair.second = findSubstitution(env, pair.second);
+        bool tmp;
+        pair.second = findSubstitution(env, pair.second, &tmp);
+        matched |= tmp;
     }
+    return matched;
 }
 
 // PROPER TYPE
@@ -103,6 +131,10 @@ ProperType::ProperType(ast::ClassDecl* clss, const SubstitutionTable& substituti
 
 ProperType::~ProperType() {
 
+}
+
+Type* ProperType::copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    return ctx->memoryManager().New<ProperType>(_class, table);
 }
 
 TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
@@ -127,14 +159,6 @@ std::string ProperType::toString() const {
     return _class->getName() + Type::toString();
 }
 
-Type* ProperType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
-    if (env.empty()) return (Type*)this;
-
-    SubstitutionTable table = _subTable;
-    applyEnvHelper(env, table);
-    return ctx.get()->memoryManager().New<ProperType>(_class, table);
-}
-
 ast::ClassDecl* ProperType::getClass() const {
     return _class;
 }
@@ -148,6 +172,10 @@ FunctionType::FunctionType(const std::vector<Type*>& argTypes, Type* retType, as
 
 FunctionType::~FunctionType() {
 
+}
+
+Type* FunctionType::copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    return ctx->memoryManager().New<FunctionType>(_argTypes, _retType, _class, table);
 }
 
 TYPE_KIND FunctionType::getTypeKind() const {
@@ -218,6 +246,10 @@ MethodType::MethodType(ast::ClassDecl* owner, const std::vector<Type*>& argTypes
 
 MethodType::~MethodType() {
 
+}
+
+Type* MethodType::copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    return ctx->memoryManager().New<MethodType>(_owner, _argTypes, _retType, table);
 }
 
 TYPE_KIND MethodType::getTypeKind() const {
@@ -291,6 +323,10 @@ TypeConstructorType::~TypeConstructorType() {
 
 }
 
+Type* TypeConstructorType::copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    return ctx->memoryManager().New<TypeConstructorType>(_typeConstructor, table);
+}
+
 TYPE_KIND TypeConstructorType::getTypeKind() const {
     return TYPE_CONSTRUCTOR_TYPE;
 }
@@ -301,14 +337,6 @@ bool TypeConstructorType::isSubTypeOf(const Type* other) const {
 
 std::string TypeConstructorType::toString() const {
     return _typeConstructor->getName() + Type::toString();
-}
-
-Type* TypeConstructorType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
-    if (env.empty()) return (Type*)this;
-
-    SubstitutionTable table = _subTable;
-    applyEnvHelper(env, table);
-    return ctx.get()->memoryManager().New<TypeConstructorType>(_typeConstructor, table);
 }
 
 ast::TypeConstructorCreation* TypeConstructorType::getTypeConstructor() const {
@@ -326,6 +354,10 @@ ConstructorApplyType::ConstructorApplyType(Type* callee, const std::vector<Type*
 
 ConstructorApplyType::~ConstructorApplyType() {
 
+}
+
+Type* ConstructorApplyType::copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    return ctx->memoryManager().New<ConstructorApplyType>(_callee, _args, _pos, table);
 }
 
 TYPE_KIND ConstructorApplyType::getTypeKind() const {
@@ -357,6 +389,10 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
         params = static_cast<ast::TypeTuple*>(expr)->getExpressions();
     } else { // form is `exp => ...` or `[exp] => ...`
         params.push_back(expr);
+    }
+
+    if (params.size() != _args.size()) { // can happen if this is called before kind checking occurs
+        return NotYetDefined();
     }
 
     SubstitutionTable subs;

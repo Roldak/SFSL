@@ -9,7 +9,19 @@
 #ifndef __SFSL__Symbolic__
 #define __SFSL__Symbolic__
 
+#include <vector>
+#include <map>
+
 namespace sfsl {
+
+namespace type {
+    class Type;
+    typedef std::map<Type*, Type*> SubstitutionTable;
+}
+
+namespace ast {
+    class TypeChecking;
+}
 
 namespace sym {
 
@@ -19,9 +31,26 @@ template<typename Symbol_Type>
  * and are therefore Symbolics
  */
 class Symbolic {
+    friend class Scope;
+    friend class ast::TypeChecking;
+
+    struct SymbolData {
+        SymbolData()
+            : symbol(nullptr), env(nullptr) { }
+
+        SymbolData(Symbol_Type* s, const type::SubstitutionTable& e)
+            : symbol(s), env(&e) { }
+
+        SymbolData(Symbol_Type* s, const type::SubstitutionTable* e)
+            : symbol(s), env(e) { }
+
+        Symbol_Type* symbol;
+        const type::SubstitutionTable* env;
+    };
+
 public:
 
-    Symbolic() : _symbol(nullptr) {}
+    Symbolic() : _symbols({SymbolData{}}) {}
 
     virtual ~Symbolic() {}
 
@@ -29,19 +58,35 @@ public:
      * @param symbol The symbol to assign to the this Symbolic
      */
     void setSymbol(Symbol_Type* symbol) {
-        _symbol = symbol;
+        _symbols.resize(1);
+        _symbols[0].symbol = symbol;
+        _symbols[0].env = nullptr;
     }
 
     /**
      * @return The symbol that was assigned to this Symbolic
      */
     Symbol_Type* getSymbol() const {
-        return _symbol;
+        return _symbols[0].symbol;
+    }
+
+    /**
+     * @return The number of symbols that was assigned to this Symbolic
+     */
+    size_t getSymbolCount() const {
+        return _symbols.size();
+    }
+
+    /**
+     * @return Every SymbolDatas that this symbolic holds
+     */
+    const std::vector<SymbolData>& getSymbolDatas() {
+        return _symbols;
     }
 
 private:
 
-    Symbol_Type* _symbol;
+    std::vector<SymbolData> _symbols;
 };
 
 }

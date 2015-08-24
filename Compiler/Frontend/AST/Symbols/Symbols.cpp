@@ -22,6 +22,10 @@ Symbol::~Symbol() {
 
 }
 
+bool Symbol::isOverloadableWith(Symbol*) const {
+    return false;
+}
+
 const std::string& Symbol::getName() const {
     return _name;
 }
@@ -71,6 +75,10 @@ DefinitionSymbol::~DefinitionSymbol() {
 
 SYM_TYPE DefinitionSymbol::getSymbolType() const {
     return SYM_DEF;
+}
+
+bool DefinitionSymbol::isOverloadableWith(Symbol* other) const {
+    return other->getSymbolType() == SYM_DEF;
 }
 
 ast::DefineDecl* DefinitionSymbol::getDef() const {

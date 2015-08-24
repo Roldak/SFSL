@@ -202,11 +202,28 @@ void SymbolAssignation::visit(TypeDecl* tdecl) {
 }
 
 void SymbolAssignation::visit(ClassDecl* clss) {
-    SAVE_SCOPE(clss)
+    if (TRY_INSERT(_visitedTypes, clss)) {
+        SAVE_SCOPE(clss)
 
-    ASTVisitor::visit(clss);
+        if (clss->getParent()) {
+            clss->getParent()->onVisit(this);
+            if (type::Type* parentType = ASTTypeCreator::createType(clss->getParent(), _ctx)) {
+                if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->applied(_ctx))) {
+                    parent->getClass()->onVisit(this);
+                    _curScope->copySymbolsFrom(parent->getClass()->getScope(), parent->getSubstitutionTable());
+                }
+            }
+        }
 
-    RESTORE_SCOPE
+        for (TypeSpecifier* field : clss->getFields()) {
+            field->onVisit(this);
+        }
+        for (DefineDecl* def : clss->getDefs()) {
+            def->onVisit(this);
+        }
+
+        RESTORE_SCOPE
+    }
 }
 
 void SymbolAssignation::visit(DefineDecl* def) {
@@ -340,9 +357,7 @@ void SymbolAssignation::initCreated(T* id, S* s) {
 
 template<typename T>
 void SymbolAssignation::assignIdentifier(T* id) {
-    if (sym::Symbol* symbol = _curScope->getSymbol<sym::Symbol>(id->getValue())) {
-        id->setSymbol(symbol);
-    } else {
+    if (!_curScope->assignSymbolic<sym::Symbol>(*id, id->getValue())) {
         _ctx->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
     }
 }
@@ -367,9 +382,7 @@ void SymbolAssignation::assignFromStaticScope(T* mac, sym::Scoped* scoped, const
     sym::Scope* scope = scoped->getScope();
     const std::string& id = mac->getMember()->getValue();
 
-    if (sym::Symbol* resSymbol = scope->getSymbol<sym::Symbol>(id, false)) {
-        mac->setSymbol(resSymbol);
-    } else {
+    if (!scope->assignSymbolic<sym::Symbol>(*mac, id)) {
         _ctx->reporter().error(
                     *(mac->getMember()),
                     std::string("No member named '") + id + "' in " + typeName);
@@ -396,8 +409,8 @@ void SymbolAssignation::setVariableSymbolicUsed(T* symbolic, bool val) {
 
 void SymbolAssignation::warnForUnusedVariableInCurrentScope() {
     for (const auto& s : _curScope->getAllSymbols()) {
-        if (s.second->getSymbolType() == sym::SYM_VAR) {
-            sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(s.second);
+        if (s.second.symbol->getSymbolType() == sym::SYM_VAR) {
+            sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(s.second.symbol);
             if (!var->isUsed()) {
                 _ctx->reporter().warning(*var, "Unused variable '" + var->getName() + "'");
             }
