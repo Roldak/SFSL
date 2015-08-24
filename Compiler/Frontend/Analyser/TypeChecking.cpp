@@ -361,7 +361,7 @@ void TypeChecking::visit(Identifier* ident) {
             }
         }
     } else if (_expectedInfo.node == ident) {
-        FieldInfo info = resolveOverload(*ident, ident, {});
+        FieldInfo info = resolveOverload(*ident, ident->getSymbolDatas().cbegin(), ident->getSymbolDatas().cend(), {});
         ident->setSymbol(info.s);
         ident->setType(info.t);
     } else {
@@ -390,13 +390,13 @@ void TypeChecking::visit(RealLitteral* reallit) {
 }
 
 TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
-    const auto& it = clss->getScope()->getAllSymbols().find(id);
+    const auto& it = clss->getScope()->getAllSymbols().equal_range(id);
 
-    if (it == clss->getScope()->getAllSymbols().end()) {
+    if (it.first == it.second) {
         return {nullptr, nullptr};
     }
 
-    const sym::SymbolData& data = it->second;
+    const sym::SymbolData& data = it.first->second;
     type::Type* tp = type::Type::findSubstitution(subtable, tryGetTypeOfSymbol(data.symbol))->applyEnv(subtable, _ctx);
 
     return {data.symbol, type::Type::findSubstitution(data.env, tp)->applyEnv(data.env, _ctx)};
@@ -522,13 +522,17 @@ private:
     type::Type* _appliedType;
 };
 
-TypeChecking::FieldInfo TypeChecking::resolveOverload(const common::Positionnable& pos, sym::Symbolic<sym::Symbol>* symbolic, const type::SubstitutionTable& subtable) {
-    const std::vector<sym::Symbolic<sym::Symbol>::SymbolData>& datas(symbolic->getSymbolDatas());
+template<typename SymbolIterator>
+TypeChecking::FieldInfo TypeChecking::resolveOverload(
+        const common::Positionnable& pos,
+        const SymbolIterator& begin, const SymbolIterator& end,
+        const type::SubstitutionTable& subtable)
+{
     std::vector<OverloadedDefSymbolCandidate> candidates;
-
     size_t expectedArgCount = _expectedInfo.args->size();
 
-    for (const sym::Symbolic<sym::Symbol>::SymbolData& data : datas) {
+    for (SymbolIterator it = begin; it != end; ++it) {
+        const sym::Symbolic<sym::Symbol>::SymbolData& data = *it;
         if (data.symbol->getSymbolType() == sym::SYM_DEF) {
             sym::DefinitionSymbol* defsymbol = static_cast<sym::DefinitionSymbol*>(data.symbol);
             OverloadedDefSymbolCandidate::append(candidates, defsymbol, defsymbol->type(), expectedArgCount, subtable, data.env, _ctx);
@@ -588,13 +592,13 @@ TypeChecking::FieldInfo TypeChecking::resolveOverload(const common::Positionnabl
 
     switch (theChosenOnes.size()) {
     case 0:
-        _rep.error(pos, "No viable candidate found among the " + utils::T_toString(candidates.size()) + " overloads found");
+        _rep.error(pos, "No viable candidate found among " + utils::T_toString(candidates.size()) + " overloads");
         return FieldInfo(nullptr, type::Type::NotYetDefined());
 
     default:
         _rep.error(pos, "Ambiguous symbol access. Multiple candidates match the required type:");
         for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
-            _rep.info(*candidate->symbol(), "Is a viable candidate");
+            _rep.info(*candidate->symbol(), "Is a viable candidate (has type " + candidate->appliedType()->toString() + ")");
         }
 
     case 1:

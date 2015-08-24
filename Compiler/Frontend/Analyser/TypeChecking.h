@@ -109,7 +109,9 @@ namespace ast {
         type::TypeConstructorType* applySubsitutions(type::TypeConstructorType* inner, type::ProperType* obj);
 
         sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);
-        FieldInfo resolveOverload(const common::Positionnable& pos, sym::Symbolic<sym::Symbol>* symbolic, const type::SubstitutionTable& subtable);
+
+        template<typename SymbolIterator>
+        FieldInfo resolveOverload(const common::Positionnable& pos, const SymbolIterator& begin, const SymbolIterator& end, const type::SubstitutionTable& subtable);
 
         TypeExpression* _currentThis;
         Expression* _nextDef;
