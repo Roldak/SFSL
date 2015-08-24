@@ -1,8 +1,5 @@
 var searchData=
 [
-  ['onvisit',['onVisit',['../classsfsl_1_1ast_1_1_a_s_t_node.html#a49daf745260952bd7c40093dc40356a3',1,'sfsl::ast::ASTNode']]],
-  ['operator',['Operator',['../classsfsl_1_1tok_1_1_operator.html',1,'sfsl::tok']]],
-  ['operator',['Operator',['../classsfsl_1_1tok_1_1_operator.html#ad1ce68987da6211948005b899a9558c9',1,'sfsl::tok::Operator']]],
-  ['opertypefromstring',['OperTypeFromString',['../classsfsl_1_1tok_1_1_operator.html#a1a1af12f495165613881363b1d777a15',1,'sfsl::tok::Operator']]],
-  ['opertypetostring',['OperTypeToString',['../classsfsl_1_1tok_1_1_operator.html#a8b23dc55e2b932b736b9e2a582ca5ea7',1,'sfsl::tok::Operator']]]
+  ['new',['New',['../classsfsl_1_1common_1_1_abstract_memory_manager.html#a66c97b1ecde006d5b2548a644df30473',1,'sfsl::common::AbstractMemoryManager']]],
+  ['node',['Node',['../structsfsl_1_1out_1_1_linked_list_output_1_1_node.html',1,'sfsl::out::LinkedListOutput']]]
 ];

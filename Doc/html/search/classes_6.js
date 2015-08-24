@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['keyword',['Keyword',['../classsfsl_1_1tok_1_1_keyword.html',1,'sfsl::tok']]]
+  ['hasmanageableuserdata',['HasManageableUserdata',['../classsfsl_1_1common_1_1_has_manageable_userdata.html',1,'sfsl::common']]]
 ];
