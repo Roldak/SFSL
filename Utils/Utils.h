@@ -115,7 +115,7 @@ public:
     TakeSecond(const Iterator& it)
         : _it(it) { }
 
-    typename Iterator::value_type::second_type operator *() const {
+    const typename Iterator::value_type::second_type& operator *() const {
         return _it->second;
     }
 
