@@ -100,8 +100,6 @@ void KindChecking::visit(TypeConstructorCreation* tc) {
     retKind = tc->getBody()->kind();
 
     tc->setKind(_mngr.New<kind::TypeConstructorKind>(argKinds, retKind));
-
-    _rep.info(*tc->getArgs(), tc->kind()->toString());
 }
 
 void KindChecking::visit(TypeConstructorCall* tcall) {

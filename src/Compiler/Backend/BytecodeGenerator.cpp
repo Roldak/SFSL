@@ -271,6 +271,9 @@ void DefaultBytecodeGenerator::visit(FunctionCall* call) {
             MemberAccess* dot = static_cast<MemberAccess*>(call->getCallee());
             dot->getAccessed()->onVisit(this);
         }
+        else if (isNodeOfType<Identifier>(call->getCallee(), _ctx)) { // implicit this
+            Emit<LoadStack>(*call->getCallee(), 0);
+        }
 
         sym::DefinitionSymbol* def = static_cast<sym::DefinitionSymbol*>(ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx));
         size_t virtualLoc = def->getUserdata<VirtualDefUserData>()->getVirtualLocation();
