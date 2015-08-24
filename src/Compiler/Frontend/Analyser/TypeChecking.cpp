@@ -22,10 +22,10 @@ namespace ast {
 
 template<typename T>
 T* applyEnvsHelper(T* t, const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx) {
-    type::Type* tmpT;
+    type::Type* tmpT = t;
 
     if (env) {
-        tmpT = type::Type::findSubstitution(*env, t)->applyEnv(*env, ctx);
+        tmpT = type::Type::findSubstitution(*env, tmpT)->applyEnv(*env, ctx);
     }
 
     tmpT = type::Type::findSubstitution(subtable, tmpT)->applyEnv(subtable, ctx);
