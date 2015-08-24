@@ -102,7 +102,7 @@ namespace ast {
             ASTNode* node;
         };
 
-        FieldInfo tryGetFieldInfo(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
+        FieldInfo tryGetFieldInfo(MemberAccess* dot, ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
 
         type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
         type::ProperType* applySubsitutions(type::ProperType* inner, type::ProperType* obj);
@@ -111,7 +111,8 @@ namespace ast {
         sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);
 
         template<typename SymbolIterator>
-        FieldInfo resolveOverload(const common::Positionnable& pos, const SymbolIterator& begin, const SymbolIterator& end, const type::SubstitutionTable& subtable);
+        sym::Symbolic<sym::Symbol>::SymbolData resolveOverload(
+                ASTNode* triggerer, const SymbolIterator& begin, const SymbolIterator& end, const type::SubstitutionTable& subtable);
 
         TypeExpression* _currentThis;
         Expression* _nextDef;

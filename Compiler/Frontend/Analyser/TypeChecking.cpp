@@ -18,6 +18,21 @@ namespace sfsl {
 
 namespace ast {
 
+// HELPER
+
+template<typename T>
+T* applyEnvsHelper(T* t, const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx) {
+    type::Type* tmpT;
+
+    if (env) {
+        tmpT = type::Type::findSubstitution(*env, t)->applyEnv(*env, ctx);
+    }
+
+    tmpT = type::Type::findSubstitution(subtable, tmpT)->applyEnv(subtable, ctx);
+
+    return static_cast<T*>(tmpT);
+}
+
 // TYPE CHECKER
 
 TypeChecker::TypeChecker(CompCtx_Ptr& ctx, const sym::SymbolResolver& res) : ASTVisitor(ctx), _res(res), _rep(ctx->reporter()) {
@@ -238,7 +253,7 @@ void TypeChecking::visit(MemberAccess* dot) {
             ClassDecl* clss = obj->getClass();
             const type::SubstitutionTable& subtable = obj->getSubstitutionTable();
 
-            FieldInfo field = tryGetFieldInfo(clss, dot->getMember()->getValue(), subtable);
+            FieldInfo field = tryGetFieldInfo(dot, clss, dot->getMember()->getValue(), subtable);
 
             if (field.isValid()) {
                 dot->setSymbol(field.s);
@@ -354,18 +369,27 @@ void TypeChecking::visit(FunctionCall* call) {
 }
 
 void TypeChecking::visit(Identifier* ident) {
-    if (ident->getSymbolCount() == 1) {
+    /*if (ident->getSymbolCount() == 1) {
         if (sym::Symbol* sym = ident->getSymbol()) {
             if (type::Type* t = tryGetTypeOfSymbol(sym)) {
                 ident->setType(t);
             }
         }
     } else if (_expectedInfo.node == ident) {
-        FieldInfo info = resolveOverload(*ident, ident->getSymbolDatas().cbegin(), ident->getSymbolDatas().cend(), {});
-        ident->setSymbol(info.s);
-        ident->setType(info.t);
+        if (sym::Symbol* sym = resolveOverload(ident, ident->getSymbolDatas().cbegin(), ident->getSymbolDatas().cend(), {}).symbol) {
+            ident->setSymbol(sym);
+            ident->setType(tryGetTypeOfSymbol(sym));
+        }
     } else {
-        _rep.error(*ident, "Not enough information are provided to determine the right symbol");
+
+    }
+*/
+    const sym::Symbolic<sym::Symbol>::SymbolData data = resolveOverload(ident, ident->getSymbolDatas().cbegin(), ident->getSymbolDatas().cend(), {});
+    if (sym::Symbol* sym = data.symbol) {
+        ident->setSymbol(sym);
+        if (type::Type* t = tryGetTypeOfSymbol(sym)) {
+            ident->setType(applyEnvsHelper(t, {}, data.env, _ctx));
+        }
     }
 }
 
@@ -389,19 +413,22 @@ void TypeChecking::visit(RealLitteral* reallit) {
     reallit->setType(_res.Real());
 }
 
-TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
+TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(MemberAccess* dot, ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
     const auto& it = clss->getScope()->getAllSymbols().equal_range(id);
 
     if (it.first == it.second) {
         return {nullptr, nullptr};
     }
 
-    const sym::SymbolData& data = it.first->second;
+    auto b = utils::TakeSecond<decltype(it.first)>(it.first);
+    auto e = utils::TakeSecond<decltype(it.second)>(it.second);
+    const sym::Symbolic<sym::Symbol>::SymbolData data = resolveOverload(dot, b, e, subtable);
 
-    type::SubstitutionTable env = data.env;
-    type::Type::applyEnvHelper(subtable, env);
-
-    return {data.symbol, type::Type::findSubstitution(env, tryGetTypeOfSymbol(data.symbol))->applyEnv(env, _ctx)};
+    if (data.symbol) {
+        return {data.symbol, applyEnvsHelper(tryGetTypeOfSymbol(data.symbol), subtable, data.env, _ctx)};
+    } else {
+        return {nullptr, nullptr};
+    }
 }
 
 type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
@@ -457,18 +484,18 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
     return nullptr;
 }
 
-template<typename T>
-T* applyEnvsHelper(T* t, const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx) {
-    type::SubstitutionTable envcopy = *env;
-    type::Type::applyEnvHelper(subtable, envcopy);
-
-    return static_cast<T*>(type::Type::findSubstitution(envcopy, t)->applyEnv(envcopy, ctx));
-}
-
 class OverloadedDefSymbolCandidate final {
 public:
 
     OverloadedDefSymbolCandidate() {}
+
+    sym::DefinitionSymbol* symbol() const {
+        return _symbol;
+    }
+
+    const type::SubstitutionTable* env() const {
+        return _env;
+    }
 
     size_t argCount() const {
         return _args->size();
@@ -486,10 +513,6 @@ public:
         return _score;
     }
 
-    sym::DefinitionSymbol* symbol() const {
-        return _symbol;
-    }
-
     type::Type* appliedType() const {
         return _appliedType;
     }
@@ -499,26 +522,28 @@ public:
     {
         if (type::FunctionType* ft = type::getIf<type::FunctionType>(t)) {
             if (ft->getArgTypes().size() == expectedArgCount) {
-                vec.push_back(OverloadedDefSymbolCandidate(s, applyEnvsHelper(ft, subtable, env, ctx)));
+                vec.push_back(OverloadedDefSymbolCandidate(s, env, applyEnvsHelper(ft, subtable, env, ctx)));
             }
         } else if (type::MethodType* mt = type::getIf<type::MethodType>(t)) {
             if (mt->getArgTypes().size() == expectedArgCount) {
-                vec.push_back(OverloadedDefSymbolCandidate(s, applyEnvsHelper(mt, subtable, env, ctx)));
+                vec.push_back(OverloadedDefSymbolCandidate(s, env, applyEnvsHelper(mt, subtable, env, ctx)));
             }
         }
     }
 
 private:
 
-    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, type::FunctionType* ft)
-        : _symbol(s), _args(&ft->getArgTypes()), _ret(ft->getRetType()), _score(0), _appliedType(ft)
+    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, const type::SubstitutionTable* env, type::FunctionType* ft)
+        : _symbol(s), _env(env), _args(&ft->getArgTypes()), _ret(ft->getRetType()), _score(0), _appliedType(ft)
     { }
 
-    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, type::MethodType* mt)
-        : _symbol(s), _args(&mt->getArgTypes()), _ret(mt->getRetType()), _score(0), _appliedType(mt)
+    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, const type::SubstitutionTable* env, type::MethodType* mt)
+        : _symbol(s), _env(env), _args(&mt->getArgTypes()), _ret(mt->getRetType()), _score(0), _appliedType(mt)
     { }
 
     sym::DefinitionSymbol* _symbol;
+    const type::SubstitutionTable* _env;
+
     const std::vector<type::Type*>* _args;
     type::Type* _ret;
     uint32_t _score;
@@ -526,17 +551,41 @@ private:
     type::Type* _appliedType;
 };
 
+void debugReportCandidateScores(const std::vector<OverloadedDefSymbolCandidate>& candidates, CompCtx_Ptr& ctx) {
+    for (const OverloadedDefSymbolCandidate& candidate : candidates) {
+        std::string args = "[Candidate] score=" + utils::T_toString(candidate.score()) + " (";
+        if (candidate.argCount() > 0) {
+            for (size_t i = 0; i < candidate.argCount() - 1; ++i) {
+                args += candidate.arg(i)->toString() + ", ";
+            }
+            args += candidate.arg(candidate.argCount() - 1)->toString();
+        }
+        args += ")";
+
+        ctx->reporter().info(*candidate.symbol(), args);
+    }
+}
+
 template<typename SymbolIterator>
-TypeChecking::FieldInfo TypeChecking::resolveOverload(
-        const common::Positionnable& pos,
+sym::Symbolic<sym::Symbol>::SymbolData TypeChecking::resolveOverload(
+        ASTNode* triggerer,
         const SymbolIterator& begin, const SymbolIterator& end,
         const type::SubstitutionTable& subtable)
 {
+    if (std::distance(begin, end) == 1) {
+        const auto& val = *begin;
+        return sym::Symbolic<sym::Symbol>::SymbolData(val.symbol, val.env);
+    } else if (_expectedInfo.node != triggerer) {
+        _rep.error(*triggerer, "Not enough information are provided to determine the right symbol");
+        return {nullptr, nullptr};
+    }
+
     std::vector<OverloadedDefSymbolCandidate> candidates;
     size_t expectedArgCount = _expectedInfo.args->size();
 
     for (SymbolIterator it = begin; it != end; ++it) {
-        const sym::Symbolic<sym::Symbol>::SymbolData& data = *it;
+        const auto& val = *it;
+        const sym::Symbolic<sym::Symbol>::SymbolData data(val.symbol, val.env);
         if (data.symbol->getSymbolType() == sym::SYM_DEF) {
             sym::DefinitionSymbol* defsymbol = static_cast<sym::DefinitionSymbol*>(data.symbol);
             OverloadedDefSymbolCandidate::append(candidates, defsymbol, defsymbol->type(), expectedArgCount, subtable, data.env, _ctx);
@@ -562,19 +611,6 @@ TypeChecking::FieldInfo TypeChecking::resolveOverload(
         return a.score() > b.score();
     });
 
-    for (const OverloadedDefSymbolCandidate& candidate : candidates) {
-        std::string args = "[Candidate] score=" + utils::T_toString(candidate.score()) + " (";
-        if (candidate.argCount() > 0) {
-            for (size_t i = 0; i < candidate.argCount() - 1; ++i) {
-                args += candidate.arg(i)->toString() + ", ";
-            }
-            args += candidate.arg(candidate.argCount() - 1)->toString();
-        }
-        args += ")";
-
-        _rep.info(*candidate.symbol(), args);
-    }
-
     std::vector<OverloadedDefSymbolCandidate*> theChosenOnes;
 
     for (OverloadedDefSymbolCandidate& candidate : candidates) {
@@ -596,17 +632,17 @@ TypeChecking::FieldInfo TypeChecking::resolveOverload(
 
     switch (theChosenOnes.size()) {
     case 0:
-        _rep.error(pos, "No viable candidate found among " + utils::T_toString(candidates.size()) + " overloads");
-        return FieldInfo(nullptr, type::Type::NotYetDefined());
+        _rep.error(*triggerer, "No viable candidate found among " + utils::T_toString(candidates.size()) + " overloads");
+        return {nullptr, nullptr};
 
     default:
-        _rep.error(pos, "Ambiguous symbol access. Multiple candidates match the required type:");
+        _rep.error(*triggerer, "Ambiguous symbol access. Multiple candidates match the required type:");
         for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
             _rep.info(*candidate->symbol(), "Is a viable candidate (has type " + candidate->appliedType()->toString() + ")");
         }
 
     case 1:
-        return FieldInfo(theChosenOnes[0]->symbol(), theChosenOnes[0]->appliedType());
+        return {theChosenOnes[0]->symbol(), theChosenOnes[0]->env()};
     }
 }
 

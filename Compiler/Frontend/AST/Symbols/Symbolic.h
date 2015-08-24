@@ -35,13 +35,22 @@ class Symbolic {
     friend class ast::TypeChecking;
 
     struct SymbolData {
+        SymbolData()
+            : symbol(nullptr), env(nullptr) { }
+
+        SymbolData(Symbol_Type* s, const type::SubstitutionTable& e)
+            : symbol(s), env(&e) { }
+
+        SymbolData(Symbol_Type* s, const type::SubstitutionTable* e)
+            : symbol(s), env(e) { }
+
         Symbol_Type* symbol;
         const type::SubstitutionTable* env;
     };
 
 public:
 
-    Symbolic() : _symbols({SymbolData{nullptr, nullptr}}) {}
+    Symbolic() : _symbols({SymbolData{}}) {}
 
     virtual ~Symbolic() {}
 
