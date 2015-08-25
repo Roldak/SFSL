@@ -192,12 +192,12 @@ bool FunctionType::isSubTypeOf(const Type* other) const {
         }
 
         for (size_t i = 0; i < _argTypes.size(); ++i) {
-            if (!_argTypes[i]->isSubTypeOf(oArgTypes[i])) {
+            if (!oArgTypes[i]->isSubTypeOf(_argTypes[i])) {
                 return false;
             }
         }
 
-        return oRetType->isSubTypeOf(_retType);
+        return _retType->isSubTypeOf(oRetType);
     }
 
     return false;
@@ -266,12 +266,12 @@ bool MethodType::isSubTypeOf(const Type* other) const {
         }
 
         for (size_t i = 0; i < _argTypes.size(); ++i) {
-            if (!_argTypes[i]->isSubTypeOf(oArgTypes[i])) {
+            if (!oArgTypes[i]->isSubTypeOf(_argTypes[i])) {
                 return false;
             }
         }
 
-        return oRetType->isSubTypeOf(_retType);
+        return _retType->isSubTypeOf(oRetType);
     }
 
     return false;
