@@ -261,8 +261,8 @@ void SymbolAssignation::visit(TypeConstructorCreation* tc) {
             createProperType(static_cast<TypeIdentifier*>(expr),
                              ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
                                  _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(expr)->getValue(), _ctx));
-        } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: type`
-            // The var is already going to be created by the KindSpecifier Node
+        } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: kind`
+            // The type var is already going to be created by the KindSpecifier Node
             expr->onVisit(this);
         } else {
             _ctx->reporter().error(*expr, "Type argument should be an identifier");

@@ -184,7 +184,7 @@ void Lexer::handleMultiLineComment() {
     char oldChr = 0;
     char chr = 0;
 
-    while (oldChr != '*' && chr != '/') {
+    while (oldChr != '*' || chr != '/') {
         if (!_source.hasNext()) {
             _ctx->reporter().fatal(_source.currentPos(), "Unfinished multiline comment");
         }
