@@ -14,6 +14,8 @@
 #include "../AST/Visitors/ASTAssignmentChecker.h"
 #include "../AST/Symbols/Scope.h"
 
+#include "../../../Utils/TakeSecondIterator.h"
+
 namespace sfsl {
 
 namespace ast {
@@ -405,8 +407,8 @@ TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(MemberAccess* dot, ClassDe
         return {nullptr, nullptr};
     }
 
-    auto b = utils::TakeSecond<decltype(it.first)>(it.first);
-    auto e = utils::TakeSecond<decltype(it.second)>(it.second);
+    auto b = utils::TakeSecondIterator<decltype(it.first)>(it.first);
+    auto e = utils::TakeSecondIterator<decltype(it.second)>(it.second);
     const AnySymbolicData data = resolveOverload(dot, b, e, subtable);
 
     if (data.symbol) {
