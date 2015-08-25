@@ -114,6 +114,9 @@ private:
     template<typename T>
     void setVariableSymbolicUsed(T* symbolic, bool val);
 
+    void addSubtypeRelations(ClassDecl* clss, ClassDecl* parent);
+    void updateSubtypeRelations(ClassDecl* clss);
+
     void warnForUnusedVariableInCurrentScope();
 
     std::set<TypeExpression*> _visitedTypes;

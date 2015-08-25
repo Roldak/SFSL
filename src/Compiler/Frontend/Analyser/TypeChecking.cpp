@@ -598,6 +598,8 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         return a.score() > b.score();
     });
 
+    debugReportCandidateScores(candidates, _ctx);
+
     std::vector<OverloadedDefSymbolCandidate*> theChosenOnes;
 
     for (OverloadedDefSymbolCandidate& candidate : candidates) {

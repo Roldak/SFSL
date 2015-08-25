@@ -24,15 +24,15 @@ public:
 
     virtual ~CanSubtypeBase() {}
 
-    typename ParentTypeContainer::iterator parentsBegin() const {
+    typename ParentTypeContainer::iterator parentBegin() const {
         return _container.begin();
     }
 
-    typename ParentTypeContainer::iterator parentsEnd() const {
+    typename ParentTypeContainer::iterator parentEnd() const {
         return _container.end();
     }
 
-    typename ParentTypeContainer::const_iterator cParentsBegin() const {
+    typename ParentTypeContainer::const_iterator cParentBegin() const {
         return _container.cbegin();
     }
 

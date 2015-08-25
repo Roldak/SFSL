@@ -37,6 +37,7 @@ public:
 /**
  * @brief The Class Declaration AST
  * Contains :
+ *  - Its name
  *  - Its fields
  *  - Its definitions
  */
@@ -67,6 +68,8 @@ public:
      * @return The list of definitions declared in this class
      */
     const std::vector<DefineDecl*>& getDefs() const;
+
+    typedef type::CanSubtype<ClassDecl> CanSubtypeClasses;
 
 private:
 
