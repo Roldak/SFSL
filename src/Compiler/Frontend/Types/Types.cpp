@@ -145,7 +145,7 @@ bool ProperType::isSubTypeOf(const Type* other) const {
             const SubstitutionTable& osub = objother->getSubstitutionTable();
             for (const auto& pair : _subTable) {
                 const auto& subpair = osub.find(pair.first);
-                if (!subpair->second->isSubTypeOf(pair.second)) { // TODO support contravariance maybe?
+                if (!pair.second->isSubTypeOf(subpair->second)) { // TODO support contravariance maybe?
                     return false;
                 }
             }
