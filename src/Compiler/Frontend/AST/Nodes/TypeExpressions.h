@@ -12,6 +12,7 @@
 #include <iostream>
 #include "Expressions.h"
 #include "../../Kinds/Kinds.h"
+#include "../../Types/CanSubtype.h"
 
 namespace sfsl {
 
@@ -36,10 +37,11 @@ public:
 /**
  * @brief The Class Declaration AST
  * Contains :
+ *  - Its name
  *  - Its fields
  *  - Its definitions
  */
-class ClassDecl : public TypeExpression, public sym::Scoped, public common::HasManageableUserdata {
+class ClassDecl : public TypeExpression, public sym::Scoped, public type::CanSubtype<ClassDecl>, public common::HasManageableUserdata {
 public:
 
     ClassDecl(const std::string& name, TypeExpression* parent, const std::vector<TypeSpecifier*>& fields, const std::vector<DefineDecl*>& defs);
@@ -66,6 +68,8 @@ public:
      * @return The list of definitions declared in this class
      */
     const std::vector<DefineDecl*>& getDefs() const;
+
+    typedef type::CanSubtype<ClassDecl> CanSubtypeClasses;
 
 private:
 

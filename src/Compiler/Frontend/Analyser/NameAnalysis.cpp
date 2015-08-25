@@ -209,11 +209,17 @@ void SymbolAssignation::visit(ClassDecl* clss) {
             clss->getParent()->onVisit(this);
             if (type::Type* parentType = ASTTypeCreator::createType(clss->getParent(), _ctx)) {
                 if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->applied(_ctx))) {
-                    parent->getClass()->onVisit(this);
-                    _curScope->copySymbolsFrom(parent->getClass()->getScope(), parent->getSubstitutionTable());
+                    ClassDecl* parentClass = parent->getClass();
+                    parentClass->onVisit(this);
+
+                    _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable());
+
+                    addSubtypeRelations(clss, parentClass);
                 }
             }
         }
+
+        updateSubtypeRelations(clss);
 
         for (TypeSpecifier* field : clss->getFields()) {
             field->onVisit(this);
@@ -405,6 +411,15 @@ void SymbolAssignation::setVariableSymbolicUsed(T* symbolic, bool val) {
             static_cast<sym::VariableSymbol*>(s)->setUsed(val);
         }
     }
+}
+
+void SymbolAssignation::addSubtypeRelations(ClassDecl* clss, ClassDecl* parent) {
+    clss->CanSubtypeClasses::insertParents(parent->CanSubtypeClasses::cParentBegin(), parent->CanSubtypeClasses::cParentEnd());
+}
+
+void SymbolAssignation::updateSubtypeRelations(ClassDecl* clss) {
+    clss->CanSubtypeClasses::insertParent(clss);
+    clss->CanSubtypeClasses::updateParents();
 }
 
 void SymbolAssignation::warnForUnusedVariableInCurrentScope() {

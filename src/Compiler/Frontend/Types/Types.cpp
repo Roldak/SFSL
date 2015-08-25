@@ -141,11 +141,11 @@ TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
 
 bool ProperType::isSubTypeOf(const Type* other) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
-        if (_class == objother->_class) { // TODO : change that when inheritance is supported.
+        if (_class->CanSubtypeClasses::extends(objother->_class)) { // TODO : change that when inheritance is supported.
             const SubstitutionTable& osub = objother->getSubstitutionTable();
             for (const auto& pair : _subTable) {
                 const auto& subpair = osub.find(pair.first);
-                if (!subpair->second->isSubTypeOf(pair.second)) { // TODO support contravariance maybe?
+                if (!pair.second->isSubTypeOf(subpair->second)) { // TODO support contravariance maybe?
                     return false;
                 }
             }
@@ -192,12 +192,12 @@ bool FunctionType::isSubTypeOf(const Type* other) const {
         }
 
         for (size_t i = 0; i < _argTypes.size(); ++i) {
-            if (!_argTypes[i]->isSubTypeOf(oArgTypes[i])) {
+            if (!oArgTypes[i]->isSubTypeOf(_argTypes[i])) {
                 return false;
             }
         }
 
-        return oRetType->isSubTypeOf(_retType);
+        return _retType->isSubTypeOf(oRetType);
     }
 
     return false;
@@ -266,12 +266,12 @@ bool MethodType::isSubTypeOf(const Type* other) const {
         }
 
         for (size_t i = 0; i < _argTypes.size(); ++i) {
-            if (!_argTypes[i]->isSubTypeOf(oArgTypes[i])) {
+            if (!oArgTypes[i]->isSubTypeOf(_argTypes[i])) {
                 return false;
             }
         }
 
-        return oRetType->isSubTypeOf(_retType);
+        return _retType->isSubTypeOf(oRetType);
     }
 
     return false;

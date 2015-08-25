@@ -77,6 +77,8 @@ void ASTDefaultTypeFromKindCreator::visit(ProperTypeKindSpecifier*) {
     ClassDecl* clss = _mngr.New<ClassDecl>(_name, nullptr, std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>());
     clss->setScope(_mngr.New<sym::Scope>(nullptr));
 
+    clss->CanSubtypeClasses::insertParent(clss);
+
     _created = clss;
 }
 
