@@ -1,13 +1,13 @@
 //
-//  SubtypeCache.h
+//  CanSubtype.h
 //  SFSL
 //
 //  Created by Romain Beguet on 24.08.15.
 //  Copyright (c) 2015 Romain Beguet. All rights reserved.
 //
 
-#ifndef __SFSL__SubtypeCache__
-#define __SFSL__SubtypeCache__
+#ifndef __SFSL__CanSubtype__
+#define __SFSL__CanSubtype__
 
 #include <algorithm>
 #include <vector>
@@ -22,21 +22,21 @@ class CanSubtypeBase {
 
 public:
 
-    virtual ~CanSubtypeBase();
+    virtual ~CanSubtypeBase() {}
 
-    typename ParentTypeContainer::iterator begin() const {
+    typename ParentTypeContainer::iterator parentsBegin() const {
         return _container.begin();
     }
 
-    typename ParentTypeContainer::const_iterator end() const {
+    typename ParentTypeContainer::iterator parentsEnd() const {
         return _container.end();
     }
 
-    typename ParentTypeContainer::iterator cbegin() const {
+    typename ParentTypeContainer::const_iterator cParentsBegin() const {
         return _container.cbegin();
     }
 
-    typename ParentTypeContainer::const_iterator cend() const {
+    typename ParentTypeContainer::const_iterator cParentEnd() const {
         return _container.cend();
     }
 
@@ -59,18 +59,18 @@ class CanSubtype<ParentType, std::vector> : public CanSubtypeBase<ParentType, st
     typedef CanSubtypeBase<ParentType, std::vector> Base;
 public:
 
-    virtual ~CanSubtype();
+    virtual ~CanSubtype() {}
 
-    void insert(ParentType* parent) {
+    void insertParent(ParentType* parent) {
         Base::_container.push_back(parent);
     }
 
     template<typename Iterator>
-    void insert(const Iterator& begin, const Iterator& end) {
+    void insertParents(const Iterator& begin, const Iterator& end) {
         Base::_container.insert(Base::_container.end(), begin, end);
     }
 
-    void update() {
+    void updateParents() {
         std::sort(Base::_container.begin(), Base::_container.end());
     }
 
