@@ -13,7 +13,7 @@ namespace sfsl {
 namespace ast {
 
 ASTSymbolExtractor::ASTSymbolExtractor(CompCtx_Ptr& ctx)
-    : ASTVisitor(ctx), _sym(nullptr) {
+    : ASTExplicitVisitor(ctx), _sym(nullptr) {
 
 }
 

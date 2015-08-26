@@ -10,7 +10,7 @@
 #define __SFSL__ASTSymbolExtractor__
 
 #include <iostream>
-#include "ASTVisitor.h"
+#include "ASTExplicitVisitor.h"
 
 namespace sfsl {
 
@@ -19,7 +19,7 @@ namespace ast {
 /**
  * @brief
  */
-class ASTSymbolExtractor : public ASTVisitor {
+class ASTSymbolExtractor : public ASTExplicitVisitor {
 public:
 
     /**
