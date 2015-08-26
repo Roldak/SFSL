@@ -13,7 +13,7 @@ namespace sfsl {
 namespace ast {
 
 ASTAssignmentChecker::ASTAssignmentChecker(CompCtx_Ptr& ctx)
-    : ASTVisitor(ctx), _isValid(false) {
+    : ASTExplicitVisitor(ctx), _isValid(false) {
 
 }
 
@@ -21,84 +21,8 @@ ASTAssignmentChecker::~ASTAssignmentChecker() {
 
 }
 
-void ASTAssignmentChecker::visit(ASTNode*) {
-    // do not throw an exception
-}
-
-void ASTAssignmentChecker::visit(Program*) {
-
-}
-
-void ASTAssignmentChecker::visit(ModuleDecl*) {
-
-}
-
-void ASTAssignmentChecker::visit(TypeDecl*) {
-
-}
-
-void ASTAssignmentChecker::visit(ClassDecl*){
-
-}
-
-void ASTAssignmentChecker::visit(DefineDecl*) {
-
-}
-
-void ASTAssignmentChecker::visit(ProperTypeKindSpecifier*) {
-
-}
-
-void ASTAssignmentChecker::visit(TypeConstructorKindSpecifier*) {
-
-}
-
-void ASTAssignmentChecker::visit(FunctionTypeDecl*) {
-
-}
-
-void ASTAssignmentChecker::visit(TypeMemberAccess*) {
-
-}
-
-void ASTAssignmentChecker::visit(TypeTuple*) {
-
-}
-
-void ASTAssignmentChecker::visit(TypeConstructorCreation*) {
-
-}
-
-void ASTAssignmentChecker::visit(TypeConstructorCall*) {
-
-}
-
-void ASTAssignmentChecker::visit(TypeIdentifier*) {
-
-}
-
-void ASTAssignmentChecker::visit(KindSpecifier*) {
-
-}
-
-void ASTAssignmentChecker::visit(ExpressionStatement*) {
-
-}
-
-void ASTAssignmentChecker::visit(BinaryExpression*) {
-
-}
-
-void ASTAssignmentChecker::visit(AssignmentExpression*) {
-
-}
-
 void ASTAssignmentChecker::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
-}
-
-void ASTAssignmentChecker::visit(Block*) {
-
 }
 
 void ASTAssignmentChecker::visit(IfExpression* ifexpr) {
@@ -130,34 +54,9 @@ void ASTAssignmentChecker::visit(Tuple* tuple) {
     }
 }
 
-void ASTAssignmentChecker::visit(FunctionCreation*) {
-
-}
-
-void ASTAssignmentChecker::visit(FunctionCall*) {
-
-}
-
 void ASTAssignmentChecker::visit(Identifier* id) {
     _isValid = id->getSymbol()->getSymbolType() == sym::SYM_VAR;
 }
-
-void ASTAssignmentChecker::visit(This*) {
-
-}
-
-void ASTAssignmentChecker::visit(BoolLitteral*) {
-
-}
-
-void ASTAssignmentChecker::visit(IntLitteral*) {
-
-}
-
-void ASTAssignmentChecker::visit(RealLitteral*) {
-
-}
-
 
 bool ASTAssignmentChecker::isValid() const {
     return _isValid;
