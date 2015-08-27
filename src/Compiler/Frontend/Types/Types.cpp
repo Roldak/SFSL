@@ -395,6 +395,12 @@ Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& 
         return NotYetDefined();
     }
 
+    for (ast::TypeExpression*& param : params) {
+        if (ast::isNodeOfType<ast::KindSpecifier>(param, ctx)) {
+            param = static_cast<ast::KindSpecifier*>(param)->getSpecified();
+        }
+    }
+
     SubstitutionTable subs;
 
     for (size_t i = 0; i < params.size(); ++i) {

@@ -87,12 +87,10 @@ void ASTDefaultTypeFromKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
     TypeExpression* ret;
 
     for (size_t i = 0; i < args.size(); ++i) {
-        tcks->getArgs()[i]->onVisit(this);
-        args[i] = _created;
+        args[i] = createDefaultTypeFromKind(tcks->getArgs()[i], _name + "Arg" + utils::T_toString(i), _ctx)->getName();
     }
 
-    tcks->getRet()->onVisit(this);
-    ret = _created;
+    ret = createDefaultTypeFromKind(tcks->getRet(), _name + "Ret", _ctx)->getName();
 
     TypeTuple* tt = _mngr.New<TypeTuple>(args);
 
@@ -114,11 +112,13 @@ TypeDecl* ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(ASTNode* node
     type::Type* t = ASTTypeCreator::createType(expr, ctx);
 
     TypeDecl* tdecl = ctx->memoryManager().New<TypeDecl>(ctx->memoryManager().New<TypeIdentifier>(name), expr);
-    tdecl->setType(t);
 
     sym::TypeSymbol* ts = ctx->memoryManager().New<sym::TypeSymbol>(name, tdecl);
+
+    tdecl->setType(t);
     ts->setType(t);
 
+    tdecl->getName()->setSymbol(ts);
     tdecl->setSymbol(ts);
 
     return tdecl;
