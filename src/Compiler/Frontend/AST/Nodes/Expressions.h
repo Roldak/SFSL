@@ -16,6 +16,7 @@
 #include "../Symbols/Symbols.h"
 #include "../Symbols/Symbolic.h"
 #include "../../Types/Types.h"
+#include "../../Types/TypeParametrizable.h"
 
 namespace sfsl {
 
@@ -253,7 +254,11 @@ private:
 /**
  * @brief Represents a function creation, e.g. `(x) => 2 * x`
  */
-class FunctionCreation : public Expression, public sym::Scoped, public common::HasManageableUserdata {
+class FunctionCreation :
+        public Expression,
+        public sym::Scoped,
+        public common::HasManageableUserdata,
+        public type::TypeParametrizable {
 public:
 
     FunctionCreation(const std::string& name, Expression* args, Expression* body);
