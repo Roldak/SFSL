@@ -244,6 +244,115 @@ void ScopeGeneration::popScope() {
     _curScope = _curScope->getParent();
 }
 
+// TYPE DEPENDENCY FIXATION
+
+
+TypeDependencyFixation::TypeDependencyFixation(CompCtx_Ptr& ctx) : ScopePossessorVisitor(ctx) {
+
+}
+
+TypeDependencyFixation::~TypeDependencyFixation() {
+
+}
+
+void TypeDependencyFixation::visit(ModuleDecl* mod) {
+    SAVE_SCOPE(mod->getSymbol())
+
+    ASTVisitor::visit(mod);
+
+    RESTORE_SCOPE
+}
+
+void TypeDependencyFixation::visit(TypeDecl* tdecl) {
+    SAVE_SCOPE(tdecl->getSymbol())
+
+    ASTVisitor::visit(tdecl);
+
+    RESTORE_SCOPE
+}
+
+void TypeDependencyFixation::visit(ClassDecl* clss) {
+    SAVE_SCOPE(clss)
+
+    _parametrizables.push_back(clss);
+
+    ASTVisitor::visit(clss);
+
+    _parametrizables.pop_back();
+
+    RESTORE_SCOPE
+}
+
+void TypeDependencyFixation::visit(DefineDecl* def) {
+    SAVE_SCOPE(def->getSymbol())
+
+    ASTVisitor::visit(def);
+
+    RESTORE_SCOPE
+}
+
+void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
+    SAVE_SCOPE(tc)
+
+    _parametrizables.push_back(tc);
+
+    ASTVisitor::visit(tc);
+
+    _parametrizables.pop_back();
+
+    RESTORE_SCOPE
+}
+
+void TypeDependencyFixation::visit(Block* block) {
+    SAVE_SCOPE(block)
+
+    ASTVisitor::visit(block);
+
+    RESTORE_SCOPE
+}
+
+void TypeDependencyFixation::visit(FunctionCreation* func) {
+    SAVE_SCOPE(func)
+
+    _parametrizables.push_back(func);
+
+    ASTVisitor::visit(func);
+
+    _parametrizables.pop_back();
+
+    RESTORE_SCOPE
+}
+
+void TypeDependencyFixation::visit(TypeIdentifier* id) {
+    if (sym::TypeSymbol* ts = _curScope->getSymbol<sym::TypeSymbol>(id->getValue())) {
+        std::cerr << ts->isTypeVariable() << std::endl;
+        if (ts->isTypeVariable()) {
+            updateAllParametrizable(ts);
+        }
+    }
+}
+
+void TypeDependencyFixation::updateAllParametrizable(sym::TypeSymbol* ts) {
+    for (type::TypeParametrizable* tp : _parametrizables) {
+        tp->setDependsOn(ts);
+    }
+}
+
+template<typename T>
+void TypeDependencyFixation::debugDumpDependencies(const T* param) const {
+    if (param->getDependencies().size() > 0) {
+        std::string acc = param->getName() + " depends on {";
+
+        for (sym::TypeSymbol* t : param->getDependencies()) {
+            acc += t->getName() + ", ";
+        }
+
+        acc = acc.substr(0, acc.size() - 2);
+
+        _ctx->reporter().info(*param, acc + "}");
+    }
+}
+
 // SYMBOL ASSIGNATION
 
 SymbolAssignation::SymbolAssignation(CompCtx_Ptr& ctx) : ScopePossessorVisitor(ctx) {

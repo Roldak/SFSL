@@ -12,7 +12,6 @@
 #include <iostream>
 #include <set>
 #include <list>
-#include <stack>
 #include "../AST/Visitors/ASTVisitor.h"
 
 namespace sfsl {
@@ -78,21 +77,34 @@ private:
     TypeExpression* _currentThis;
 };
 
-class TypeSymbolAssignation {
+/**
+ * @brief
+ */
+class TypeDependencyFixation : public ScopePossessorVisitor {
 public:
 
-    TypeSymbolAssignation(CompCtx_Ptr& ctx);
-    virtual ~TypeSymbolAssignation();
+    TypeDependencyFixation(CompCtx_Ptr& ctx);
+    virtual ~TypeDependencyFixation();
 
+    virtual void visit(ModuleDecl* mod) override;
+    virtual void visit(TypeDecl* tdecl) override;
     virtual void visit(ClassDecl* clss) override;
+    virtual void visit(DefineDecl* decl) override;
+
     virtual void visit(TypeConstructorCreation* tc) override;
+    virtual void visit(Block* block) override;
     virtual void visit(FunctionCreation* func) override;
 
     virtual void visit(TypeIdentifier* id) override;
 
 private:
 
+    void updateAllParametrizable(sym::TypeSymbol* ts);
 
+    template<typename T>
+    void debugDumpDependencies(const T* param) const;
+
+    std::list<type::TypeParametrizable*> _parametrizables;
 };
 
 /**

@@ -9,7 +9,7 @@
 #ifndef __SFSL__TypeParametrizable__
 #define __SFSL__TypeParametrizable__
 
-#include <vector>
+#include <set>
 
 namespace sfsl {
 
@@ -26,11 +26,11 @@ public:
 
     void setDependsOn(sym::TypeSymbol* type);
 
-    const std::vector<sym::TypeSymbol*>& getDependencies() const;
+    const std::set<sym::TypeSymbol*>& getDependencies() const;
 
 private:
 
-    std::vector<sym::TypeSymbol*> _types;
+    std::set<sym::TypeSymbol*> _types;
 };
 
 }

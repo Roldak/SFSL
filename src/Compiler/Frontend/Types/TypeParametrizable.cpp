@@ -21,10 +21,10 @@ TypeParametrizable::~TypeParametrizable() {
 }
 
 void TypeParametrizable::setDependsOn(sym::TypeSymbol* type) {
-    _types.push_back(type);
+    _types.insert(type);
 }
 
-const std::vector<sym::TypeSymbol*>&TypeParametrizable::getDependencies() const {
+const std::set<sym::TypeSymbol*>& TypeParametrizable::getDependencies() const {
     return _types;
 }
 
