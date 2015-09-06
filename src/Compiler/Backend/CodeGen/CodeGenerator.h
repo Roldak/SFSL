@@ -19,25 +19,26 @@ namespace sfsl {
 
 namespace out {
 
-    using namespace ast;
+using namespace ast;
 
-    template<typename T>
-    /**
-     * @brief Base class for visitors that generate code from the AST
-     */
-    class CodeGenerator : public ASTVisitor {
-    public:
+template<typename T>
+/**
+ * @brief Base class for visitors that generate code from the AST
+ */
+class CodeGenerator : public ASTVisitor {
+public:
 
-        CodeGenerator(CompCtx_Ptr& ctx, CodeGenOutput<T>& out) : ASTVisitor(ctx), _mngr(ctx->memoryManager()), _out(out) {}
-        virtual ~CodeGenerator() {}
+    CodeGenerator(CompCtx_Ptr& ctx, CodeGenOutput<T>& out) : ASTVisitor(ctx), _mngr(ctx->memoryManager()), _out(out) {}
+    virtual ~CodeGenerator() {}
 
-        virtual void visit(ASTNode*) override = 0;
+    virtual void visit(ASTNode*) override = 0;
 
-    protected:
+protected:
 
-        common::AbstractMemoryManager& _mngr;
-        CodeGenOutput<T>& _out;
-    };
+    common::AbstractMemoryManager& _mngr;
+    CodeGenOutput<T>& _out;
+};
+
 }
 
 }

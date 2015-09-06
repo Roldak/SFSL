@@ -22,7 +22,6 @@ namespace sfsl {
 
 namespace sym {
 
-
 /**
  * @brief A class which makes it easy to retrieve symbols that are
  * defined in the AST

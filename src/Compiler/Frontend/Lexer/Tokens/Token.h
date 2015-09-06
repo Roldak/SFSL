@@ -16,44 +16,43 @@ namespace sfsl {
 
 namespace tok {
 
-    /**
-     * @brief Enumerates every possible token type
-     */
-    enum TOK_TYPE { TOK_OPER, TOK_ID, TOK_KW, TOK_BOOL_LIT, TOK_INT_LIT, TOK_REAL_LIT, TOK_STR_LIT, TOK_EOF, TOK_BAD };
+/**
+ * @brief Enumerates every possible token type
+ */
+enum TOK_TYPE { TOK_OPER, TOK_ID, TOK_KW, TOK_BOOL_LIT, TOK_INT_LIT, TOK_REAL_LIT, TOK_STR_LIT, TOK_EOF, TOK_BAD };
+
+/**
+ * @brief Represents an abstract Token
+ */
+class Token : public common::MemoryManageable, public common::Positionnable {
+public:
+
+    virtual ~Token();
 
     /**
-     * @brief Represents an abstract Token
+     * @return the type of the token
      */
-    class Token : public common::MemoryManageable, public common::Positionnable {
-    public:
+    virtual TOK_TYPE getTokenType() const = 0;
 
-        virtual ~Token();
+    /**
+     * @return a string representation of the token
+     */
+    virtual std::string toString() const = 0;
 
-        /**
-         * @return the type of the token
-         */
-        virtual TOK_TYPE getTokenType() const = 0;
+    /**
+     * @return a string representation of the token with details
+     */
+    std::string toStringDetailed() const;
 
-        /**
-         * @return a string representation of the token
-         */
-        virtual std::string toString() const = 0;
+    /**
+     * @param type the type to represent as a string
+     * @return the string representation of the type
+     */
+    static std::string TokenTypeToString(TOK_TYPE type);
 
-        /**
-         * @return a string representation of the token with details
-         */
-        std::string toStringDetailed() const;
+private:
 
-        /**
-         * @param type the type to represent as a string
-         * @return the string representation of the type
-         */
-        static std::string TokenTypeToString(TOK_TYPE type);
-
-    private:
-
-    };
-
+};
 
 }
 

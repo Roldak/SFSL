@@ -15,26 +15,26 @@ namespace sfsl {
 
 namespace tok {
 
+/**
+ * @brief Represents an identifier
+ */
+class Identifier : public Token {
+public:
+
     /**
-     * @brief Represents an identifier
+     * @brief Creates an Itentifier Token
+     * @param id the name of the identifier
      */
-    class Identifier : public Token {
-    public:
+    Identifier(const std::string& id);
+    virtual ~Identifier();
 
-        /**
-         * @brief Creates an Itentifier Token
-         * @param id the name of the identifier
-         */
-        Identifier(const std::string& id);
-        virtual ~Identifier();
+    virtual TOK_TYPE getTokenType() const override;
+    virtual std::string toString() const override;
 
-        virtual TOK_TYPE getTokenType() const override;
-        virtual std::string toString() const override;
+private:
 
-    private:
-
-        const std::string _id;
-    };
+    const std::string _id;
+};
 
 }
 

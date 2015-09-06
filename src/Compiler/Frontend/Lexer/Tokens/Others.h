@@ -15,43 +15,43 @@ namespace sfsl {
 
 namespace tok {
 
-    /**
-     * @brief Represents the last token of the source
-     */
-    class EOFToken : public Token {
-    public:
-
-        /**
-         * @brief Creates an EOF Token
-         */
-        EOFToken();
-        virtual ~EOFToken();
-
-        virtual TOK_TYPE getTokenType() const override;
-        virtual std::string toString() const override;
-
-    };
+/**
+ * @brief Represents the last token of the source
+ */
+class EOFToken : public Token {
+public:
 
     /**
-     * @brief Represents an invalid token
+     * @brief Creates an EOF Token
      */
-    class BadToken : public Token {
-    public:
+    EOFToken();
+    virtual ~EOFToken();
 
-        /**
-         * @brief Creates a BAD Token
-         */
-        BadToken(const std::string& str);
+    virtual TOK_TYPE getTokenType() const override;
+    virtual std::string toString() const override;
 
-        virtual ~BadToken();
+};
 
-        virtual TOK_TYPE getTokenType() const override;
-        virtual std::string toString() const override;
+/**
+ * @brief Represents an invalid token
+ */
+class BadToken : public Token {
+public:
 
-    private:
+    /**
+     * @brief Creates a BAD Token
+     */
+    BadToken(const std::string& str);
 
-        const std::string _str;
-    };
+    virtual ~BadToken();
+
+    virtual TOK_TYPE getTokenType() const override;
+    virtual std::string toString() const override;
+
+private:
+
+    const std::string _str;
+};
 
 }
 

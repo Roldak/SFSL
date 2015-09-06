@@ -15,12 +15,12 @@
 namespace sfsl {
 
 namespace type {
-    class Type;
-    typedef std::map<Type*, Type*> SubstitutionTable;
+class Type;
+typedef std::map<Type*, Type*> SubstitutionTable;
 }
 
 namespace ast {
-    class TypeChecking;
+class TypeChecking;
 }
 
 namespace sym {

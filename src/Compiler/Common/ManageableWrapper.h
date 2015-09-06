@@ -16,33 +16,33 @@ namespace sfsl {
 
 namespace common {
 
-    template<typename T>
+template<typename T>
+/**
+ * @brief Utility class that adapts an non MemoryManageable object so that
+ * it can become managed
+ */
+class ManageableWrapper : public common::MemoryManageable {
+public:
+
+    template<typename... Args>
     /**
-     * @brief Utility class that adapts an non MemoryManageable object so that
-     * it can become managed
+     * @param args The arguments to forward to the wrapped object constructor
      */
-    class ManageableWrapper : public common::MemoryManageable {
-    public:
+    ManageableWrapper(Args... args) : _value(std::forward<Args>(args)...) {}
 
-        template<typename... Args>
-        /**
-         * @param args The arguments to forward to the wrapped object constructor
-         */
-        ManageableWrapper(Args... args) : _value(std::forward<Args>(args)...) {}
+    virtual ~ManageableWrapper() {}
 
-        virtual ~ManageableWrapper() {}
+    /**
+     * @return A reference towards the underlying object
+     */
+    const T* getConstPtr() const {
+        return &_value;
+    }
 
-        /**
-         * @return A reference towards the underlying object
-         */
-        const T* getConstPtr() const {
-            return &_value;
-        }
+private:
 
-    private:
-
-        T _value;
-    };
+    T _value;
+};
 
 }
 

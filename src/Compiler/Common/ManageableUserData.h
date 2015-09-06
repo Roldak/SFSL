@@ -16,30 +16,30 @@ namespace sfsl {
 
 namespace common {
 
-    /**
-     * @brief Interface that can be extended by classes that allow
-     * having manageable user data
-     */
-    class HasManageableUserdata {
-    public:
+/**
+ * @brief Interface that can be extended by classes that allow
+ * having manageable user data
+ */
+class HasManageableUserdata {
+public:
 
-        HasManageableUserdata();
-        virtual ~HasManageableUserdata();
+    HasManageableUserdata();
+    virtual ~HasManageableUserdata();
 
-        template<typename T>
-        void setUserdata(T* userdata) {
-            _userdata = userdata;
-        }
+    template<typename T>
+    void setUserdata(T* userdata) {
+        _userdata = userdata;
+    }
 
-        template<typename T>
-        T* getUserdata() {
-            return static_cast<T*>(_userdata);
-        }
+    template<typename T>
+    T* getUserdata() {
+        return static_cast<T*>(_userdata);
+    }
 
-    private:
+private:
 
-        MemoryManageable* _userdata;
-    };
+    MemoryManageable* _userdata;
+};
 
 }
 

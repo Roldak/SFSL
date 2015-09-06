@@ -158,7 +158,7 @@ void ScopeGeneration::visit(TypeConstructorCreation* tc) {
     }
 
     for (TypeExpression* expr : args) {
-        if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `x`
+        if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `T`
             createProperType(static_cast<TypeIdentifier*>(expr),
                              ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
                                  _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(expr)->getValue(), _ctx));

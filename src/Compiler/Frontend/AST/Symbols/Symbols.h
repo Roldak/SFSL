@@ -22,119 +22,120 @@
 namespace sfsl {
 
 namespace ast {
-    class TypeExpression;
-    class TypeDecl;
-    class DefineDecl;
+class TypeExpression;
+class TypeDecl;
+class DefineDecl;
 }
 
 namespace sym {
 
-    enum SYM_TYPE{SYM_MODULE = 0, SYM_TPE, SYM_DEF, SYM_VAR};
+enum SYM_TYPE{SYM_MODULE = 0, SYM_TPE, SYM_DEF, SYM_VAR};
 
-    class ModuleSymbol;
-    class TypeSymbol;
-    class DefinitionSymbol;
-    class VariableSymbol;
+class ModuleSymbol;
+class TypeSymbol;
+class DefinitionSymbol;
+class VariableSymbol;
 
-    /**
-     * @brief Abstract class representing a Symbol, which is a uniquely named object
-     */
-    class Symbol : public common::MemoryManageable, public common::Positionnable {
-    public:
-        virtual ~Symbol();
-
-        /**
-         * @return The type of this symbol
-         */
-        virtual SYM_TYPE getSymbolType() const = 0;
-
-        /**
-         * @return True if this symbol is overloadable with the given one
-         */
-        virtual bool isOverloadableWith(sym::Symbol* other) const;
-
-        /**
-         * @return The name of this symbol
-         */
-        const std::string& getName() const;
-
-    protected:
-        Symbol(const std::string& name);
-
-    private:
-
-        const std::string _name;
-    };
+/**
+ * @brief Abstract class representing a Symbol, which is a uniquely named object
+ */
+class Symbol : public common::MemoryManageable, public common::Positionnable {
+public:
+    virtual ~Symbol();
 
     /**
-     * @brief Represents the symbol associated to a module.
+     * @return The type of this symbol
      */
-    class ModuleSymbol : public Symbol, public Scoped {
-    public:
-        ModuleSymbol(const std::string& name);
-        virtual ~ModuleSymbol();
-
-        virtual SYM_TYPE getSymbolType() const override;
-    };
+    virtual SYM_TYPE getSymbolType() const = 0;
 
     /**
-     * @brief Represents the symbol associated to a type
+     * @return True if this symbol is overloadable with the given one
      */
-    class TypeSymbol : public Symbol, public Scoped, public type::Typed, public kind::Kinded {
-    public:
-        TypeSymbol(const std::string& name, ast::TypeDecl* type);
-        virtual ~TypeSymbol();
-
-        virtual SYM_TYPE getSymbolType() const override;
-
-        ast::TypeDecl* getTypeDecl() const;
-
-    private:
-
-        ast::TypeDecl* _type;
-    };
+    virtual bool isOverloadableWith(sym::Symbol* other) const;
 
     /**
-     * @brief Represents the symbol associated to a definition
+     * @return The name of this symbol
      */
-    class DefinitionSymbol : public Symbol, public Scoped, public type::Typed, public common::HasManageableUserdata {
-    public:
-        DefinitionSymbol(const std::string& name, ast::DefineDecl* def, ast::TypeExpression* owner = nullptr);
-        virtual ~DefinitionSymbol();
+    const std::string& getName() const;
 
-        virtual SYM_TYPE getSymbolType() const override;
+protected:
+    Symbol(const std::string& name);
 
-        virtual bool isOverloadableWith(sym::Symbol* other) const override;
+private:
 
-        ast::DefineDecl* getDef() const;
-        ast::TypeExpression* getOwner() const;
+    const std::string _name;
+};
 
-        void setOverridenSymbol(DefinitionSymbol* def);
-        DefinitionSymbol* getOverridenSymbol() const;
+/**
+ * @brief Represents the symbol associated to a module.
+ */
+class ModuleSymbol : public Symbol, public Scoped {
+public:
+    ModuleSymbol(const std::string& name);
+    virtual ~ModuleSymbol();
 
-    private:
+    virtual SYM_TYPE getSymbolType() const override;
+};
 
-        ast::DefineDecl* _def;
-        ast::TypeExpression* _owner;
+/**
+ * @brief Represents the symbol associated to a type
+ */
+class TypeSymbol : public Symbol, public Scoped, public type::Typed, public kind::Kinded {
+public:
+    TypeSymbol(const std::string& name, ast::TypeDecl* type);
+    virtual ~TypeSymbol();
 
-        DefinitionSymbol* _overriden;
-    };
+    virtual SYM_TYPE getSymbolType() const override;
 
-    /**
-     * @brief Represents the symbol associated to a variable
-     */
-    class VariableSymbol : public Symbol, public type::Typed, public utils::UsageTrackable, public common::HasManageableUserdata {
-    public:
-        VariableSymbol(const std::string& name);
-        virtual ~VariableSymbol();
+    ast::TypeDecl* getTypeDecl() const;
 
-        virtual SYM_TYPE getSymbolType() const override;
-    };
+private:
 
-    struct SymbolData final {
-        sym::Symbol* symbol;
-        type::SubstitutionTable env;
-    };
+    ast::TypeDecl* _type;
+};
+
+/**
+ * @brief Represents the symbol associated to a definition
+ */
+class DefinitionSymbol : public Symbol, public Scoped, public type::Typed, public common::HasManageableUserdata {
+public:
+    DefinitionSymbol(const std::string& name, ast::DefineDecl* def, ast::TypeExpression* owner = nullptr);
+    virtual ~DefinitionSymbol();
+
+    virtual SYM_TYPE getSymbolType() const override;
+
+    virtual bool isOverloadableWith(sym::Symbol* other) const override;
+
+    ast::DefineDecl* getDef() const;
+    ast::TypeExpression* getOwner() const;
+
+    void setOverridenSymbol(DefinitionSymbol* def);
+    DefinitionSymbol* getOverridenSymbol() const;
+
+private:
+
+    ast::DefineDecl* _def;
+    ast::TypeExpression* _owner;
+
+    DefinitionSymbol* _overriden;
+};
+
+/**
+ * @brief Represents the symbol associated to a variable
+ */
+class VariableSymbol : public Symbol, public type::Typed, public utils::UsageTrackable, public common::HasManageableUserdata {
+public:
+    VariableSymbol(const std::string& name);
+    virtual ~VariableSymbol();
+
+    virtual SYM_TYPE getSymbolType() const override;
+};
+
+struct SymbolData final {
+    sym::Symbol* symbol;
+    type::SubstitutionTable env;
+};
+
 }
 
 }

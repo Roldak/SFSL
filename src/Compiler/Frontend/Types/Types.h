@@ -19,8 +19,8 @@
 namespace sfsl {
 
 namespace ast {
-    class ClassDecl;
-    class TypeConstructorCreation;
+class ClassDecl;
+class TypeConstructorCreation;
 }
 
 namespace type {

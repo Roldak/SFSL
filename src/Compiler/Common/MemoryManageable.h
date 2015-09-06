@@ -15,32 +15,32 @@ namespace sfsl {
 
 namespace common {
 
+/**
+ * @brief An interface that represents an object
+ * that can be managed by a #sfsl::common::MemoryManager
+ */
+class MemoryManageable {
+public:
+
+    friend class AbstractMemoryManager;
+
     /**
-     * @brief An interface that represents an object
-     * that can be managed by a #sfsl::common::MemoryManager
+     * @brief The destructor
      */
-    class MemoryManageable {
-    public:
+    virtual ~MemoryManageable() {}
 
-        friend class AbstractMemoryManager;
+protected:
 
-        /**
-         * @brief The destructor
-         */
-        virtual ~MemoryManageable() {}
+    // delete operator is protected so that the user cannot delete manually an object that is supposed to be managed automatically
+    void operator delete  (void*);
+    void operator delete[](void*);
 
-    protected:
-
-        // delete operator is protected so that the user cannot delete manually an object that is supposed to be managed automatically
-        void operator delete  (void*);
-        void operator delete[](void*);
-
-    private:
-        // to prevent manual allocation
-        void* operator new   (size_t);
-        void* operator new[] (size_t);
-        void* operator new   (size_t, void*);
-    };
+private:
+    // to prevent manual allocation
+    void* operator new   (size_t);
+    void* operator new[] (size_t);
+    void* operator new   (size_t, void*);
+};
 
 }
 

@@ -11,6 +11,8 @@
 
 #include <iostream>
 #include <set>
+#include <list>
+#include <stack>
 #include "../AST/Visitors/ASTVisitor.h"
 
 namespace sfsl {
@@ -74,6 +76,23 @@ private:
     void popScope();
 
     TypeExpression* _currentThis;
+};
+
+class TypeSymbolAssignation {
+public:
+
+    TypeSymbolAssignation(CompCtx_Ptr& ctx);
+    virtual ~TypeSymbolAssignation();
+
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(TypeConstructorCreation* tc) override;
+    virtual void visit(FunctionCreation* func) override;
+
+    virtual void visit(TypeIdentifier* id) override;
+
+private:
+
+
 };
 
 /**
