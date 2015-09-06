@@ -28,6 +28,12 @@ protected:
     template<typename T, typename U>
     T* createSymbol(U* node);
 
+    template<typename T, typename S>
+    void initCreated(T* id, S* s);
+
+    template<typename T>
+    void setVariableSymbolicUsed(T* symbolic, bool val);
+
     sym::DefinitionSymbol* createSymbol(DefineDecl* node, TypeExpression* currentThis);
     sym::TypeSymbol* createSymbol(TypeDecl* node);
 
@@ -52,12 +58,17 @@ public:
     virtual void visit(ClassDecl* clss) override;
     virtual void visit(DefineDecl* decl) override;
 
-    virtual void visit(TypeConstructorCreation* typeconstructor) override;
+    virtual void visit(TypeConstructorCreation* tc) override;
+    virtual void visit(KindSpecifier* ks) override;
 
     virtual void visit(Block* block) override;
     virtual void visit(FunctionCreation* func) override;
+    virtual void visit(TypeSpecifier* tps) override;
 
 private:
+
+    void createVar(Identifier* id);
+    void createProperType(TypeIdentifier* id, TypeDecl* defaultType);
 
     void pushScope(sym::Scoped* scoped = nullptr, bool isDefScope = false);
     void popScope();
@@ -82,22 +93,14 @@ public:
     virtual void visit(TypeMemberAccess* tdot) override;
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
     virtual void visit(TypeIdentifier* tident) override;
-    virtual void visit(KindSpecifier* ks) override;
 
     virtual void visit(BinaryExpression* exp) override;
     virtual void visit(MemberAccess* mac) override;
     virtual void visit(Block* block) override;
     virtual void visit(FunctionCreation* func) override;
-    virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(Identifier* id) override;
 
 private:
-
-    void createVar(Identifier* id);
-    void createProperType(TypeIdentifier* id, TypeDecl* defaultType);
-
-    template<typename T, typename S>
-    void initCreated(T* id, S* s);
 
     template<typename T>
     void assignIdentifier(T* id);
@@ -110,9 +113,6 @@ private:
 
     template<typename T>
     void assignFromTypeSymbol(T* mac, sym::TypeSymbol* tsym);
-
-    template<typename T>
-    void setVariableSymbolicUsed(T* symbolic, bool val);
 
     void addSubtypeRelations(ClassDecl* clss, ClassDecl* parent);
     void updateSubtypeRelations(ClassDecl* clss);
