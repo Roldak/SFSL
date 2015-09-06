@@ -9,7 +9,7 @@
 #ifndef __SFSL__TypeParametrizable__
 #define __SFSL__TypeParametrizable__
 
-#include <set>
+#include <vector>
 
 namespace sfsl {
 
@@ -29,18 +29,18 @@ public:
     virtual ~TypeParametrizable();
 
     /**
-     * @param type The additionnal dependency of this object
+     * @param type The dependencies of this object
      */
-    void setDependsOn(sym::TypeSymbol* type);
+    void setDependencies(const std::vector<sym::TypeSymbol*>& types);
 
     /**
      * @return All the types that this object depends on
      */
-    const std::set<sym::TypeSymbol*>& getDependencies() const;
+    const std::vector<sym::TypeSymbol*>& getDependencies() const;
 
 private:
 
-    std::set<sym::TypeSymbol*> _types;
+    std::vector<sym::TypeSymbol*> _types;
 };
 
 }

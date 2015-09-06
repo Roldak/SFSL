@@ -14,6 +14,8 @@
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTKindCreator.h"
 
+#define DEBUG_DEPENDENCIES
+
 namespace sfsl {
 
 namespace ast {
@@ -247,7 +249,7 @@ void ScopeGeneration::popScope() {
 // TYPE DEPENDENCY FIXATION
 
 
-TypeDependencyFixation::TypeDependencyFixation(CompCtx_Ptr& ctx) : ScopePossessorVisitor(ctx) {
+TypeDependencyFixation::TypeDependencyFixation(CompCtx_Ptr& ctx) : ASTVisitor(ctx) {
 
 }
 
@@ -255,87 +257,64 @@ TypeDependencyFixation::~TypeDependencyFixation() {
 
 }
 
-void TypeDependencyFixation::visit(ModuleDecl* mod) {
-    SAVE_SCOPE(mod->getSymbol())
-
-    ASTVisitor::visit(mod);
-
-    RESTORE_SCOPE
-}
-
-void TypeDependencyFixation::visit(TypeDecl* tdecl) {
-    SAVE_SCOPE(tdecl->getSymbol())
-
-    ASTVisitor::visit(tdecl);
-
-    RESTORE_SCOPE
-}
-
 void TypeDependencyFixation::visit(ClassDecl* clss) {
-    SAVE_SCOPE(clss)
-
-    _parametrizables.push_back(clss);
+    clss->setDependencies(_parameters);
 
     ASTVisitor::visit(clss);
 
-    _parametrizables.pop_back();
-
-    RESTORE_SCOPE
-}
-
-void TypeDependencyFixation::visit(DefineDecl* def) {
-    SAVE_SCOPE(def->getSymbol())
-
-    ASTVisitor::visit(def);
-
-    RESTORE_SCOPE
+#ifdef DEBUG_DEPENDENCIES
+    debugDumpDependencies(clss);
+#endif
 }
 
 void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
-    SAVE_SCOPE(tc)
+    tc->setDependencies(_parameters);
 
-    _parametrizables.push_back(tc);
+    TypeExpression* expr = tc->getArgs();
+    std::vector<TypeExpression*> args;
 
-    ASTVisitor::visit(tc);
+    if (isNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        args = static_cast<TypeTuple*>(expr)->getExpressions();
+    } else { // form is `exp => ...` or `[exp] => ...`
+        args.push_back(expr);
+    }
 
-    _parametrizables.pop_back();
+    for (TypeExpression* expr : args) {
+        TypeIdentifier* id;
 
-    RESTORE_SCOPE
-}
+        if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `T`
+            id = static_cast<TypeIdentifier*>(expr);
+        } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: kind`
+            id = static_cast<KindSpecifier*>(expr)->getSpecified();
+        } else {
+            return; // Error already reported in scope generation
+                    //  => compiler will stop before type dependency is even used
+        }
 
-void TypeDependencyFixation::visit(Block* block) {
-    SAVE_SCOPE(block)
+        if (id->getSymbol()->getSymbolType() == sym::SYM_TPE) {
+            _parameters.push_back(static_cast<sym::TypeSymbol*>(id->getSymbol()));
+        } else {
+            _ctx->reporter().fatal(*expr, "Is supposed to be a TypeSymbol");
+        }
+    }
 
-    ASTVisitor::visit(block);
+    tc->getBody()->onVisit(this);
 
-    RESTORE_SCOPE
+#ifdef DEBUG_DEPENDENCIES
+    debugDumpDependencies(tc);
+#endif
+
+    _parameters.resize(_parameters.size() - args.size());
 }
 
 void TypeDependencyFixation::visit(FunctionCreation* func) {
-    SAVE_SCOPE(func)
-
-    _parametrizables.push_back(func);
+    func->setDependencies(_parameters);
 
     ASTVisitor::visit(func);
 
-    _parametrizables.pop_back();
-
-    RESTORE_SCOPE
-}
-
-void TypeDependencyFixation::visit(TypeIdentifier* id) {
-    if (sym::TypeSymbol* ts = _curScope->getSymbol<sym::TypeSymbol>(id->getValue())) {
-        std::cerr << ts->isTypeVariable() << std::endl;
-        if (ts->isTypeVariable()) {
-            updateAllParametrizable(ts);
-        }
-    }
-}
-
-void TypeDependencyFixation::updateAllParametrizable(sym::TypeSymbol* ts) {
-    for (type::TypeParametrizable* tp : _parametrizables) {
-        tp->setDependsOn(ts);
-    }
+#ifdef DEBUG_DEPENDENCIES
+    debugDumpDependencies(func);
+#endif
 }
 
 template<typename T>
