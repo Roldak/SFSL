@@ -113,7 +113,7 @@ TypeDecl* ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(ASTNode* node
 
     TypeDecl* tdecl = ctx->memoryManager().New<TypeDecl>(ctx->memoryManager().New<TypeIdentifier>(name), expr);
 
-    sym::TypeSymbol* ts = ctx->memoryManager().New<sym::TypeSymbol>(name, tdecl, true);
+    sym::TypeSymbol* ts = ctx->memoryManager().New<sym::TypeSymbol>(name, tdecl);
 
     tdecl->setType(t);
     ts->setType(t);

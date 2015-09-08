@@ -82,19 +82,16 @@ public:
  */
 class TypeSymbol : public Symbol, public Scoped, public type::Typed, public kind::Kinded {
 public:
-    TypeSymbol(const std::string& name, ast::TypeDecl* type, bool variable = false);
+    TypeSymbol(const std::string& name, ast::TypeDecl* type);
     virtual ~TypeSymbol();
 
     virtual SYM_TYPE getSymbolType() const override;
 
     ast::TypeDecl* getTypeDecl() const;
 
-    bool isTypeVariable() const;
-
 private:
 
     ast::TypeDecl* _type;
-    bool _variable;
 };
 
 /**

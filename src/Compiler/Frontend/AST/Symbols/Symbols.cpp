@@ -46,7 +46,7 @@ SYM_TYPE ModuleSymbol::getSymbolType() const {
 
 // CLASS SYMBOL
 
-TypeSymbol::TypeSymbol(const std::string& name, ast::TypeDecl* type, bool variable) : Symbol(name), _type(type), _variable(variable) {
+TypeSymbol::TypeSymbol(const std::string& name, ast::TypeDecl* type) : Symbol(name), _type(type) {
 
 }
 
@@ -60,10 +60,6 @@ SYM_TYPE TypeSymbol::getSymbolType() const {
 
 ast::TypeDecl* TypeSymbol::getTypeDecl() const {
     return _type;
-}
-
-bool TypeSymbol::isTypeVariable() const {
-    return _variable;
 }
 
 // DEFINITION SYMBOL
