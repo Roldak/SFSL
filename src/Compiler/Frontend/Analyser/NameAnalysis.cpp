@@ -317,6 +317,12 @@ void TypeDependencyFixation::visit(FunctionCreation* func) {
 #endif
 }
 
+void TypeDependencyFixation::visit(TypeConstructorCall* tcall) {
+    tcall->setDependencies(_parameters);
+
+    ASTVisitor::visit(tcall);
+}
+
 template<typename T>
 void TypeDependencyFixation::debugDumpDependencies(const T* param) const {
     if (param->getDependencies().size() > 0) {
@@ -364,7 +370,7 @@ void SymbolAssignation::visit(ClassDecl* clss) {
         if (clss->getParent()) {
             clss->getParent()->onVisit(this);
             if (type::Type* parentType = ASTTypeCreator::createType(clss->getParent(), _ctx)) {
-                if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->applied(_ctx))) {
+                if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
                     ClassDecl* parentClass = parent->getClass();
                     parentClass->onVisit(this);
 

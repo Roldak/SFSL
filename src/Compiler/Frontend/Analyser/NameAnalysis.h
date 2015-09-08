@@ -89,6 +89,7 @@ public:
     virtual void visit(ClassDecl* clss) override;
     virtual void visit(TypeConstructorCreation* tc) override;
     virtual void visit(FunctionCreation* func) override;
+    virtual void visit(TypeConstructorCall* tcall) override;
 
 private:
 

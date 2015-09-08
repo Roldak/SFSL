@@ -25,7 +25,7 @@ public:
 
     virtual ~TypeNotYetDefined() {}
 
-    virtual Type* copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override {
+    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override {
         return (Type*)this;
     }
 
@@ -37,7 +37,7 @@ public:
         return false;
     }
 
-    virtual Type* applyEnv(const SubstitutionTable&, CompCtx_Ptr&) const {
+    virtual Type* apply(const SubstitutionTable&, CompCtx_Ptr&) const {
         return Type::NotYetDefined();
     }
 
@@ -56,22 +56,10 @@ Type::~Type() {
 
 }
 
-Type* Type::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
-    if (env.empty() || _subTable.empty()) return (Type*)this;
-
-    SubstitutionTable table = _subTable;
-
-    if (applyEnvHelper(env, table)) {
-        return copyWithSubtable(env, ctx);
-    } else {
-        return (Type*)this;
-    }
-}
-
 const static SubstitutionTable DefaultTable = {};
 
-Type* Type::applied(CompCtx_Ptr& ctx) const {
-    return applyEnv(DefaultTable, ctx);
+Type* Type::apply(CompCtx_Ptr&) const {
+    return const_cast<Type*>(this);
 }
 
 std::string Type::toString() const {
@@ -97,19 +85,13 @@ Type* Type::NotYetDefined() {
 
 Type* Type::findSubstitution(const SubstitutionTable& table, Type* toFind, bool* matched) {
     auto found = table.find(toFind);
-    bool lmatched = false;
-
-    while (found != table.end()) {
-        lmatched = true;
-        toFind = found->second;
-        found = table.find(toFind);
-    }
+    bool m = (found != table.end());
 
     if (matched) {
-        *matched = lmatched;
+        *matched = m;
     }
 
-    return toFind;
+    return m ? found->second : toFind;
 }
 
 bool Type::applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to) {
@@ -133,8 +115,10 @@ ProperType::~ProperType() {
 
 }
 
-Type* ProperType::copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    return ctx->memoryManager().New<ProperType>(_class, table);
+Type* ProperType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    SubstitutionTable copy = _subTable;
+    applyEnvHelper(table, copy);
+    return ctx->memoryManager().New<ProperType>(_class, copy);
 }
 
 TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
@@ -145,7 +129,7 @@ bool ProperType::isSubTypeOf(const Type* other) const {
             const SubstitutionTable& osub = objother->getSubstitutionTable();
             for (const auto& pair : _subTable) {
                 const auto& subpair = osub.find(pair.first);
-                if (!pair.second->isSubTypeOf(subpair->second)) { // TODO support contravariance maybe?
+                if (subpair != osub.end() && !pair.second->isSubTypeOf(subpair->second)) { // TODO support contravariance maybe?
                     return false;
                 }
             }
@@ -172,10 +156,6 @@ FunctionType::FunctionType(const std::vector<Type*>& argTypes, Type* retType, as
 
 FunctionType::~FunctionType() {
 
-}
-
-Type* FunctionType::copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    return ctx->memoryManager().New<FunctionType>(_argTypes, _retType, _class, table);
 }
 
 TYPE_KIND FunctionType::getTypeKind() const {
@@ -216,15 +196,21 @@ std::string FunctionType::toString() const {
     return toRet + ")->" + _retType->toString();
 }
 
-Type* FunctionType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+Type* FunctionType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    SubstitutionTable copy = _subTable;
+    applyEnvHelper(table, copy);
+    return ctx->memoryManager().New<FunctionType>(_argTypes, _retType, _class, copy);
+}
+
+Type* FunctionType::apply(CompCtx_Ptr& ctx) const {
     std::vector<Type*> newArgTypes;
     Type* newRetType;
 
     for (Type* t : _argTypes) {
-        newArgTypes.push_back(findSubstitution(env, t)->applyEnv(env, ctx));
+        newArgTypes.push_back(findSubstitution(_subTable, t)->apply(ctx));
     }
 
-    newRetType = findSubstitution(env, _retType)->applyEnv(env, ctx);
+    newRetType = findSubstitution(_subTable, _retType)->apply(ctx);
 
     return ctx->memoryManager().New<FunctionType>(newArgTypes, newRetType, _class, _subTable);
 }
@@ -248,8 +234,10 @@ MethodType::~MethodType() {
 
 }
 
-Type* MethodType::copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    return ctx->memoryManager().New<MethodType>(_owner, _argTypes, _retType, table);
+Type* MethodType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    SubstitutionTable copy = _subTable;
+    applyEnvHelper(table, copy);
+    return ctx->memoryManager().New<MethodType>(_owner, _argTypes, _retType, copy);
 }
 
 TYPE_KIND MethodType::getTypeKind() const {
@@ -287,20 +275,20 @@ std::string MethodType::toString() const {
     return toRet + ")->" + _retType->toString();
 }
 
-Type* MethodType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
+Type* MethodType::apply(CompCtx_Ptr& ctx) const {
     std::vector<Type*> newArgTypes;
     Type* newRetType;
 
     for (Type* t : _argTypes) {
-        newArgTypes.push_back(findSubstitution(env, t)->applyEnv(env, ctx));
+        newArgTypes.push_back(findSubstitution(_subTable, t)->apply(ctx));
     }
 
-    newRetType = findSubstitution(env, _retType)->applyEnv(env, ctx);
+    newRetType = findSubstitution(_subTable, _retType)->apply(ctx);
 
     return ctx->memoryManager().New<MethodType>(_owner, newArgTypes, newRetType, _subTable);
 }
 
-ast::ClassDecl *MethodType::getOwner() const {
+ast::ClassDecl* MethodType::getOwner() const {
     return _owner;
 }
 
@@ -323,8 +311,10 @@ TypeConstructorType::~TypeConstructorType() {
 
 }
 
-Type* TypeConstructorType::copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    return ctx->memoryManager().New<TypeConstructorType>(_typeConstructor, table);
+Type* TypeConstructorType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    SubstitutionTable copy = _subTable;
+    applyEnvHelper(table, copy);
+    return ctx->memoryManager().New<TypeConstructorType>(_typeConstructor, copy);
 }
 
 TYPE_KIND TypeConstructorType::getTypeKind() const {
@@ -356,8 +346,16 @@ ConstructorApplyType::~ConstructorApplyType() {
 
 }
 
-Type* ConstructorApplyType::copyWithSubtable(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    return ctx->memoryManager().New<ConstructorApplyType>(_callee, _args, _pos, table);
+Type* ConstructorApplyType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    SubstitutionTable copy = _subTable;
+    applyEnvHelper(table, copy);
+
+    std::vector<Type*> substitued(_args.size());
+    for (size_t i = 0; i < _args.size(); ++i) {
+        substitued[i] = findSubstitution(table, _args[i])->substitute(table, ctx);
+    }
+
+    return ctx->memoryManager().New<ConstructorApplyType>(findSubstitution(table, _callee)->substitute(table, ctx), substitued, _pos, copy);
 }
 
 TYPE_KIND ConstructorApplyType::getTypeKind() const {
@@ -376,41 +374,12 @@ std::string ConstructorApplyType::toString() const {
             toRet += ", ";
         }
     }
-    return toRet + "]";
+    return toRet + "]" + Type::toString();
 }
 
-Type* ConstructorApplyType::applyEnv(const SubstitutionTable& env, CompCtx_Ptr& ctx) const {
-    TypeConstructorType* ctr = static_cast<TypeConstructorType*>(findSubstitution(env, _callee)->applyEnv(env, ctx));
-
-    ast::TypeExpression* expr = ctr->getTypeConstructor()->getArgs();
-    std::vector<ast::TypeExpression*> params;
-
-    if (ast::isNodeOfType<ast::TypeTuple>(expr, ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
-        params = static_cast<ast::TypeTuple*>(expr)->getExpressions();
-    } else { // form is `exp => ...` or `[exp] => ...`
-        params.push_back(expr);
-    }
-
-    if (params.size() != _args.size()) { // can happen if this is called before kind checking occurs
-        return NotYetDefined();
-    }
-
-    for (ast::TypeExpression*& param : params) {
-        if (ast::isNodeOfType<ast::KindSpecifier>(param, ctx)) {
-            param = static_cast<ast::KindSpecifier*>(param)->getSpecified();
-        }
-    }
-
-    SubstitutionTable subs;
-
-    for (size_t i = 0; i < params.size(); ++i) {
-        // can only be a TypeSymbol
-        sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(ast::ASTSymbolExtractor::extractSymbol(params[i], ctx));
-
-        subs[param->type()] = findSubstitution(env, _args[i])->applyEnv(env, ctx);
-    }
-
-    return findSubstitution(subs, ast::ASTTypeCreator::createType(ctr->getTypeConstructor()->getBody(), ctx, subs))->applyEnv(subs, ctx);
+Type* ConstructorApplyType::apply(CompCtx_Ptr& ctx) const {
+    TypeConstructorType* ctr = static_cast<TypeConstructorType*>(findSubstitution(_subTable, _callee)->apply(ctx));
+    return ast::ASTTypeCreator::createType(ctr->getTypeConstructor()->getBody(), ctx, _args)->apply(ctx);
 }
 
 // TYPED

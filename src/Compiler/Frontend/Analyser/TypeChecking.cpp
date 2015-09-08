@@ -16,6 +16,8 @@
 
 #include "../../../Utils/TakeSecondIterator.h"
 
+#define DEBUG_FUNCTION_OVERLOADING
+
 namespace sfsl {
 
 namespace ast {
@@ -25,12 +27,13 @@ namespace ast {
 template<typename T>
 T* applyEnvsHelper(T* t, const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx) {
     type::Type* tmpT = t;
+    type::SubstitutionTable unionTable = subtable;
 
     if (env) {
-        tmpT = type::Type::findSubstitution(*env, tmpT)->applyEnv(*env, ctx);
+        unionTable.insert(env->begin(), env->end());
     }
 
-    tmpT = type::Type::findSubstitution(subtable, tmpT)->applyEnv(subtable, ctx);
+    tmpT = type::Type::findSubstitution(unionTable, tmpT)->substitute(unionTable, ctx)->apply(ctx);
 
     return static_cast<T*>(tmpT);
 }
@@ -178,7 +181,7 @@ void TypeChecking::visit(AssignmentExpression* aex) {
     type::Type* lhsT = aex->getLhs()->type();
     type::Type* rhsT = aex->getRhs()->type();
 
-    if (!rhsT->applied(_ctx)->isSubTypeOf(lhsT->applied(_ctx))) {
+    if (!rhsT->apply(_ctx)->isSubTypeOf(lhsT->apply(_ctx))) {
         _rep.error(*aex, "Assigning incompatible type. Found " +
                    rhsT->toString() + ", expected " + lhsT->toString());
     }
@@ -220,7 +223,7 @@ void TypeChecking::visit(Block* block) {
 void TypeChecking::visit(IfExpression* ifexpr) {
     ASTVisitor::visit(ifexpr);
 
-    if (!ifexpr->getCondition()->type()->applied(_ctx)->isSubTypeOf(_res.Bool())) {
+    if (!ifexpr->getCondition()->type()->apply(_ctx)->isSubTypeOf(_res.Bool())) {
         _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (Found " + ifexpr->getCondition()->type()->toString() + ")");
     }
 
@@ -229,17 +232,18 @@ void TypeChecking::visit(IfExpression* ifexpr) {
     if (ifexpr->getElse()) {
         type::Type* elseType = ifexpr->getElse()->type();
 
-        if (thenType->applied(_ctx)->isSubTypeOf(elseType->applied(_ctx))) {
+        if (thenType->apply(_ctx)->isSubTypeOf(elseType->apply(_ctx))) {
             ifexpr->setType(elseType);
-        } else if (elseType->applied(_ctx)->isSubTypeOf(thenType->applied(_ctx))) {
+        } else if (elseType->apply(_ctx)->isSubTypeOf(thenType->apply(_ctx))) {
             ifexpr->setType(thenType);
         } else {
             _rep.error(*ifexpr, "The then-part and else-part have different types. Found " +
                        thenType->toString() + " and " + elseType->toString());
         }
+        std::cout << "LASLDASLKDADS" << std::endl;
 
     } else {
-        if (!thenType->applied(_ctx)->isSubTypeOf(_res.Unit())) {
+        if (!thenType->apply(_ctx)->isSubTypeOf(_res.Unit())) {
             _rep.error(*ifexpr->getThen(), "An if-expression without else-part must have its then-part evaluate to unit. Found " +
                        thenType->toString());
         }
@@ -251,7 +255,7 @@ void TypeChecking::visit(MemberAccess* dot) {
     dot->getAccessed()->onVisit(this);
 
     if (type::Type* t = dot->getAccessed()->type()) {
-        if (type::ProperType* obj = type::getIf<type::ProperType>(t->applied(_ctx))) {
+        if (type::ProperType* obj = type::getIf<type::ProperType>(t->apply(_ctx))) {
             ClassDecl* clss = obj->getClass();
             const type::SubstitutionTable& subtable = obj->getSubstitutionTable();
 
@@ -260,7 +264,8 @@ void TypeChecking::visit(MemberAccess* dot) {
             if (field.isValid()) {
                 dot->setSymbol(field.s);
 
-                if (type::getIf<type::ProperType>(field.t) || type::getIf<type::MethodType>(field.t)) {
+                if (type::getIf<type::ProperType>(field.t->apply(_ctx))
+                        || type::getIf<type::MethodType>(field.t->apply(_ctx))) {
                     dot->setType(field.t);
                 } else {
                     _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() +
@@ -336,17 +341,17 @@ void TypeChecking::visit(FunctionCall* call) {
 
     RESTORE_MEMBER(_expectedInfo)
 
-    type::Type* calleeT = call->getCallee()->type();
+    type::Type* calleeT = call->getCallee()->type()->apply(_ctx);
 
     const std::vector<type::Type*>* expectedArgTypes = nullptr;
     type::Type* retType = nullptr;
 
     if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
         expectedArgTypes = &ft->getArgTypes();
-        retType = ft->getRetType();
+        retType = static_cast<type::FunctionType*>(call->getCallee()->type())->getRetType()->substitute(call->type()->getSubstitutionTable(), _ctx);
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
         expectedArgTypes = &mt->getArgTypes();
-        retType = mt->getRetType();
+        retType = static_cast<type::MethodType*>(call->getCallee()->type())->getRetType()->substitute(call->type()->getSubstitutionTable(), _ctx);
     } else {
         _rep.error(*call, "Expression is not callable");
         return;
@@ -360,10 +365,10 @@ void TypeChecking::visit(FunctionCall* call) {
     }
 
     for (size_t i = 0; i < expectedArgTypes->size(); ++i) {
-        if (!callArgTypes[i]->applied(_ctx)->isSubTypeOf((*expectedArgTypes)[i]->applied(_ctx))) {
+        if (!callArgTypes[i]->apply(_ctx)->isSubTypeOf((*expectedArgTypes)[i]->apply(_ctx))) {
             _rep.error(*callArgs[i],
-                       "Argument type mismatch. Found " + callArgTypes[i]->applied(_ctx)->toString() +
-                       ", expected " + (*expectedArgTypes)[i]->applied(_ctx)->toString());
+                       "Argument type mismatch. Found " + callArgTypes[i]->apply(_ctx)->toString() +
+                       ", expected " + (*expectedArgTypes)[i]->apply(_ctx)->toString());
         }
     }
 
@@ -375,7 +380,7 @@ void TypeChecking::visit(Identifier* ident) {
     if (sym::Symbol* sym = data.symbol) {
         ident->setSymbol(sym);
         if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-            ident->setType(applyEnvsHelper(t, {}, data.env, _ctx));
+            ident->setType(data.env ? type::Type::findSubstitution(*data.env, t)->substitute(*data.env, _ctx) : t);
         }
     }
 }
@@ -412,7 +417,18 @@ TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(MemberAccess* dot, ClassDe
     const AnySymbolicData data = resolveOverload(dot, b, e, subtable);
 
     if (data.symbol) {
-        return {data.symbol, applyEnvsHelper(tryGetTypeOfSymbol(data.symbol), subtable, data.env, _ctx)};
+        type::SubstitutionTable table = subtable;
+        if (data.env) {
+            table.insert(data.env->begin(), data.env->end());
+        }
+
+        std::cerr << "{";
+        for (const auto& pair : table) {
+            std::cerr << pair.first->toString() << " => " << pair.second->toString() << ", ";
+        }
+        std::cerr << "}";
+
+        return {data.symbol, type::Type::findSubstitution(table, tryGetTypeOfSymbol(data.symbol))->substitute(table, _ctx)};
     } else {
         return {nullptr, nullptr};
     }
@@ -451,7 +467,13 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
 
         if (it->second.symbol != def && data.symbol->getSymbolType() == sym::SYM_DEF) {
             sym::DefinitionSymbol* potentialDef = static_cast<sym::DefinitionSymbol*>(data.symbol);
-            if (def->type()->isSubTypeOf(potentialDef->type()->applyEnv(data.env, _ctx))) {
+            /*for (const auto& pair : data.env) {
+                std::cout << pair.first->toString() << " => " << pair.second->toString()  << std::endl;
+            }
+            std::cout << def->type()->applied(_ctx)->toString() << " subtypeof? " << potentialDef->type()->applyEnv(data.env, _ctx)->toString();*/
+            if (def->type()->apply(_ctx)
+                    //->isSubTypeOf(potentialDef->type()->applyEnv(potentialDef->type()->getSubstitutionTable(), _ctx)->applyEnv(data.env, _ctx))
+                    ->isSubTypeOf(applyEnvsHelper(potentialDef->type(), potentialDef->type()->getSubstitutionTable(), &data.env, _ctx))) {
                 if (potentialDef->getDef()->isRedef()) {
                     if (sym::DefinitionSymbol* alreadyOverriden = potentialDef->getOverridenSymbol()) {
                         return alreadyOverriden;
@@ -538,7 +560,7 @@ private:
     type::Type* _appliedType;
 };
 
-void debugReportCandidateScores(const std::vector<OverloadedDefSymbolCandidate>& candidates, CompCtx_Ptr& ctx) {
+void debugDumpCandidateScores(const std::vector<OverloadedDefSymbolCandidate>& candidates, CompCtx_Ptr& ctx) {
     for (const OverloadedDefSymbolCandidate& candidate : candidates) {
         std::string args = "[Candidate] score=" + utils::T_toString(candidate.score()) + " (";
         if (candidate.argCount() > 0) {
@@ -598,23 +620,27 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         return a.score() > b.score();
     });
 
-    debugReportCandidateScores(candidates, _ctx);
+#ifdef DEBUG_FUNCTION_OVERLOADING
+    debugDumpCandidateScores(candidates, _ctx);
+#endif
 
     std::vector<OverloadedDefSymbolCandidate*> theChosenOnes;
 
     for (OverloadedDefSymbolCandidate& candidate : candidates) {
-        bool ok = true;
+        bool matches = true;
 
         for (size_t a = 0; a < expectedArgCount; ++a) {
             if (!((*_expectedInfo.args)[a]->isSubTypeOf(candidate.arg(a)))) {
-                ok = false;
+                matches = false;
                 break;
             }
         }
 
-        if (ok && (theChosenOnes.size() > 0) && (theChosenOnes[0]->score() > candidate.score())) {
+        if ( matches &&
+             theChosenOnes.size() > 0 &&
+             theChosenOnes[0]->score() > candidate.score()) {
            break;
-        } else if (ok) {
+        } else if (matches) {
            theChosenOnes.push_back(&candidate);
         }
     }
@@ -624,11 +650,22 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         _rep.error(*triggerer, "No viable candidate found among " + utils::T_toString(candidates.size()) + " overloads");
         return {nullptr, nullptr};
 
-    default:
-        _rep.error(*triggerer, "Ambiguous symbol access. Multiple candidates match the required type:");
+    default: {
+        size_t properDefCount = 0;
         for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
-            _rep.info(*candidate->symbol(), "Is a viable candidate (has type " + candidate->appliedType()->toString() + ")");
+            if (!candidate->symbol()->getDef()->isRedef()) {
+                theChosenOnes[0] = candidate;
+                ++properDefCount;
+            }
         }
+
+        if (properDefCount > 1) {
+            _rep.error(*triggerer, "Ambiguous symbol access. Multiple candidates match the required type:");
+            for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
+                _rep.info(*candidate->symbol(), "Is a viable candidate (has type " + candidate->appliedType()->toString() + ")");
+            }
+        }
+    }
 
     case 1:
         return {theChosenOnes[0]->symbol(), theChosenOnes[0]->env()};

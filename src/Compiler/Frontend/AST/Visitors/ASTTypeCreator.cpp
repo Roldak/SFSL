@@ -12,8 +12,8 @@ namespace sfsl {
 
 namespace ast {
 
-ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable)
-    : ASTVisitor(ctx), _created(nullptr), _subTable(subTable) {
+ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args)
+    : ASTVisitor(ctx), _created(nullptr), _args(args) {
 
 }
 
@@ -26,7 +26,7 @@ void ASTTypeCreator::visit(ASTNode*) {
 }
 
 void ASTTypeCreator::visit(ClassDecl* clss) {
-    _created = _mngr.New<type::ProperType>(clss, _subTable);
+    _created = _mngr.New<type::ProperType>(clss, buildSubstitutionTableFromTypeParametrizable(clss));
 }
 
 void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
@@ -39,14 +39,14 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
         argTypes[i] = createType(argTypeExprs[i], _ctx);
     }
 
-    _created = _mngr.New<type::FunctionType>(argTypes, retType, nullptr, _subTable);
+    _created = _mngr.New<type::FunctionType>(argTypes, retType, nullptr);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
-    _created = _mngr.New<type::TypeConstructorType>(typeconstructor, _subTable);
+    _created = _mngr.New<type::TypeConstructorType>(typeconstructor, buildSubstitutionTableFromTypeParametrizable(typeconstructor));
 }
 
-void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
+void ASTTypeCreator::visit(TypeConstructorCall* tcall) {
     tcall->getCallee()->onVisit(this);
     type::Type* ctr = _created;
 
@@ -54,14 +54,14 @@ void ASTTypeCreator::visit(TypeConstructorCall *tcall) {
     std::vector<type::Type*> args(found.size());
 
     for (size_t i = 0; i < found.size(); ++i) {
-        if (!(args[i] = createType(found[i], _ctx, _subTable))) {
+        if (!(args[i] = createType(found[i], _ctx))) {
             _ctx->reporter().fatal(*found[i], "failed to create type");
             _created = nullptr;
             return;
         }
     }
 
-    _created = _mngr.New<type::ConstructorApplyType>(ctr, args, *tcall, _subTable);
+    _created = _mngr.New<type::ConstructorApplyType>(ctr, args, *tcall, buildSubstitutionTableFromTypeParametrizable(tcall));
 }
 
 void ASTTypeCreator::visit(TypeMemberAccess* mac) {
@@ -76,8 +76,8 @@ type::Type* ASTTypeCreator::getCreatedType() const {
     return _created;
 }
 
-type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable) {
-    ASTTypeCreator creator(ctx, subTable);
+type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx, const std::vector<type::Type*>& args) {
+    ASTTypeCreator creator(ctx, args);
     node->onVisit(&creator);
     return creator.getCreatedType();
 }
@@ -103,6 +103,23 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic
             _created = ts->type();
         }
     }
+}
+
+type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParametrizable(type::TypeParametrizable* param) {
+    type::SubstitutionTable table;
+    const std::vector<sym::TypeSymbol*>& syms(param->getDependencies());
+
+    if (_args.size() == syms.size()) {
+        for (size_t i = 0; i < syms.size(); ++i) {
+            table.insert(std::make_pair(syms[i]->type(), _args[i]));
+        }
+    } else {
+        for (sym::TypeSymbol* ts : syms) {
+            table.insert(std::make_pair(ts->type(), ts->type()));
+        }
+    }
+
+    return table;
 }
 
 }
