@@ -348,10 +348,10 @@ void TypeChecking::visit(FunctionCall* call) {
 
     if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
         expectedArgTypes = &ft->getArgTypes();
-        retType = static_cast<type::FunctionType*>(call->getCallee()->type())->getRetType()->substitute(call->type()->getSubstitutionTable(), _ctx);
+        retType = static_cast<type::FunctionType*>(call->getCallee()->type())->getRetType();
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
         expectedArgTypes = &mt->getArgTypes();
-        retType = static_cast<type::MethodType*>(call->getCallee()->type())->getRetType()->substitute(call->type()->getSubstitutionTable(), _ctx);
+        retType = static_cast<type::MethodType*>(call->getCallee()->type())->getRetType();
     } else {
         _rep.error(*call, "Expression is not callable");
         return;

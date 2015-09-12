@@ -56,7 +56,8 @@ public:
      * @param ctx The compilation context
      * @return The generated type
      */
-    static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, const std::vector<type::Type*>& args = {});
+    static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx);
+    static type::Type* evalTypeConstructor(TypeConstructorCreation* ctr, CompCtx_Ptr& ctx, const std::vector<type::Type*>& args);
 
 protected:
 

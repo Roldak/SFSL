@@ -7,6 +7,8 @@
 //
 
 #include "ASTTypeCreator.h"
+#include "ASTTypeIdentifier.h"
+#include "ASTSymbolExtractor.h"
 
 namespace sfsl {
 
@@ -76,10 +78,44 @@ type::Type* ASTTypeCreator::getCreatedType() const {
     return _created;
 }
 
-type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx, const std::vector<type::Type*>& args) {
-    ASTTypeCreator creator(ctx, args);
+type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx) {
+    ASTTypeCreator creator(ctx, {});
     node->onVisit(&creator);
     return creator.getCreatedType();
+}
+
+type::Type* ASTTypeCreator::evalTypeConstructor(TypeConstructorCreation* ctr, CompCtx_Ptr& ctx, const std::vector<type::Type*>& args) {
+    type::Type* created = createType(ctr->getBody(), ctx);
+
+    TypeExpression* expr = ctr->getArgs();
+    std::vector<TypeExpression*> params;
+
+    if (isNodeOfType<TypeTuple>(expr, ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        params = static_cast<TypeTuple*>(expr)->getExpressions();
+    } else { // form is `exp => ...` or `[exp] => ...`
+        params.push_back(expr);
+    }
+
+    if (params.size() != args.size()) { // can happen if this is called before kind checking occurs
+        return type::Type::NotYetDefined();
+    }
+
+    for (TypeExpression*& param : params) {
+        if (isNodeOfType<KindSpecifier>(param, ctx)) {
+            param = static_cast<KindSpecifier*>(param)->getSpecified();
+        }
+    }
+
+    type::SubstitutionTable subs;
+
+    for (size_t i = 0; i < params.size(); ++i) {
+        // can only be a TypeSymbol
+        sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(ASTSymbolExtractor::extractSymbol(params[i], ctx));
+
+        subs[param->type()] = args[i];
+    }
+
+    return type::Type::findSubstitution(subs, created)->substitute(subs, ctx);
 }
 
 void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos) {
@@ -109,7 +145,7 @@ type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParametriz
     type::SubstitutionTable table;
     const std::vector<sym::TypeSymbol*>& syms(param->getDependencies());
 
-    if (_args.size() == syms.size()) {
+    if (false) {
         for (size_t i = 0; i < syms.size(); ++i) {
             table.insert(std::make_pair(syms[i]->type(), _args[i]));
         }
