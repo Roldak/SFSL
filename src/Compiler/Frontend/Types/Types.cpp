@@ -115,15 +115,6 @@ ProperType::~ProperType() {
 
 }
 
-Type* ProperType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    SubstitutionTable copy = _subTable;
-    if (applyEnvHelper(table, copy)) {
-        return ctx->memoryManager().New<ProperType>(_class, copy);
-    } else {
-        return const_cast<ProperType*>(this);
-    }
-}
-
 TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
 
 bool ProperType::isSubTypeOf(const Type* other) const {
@@ -144,6 +135,15 @@ bool ProperType::isSubTypeOf(const Type* other) const {
 
 std::string ProperType::toString() const {
     return _class->getName() + Type::toString();
+}
+
+Type* ProperType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    SubstitutionTable copy = _subTable;
+    if (applyEnvHelper(table, copy)) {
+        return ctx->memoryManager().New<ProperType>(_class, copy);
+    } else {
+        return const_cast<ProperType*>(this);
+    }
 }
 
 ast::ClassDecl* ProperType::getClass() const {
@@ -318,15 +318,6 @@ TypeConstructorType::~TypeConstructorType() {
 
 }
 
-Type* TypeConstructorType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    SubstitutionTable copy = _subTable;
-    if (applyEnvHelper(table, copy)) {
-        return ctx->memoryManager().New<TypeConstructorType>(_typeConstructor, copy);
-    } else {
-        return const_cast<TypeConstructorType*>(this);
-    }
-}
-
 TYPE_KIND TypeConstructorType::getTypeKind() const {
     return TYPE_CONSTRUCTOR_TYPE;
 }
@@ -337,6 +328,15 @@ bool TypeConstructorType::isSubTypeOf(const Type* other) const {
 
 std::string TypeConstructorType::toString() const {
     return _typeConstructor->getName() + Type::toString();
+}
+
+Type* TypeConstructorType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    SubstitutionTable copy = _subTable;
+    if (applyEnvHelper(table, copy)) {
+        return ctx->memoryManager().New<TypeConstructorType>(_typeConstructor, copy);
+    } else {
+        return const_cast<TypeConstructorType*>(this);
+    }
 }
 
 ast::TypeConstructorCreation* TypeConstructorType::getTypeConstructor() const {
@@ -354,18 +354,6 @@ ConstructorApplyType::ConstructorApplyType(Type* callee, const std::vector<Type*
 
 ConstructorApplyType::~ConstructorApplyType() {
 
-}
-
-Type* ConstructorApplyType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    SubstitutionTable copy = _subTable;
-    applyEnvHelper(table, copy);
-
-    std::vector<Type*> substitued(_args.size());
-    for (size_t i = 0; i < _args.size(); ++i) {
-        substitued[i] = findSubstitution(table, _args[i])->substitute(table, ctx);
-    }
-
-    return ctx->memoryManager().New<ConstructorApplyType>(findSubstitution(table, _callee)->substitute(table, ctx), substitued, _pos, copy);
 }
 
 TYPE_KIND ConstructorApplyType::getTypeKind() const {
@@ -387,10 +375,25 @@ std::string ConstructorApplyType::toString() const {
     return toRet + "]" + Type::toString();
 }
 
+Type* ConstructorApplyType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+    if (table.empty()) {
+        return const_cast<ConstructorApplyType*>(this);
+    }
+
+    SubstitutionTable copy = _subTable;
+    applyEnvHelper(table, copy);
+
+    std::vector<Type*> substitued(_args.size());
+    for (size_t i = 0; i < _args.size(); ++i) {
+        substitued[i] = findSubstitution(table, _args[i])->substitute(table, ctx);
+    }
+
+    return ctx->memoryManager().New<ConstructorApplyType>(findSubstitution(table, _callee)->substitute(table, ctx), substitued, _pos, copy);
+}
+
 Type* ConstructorApplyType::apply(CompCtx_Ptr& ctx) const {
     TypeConstructorType* ctr = static_cast<TypeConstructorType*>(_callee->apply(ctx));
-    Type* created = findSubstitution(_subTable, ast::ASTTypeCreator::evalTypeConstructor(ctr->getTypeConstructor(), ctx, _args))->substitute(_subTable, ctx)->apply(ctx);
-    return created;
+    return ast::ASTTypeCreator::evalTypeConstructor(ctr->getTypeConstructor(), ctx, _args)->apply(ctx);
 }
 
 // TYPED
