@@ -10,7 +10,7 @@
 #define __SFSL__ASTKindCreator__
 
 #include <iostream>
-#include "ASTVisitor.h"
+#include "ASTImplicitVisitor.h"
 #include "../../Kinds/Kinds.h"
 
 namespace sfsl {
@@ -20,7 +20,7 @@ namespace ast {
 /**
  * @brief A visitor that can generate a kind from an ASTNode
  */
-class ASTKindCreator : public ASTVisitor {
+class ASTKindCreator : public ASTImplicitVisitor {
 public:
 
     /**
@@ -60,7 +60,7 @@ protected:
  * @brief A visitor that can generate the default type from
  * kind specifying nodes
  */
-class ASTDefaultTypeFromKindCreator : public ASTVisitor {
+class ASTDefaultTypeFromKindCreator : public ASTImplicitVisitor {
 public:
 
     /**

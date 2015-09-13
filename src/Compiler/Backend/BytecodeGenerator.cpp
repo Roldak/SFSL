@@ -111,15 +111,15 @@ void DefaultBytecodeGenerator::visit(ASTNode*) {
 }
 
 void DefaultBytecodeGenerator::visit(Program* prog) {
-    ASTVisitor::visit(prog);
+    ASTImplicitVisitor::visit(prog);
 }
 
 void DefaultBytecodeGenerator::visit(ModuleDecl* module) {
-    ASTVisitor::visit(module);
+    ASTImplicitVisitor::visit(module);
 }
 
 void DefaultBytecodeGenerator::visit(TypeDecl* tdecl) {
-    ASTVisitor::visit(tdecl);
+    ASTImplicitVisitor::visit(tdecl);
 }
 
 void DefaultBytecodeGenerator::visit(ClassDecl* clss){
@@ -183,11 +183,11 @@ void DefaultBytecodeGenerator::visit(KindSpecifier* ks) {
 }
 
 void DefaultBytecodeGenerator::visit(ExpressionStatement* exp) {
-    ASTVisitor::visit(exp);
+    ASTImplicitVisitor::visit(exp);
 }
 
 void DefaultBytecodeGenerator::visit(BinaryExpression* bin) {
-    ASTVisitor::visit(bin);
+    ASTImplicitVisitor::visit(bin);
 }
 
 void DefaultBytecodeGenerator::visit(AssignmentExpression* aex) {
@@ -248,7 +248,7 @@ void DefaultBytecodeGenerator::visit(MemberAccess* dot) {
 }
 
 void DefaultBytecodeGenerator::visit(Tuple* tuple) {
-    ASTVisitor::visit(tuple);
+    ASTImplicitVisitor::visit(tuple);
 
     if (tuple->getExpressions().size() == 0) {
         Emit<PushConstUnit>(*tuple);

@@ -12,7 +12,7 @@
 #include <iostream>
 #include <set>
 #include <vector>
-#include "../AST/Visitors/ASTVisitor.h"
+#include "../AST/Visitors/ASTImplicitVisitor.h"
 
 namespace sfsl {
 
@@ -21,7 +21,7 @@ namespace ast {
 /**
  * @brief
  */
-class ScopePossessorVisitor : public ASTVisitor {
+class ScopePossessorVisitor : public ASTImplicitVisitor {
 protected:
     ScopePossessorVisitor(CompCtx_Ptr& ctx);
     virtual ~ScopePossessorVisitor();
@@ -80,7 +80,7 @@ private:
 /**
  * @brief
  */
-class TypeDependencyFixation : public ASTVisitor {
+class TypeDependencyFixation : public ASTImplicitVisitor {
 public:
 
     TypeDependencyFixation(CompCtx_Ptr& ctx);

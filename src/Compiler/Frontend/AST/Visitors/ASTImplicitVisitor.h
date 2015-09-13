@@ -1,31 +1,37 @@
 //
-//  ASTPrinter.h
+//  ASTImplicitVisitor.h
 //  SFSL
 //
-//  Created by Romain Beguet on 17.11.14.
-//  Copyright (c) 2014 Romain Beguet. All rights reserved.
+//  Created by Romain Beguet on 13.09.15.
+//  Copyright (c) 2015 Romain Beguet. All rights reserved.
 //
 
-#ifndef __SFSL__ASTPrinter__
-#define __SFSL__ASTPrinter__
+#ifndef __SFSL__ASTImplicitVisitor__
+#define __SFSL__ASTImplicitVisitor__
 
-#include <iostream>
-#include "ASTImplicitVisitor.h"
+#include "ASTVisitor.h"
 
 namespace sfsl {
 
 namespace ast {
 
 /**
- * @brief An ASTVisitor that prints the AST into a readable form.
- * (parsing its output again should give the same AST as the original one)
+ * @brief An abstract class representing a visitor of ASTNodes.
  */
-class ASTPrinter : public ASTImplicitVisitor {
+class ASTImplicitVisitor : public ASTVisitor {
 public:
 
-    ASTPrinter(CompCtx_Ptr& ctx, std::ostream& ostream);
+    /**
+     * @brief Creates an ASTVisitor
+     * @param ctx the compilation context that will be used throughout the visits
+     */
+    ASTImplicitVisitor(CompCtx_Ptr& ctx);
 
-    virtual ~ASTPrinter();
+    virtual ~ASTImplicitVisitor();
+
+    virtual void visit(ASTNode* node) override;
+
+    virtual void visit(Program* prog) override;
 
     virtual void visit(ModuleDecl* module) override;
     virtual void visit(TypeDecl* tdecl) override;
@@ -39,12 +45,13 @@ public:
     virtual void visit(TypeMemberAccess* tdot) override;
     virtual void visit(TypeTuple* ttuple) override;
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
+    virtual void visit(TypeConstructorCall* tcall) override;
     virtual void visit(TypeIdentifier* tident) override;
     virtual void visit(KindSpecifier* ks) override;
 
     virtual void visit(ExpressionStatement* exp) override;
 
-    virtual void visit(BinaryExpression* exp) override;
+    virtual void visit(BinaryExpression* bin) override;
     virtual void visit(AssignmentExpression* aex) override;
     virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(Block* block) override;
@@ -52,19 +59,14 @@ public:
     virtual void visit(MemberAccess* dot) override;
     virtual void visit(Tuple* tuple) override;
     virtual void visit(FunctionCreation* func) override;
+    virtual void visit(FunctionCall* call) override;
     virtual void visit(Identifier* ident) override;
     virtual void visit(This* ths) override;
     virtual void visit(BoolLitteral* boollit) override;
     virtual void visit(IntLitteral* intlit) override;
     virtual void visit(RealLitteral* reallit) override;
 
-private :
-
-    void printIndents();
-
-    size_t _indentCount;
-
-    std::ostream& _ostream;
+protected:
 };
 
 }

@@ -22,7 +22,7 @@ namespace ast {
 
 // SCOPE POSSESSOR VISITOR
 
-ScopePossessorVisitor::ScopePossessorVisitor(CompCtx_Ptr& ctx) : ASTVisitor(ctx), _curScope(nullptr) {
+ScopePossessorVisitor::ScopePossessorVisitor(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx), _curScope(nullptr) {
 
 }
 
@@ -85,7 +85,7 @@ ScopeGeneration::~ScopeGeneration() {
 void ScopeGeneration::visit(Program* prog) {
     pushScope(prog);
 
-    ASTVisitor::visit(prog);
+    ASTImplicitVisitor::visit(prog);
 
     popScope();
 }
@@ -97,7 +97,7 @@ void ScopeGeneration::visit(ModuleDecl* module) {
         sym::Scope* last = _curScope;
         _curScope = mod->getScope();
 
-        ASTVisitor::visit(module);
+        ASTImplicitVisitor::visit(module);
 
         _curScope = last;
     } else {
@@ -105,7 +105,7 @@ void ScopeGeneration::visit(ModuleDecl* module) {
 
         pushScope(module->getSymbol());
 
-        ASTVisitor::visit(module);
+        ASTImplicitVisitor::visit(module);
 
         popScope();
     }
@@ -116,7 +116,7 @@ void ScopeGeneration::visit(TypeDecl* tdecl) {
 
     pushScope(tdecl->getSymbol(), true);
 
-    ASTVisitor::visit(tdecl);
+    ASTImplicitVisitor::visit(tdecl);
 
     popScope();
 }
@@ -126,7 +126,7 @@ void ScopeGeneration::visit(ClassDecl* clss) {
 
     SAVE_MEMBER_AND_SET(_currentThis, clss)
 
-    ASTVisitor::visit(clss);
+    ASTImplicitVisitor::visit(clss);
 
     RESTORE_MEMBER(_currentThis)
 
@@ -140,7 +140,7 @@ void ScopeGeneration::visit(DefineDecl* def) {
 
     SAVE_MEMBER_AND_SET(_currentThis, nullptr)
 
-    ASTVisitor::visit(def);
+    ASTImplicitVisitor::visit(def);
 
     RESTORE_MEMBER(_currentThis)
 
@@ -187,7 +187,7 @@ void ScopeGeneration::visit(KindSpecifier* ks) {
 void ScopeGeneration::visit(Block* block) {
     pushScope(block);
 
-    ASTVisitor::visit(block);
+    ASTImplicitVisitor::visit(block);
 
     popScope();
 }
@@ -249,7 +249,7 @@ void ScopeGeneration::popScope() {
 // TYPE DEPENDENCY FIXATION
 
 
-TypeDependencyFixation::TypeDependencyFixation(CompCtx_Ptr& ctx) : ASTVisitor(ctx) {
+TypeDependencyFixation::TypeDependencyFixation(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx) {
 
 }
 
@@ -260,7 +260,7 @@ TypeDependencyFixation::~TypeDependencyFixation() {
 void TypeDependencyFixation::visit(ClassDecl* clss) {
     clss->setDependencies(_parameters);
 
-    ASTVisitor::visit(clss);
+    ASTImplicitVisitor::visit(clss);
 
 #ifdef DEBUG_DEPENDENCIES
     debugDumpDependencies(clss);
@@ -310,7 +310,7 @@ void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
 void TypeDependencyFixation::visit(FunctionCreation* func) {
     func->setDependencies(_parameters);
 
-    ASTVisitor::visit(func);
+    ASTImplicitVisitor::visit(func);
 
 #ifdef DEBUG_DEPENDENCIES
     debugDumpDependencies(func);
@@ -320,7 +320,7 @@ void TypeDependencyFixation::visit(FunctionCreation* func) {
 void TypeDependencyFixation::visit(TypeConstructorCall* tcall) {
     tcall->setDependencies(_parameters);
 
-    ASTVisitor::visit(tcall);
+    ASTImplicitVisitor::visit(tcall);
 }
 
 template<typename T>
@@ -350,7 +350,7 @@ SymbolAssignation::~SymbolAssignation() {
 void SymbolAssignation::visit(ModuleDecl* mod) {
     SAVE_SCOPE(mod->getSymbol())
 
-    ASTVisitor::visit(mod);
+    ASTImplicitVisitor::visit(mod);
 
     RESTORE_SCOPE
 }
@@ -358,7 +358,7 @@ void SymbolAssignation::visit(ModuleDecl* mod) {
 void SymbolAssignation::visit(TypeDecl* tdecl) {
     SAVE_SCOPE(tdecl->getSymbol())
 
-    ASTVisitor::visit(tdecl);
+    ASTImplicitVisitor::visit(tdecl);
 
     RESTORE_SCOPE
 }
@@ -397,7 +397,7 @@ void SymbolAssignation::visit(ClassDecl* clss) {
 void SymbolAssignation::visit(DefineDecl* def) {
     SAVE_SCOPE(def->getSymbol())
 
-    ASTVisitor::visit(def);
+    ASTImplicitVisitor::visit(def);
 
     RESTORE_SCOPE
 }
@@ -409,7 +409,7 @@ void SymbolAssignation::visit(TypeMemberAccess* tmac) {
 void SymbolAssignation::visit(TypeConstructorCreation* tc) {
     SAVE_SCOPE(tc)
 
-    ASTVisitor::visit(tc);
+    ASTImplicitVisitor::visit(tc);
 
     RESTORE_SCOPE
 }
@@ -430,7 +430,7 @@ void SymbolAssignation::visit(MemberAccess* mac) {
 void SymbolAssignation::visit(Block* block) {
     SAVE_SCOPE(block)
 
-    ASTVisitor::visit(block);
+    ASTImplicitVisitor::visit(block);
 
     warnForUnusedVariableInCurrentScope();
 
@@ -440,7 +440,7 @@ void SymbolAssignation::visit(Block* block) {
 void SymbolAssignation::visit(FunctionCreation* func) {
     SAVE_SCOPE(func)
 
-    ASTVisitor::visit(func);
+    ASTImplicitVisitor::visit(func);
 
     warnForUnusedVariableInCurrentScope();
 

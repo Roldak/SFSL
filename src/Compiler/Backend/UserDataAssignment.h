@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <set>
-#include "../Frontend/AST/Visitors/ASTVisitor.h"
+#include "../Frontend/AST/Visitors/ASTImplicitVisitor.h"
 
 namespace sfsl {
 
@@ -22,7 +22,7 @@ using namespace ast;
 /**
  * @brief
  */
-class UserDataAssignment : public ASTVisitor {
+class UserDataAssignment : public ASTImplicitVisitor {
 public:
 
     UserDataAssignment(CompCtx_Ptr& ctx);

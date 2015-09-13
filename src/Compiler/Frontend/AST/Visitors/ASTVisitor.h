@@ -1,5 +1,5 @@
 //
-//  ASTVisitor.h
+//  ASTImplicitVisitor.h
 //  SFSL
 //
 //  Created by Romain Beguet on 16.11.14.
@@ -48,42 +48,42 @@ public:
      * @brief Should never be called.
      * @param node The visited node
      */
-    virtual void visit(ASTNode* node);
+    virtual void visit(ASTNode* node) = 0;
 
-    virtual void visit(Program* prog);
+    virtual void visit(Program* prog) = 0;
 
-    virtual void visit(ModuleDecl* module);
-    virtual void visit(TypeDecl* tdecl);
-    virtual void visit(ClassDecl* clss);
-    virtual void visit(DefineDecl* decl);
+    virtual void visit(ModuleDecl* module) = 0;
+    virtual void visit(TypeDecl* tdecl) = 0;
+    virtual void visit(ClassDecl* clss) = 0;
+    virtual void visit(DefineDecl* decl) = 0;
 
-    virtual void visit(ProperTypeKindSpecifier* ptks);
-    virtual void visit(TypeConstructorKindSpecifier* tcks);
+    virtual void visit(ProperTypeKindSpecifier* ptks) = 0;
+    virtual void visit(TypeConstructorKindSpecifier* tcks) = 0;
 
-    virtual void visit(FunctionTypeDecl* ftdecl);
-    virtual void visit(TypeMemberAccess* tdot);
-    virtual void visit(TypeTuple* ttuple);
-    virtual void visit(TypeConstructorCreation* typeconstructor);
-    virtual void visit(TypeConstructorCall* tcall);
-    virtual void visit(TypeIdentifier* tident);
-    virtual void visit(KindSpecifier* ks);
+    virtual void visit(FunctionTypeDecl* ftdecl) = 0;
+    virtual void visit(TypeMemberAccess* tdot) = 0;
+    virtual void visit(TypeTuple* ttuple) = 0;
+    virtual void visit(TypeConstructorCreation* typeconstructor) = 0;
+    virtual void visit(TypeConstructorCall* tcall) = 0;
+    virtual void visit(TypeIdentifier* tident) = 0;
+    virtual void visit(KindSpecifier* ks) = 0;
 
-    virtual void visit(ExpressionStatement* exp);
+    virtual void visit(ExpressionStatement* exp) = 0;
 
-    virtual void visit(BinaryExpression* bin);
-    virtual void visit(AssignmentExpression* aex);
-    virtual void visit(TypeSpecifier* tps);
-    virtual void visit(Block* block);
-    virtual void visit(IfExpression* ifexpr);
-    virtual void visit(MemberAccess* dot);
-    virtual void visit(Tuple* tuple);
-    virtual void visit(FunctionCreation* func);
-    virtual void visit(FunctionCall* call);
-    virtual void visit(Identifier* ident);
-    virtual void visit(This* ths);
-    virtual void visit(BoolLitteral* boollit);
-    virtual void visit(IntLitteral* intlit);
-    virtual void visit(RealLitteral* reallit);
+    virtual void visit(BinaryExpression* bin) = 0;
+    virtual void visit(AssignmentExpression* aex) = 0;
+    virtual void visit(TypeSpecifier* tps) = 0;
+    virtual void visit(Block* block) = 0;
+    virtual void visit(IfExpression* ifexpr) = 0;
+    virtual void visit(MemberAccess* dot) = 0;
+    virtual void visit(Tuple* tuple) = 0;
+    virtual void visit(FunctionCreation* func) = 0;
+    virtual void visit(FunctionCall* call) = 0;
+    virtual void visit(Identifier* ident) = 0;
+    virtual void visit(This* ths) = 0;
+    virtual void visit(BoolLitteral* boollit) = 0;
+    virtual void visit(IntLitteral* intlit) = 0;
+    virtual void visit(RealLitteral* reallit) = 0;
 
 protected:
 

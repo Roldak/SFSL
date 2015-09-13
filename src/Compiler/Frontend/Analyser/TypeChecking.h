@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <set>
-#include "../AST/Visitors/ASTVisitor.h"
+#include "../AST/Visitors/ASTImplicitVisitor.h"
 #include "../AST/Symbols/SymbolResolver.h"
 
 namespace sfsl {
@@ -21,7 +21,7 @@ namespace ast {
 /**
  * @brief
  */
-class TypeChecker : public ASTVisitor {
+class TypeChecker : public ASTImplicitVisitor {
 public:
     TypeChecker(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
     virtual ~TypeChecker();

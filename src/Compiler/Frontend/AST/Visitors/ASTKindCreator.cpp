@@ -17,7 +17,7 @@ namespace ast {
 // AST KIND CREATOR
 
 ASTKindCreator::ASTKindCreator(CompCtx_Ptr& ctx)
-    : ASTVisitor(ctx), _created(nullptr) {
+    : ASTImplicitVisitor(ctx), _created(nullptr) {
 
 }
 
@@ -61,7 +61,7 @@ kind::Kind* ASTKindCreator::createKind(ASTNode* node, CompCtx_Ptr& ctx) {
 // AST DEFAULT TYPE FROM KIND CREATOR
 
 ASTDefaultTypeFromKindCreator::ASTDefaultTypeFromKindCreator(CompCtx_Ptr& ctx, const std::string& name)
-    : ASTVisitor(ctx), _name(name) {
+    : ASTImplicitVisitor(ctx), _name(name) {
 
 }
 

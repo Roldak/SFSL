@@ -15,7 +15,7 @@ namespace sfsl {
 namespace ast {
 
 ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args)
-    : ASTVisitor(ctx), _created(nullptr), _args(args) {
+    : ASTImplicitVisitor(ctx), _created(nullptr), _args(args) {
 
 }
 

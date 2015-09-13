@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <set>
-#include "ASTVisitor.h"
+#include "ASTImplicitVisitor.h"
 #include "../Symbols/SymbolResolver.h"
 #include "../../Types/Types.h"
 
@@ -22,7 +22,7 @@ namespace ast {
 /**
  * @brief A visitor that can generate a type from an ASTNode
  */
-class ASTTypeCreator : public ASTVisitor {
+class ASTTypeCreator : public ASTImplicitVisitor {
 public:
 
     /**

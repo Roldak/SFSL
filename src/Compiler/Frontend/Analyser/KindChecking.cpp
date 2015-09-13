@@ -18,7 +18,7 @@ namespace ast {
 // TYPE CHECK
 
 KindChecking::KindChecking(CompCtx_Ptr& ctx)
-    : ASTVisitor(ctx), _rep(ctx->reporter()), _mustDefer(true) {
+    : ASTImplicitVisitor(ctx), _rep(ctx->reporter()), _mustDefer(true) {
 
 }
 
@@ -31,7 +31,7 @@ void KindChecking::visit(ASTNode*) {
 }
 
 void KindChecking::visit(Program* prog) {
-    ASTVisitor::visit(prog);
+    ASTImplicitVisitor::visit(prog);
     visitDeferredExpressions();
 }
 
@@ -52,7 +52,7 @@ void KindChecking::visit(ClassDecl* clss) {
         _deferredExpressions.emplace(clss);
     } else {
         _mustDefer = true;
-        ASTVisitor::visit(clss);
+        ASTImplicitVisitor::visit(clss);
         _mustDefer = false;
 
         if (TypeExpression* p = clss->getParent()) {
@@ -76,11 +76,11 @@ void KindChecking::visit(TypeMemberAccess* tdot) {
 }
 
 void KindChecking::visit(TypeTuple* ttuple) {
-    ASTVisitor::visit(ttuple);
+    ASTImplicitVisitor::visit(ttuple);
 }
 
 void KindChecking::visit(TypeConstructorCreation* tc) {
-    ASTVisitor::visit(tc);
+    ASTImplicitVisitor::visit(tc);
 
     std::vector<TypeExpression*> exprs;
 
@@ -103,7 +103,7 @@ void KindChecking::visit(TypeConstructorCreation* tc) {
 }
 
 void KindChecking::visit(TypeConstructorCall* tcall) {
-    ASTVisitor::visit(tcall);
+    ASTImplicitVisitor::visit(tcall);
 
     if (kind::TypeConstructorKind* k = kind::getIf<kind::TypeConstructorKind>(tcall->getCallee()->kind())) {
 
@@ -140,14 +140,14 @@ void KindChecking::visit(TypeIdentifier* tident) {
 }
 
 void KindChecking::visit(KindSpecifier* ks) {
-    ASTVisitor::visit(ks);
+    ASTImplicitVisitor::visit(ks);
     kind::Kind* k = ASTKindCreator::createKind(ks->getKindNode(), _ctx);
     ks->getSpecified()->setKind(k);
     ks->setKind(k);
 }
 
 void KindChecking::visit(TypeSpecifier* ts) {
-    ASTVisitor::visit(ts);
+    ASTImplicitVisitor::visit(ts);
 
     if (ts->getTypeNode()->kind()->getKindGenre() != kind::KIND_PROPER) {
         _rep.error(*ts, "Variable cannot have type " + ts->getTypeNode()->kind()->toString() + " which is not a proper type.");

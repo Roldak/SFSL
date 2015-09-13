@@ -10,7 +10,7 @@
 #define __SFSL__ASTTypeIdentifier__
 
 #include <iostream>
-#include "ASTVisitor.h"
+#include "ASTImplicitVisitor.h"
 
 namespace sfsl {
 
@@ -20,14 +20,14 @@ template<typename T>
 /**
  * @brief A visitor that dynamically tests the type of the node which is visited by it
  */
-class ASTTypeIdentifier : public ASTVisitor {
+class ASTTypeIdentifier : public ASTImplicitVisitor {
 public:
 
     /**
      * @brief Creates an ASTTypeIdentifier
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTTypeIdentifier(CompCtx_Ptr& ctx) : ASTVisitor(ctx) {}
+    ASTTypeIdentifier(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx) {}
 
     virtual ~ASTTypeIdentifier() {}
 

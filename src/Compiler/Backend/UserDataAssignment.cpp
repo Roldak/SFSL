@@ -16,7 +16,7 @@ namespace bc {
 // ASSIGN USER DATAS
 
 UserDataAssignment::UserDataAssignment(CompCtx_Ptr& ctx)
-    : ASTVisitor(ctx), _currentConstCount(0), _currentVarCount(0) {
+    : ASTImplicitVisitor(ctx), _currentConstCount(0), _currentVarCount(0) {
 
 }
 
@@ -81,7 +81,7 @@ void UserDataAssignment::visit(ClassDecl* clss) {
 }
 
 void UserDataAssignment::visit(DefineDecl* decl) {
-    ASTVisitor::visit(decl);
+    ASTImplicitVisitor::visit(decl);
     sym::DefinitionSymbol* def = decl->getSymbol();
 
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
@@ -92,7 +92,7 @@ void UserDataAssignment::visit(DefineDecl* decl) {
 }
 
 void UserDataAssignment::visit(TypeSpecifier* tps) {
-    ASTVisitor::visit(tps);
+    ASTImplicitVisitor::visit(tps);
     sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(tps->getSpecified()->getSymbol());
     var->setUserdata(_mngr.New<VarUserData>(_currentVarCount++));
 }
@@ -100,7 +100,7 @@ void UserDataAssignment::visit(TypeSpecifier* tps) {
 void UserDataAssignment::visit(FunctionCreation* func) {
     SAVE_MEMBER_AND_SET(_currentVarCount, func->type()->getTypeKind() == type::TYPE_FUNCTION ? 0 : 1)
 
-    ASTVisitor::visit(func);
+    ASTImplicitVisitor::visit(func);
 
     func->setUserdata(_mngr.New<FuncUserData>(_currentVarCount));
 

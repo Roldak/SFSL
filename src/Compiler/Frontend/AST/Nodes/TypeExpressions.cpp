@@ -7,7 +7,7 @@
 //
 
 #include "TypeExpressions.h"
-#include "../Visitors/ASTVisitor.h"
+#include "../Visitors/ASTImplicitVisitor.h"
 
 namespace sfsl {
 

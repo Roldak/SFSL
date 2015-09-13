@@ -40,7 +40,7 @@ T* applyEnvsHelper(T* t, const type::SubstitutionTable& subtable, const type::Su
 
 // TYPE CHECKER
 
-TypeChecker::TypeChecker(CompCtx_Ptr& ctx, const sym::SymbolResolver& res) : ASTVisitor(ctx), _res(res), _rep(ctx->reporter()) {
+TypeChecker::TypeChecker(CompCtx_Ptr& ctx, const sym::SymbolResolver& res) : ASTImplicitVisitor(ctx), _res(res), _rep(ctx->reporter()) {
 
 }
 
@@ -63,7 +63,7 @@ void TopLevelTypeChecking::visit(ASTNode* node) {
 }
 
 void TopLevelTypeChecking::visit(ClassDecl* clss) {
-    ASTVisitor::visit(clss);
+    ASTImplicitVisitor::visit(clss);
 
     for (TypeSpecifier* tps : clss->getFields()) {
         if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx)) {
@@ -107,7 +107,7 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
         func->setType(_mngr.New<type::FunctionType>(argTypes, type::Type::NotYetDefined(), nullptr));
     }
 
-    ASTVisitor::visit(func);
+    ASTImplicitVisitor::visit(func);
 }
 
 // TYPE CHECKING
@@ -126,7 +126,7 @@ void TypeChecking::visit(ASTNode*) {
 }
 
 void TypeChecking::visit(Program* prog) {
-    ASTVisitor::visit(prog);
+    ASTImplicitVisitor::visit(prog);
 
     for (DefineDecl* redef : _redefs) {
         redef->getSymbol()->setOverridenSymbol(findOverridenSymbol(redef->getSymbol()));
@@ -136,7 +136,7 @@ void TypeChecking::visit(Program* prog) {
 void TypeChecking::visit(TypeDecl* tdecl) {
     tdecl->setType(_res.Unit());
 
-    ASTVisitor::visit(tdecl);
+    ASTImplicitVisitor::visit(tdecl);
 }
 
 void TypeChecking::visit(DefineDecl* decl) {
@@ -162,17 +162,17 @@ void TypeChecking::visit(DefineDecl* decl) {
 }
 
 void TypeChecking::visit(ExpressionStatement* exp) {
-    ASTVisitor::visit(exp);
+    ASTImplicitVisitor::visit(exp);
     exp->setType(exp->getExpression()->type());
 }
 
 void TypeChecking::visit(BinaryExpression* bin) {
-    ASTVisitor::visit(bin);
+    ASTImplicitVisitor::visit(bin);
     bin->setType(bin->getLhs()->type()); // TODO : make it right
 }
 
 void TypeChecking::visit(AssignmentExpression* aex) {
-    ASTVisitor::visit(aex);
+    ASTImplicitVisitor::visit(aex);
 
     if (!ASTAssignmentChecker::isExpressionAssignable(aex->getLhs(), _ctx)) {
         _rep.error(*aex, "Left hand side is not an assignable expression");
@@ -190,7 +190,7 @@ void TypeChecking::visit(AssignmentExpression* aex) {
 }
 
 void TypeChecking::visit(TypeSpecifier* tps) {
-    ASTVisitor::visit(tps);
+    ASTImplicitVisitor::visit(tps);
 
     if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx)) {
         Identifier* id = tps->getSpecified();
@@ -210,7 +210,7 @@ void TypeChecking::visit(TypeSpecifier* tps) {
 }
 
 void TypeChecking::visit(Block* block) {
-    ASTVisitor::visit(block);
+    ASTImplicitVisitor::visit(block);
 
     const std::vector<Expression*>& stats = block->getStatements();
     if (stats.size() > 0) {
@@ -221,7 +221,7 @@ void TypeChecking::visit(Block* block) {
 }
 
 void TypeChecking::visit(IfExpression* ifexpr) {
-    ASTVisitor::visit(ifexpr);
+    ASTImplicitVisitor::visit(ifexpr);
 
     if (!ifexpr->getCondition()->type()->apply(_ctx)->isSubTypeOf(_res.Bool())) {
         _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (Found " + ifexpr->getCondition()->type()->toString() + ")");
@@ -282,7 +282,7 @@ void TypeChecking::visit(MemberAccess* dot) {
 }
 
 void TypeChecking::visit(Tuple* tuple) {
-    ASTVisitor::visit(tuple);
+    ASTImplicitVisitor::visit(tuple);
 
     if (tuple->getExpressions().size() == 0) {
         tuple->setType(_res.Unit());
@@ -290,7 +290,7 @@ void TypeChecking::visit(Tuple* tuple) {
 }
 
 void TypeChecking::visit(FunctionCreation* func) {
-    ASTVisitor::visit(func);
+    ASTImplicitVisitor::visit(func);
 
     Expression* expr = func->getArgs();
     std::vector<Expression*> args;

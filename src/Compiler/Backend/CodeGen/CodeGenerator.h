@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <set>
-#include "../../Frontend/AST/Visitors/ASTVisitor.h"
+#include "../../Frontend/AST/Visitors/ASTImplicitVisitor.h"
 #include "../../Frontend/AST/Symbols/SymbolResolver.h"
 #include "CodeGenOutput.h"
 
@@ -25,10 +25,10 @@ template<typename T>
 /**
  * @brief Base class for visitors that generate code from the AST
  */
-class CodeGenerator : public ASTVisitor {
+class CodeGenerator : public ASTImplicitVisitor {
 public:
 
-    CodeGenerator(CompCtx_Ptr& ctx, CodeGenOutput<T>& out) : ASTVisitor(ctx), _mngr(ctx->memoryManager()), _out(out) {}
+    CodeGenerator(CompCtx_Ptr& ctx, CodeGenOutput<T>& out) : ASTImplicitVisitor(ctx), _mngr(ctx->memoryManager()), _out(out) {}
     virtual ~CodeGenerator() {}
 
     virtual void visit(ASTNode*) override = 0;
