@@ -11,13 +11,9 @@
 
 #include <vector>
 #include <map>
+#include "../Types/SubstitutionTable.h"
 
 namespace sfsl {
-
-namespace type {
-class Type;
-typedef std::map<Type*, Type*> SubstitutionTable;
-}
 
 namespace ast {
 class TypeChecking;

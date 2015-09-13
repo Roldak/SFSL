@@ -12,6 +12,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include "SubstitutionTable.h"
 #include "../../Common/MemoryManageable.h"
 #include "../../Common/CompilationContext.h"
 #include "../../Common/Positionnable.h"
@@ -28,8 +29,6 @@ namespace type {
 enum TYPE_KIND { TYPE_NYD, TYPE_PROPER, TYPE_FUNCTION, TYPE_METHOD, TYPE_CONSTRUCTOR_TYPE, TYPE_CONSTRUCTOR_APPLY };
 
 class Type;
-
-typedef std::map<Type*, Type*> SubstitutionTable;
 
 class Type : public common::MemoryManageable {
 public:
