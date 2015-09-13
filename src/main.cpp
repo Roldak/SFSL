@@ -132,9 +132,9 @@ int main(int argc, char** argv) {
         std::cout << "DONE" << std::endl;
         std::cout << ctx->memoryManager().getInfos() << std::endl << std::endl;
 
-        /*for (const bc::BCInstruction* i : out.toVector()) {
+        for (const bc::BCInstruction* i : out.toVector()) {
             std::cout << *i << std::endl;
-        }*/
+        }
 
         if (ctx->reporter().getErrorCount() != 0) {
             return 1;
