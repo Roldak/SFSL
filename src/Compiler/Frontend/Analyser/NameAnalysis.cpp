@@ -14,6 +14,8 @@
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTKindCreator.h"
 
+//#define DEBUG_DEPENDENCIES
+
 namespace sfsl {
 
 namespace ast {
@@ -39,32 +41,36 @@ void ScopePossessorVisitor::tryAddSymbol(sym::Symbol* sym) {
 template<typename T, typename U>
 T* ScopePossessorVisitor::createSymbol(U* node) {
     T* sym = _mngr.New<T>(node->getName()->getValue());
-    sym->setPos(*node);
-
-    node->setSymbol(sym);
-    tryAddSymbol(sym);
-
+    initCreated(node, sym);
     return sym;
 }
 
 sym::DefinitionSymbol* ScopePossessorVisitor::createSymbol(DefineDecl* node, TypeExpression* currentThis) {
     sym::DefinitionSymbol* sym = _mngr.New<sym::DefinitionSymbol>(node->getName()->getValue(), node, currentThis);
-    sym->setPos(*node);
-
-    node->setSymbol(sym);
-    tryAddSymbol(sym);
-
+    initCreated(node, sym);
     return sym;
 }
 
 sym::TypeSymbol* ScopePossessorVisitor::createSymbol(TypeDecl* node) {
     sym::TypeSymbol* sym = _mngr.New<sym::TypeSymbol>(node->getName()->getValue(), node);
-    sym->setPos(*node);
-
-    node->setSymbol(sym);
-    tryAddSymbol(sym);
-
+    initCreated(node, sym);
     return sym;
+}
+
+template<typename T, typename S>
+void ScopePossessorVisitor::initCreated(T* id, S* s) {
+    s->setPos(*id);
+    id->setSymbol(s);
+    tryAddSymbol(s);
+}
+
+template<typename T>
+void ScopePossessorVisitor::setVariableSymbolicUsed(T* symbolic, bool val) {
+    if (sym::Symbol* s = symbolic->getSymbol()) {
+        if (s->getSymbolType() == sym::SYM_VAR) {
+            static_cast<sym::VariableSymbol*>(s)->setUsed(val);
+        }
+    }
 }
 
 // SCOPE GENERATION
@@ -141,12 +147,41 @@ void ScopeGeneration::visit(DefineDecl* def) {
     popScope();
 }
 
-void ScopeGeneration::visit(TypeConstructorCreation* typeconstructor) {
-    pushScope(typeconstructor);
+void ScopeGeneration::visit(TypeConstructorCreation* tc) {
+    pushScope(tc);
 
-    ASTVisitor::visit(typeconstructor);
+    TypeExpression* expr = tc->getArgs();
+    std::vector<TypeExpression*> args;
+
+    if (isNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        args = static_cast<TypeTuple*>(expr)->getExpressions();
+    } else { // form is `exp => ...` or `[exp] => ...`
+        args.push_back(expr);
+    }
+
+    for (TypeExpression* expr : args) {
+        if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `T`
+            createProperType(static_cast<TypeIdentifier*>(expr),
+                             ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
+                                 _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(expr)->getValue(), _ctx));
+        } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: kind`
+            // The type var is already going to be created by the KindSpecifier Node
+            expr->onVisit(this);
+        } else {
+            _ctx->reporter().error(*expr, "Type argument should be an identifier");
+        }
+    }
+
+    tc->getBody()->onVisit(this);
 
     popScope();
+}
+
+void ScopeGeneration::visit(KindSpecifier* ks) {
+    TypeDecl* defaultType = ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
+                ks->getKindNode(), ks->getSpecified()->getValue(), _ctx);
+
+    createProperType(ks->getSpecified(), defaultType);
 }
 
 void ScopeGeneration::visit(Block* block) {
@@ -160,9 +195,44 @@ void ScopeGeneration::visit(Block* block) {
 void ScopeGeneration::visit(FunctionCreation* func) {
     pushScope(func);
 
-    ASTVisitor::visit(func);
+    Expression* expr = func->getArgs();
+    std::vector<Expression*> args;
+
+    if (isNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
+        args = static_cast<Tuple*>(expr)->getExpressions();
+    } else { // form is `exp => ...` or `(exp) => ...`
+        args.push_back(expr);
+    }
+
+    for (Expression* expr : args) {
+        if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
+            createVar(static_cast<Identifier*>(expr));
+        } else if(isNodeOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
+            // The var is already going to be created by the TypeSpecifier Node
+            expr->onVisit(this);
+        } else {
+            _ctx->reporter().error(*expr, "Argument should be an identifier");
+        }
+    }
+
+    func->getBody()->onVisit(this);
 
     popScope();
+}
+
+void ScopeGeneration::visit(TypeSpecifier* tps) {
+    tps->getTypeNode()->onVisit(this);
+    createVar(tps->getSpecified());
+    setVariableSymbolicUsed(tps->getSpecified(), false);
+}
+
+void ScopeGeneration::createVar(Identifier* id) {
+    sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(id->getValue());
+    initCreated(id, arg);
+}
+
+void ScopeGeneration::createProperType(TypeIdentifier* id, TypeDecl* defaultType) {
+    initCreated(id, defaultType->getSymbol());
 }
 
 void ScopeGeneration::pushScope(sym::Scoped* scoped, bool isDefScope) {
@@ -174,6 +244,98 @@ void ScopeGeneration::pushScope(sym::Scoped* scoped, bool isDefScope) {
 
 void ScopeGeneration::popScope() {
     _curScope = _curScope->getParent();
+}
+
+// TYPE DEPENDENCY FIXATION
+
+
+TypeDependencyFixation::TypeDependencyFixation(CompCtx_Ptr& ctx) : ASTVisitor(ctx) {
+
+}
+
+TypeDependencyFixation::~TypeDependencyFixation() {
+
+}
+
+void TypeDependencyFixation::visit(ClassDecl* clss) {
+    clss->setDependencies(_parameters);
+
+    ASTVisitor::visit(clss);
+
+#ifdef DEBUG_DEPENDENCIES
+    debugDumpDependencies(clss);
+#endif
+}
+
+void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
+    tc->setDependencies(_parameters);
+
+    TypeExpression* expr = tc->getArgs();
+    std::vector<TypeExpression*> args;
+
+    if (isNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        args = static_cast<TypeTuple*>(expr)->getExpressions();
+    } else { // form is `exp => ...` or `[exp] => ...`
+        args.push_back(expr);
+    }
+
+    for (TypeExpression* expr : args) {
+        TypeIdentifier* id;
+
+        if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `T`
+            id = static_cast<TypeIdentifier*>(expr);
+        } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: kind`
+            id = static_cast<KindSpecifier*>(expr)->getSpecified();
+        } else {
+            return; // Error already reported in scope generation
+                    //  => compiler will stop before type dependency is even used
+        }
+
+        if (id->getSymbol()->getSymbolType() == sym::SYM_TPE) {
+            _parameters.push_back(static_cast<sym::TypeSymbol*>(id->getSymbol()));
+        } else {
+            _ctx->reporter().fatal(*expr, "Is supposed to be a TypeSymbol");
+        }
+    }
+
+    tc->getBody()->onVisit(this);
+
+#ifdef DEBUG_DEPENDENCIES
+    debugDumpDependencies(tc);
+#endif
+
+    _parameters.resize(_parameters.size() - args.size());
+}
+
+void TypeDependencyFixation::visit(FunctionCreation* func) {
+    func->setDependencies(_parameters);
+
+    ASTVisitor::visit(func);
+
+#ifdef DEBUG_DEPENDENCIES
+    debugDumpDependencies(func);
+#endif
+}
+
+void TypeDependencyFixation::visit(TypeConstructorCall* tcall) {
+    tcall->setDependencies(_parameters);
+
+    ASTVisitor::visit(tcall);
+}
+
+template<typename T>
+void TypeDependencyFixation::debugDumpDependencies(const T* param) const {
+    if (param->getDependencies().size() > 0) {
+        std::string acc = param->getName() + " depends on {";
+
+        for (sym::TypeSymbol* t : param->getDependencies()) {
+            acc += t->getName() + ", ";
+        }
+
+        acc = acc.substr(0, acc.size() - 2);
+
+        _ctx->reporter().info(*param, acc + "}");
+    }
 }
 
 // SYMBOL ASSIGNATION
@@ -208,7 +370,7 @@ void SymbolAssignation::visit(ClassDecl* clss) {
         if (clss->getParent()) {
             clss->getParent()->onVisit(this);
             if (type::Type* parentType = ASTTypeCreator::createType(clss->getParent(), _ctx)) {
-                if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->applied(_ctx))) {
+                if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
                     ClassDecl* parentClass = parent->getClass();
                     parentClass->onVisit(this);
 
@@ -247,42 +409,13 @@ void SymbolAssignation::visit(TypeMemberAccess* tmac) {
 void SymbolAssignation::visit(TypeConstructorCreation* tc) {
     SAVE_SCOPE(tc)
 
-    TypeExpression* expr = tc->getArgs();
-    std::vector<TypeExpression*> args;
-
-    if (isNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
-        args = static_cast<TypeTuple*>(expr)->getExpressions();
-    } else { // form is `exp => ...` or `[exp] => ...`
-        args.push_back(expr);
-    }
-
-    for (TypeExpression* expr : args) {
-        if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `x`
-            createProperType(static_cast<TypeIdentifier*>(expr),
-                             ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
-                                 _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(expr)->getValue(), _ctx));
-        } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: kind`
-            // The type var is already going to be created by the KindSpecifier Node
-            expr->onVisit(this);
-        } else {
-            _ctx->reporter().error(*expr, "Type argument should be an identifier");
-        }
-    }
-
-    tc->getBody()->onVisit(this);
+    ASTVisitor::visit(tc);
 
     RESTORE_SCOPE
 }
 
 void SymbolAssignation::visit(TypeIdentifier* id) {
     assignIdentifier(id);
-}
-
-void SymbolAssignation::visit(KindSpecifier* ks) {
-    TypeDecl* defaultType = ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
-                ks->getKindNode(), ks->getSpecified()->getValue(), _ctx);
-
-    createProperType(ks->getSpecified(), defaultType);
 }
 
 void SymbolAssignation::visit(BinaryExpression* exp) {
@@ -307,58 +440,16 @@ void SymbolAssignation::visit(Block* block) {
 void SymbolAssignation::visit(FunctionCreation* func) {
     SAVE_SCOPE(func)
 
-    Expression* expr = func->getArgs();
-    std::vector<Expression*> args;
-
-    if (isNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
-        args = static_cast<Tuple*>(expr)->getExpressions();
-    } else { // form is `exp => ...` or `(exp) => ...`
-        args.push_back(expr);
-    }
-
-    for (Expression* expr : args) {
-        if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
-            createVar(static_cast<Identifier*>(expr));
-        } else if(isNodeOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
-            // The var is already going to be created by the TypeSpecifier Node
-            expr->onVisit(this);
-        } else {
-            _ctx->reporter().error(*expr, "Argument should be an identifier");
-        }
-    }
-
-    func->getBody()->onVisit(this);
+    ASTVisitor::visit(func);
 
     warnForUnusedVariableInCurrentScope();
 
     RESTORE_SCOPE
 }
 
-void SymbolAssignation::visit(TypeSpecifier* tps) {
-    createVar(tps->getSpecified());
-    ASTVisitor::visit(tps);
-    setVariableSymbolicUsed(tps->getSpecified(), false);
-}
-
 void SymbolAssignation::visit(Identifier* id) {
     assignIdentifier(id);
     setVariableSymbolicUsed(id, true);
-}
-
-void SymbolAssignation::createVar(Identifier* id) {
-    sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(id->getValue());
-    initCreated(id, arg);
-}
-
-void SymbolAssignation::createProperType(TypeIdentifier* id, TypeDecl* defaultType) {
-    initCreated(id, defaultType->getSymbol());
-}
-
-template<typename T, typename S>
-void SymbolAssignation::initCreated(T* id, S* s) {
-    s->setPos(*id);
-    id->setSymbol(s);
-    tryAddSymbol(s);
 }
 
 template<typename T>
@@ -401,15 +492,6 @@ void SymbolAssignation::assignFromTypeSymbol(T* mac, sym::TypeSymbol* tsym) {
         assignFromStaticScope<T>(mac, clss, "class " + clss->getName());
     } else {
         _ctx->reporter().error(*mac->getMember(), "Type " + tsym->getName() + " cannot have any members");
-    }
-}
-
-template<typename T>
-void SymbolAssignation::setVariableSymbolicUsed(T* symbolic, bool val) {
-    if (sym::Symbol* s = symbolic->getSymbol()) {
-        if (s->getSymbolType() == sym::SYM_VAR) {
-            static_cast<sym::VariableSymbol*>(s)->setUsed(val);
-        }
     }
 }
 

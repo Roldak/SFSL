@@ -12,6 +12,7 @@
 #include <iostream>
 #include "Expressions.h"
 #include "../../Kinds/Kinds.h"
+#include "../../Types/TypeParametrizable.h"
 #include "../../Types/CanSubtype.h"
 
 namespace sfsl {
@@ -41,7 +42,12 @@ public:
  *  - Its fields
  *  - Its definitions
  */
-class ClassDecl : public TypeExpression, public sym::Scoped, public type::CanSubtype<ClassDecl>, public common::HasManageableUserdata {
+class ClassDecl :
+        public TypeExpression,
+        public sym::Scoped,
+        public type::TypeParametrizable,
+        public type::CanSubtype<ClassDecl>,
+        public common::HasManageableUserdata {
 public:
 
     ClassDecl(const std::string& name, TypeExpression* parent, const std::vector<TypeSpecifier*>& fields, const std::vector<DefineDecl*>& defs);
@@ -157,7 +163,10 @@ private:
 /**
  * @brief Represents a type constructor creation, e.g. `[T] => class { x: T; }`
  */
-class TypeConstructorCreation : public TypeExpression, public sym::Scoped {
+class TypeConstructorCreation :
+        public TypeExpression,
+        public sym::Scoped,
+        public type::TypeParametrizable {
 public:
 
     TypeConstructorCreation(const std::string& name, TypeExpression* args, TypeExpression* body);
@@ -190,7 +199,7 @@ private:
 /**
  * @brief Represents a type constructor call.
  */
-class TypeConstructorCall : public TypeExpression {
+class TypeConstructorCall : public TypeExpression, public type::TypeParametrizable {
 public:
 
     TypeConstructorCall(TypeExpression* callee, TypeTuple* args);

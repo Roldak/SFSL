@@ -15,32 +15,32 @@ namespace sfsl {
 
 namespace sym {
 
-    class Scope;
+class Scope;
+
+/**
+ * @brief Interface that represents an object
+ * to which can be attached a scope, e.g a sym::ModuleSymbol,
+ * an ast::Block, etc.
+ */
+class Scoped {
+public:
+
+    virtual ~Scoped();
 
     /**
-     * @brief Interface that represents an object
-     * to which can be attached a scope, e.g a sym::ModuleSymbol,
-     * an ast::Block, etc.
+     * @param scope The scope to assign this object
      */
-    class Scoped {
-    public:
+    void setScope(Scope* scope);
 
-        virtual ~Scoped();
+    /**
+     * @return The scope assigned to this object
+     */
+    Scope* getScope() const;
 
-        /**
-         * @param scope The scope to assign this object
-         */
-        void setScope(Scope* scope);
+private:
 
-        /**
-         * @return The scope assigned to this object
-         */
-        Scope* getScope() const;
-
-    private:
-
-        Scope* _scope;
-    };
+    Scope* _scope;
+};
 
 }
 

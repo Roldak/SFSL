@@ -16,109 +16,109 @@ namespace sfsl {
 
 namespace tok {
 
-    /**
-     * @brief Represents a Boolean litteral (true or false)
-     */
-    class BoolLitteral : public Token {
-    public:
-
-        /**
-         * @brief Creates a Boolean litteral Token
-         * @param value the value of the litteral
-         */
-        BoolLitteral(sfsl_bool_t value);
-        virtual ~BoolLitteral();
-
-        virtual TOK_TYPE getTokenType() const override;
-        virtual std::string toString() const override;
-
-        sfsl_bool_t getValue() const;
-
-    private:
-
-        const sfsl_bool_t _value;
-    };
+/**
+ * @brief Represents a Boolean litteral (true or false)
+ */
+class BoolLitteral : public Token {
+public:
 
     /**
-     * @brief Represents an Integer litteral (e.g. 42)
+     * @brief Creates a Boolean litteral Token
+     * @param value the value of the litteral
      */
-    class IntLitteral : public Token {
-    public:
+    BoolLitteral(sfsl_bool_t value);
+    virtual ~BoolLitteral();
 
-        /**
-         * @brief Creates an Integer litteral Token
-         * @param value the value of the litteral
-         */
-        IntLitteral(sfsl_int_t value);
-        virtual ~IntLitteral();
+    virtual TOK_TYPE getTokenType() const override;
+    virtual std::string toString() const override;
 
-        virtual TOK_TYPE getTokenType() const override;
-        virtual std::string toString() const override;
+    sfsl_bool_t getValue() const;
 
-        /**
-         * @return this litteral's int value
-         */
-        sfsl_int_t getValue() const;
+private:
 
-    private:
+    const sfsl_bool_t _value;
+};
 
-        const sfsl_int_t _value;
-
-    };
+/**
+ * @brief Represents an Integer litteral (e.g. 42)
+ */
+class IntLitteral : public Token {
+public:
 
     /**
-     * @brief Represents a Real litteral (e.g. 3.14)
+     * @brief Creates an Integer litteral Token
+     * @param value the value of the litteral
      */
-    class RealLitteral : public Token {
-    public:
+    IntLitteral(sfsl_int_t value);
+    virtual ~IntLitteral();
 
-        /**
-         * @brief Creates a Real litteral Token
-         * @param value the value of the litteral
-         */
-        RealLitteral(sfsl_real_t value);
-        virtual ~RealLitteral();
-
-        virtual TOK_TYPE getTokenType() const override;
-        virtual std::string toString() const override;
-
-        /**
-         * @return this litteral's real value
-         */
-        sfsl_real_t getValue() const;
-
-    private:
-
-        const sfsl_real_t _value;
-
-    };
+    virtual TOK_TYPE getTokenType() const override;
+    virtual std::string toString() const override;
 
     /**
-     * @brief Represents a String litteral (e.g. "hello world")
+     * @return this litteral's int value
      */
-    class StringLitteral : public Token {
-    public:
+    sfsl_int_t getValue() const;
 
-        /**
-         * @brief Creates a String litteral
-         * @param value the value of the litteral
-         */
-        StringLitteral(const std::string& value);
-        virtual ~StringLitteral();
+private:
 
-        virtual TOK_TYPE getTokenType() const override;
-        virtual std::string toString() const override;
+    const sfsl_int_t _value;
 
-        /**
-         * @return this litteral's string value
-         */
-        std::string getValue() const;
+};
 
-    private:
+/**
+ * @brief Represents a Real litteral (e.g. 3.14)
+ */
+class RealLitteral : public Token {
+public:
 
-        const std::string _value;
+    /**
+     * @brief Creates a Real litteral Token
+     * @param value the value of the litteral
+     */
+    RealLitteral(sfsl_real_t value);
+    virtual ~RealLitteral();
 
-    };
+    virtual TOK_TYPE getTokenType() const override;
+    virtual std::string toString() const override;
+
+    /**
+     * @return this litteral's real value
+     */
+    sfsl_real_t getValue() const;
+
+private:
+
+    const sfsl_real_t _value;
+
+};
+
+/**
+ * @brief Represents a String litteral (e.g. "hello world")
+ */
+class StringLitteral : public Token {
+public:
+
+    /**
+     * @brief Creates a String litteral
+     * @param value the value of the litteral
+     */
+    StringLitteral(const std::string& value);
+    virtual ~StringLitteral();
+
+    virtual TOK_TYPE getTokenType() const override;
+    virtual std::string toString() const override;
+
+    /**
+     * @return this litteral's string value
+     */
+    std::string getValue() const;
+
+private:
+
+    const std::string _value;
+
+};
 
 }
 

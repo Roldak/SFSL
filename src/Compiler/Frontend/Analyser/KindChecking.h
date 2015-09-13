@@ -18,44 +18,45 @@ namespace sfsl {
 
 namespace ast {
 
-    /**
-     * @brief
-     */
-    class KindChecking : public ASTVisitor {
-    public:
+/**
+ * @brief
+ */
+class KindChecking : public ASTVisitor {
+public:
 
-        KindChecking(CompCtx_Ptr& ctx);
-        virtual ~KindChecking();
+    KindChecking(CompCtx_Ptr& ctx);
+    virtual ~KindChecking();
 
-        virtual void visit(ASTNode*) override;
+    virtual void visit(ASTNode*) override;
 
-        virtual void visit(Program* prog) override;
+    virtual void visit(Program* prog) override;
 
-        virtual void visit(TypeDecl* tdecl) override;
-        virtual void visit(ClassDecl* clss) override;
+    virtual void visit(TypeDecl* tdecl) override;
+    virtual void visit(ClassDecl* clss) override;
 
-        virtual void visit(FunctionTypeDecl* ftdecl) override;
-        virtual void visit(TypeMemberAccess* tdot) override;
-        virtual void visit(TypeTuple* ttuple) override;
-        virtual void visit(TypeConstructorCreation* typeconstructor) override;
-        virtual void visit(TypeConstructorCall* tcall) override;
-        virtual void visit(TypeIdentifier* tident) override;
-        virtual void visit(KindSpecifier* ks) override;
+    virtual void visit(FunctionTypeDecl* ftdecl) override;
+    virtual void visit(TypeMemberAccess* tdot) override;
+    virtual void visit(TypeTuple* ttuple) override;
+    virtual void visit(TypeConstructorCreation* typeconstructor) override;
+    virtual void visit(TypeConstructorCall* tcall) override;
+    virtual void visit(TypeIdentifier* tident) override;
+    virtual void visit(KindSpecifier* ks) override;
 
-        virtual void visit(TypeSpecifier* ts) override;
+    virtual void visit(TypeSpecifier* ts) override;
 
-    private:
+private:
 
-        void visitDeferredExpressions();
+    void visitDeferredExpressions();
 
-        kind::Kind* tryGetKindOfSymbol(sym::Symbol* sym);
+    kind::Kind* tryGetKindOfSymbol(sym::Symbol* sym);
 
-        common::AbstractReporter& _rep;
+    common::AbstractReporter& _rep;
 
-        std::set<TypeDecl*> _visitedTypeDefs;
-        std::set<TypeExpression*> _deferredExpressions;
-        bool _mustDefer;
-    };
+    std::set<TypeDecl*> _visitedTypeDefs;
+    std::set<TypeExpression*> _deferredExpressions;
+    bool _mustDefer;
+};
+
 }
 
 }

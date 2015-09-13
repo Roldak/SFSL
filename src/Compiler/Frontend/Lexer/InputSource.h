@@ -18,102 +18,102 @@ namespace sfsl {
 
 namespace src {
 
-    /**
-     * @brief Abstract class representing a source of code
-     */
-    class InputSource {
-    public:
+/**
+ * @brief Abstract class representing a source of code
+ */
+class InputSource {
+public:
 
-        InputSource(InputSourceName sourceName);
+    InputSource(InputSourceName sourceName);
 
-        virtual ~InputSource();
-
-        /**
-         * @brief Fills the buffer with maxBufferSize characters (or less, if the end of this input
-         * was reached before getting to that number)
-         *
-         * @param buffer The buffer in which to fill the next characters
-         * @param maxBufferSize The maximum number of character to fill the buffer with
-         * @return The number of characters which the buffer could be filled with
-         */
-        virtual size_t getNexts(char* buffer, size_t maxBufferSize) = 0;
-
-        /**
-         * @return The current position in the source
-         */
-        size_t getPosition() const;
-
-        /**
-         * @return The name of the source
-         */
-        src::InputSourceName getSourceName() const;
-
-        /**
-         * @return A Positionnable corresponding to the current position
-         */
-        common::Positionnable currentPos() const;
-
-    protected:
-
-        size_t _position;
-        src::InputSourceName _sourceName;
-    };
+    virtual ~InputSource();
 
     /**
-     * @brief An InputSource that uses an input stream as input for the source code
+     * @brief Fills the buffer with maxBufferSize characters (or less, if the end of this input
+     * was reached before getting to that number)
+     *
+     * @param buffer The buffer in which to fill the next characters
+     * @param maxBufferSize The maximum number of character to fill the buffer with
+     * @return The number of characters which the buffer could be filled with
      */
-    class IStreamSource : public InputSource {
-    public:
-
-        /**
-         * @brief Creates an IStreamSource
-         * @param sourceName the name of the source
-         * @param input the std::istream input
-         */
-        IStreamSource(InputSourceName sourceName, std::istream& input);
-
-        virtual ~IStreamSource();
-
-        virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
-
-    private:
-
-        static const int CHAR_EOF;
-
-        void produceNext();
-
-        std::istream& _input;
-
-        bool _hasNext;
-        char _curChar;
-
-    };
+    virtual size_t getNexts(char* buffer, size_t maxBufferSize) = 0;
 
     /**
-     * @brief A StringSource that uses a string as input for the source code
+     * @return The current position in the source
      */
-    class StringSource : public InputSource {
-    public:
+    size_t getPosition() const;
 
-        /**
-         * @brief Creates a StringSource
-         * @param sourceName the path to the source
-         * @param source the std::string input
-         */
-        StringSource(InputSourceName sourceName, const std::string& source);
+    /**
+     * @return The name of the source
+     */
+    src::InputSourceName getSourceName() const;
 
-        virtual ~StringSource();
+    /**
+     * @return A Positionnable corresponding to the current position
+     */
+    common::Positionnable currentPos() const;
 
-        virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
+protected:
 
-    private:
+    size_t _position;
+    src::InputSourceName _sourceName;
+};
 
-        const std::string _input;
+/**
+ * @brief An InputSource that uses an input stream as input for the source code
+ */
+class IStreamSource : public InputSource {
+public:
 
-        size_t _size;
-        size_t _curIndex;
+    /**
+     * @brief Creates an IStreamSource
+     * @param sourceName the name of the source
+     * @param input the std::istream input
+     */
+    IStreamSource(InputSourceName sourceName, std::istream& input);
 
-    };
+    virtual ~IStreamSource();
+
+    virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
+
+private:
+
+    static const int CHAR_EOF;
+
+    void produceNext();
+
+    std::istream& _input;
+
+    bool _hasNext;
+    char _curChar;
+
+};
+
+/**
+ * @brief A StringSource that uses a string as input for the source code
+ */
+class StringSource : public InputSource {
+public:
+
+    /**
+     * @brief Creates a StringSource
+     * @param sourceName the path to the source
+     * @param source the std::string input
+     */
+    StringSource(InputSourceName sourceName, const std::string& source);
+
+    virtual ~StringSource();
+
+    virtual size_t getNexts(char* buffer, size_t maxBufferSize) override;
+
+private:
+
+    const std::string _input;
+
+    size_t _size;
+    size_t _curIndex;
+
+};
 
 }
 

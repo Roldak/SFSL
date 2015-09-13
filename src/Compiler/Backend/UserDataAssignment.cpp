@@ -36,7 +36,7 @@ void UserDataAssignment::visit(ClassDecl* clss) {
         if (clss->getParent()) {
             clss->getParent()->onVisit(this);
 
-            type::ProperType* parent = static_cast<type::ProperType*>(ASTTypeCreator::createType(clss->getParent(), _ctx)->applied(_ctx));
+            type::ProperType* parent = static_cast<type::ProperType*>(ASTTypeCreator::createType(clss->getParent(), _ctx)->apply(_ctx));
             parent->getClass()->onVisit(this);
 
             ClassUserData* parentUD = parent->getClass()->getUserdata<ClassUserData>();

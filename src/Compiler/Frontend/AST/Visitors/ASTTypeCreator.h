@@ -29,7 +29,7 @@ public:
      * @brief Creates an ASTTypeCreator
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTTypeCreator(CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable);
+    ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args);
 
     virtual ~ASTTypeCreator();
 
@@ -56,15 +56,17 @@ public:
      * @param ctx The compilation context
      * @return The generated type
      */
-    static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, const type::SubstitutionTable& subTable = {});
+    static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx);
+    static type::Type* evalTypeConstructor(TypeConstructorCreation* ctr, CompCtx_Ptr& ctx, const std::vector<type::Type*>& args);
 
 protected:
 
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
+    type::SubstitutionTable buildSubstitutionTableFromTypeParametrizable(type::TypeParametrizable* param);
 
     type::Type* _created;
 
-    const type::SubstitutionTable& _subTable;
+    const std::vector<type::Type*>& _args;
 
     std::set<sym::TypeSymbol*> _visitedTypes;
 };

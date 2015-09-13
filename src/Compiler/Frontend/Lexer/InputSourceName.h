@@ -16,32 +16,33 @@ namespace sfsl {
 
 namespace src {
 
+/**
+ * @brief Simple class containing the name of the SFSLSource, which can be automatically managed
+ */
+class InputSourceName final {
+public:
+
+    InputSourceName();
+
     /**
-     * @brief Simple class containing the name of the SFSLSource, which can be automatically managed
+     * @brief Creates a new SFSLsourceName object and make it managed automatically
+     * @param compilationContext The Compilation context from which to instantiate the object
+     * @param name The name to the source file
+     * @return The newly created SFSLSourceName
      */
-    class InputSourceName final {
-    public:
+    static InputSourceName make(const CompCtx_Ptr& compilationContext, const std::string& name);
 
-        InputSourceName();
+    const std::string& getName() const;
 
-        /**
-         * @brief Creates a new SFSLsourceName object and make it managed automatically
-         * @param compilationContext The Compilation context from which to instantiate the object
-         * @param name The name to the source file
-         * @return The newly created SFSLSourceName
-         */
-        static InputSourceName make(const CompCtx_Ptr& compilationContext, const std::string& name);
+private:
 
-        const std::string& getName() const;
+    InputSourceName(const std::string* name);
 
-    private:
+    static const std::string unknown;
 
-        InputSourceName(const std::string* name);
+    const std::string* _name;
+};
 
-        static const std::string unknown;
-
-        const std::string* _name;
-    };
 }
 
 }

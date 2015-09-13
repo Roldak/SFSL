@@ -14,7 +14,7 @@ namespace sym {
 
 // SYMBOL
 
-Symbol::Symbol(const std::string &name) : _name(name) {
+Symbol::Symbol(const std::string& name) : _name(name) {
 
 }
 
@@ -32,7 +32,7 @@ const std::string& Symbol::getName() const {
 
 // MODULE SYMBOL
 
-ModuleSymbol::ModuleSymbol(const std::string &name) : Symbol(name) {
+ModuleSymbol::ModuleSymbol(const std::string& name) : Symbol(name) {
 
 }
 
@@ -46,7 +46,7 @@ SYM_TYPE ModuleSymbol::getSymbolType() const {
 
 // CLASS SYMBOL
 
-TypeSymbol::TypeSymbol(const std::string &name, ast::TypeDecl *type) : Symbol(name), _type(type) {
+TypeSymbol::TypeSymbol(const std::string& name, ast::TypeDecl* type) : Symbol(name), _type(type) {
 
 }
 
@@ -64,7 +64,7 @@ ast::TypeDecl* TypeSymbol::getTypeDecl() const {
 
 // DEFINITION SYMBOL
 
-DefinitionSymbol::DefinitionSymbol(const std::string &name, ast::DefineDecl* def, ast::TypeExpression* owner)
+DefinitionSymbol::DefinitionSymbol(const std::string& name, ast::DefineDecl* def, ast::TypeExpression* owner)
     : Symbol(name), _def(def), _owner(owner), _overriden(nullptr) {
 
 }
@@ -99,7 +99,7 @@ DefinitionSymbol *DefinitionSymbol::getOverridenSymbol() const {
 
 // VARIABLE SYMBOL
 
-VariableSymbol::VariableSymbol(const std::string &name) : Symbol(name) {
+VariableSymbol::VariableSymbol(const std::string& name) : Symbol(name) {
 
 }
 

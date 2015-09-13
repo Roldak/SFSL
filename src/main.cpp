@@ -78,9 +78,11 @@ int main(int argc, char** argv) {
         std::cout << ctx->memoryManager().getInfos() << std::endl << std::endl;
 
         ast::ScopeGeneration scopeGen(ctx);
+        ast::TypeDependencyFixation typeDep(ctx);
         ast::SymbolAssignation symAssign(ctx);
 
         prog->onVisit(&scopeGen);
+        prog->onVisit(&typeDep);
         prog->onVisit(&symAssign);
 
         if (ctx->reporter().getErrorCount() != 0) {

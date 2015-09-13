@@ -15,12 +15,12 @@
 namespace sfsl {
 
 namespace type {
-    class Type;
-    typedef std::map<Type*, Type*> SubstitutionTable;
+class Type;
+typedef std::map<Type*, Type*> SubstitutionTable;
 }
 
 namespace ast {
-    class TypeChecking;
+class TypeChecking;
 }
 
 namespace sym {
@@ -68,6 +68,13 @@ public:
      */
     Symbol_Type* getSymbol() const {
         return _symbols[0].symbol;
+    }
+
+    /**
+     * @return The environment associated to the symbol held by this Symbolic
+     */
+    const type::SubstitutionTable* getEnv() const {
+        return _symbols[0].env;
     }
 
     /**

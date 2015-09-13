@@ -17,244 +17,245 @@ namespace sfsl {
 
 namespace bc {
 
+/**
+ * @brief Represents an abstract bytecode instruction
+ */
+class BCInstruction : public common::MemoryManageable, public common::Positionnable {
+public:
+
+    virtual ~BCInstruction();
+
     /**
-     * @brief Represents an abstract bytecode instruction
+     * @brief Appends a string representation of the bytecode instruction
+     * to the given output stream
+     * @param o The output stream to fill
      */
-    class BCInstruction : public common::MemoryManageable, public common::Positionnable {
-    public:
+    virtual void appendTo(std::ostream& o) const = 0;
 
-        virtual ~BCInstruction();
-
-        /**
-         * @brief Appends a string representation of the bytecode instruction
-         * to the given output stream
-         * @param o The output stream to fill
-         */
-        virtual void appendTo(std::ostream& o) const = 0;
-
-        /**
-         * @return a string representation of the token with details
-         */
-        std::string toStringDetailed() const;
-    };
-
-    inline std::ostream& operator <<(std::ostream& o, const BCInstruction& i) {
-        i.appendTo(o);
-        return o;
-    }
-
-    /*
-     *  BYTECODE INSTRUCTIONS
+    /**
+     * @return a string representation of the token with details
      */
+    std::string toStringDetailed() const;
+};
 
-    class Label : public BCInstruction {
-    public:
-        Label(const std::string& name);
-        virtual ~Label();
+inline std::ostream& operator <<(std::ostream& o, const BCInstruction& i) {
+    i.appendTo(o);
+    return o;
+}
 
-        const std::string& getName() const;
+/*
+ *  BYTECODE INSTRUCTIONS
+ */
 
-        virtual void appendTo(std::ostream &o) const override;
+class Label : public BCInstruction {
+public:
+    Label(const std::string& name);
+    virtual ~Label();
 
-    private:
+    const std::string& getName() const;
 
-        std::string _name;
-    };
+    virtual void appendTo(std::ostream &o) const override;
 
-    class MakeClass : public BCInstruction {
-    public:
-        MakeClass(size_t attrCount, size_t defCount);
-        virtual ~MakeClass();
+private:
 
-        virtual void appendTo(std::ostream &o) const override;
+    std::string _name;
+};
 
-    private:
+class MakeClass : public BCInstruction {
+public:
+    MakeClass(size_t attrCount, size_t defCount);
+    virtual ~MakeClass();
 
-        size_t _attrCount;
-        size_t _defCount;
-    };
+    virtual void appendTo(std::ostream &o) const override;
 
-    class MakeFunction : public BCInstruction {
-    public:
-        MakeFunction(size_t varCount, Label* end);
-        virtual ~MakeFunction();
+private:
 
-        virtual void appendTo(std::ostream& o) const override;
+    size_t _attrCount;
+    size_t _defCount;
+};
 
-    private:
+class MakeFunction : public BCInstruction {
+public:
+    MakeFunction(size_t varCount, Label* end);
+    virtual ~MakeFunction();
 
-        size_t _varCount;
-        Label* _end;
-    };
+    virtual void appendTo(std::ostream& o) const override;
 
-    class StoreConst : public BCInstruction {
-    public:
-        StoreConst(size_t index);
-        virtual ~StoreConst();
+private:
 
-        virtual void appendTo(std::ostream &o) const override;
+    size_t _varCount;
+    Label* _end;
+};
 
-    private:
+class StoreConst : public BCInstruction {
+public:
+    StoreConst(size_t index);
+    virtual ~StoreConst();
 
-        size_t _index;
-    };
+    virtual void appendTo(std::ostream &o) const override;
 
-    class LoadConst : public BCInstruction {
-    public:
-        LoadConst(size_t index);
-        virtual ~LoadConst();
+private:
 
-        virtual void appendTo(std::ostream &o) const override;
+    size_t _index;
+};
 
-    private:
+class LoadConst : public BCInstruction {
+public:
+    LoadConst(size_t index);
+    virtual ~LoadConst();
 
-        size_t _index;
-    };
+    virtual void appendTo(std::ostream &o) const override;
 
-    class PushConstUnit : public BCInstruction {
-    public:
-        PushConstUnit();
-        virtual ~PushConstUnit();
+private:
 
-        virtual void appendTo(std::ostream &o) const override;
-    };
+    size_t _index;
+};
 
-    class PushConstBool : public BCInstruction {
-    public:
-        PushConstBool(sfsl_bool_t val);
-        virtual ~PushConstBool();
+class PushConstUnit : public BCInstruction {
+public:
+    PushConstUnit();
+    virtual ~PushConstUnit();
 
-        virtual void appendTo(std::ostream &o) const override;
+    virtual void appendTo(std::ostream &o) const override;
+};
 
-    private:
+class PushConstBool : public BCInstruction {
+public:
+    PushConstBool(sfsl_bool_t val);
+    virtual ~PushConstBool();
 
-        sfsl_bool_t _val;
-    };
+    virtual void appendTo(std::ostream &o) const override;
 
-    class PushConstInt : public BCInstruction {
-    public:
-        PushConstInt(sfsl_int_t val);
-        virtual ~PushConstInt();
+private:
 
-        virtual void appendTo(std::ostream& o) const override;
+    sfsl_bool_t _val;
+};
 
-    private:
+class PushConstInt : public BCInstruction {
+public:
+    PushConstInt(sfsl_int_t val);
+    virtual ~PushConstInt();
 
-        sfsl_int_t _val;
-    };
+    virtual void appendTo(std::ostream& o) const override;
 
-    class PushConstReal : public BCInstruction {
-    public:
-        PushConstReal(sfsl_real_t val);
-        virtual ~PushConstReal();
+private:
 
-        virtual void appendTo(std::ostream& o) const override;
+    sfsl_int_t _val;
+};
 
-    private:
+class PushConstReal : public BCInstruction {
+public:
+    PushConstReal(sfsl_real_t val);
+    virtual ~PushConstReal();
 
-        sfsl_real_t _val;
-    };
+    virtual void appendTo(std::ostream& o) const override;
 
-    class LoadStack : public BCInstruction {
-    public:
-        LoadStack(size_t index);
-        virtual ~LoadStack();
+private:
 
-        virtual void appendTo(std::ostream &o) const override;
+    sfsl_real_t _val;
+};
 
-    private:
+class LoadStack : public BCInstruction {
+public:
+    LoadStack(size_t index);
+    virtual ~LoadStack();
 
-        size_t _index;
-    };
+    virtual void appendTo(std::ostream &o) const override;
 
-    class StoreStack : public BCInstruction {
-    public:
-        StoreStack(size_t index);
-        virtual ~StoreStack();
+private:
 
-        virtual void appendTo(std::ostream &o) const override;
+    size_t _index;
+};
 
-    private:
+class StoreStack : public BCInstruction {
+public:
+    StoreStack(size_t index);
+    virtual ~StoreStack();
 
-        size_t _index;
-    };
+    virtual void appendTo(std::ostream &o) const override;
 
-    class LoadField : public BCInstruction {
-    public:
-        LoadField(size_t index);
-        virtual ~LoadField();
+private:
 
-        virtual void appendTo(std::ostream &o) const override;
+    size_t _index;
+};
 
-    private:
+class LoadField : public BCInstruction {
+public:
+    LoadField(size_t index);
+    virtual ~LoadField();
 
-        size_t _index;
-    };
+    virtual void appendTo(std::ostream &o) const override;
 
-    class StoreField : public BCInstruction {
-    public:
-        StoreField(size_t index);
-        virtual ~StoreField();
+private:
 
-        virtual void appendTo(std::ostream &o) const override;
+    size_t _index;
+};
 
-    private:
+class StoreField : public BCInstruction {
+public:
+    StoreField(size_t index);
+    virtual ~StoreField();
 
-        size_t _index;
-    };
+    virtual void appendTo(std::ostream &o) const override;
 
-    class Pop : public BCInstruction {
-    public:
-        Pop();
-        virtual ~Pop();
+private:
 
-        virtual void appendTo(std::ostream &o) const override;
-    };
+    size_t _index;
+};
 
-    class Return : public BCInstruction {
-    public:
-        Return();
-        virtual ~Return();
+class Pop : public BCInstruction {
+public:
+    Pop();
+    virtual ~Pop();
 
-        virtual void appendTo(std::ostream &o) const override;
-    };
+    virtual void appendTo(std::ostream &o) const override;
+};
 
-    class IfFalse : public BCInstruction {
-    public:
-        IfFalse(Label* label);
-        virtual ~IfFalse();
+class Return : public BCInstruction {
+public:
+    Return();
+    virtual ~Return();
 
-        virtual void appendTo(std::ostream &o) const override;
+    virtual void appendTo(std::ostream &o) const override;
+};
 
-    private:
+class IfFalse : public BCInstruction {
+public:
+    IfFalse(Label* label);
+    virtual ~IfFalse();
 
-        Label* _label;
-    };
+    virtual void appendTo(std::ostream &o) const override;
 
-    class Jump : public BCInstruction {
-    public:
-        Jump(Label* label);
-        virtual ~Jump();
+private:
 
-        virtual void appendTo(std::ostream &o) const override;
+    Label* _label;
+};
 
-    private:
+class Jump : public BCInstruction {
+public:
+    Jump(Label* label);
+    virtual ~Jump();
 
-        Label* _label;
-    };
+    virtual void appendTo(std::ostream &o) const override;
 
-    class VCall : public BCInstruction {
-    public:
-        VCall(size_t methodIndex, size_t argCount);
-        virtual ~VCall();
+private:
 
-        virtual void appendTo(std::ostream &o) const override;
+    Label* _label;
+};
 
-    private:
+class VCall : public BCInstruction {
+public:
+    VCall(size_t methodIndex, size_t argCount);
+    virtual ~VCall();
 
-        size_t _methodIndex;
-        size_t _argCount;
-    };
+    virtual void appendTo(std::ostream &o) const override;
+
+private:
+
+    size_t _methodIndex;
+    size_t _argCount;
+};
+
 }
 
 }
