@@ -11,7 +11,7 @@
 #include "Compiler/Frontend/Analyser/NameAnalysis.h"
 #include "Compiler/Frontend/Analyser/KindChecking.h"
 #include "Compiler/Frontend/Analyser/TypeChecking.h"
-#include "Compiler/Frontend/AST/Symbols/SymbolResolver.h"
+#include "Compiler/Frontend/Symbols/SymbolResolver.h"
 #include "Compiler/Backend/UserDataAssignment.h"
 #include "Compiler/Backend/BytecodeGenerator.h"
 

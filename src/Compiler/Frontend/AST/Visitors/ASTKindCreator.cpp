@@ -7,7 +7,7 @@
 //
 
 #include "ASTKindCreator.h"
-#include "../Symbols/Scope.h"
+#include "../../Symbols/Scope.h"
 #include "ASTTypeCreator.h"
 
 namespace sfsl {

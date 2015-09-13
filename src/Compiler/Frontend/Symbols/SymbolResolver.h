@@ -16,7 +16,7 @@
 #define REAL_CLASS_NAME "real"
 
 #include <iostream>
-#include "../../AST/Nodes/Program.h"
+#include "../AST/Nodes/Program.h"
 
 namespace sfsl {
 

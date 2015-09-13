@@ -12,7 +12,7 @@
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTAssignmentChecker.h"
-#include "../AST/Symbols/Scope.h"
+#include "../Symbols/Scope.h"
 
 #include "../../../Utils/TakeSecondIterator.h"
 

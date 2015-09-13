@@ -11,12 +11,12 @@
 
 #include <iostream>
 #include <map>
-#include "../../../Common/MemoryManageable.h"
-#include "../../../Common/Positionnable.h"
-#include "../../../Common/ManageableUserData.h"
-#include "../../../../Utils/Utils.h"
-#include "../../Types/Types.h"
-#include "../../Kinds/Kinds.h"
+#include "../../Common/MemoryManageable.h"
+#include "../../Common/Positionnable.h"
+#include "../../Common/ManageableUserData.h"
+#include "../../../Utils/Utils.h"
+#include "../Types/Types.h"
+#include "../Kinds/Kinds.h"
 #include "Scoped.h"
 
 namespace sfsl {

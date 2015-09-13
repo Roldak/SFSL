@@ -7,7 +7,7 @@
 //
 
 #include "SymbolResolver.h"
-#include "../Visitors/ASTTypeCreator.h"
+#include "../AST/Visitors/ASTTypeCreator.h"
 #include "Scope.h"
 
 namespace sfsl {

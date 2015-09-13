@@ -12,7 +12,7 @@
 #include <iostream>
 #include <set>
 #include "ASTImplicitVisitor.h"
-#include "../Symbols/SymbolResolver.h"
+#include "../../Symbols/SymbolResolver.h"
 #include "../../Types/Types.h"
 
 namespace sfsl {

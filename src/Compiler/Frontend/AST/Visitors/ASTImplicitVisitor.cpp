@@ -20,7 +20,7 @@ ASTImplicitVisitor::~ASTImplicitVisitor() {
 
 }
 
-void ASTImplicitVisitor::visit(ASTNode* node) {
+void ASTImplicitVisitor::visit(ASTNode*) {
     throw common::CompilationFatalError("unimplemented visitor");
 }
 

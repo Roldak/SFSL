@@ -7,8 +7,8 @@
 //
 
 #include "NameAnalysis.h"
-#include "../AST/Symbols/Scope.h"
-#include "../AST/Symbols/Symbols.h"
+#include "../Symbols/Scope.h"
+#include "../Symbols/Symbols.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTSymbolExtractor.h"
 #include "../AST/Visitors/ASTTypeCreator.h"

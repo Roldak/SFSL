@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <map>
-#include "../../../Common/MemoryManageable.h"
+#include "../../Common/MemoryManageable.h"
 #include "Symbols.h"
 #include "Symbolic.h"
 

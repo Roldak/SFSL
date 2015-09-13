@@ -13,8 +13,8 @@
 #include <vector>
 #include "ASTNode.h"
 #include "../../../../Utils/Utils.h"
-#include "../Symbols/Symbols.h"
-#include "../Symbols/Symbolic.h"
+#include "../../Symbols/Symbols.h"
+#include "../../Symbols/Symbolic.h"
 #include "../../Types/Types.h"
 #include "../../Types/TypeParametrizable.h"
 

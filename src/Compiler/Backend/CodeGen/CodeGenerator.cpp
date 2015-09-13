@@ -7,9 +7,6 @@
 //
 
 #include "CodeGenerator.h"
-#include "../../Frontend/AST/Visitors/ASTTypeIdentifier.h"
-#include "../../Frontend/AST/Visitors/ASTTypeCreator.h"
-#include "../../Frontend/AST/Symbols/Scope.h"
 
 namespace sfsl {
 

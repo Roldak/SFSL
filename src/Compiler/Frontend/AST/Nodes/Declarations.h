@@ -14,8 +14,8 @@
 #include "Expressions.h"
 #include "TypeExpressions.h"
 #include "KindExpressions.h"
-#include "../Symbols/Symbols.h"
-#include "../Symbols/Symbolic.h"
+#include "../../Symbols/Symbols.h"
+#include "../../Symbols/Symbolic.h"
 
 namespace sfsl {
 
