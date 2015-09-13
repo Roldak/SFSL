@@ -212,7 +212,7 @@ Type* FunctionType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx)
 }
 
 Type* FunctionType::apply(CompCtx_Ptr& ctx) const {
-    std::vector<Type*> applied;
+    std::vector<Type*> applied(_argTypes.size());
     for (size_t i = 0; i < _argTypes.size(); ++i) {
         applied[i] = _argTypes[i]->apply(ctx);
     }
@@ -287,7 +287,7 @@ Type* MethodType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) c
 }
 
 Type* MethodType::apply(CompCtx_Ptr& ctx) const {
-    std::vector<Type*> applied;
+    std::vector<Type*> applied(_argTypes.size());
     for (size_t i = 0; i < _argTypes.size(); ++i) {
         applied[i] = _argTypes[i]->apply(ctx);
     }

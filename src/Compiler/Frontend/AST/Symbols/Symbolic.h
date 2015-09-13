@@ -71,6 +71,13 @@ public:
     }
 
     /**
+     * @return The environment associated to the symbol held by this Symbolic
+     */
+    const type::SubstitutionTable* getEnv() const {
+        return _symbols[0].env;
+    }
+
+    /**
      * @return The number of symbols that was assigned to this Symbolic
      */
     size_t getSymbolCount() const {

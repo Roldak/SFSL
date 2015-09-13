@@ -461,19 +461,20 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
     }
 
     const auto& itPair = scoped->getScope()->getAllSymbols().equal_range(def->getName());
+    type::Type* defType = def->type()->apply(_ctx);
 
     for (auto it = itPair.first; it != itPair.second; ++it) {
         const sym::SymbolData& data = it->second;
 
-        if (it->second.symbol != def && data.symbol->getSymbolType() == sym::SYM_DEF) {
+        if (data.symbol != def && data.symbol->getSymbolType() == sym::SYM_DEF) {
             sym::DefinitionSymbol* potentialDef = static_cast<sym::DefinitionSymbol*>(data.symbol);
-            /*for (const auto& pair : data.env) {
-                std::cout << pair.first->toString() << " => " << pair.second->toString()  << std::endl;
+
+            for (const auto& pair : data.env) {
+                std::cerr << pair.first->toString() << " => " << pair.second->toString()  << std::endl;
             }
-            std::cout << def->type()->applied(_ctx)->toString() << " subtypeof? " << potentialDef->type()->applyEnv(data.env, _ctx)->toString();*/
-            if (def->type()->apply(_ctx)
-                    //->isSubTypeOf(potentialDef->type()->applyEnv(potentialDef->type()->getSubstitutionTable(), _ctx)->applyEnv(data.env, _ctx))
-                    ->isSubTypeOf(applyEnvsHelper(potentialDef->type(), potentialDef->type()->getSubstitutionTable(), &data.env, _ctx))) {
+            std::cerr << defType->toString() << " subtypeof? " << potentialDef->type()->substitute(data.env, _ctx)->apply(_ctx)->toString() << std::endl;
+
+            if (defType->isSubTypeOf(potentialDef->type()->substitute(data.env, _ctx)->apply(_ctx))) {
                 if (potentialDef->getDef()->isRedef()) {
                     if (sym::DefinitionSymbol* alreadyOverriden = potentialDef->getOverridenSymbol()) {
                         return alreadyOverriden;
