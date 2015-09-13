@@ -112,7 +112,7 @@ type::Type* ASTTypeCreator::evalTypeConstructor(TypeConstructorCreation* ctr, Co
         // can only be a TypeSymbol
         sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(ASTSymbolExtractor::extractSymbol(params[i], ctx));
 
-        subs[param->type()] = args[i];
+        subs[param->type()] = args[i]->apply(ctx);
     }
 
     return type::Type::findSubstitution(subs, created)->substitute(subs, ctx);
@@ -145,14 +145,8 @@ type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParametriz
     type::SubstitutionTable table;
     const std::vector<sym::TypeSymbol*>& syms(param->getDependencies());
 
-    if (false) {
-        for (size_t i = 0; i < syms.size(); ++i) {
-            table.insert(std::make_pair(syms[i]->type(), _args[i]));
-        }
-    } else {
-        for (sym::TypeSymbol* ts : syms) {
-            table.insert(std::make_pair(ts->type(), ts->type()));
-        }
+    for (sym::TypeSymbol* ts : syms) {
+        table.insert(std::make_pair(ts->type(), ts->type()));
     }
 
     return table;
