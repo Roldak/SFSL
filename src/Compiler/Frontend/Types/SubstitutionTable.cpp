@@ -48,7 +48,7 @@ Type*& SubstitutionTable::operator [](Type* key) {
 }
 
 SubstitutionTable::iterator SubstitutionTable::find(const Type* key) {
-    for (size_t i = 0; i < _subs.size(); ++i) {
+    for (size_t i = 0, e = _subs.size(); i < e; ++i) {
         if (_subs[i].first == key) {
             return begin() + i;
         }
@@ -57,7 +57,7 @@ SubstitutionTable::iterator SubstitutionTable::find(const Type* key) {
 }
 
 SubstitutionTable::const_iterator SubstitutionTable::find(const Type* key) const {
-    for (size_t i = 0; i < _subs.size(); ++i) {
+    for (size_t i = 0, e = _subs.size(); i < e; ++i) {
         if (_subs[i].first == key) {
             return begin() + i;
         }
