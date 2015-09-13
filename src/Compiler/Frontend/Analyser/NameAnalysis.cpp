@@ -14,7 +14,7 @@
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTKindCreator.h"
 
-#define DEBUG_DEPENDENCIES
+//#define DEBUG_DEPENDENCIES
 
 namespace sfsl {
 

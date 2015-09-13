@@ -417,18 +417,13 @@ TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(MemberAccess* dot, ClassDe
     const AnySymbolicData data = resolveOverload(dot, b, e, subtable);
 
     if (data.symbol) {
-        type::SubstitutionTable table = subtable;
+        type::Type* t = tryGetTypeOfSymbol(data.symbol);
         if (data.env) {
-            table.insert(data.env->begin(), data.env->end());
+            t = type::Type::findSubstitution(*data.env, t)->substitute(*data.env, _ctx);
         }
+        t = type::Type::findSubstitution(subtable, t)->substitute(subtable, _ctx);
 
-        std::cerr << "{";
-        for (const auto& pair : table) {
-            std::cerr << pair.first->toString() << " => " << pair.second->toString() << ", ";
-        }
-        std::cerr << "}";
-
-        return {data.symbol, type::Type::findSubstitution(table, tryGetTypeOfSymbol(data.symbol))->substitute(table, _ctx)};
+        return {data.symbol, t};
     } else {
         return {nullptr, nullptr};
     }
@@ -468,11 +463,6 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
 
         if (data.symbol != def && data.symbol->getSymbolType() == sym::SYM_DEF) {
             sym::DefinitionSymbol* potentialDef = static_cast<sym::DefinitionSymbol*>(data.symbol);
-
-            for (const auto& pair : data.env) {
-                std::cerr << pair.first->toString() << " => " << pair.second->toString()  << std::endl;
-            }
-            std::cerr << defType->toString() << " subtypeof? " << potentialDef->type()->substitute(data.env, _ctx)->apply(_ctx)->toString() << std::endl;
 
             if (defType->isSubTypeOf(potentialDef->type()->substitute(data.env, _ctx)->apply(_ctx))) {
                 if (potentialDef->getDef()->isRedef()) {
