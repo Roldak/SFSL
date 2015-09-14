@@ -139,6 +139,10 @@ void KindChecking::visit(TypeIdentifier* tident) {
     }
 }
 
+void KindChecking::visit(TypeToBeInferred* tbi) {
+    tbi->setKind(kind::ProperKind::create());
+}
+
 void KindChecking::visit(KindSpecifier* ks) {
     ASTImplicitVisitor::visit(ks);
     kind::Kind* k = ASTKindCreator::createKind(ks->getKindNode(), _ctx);

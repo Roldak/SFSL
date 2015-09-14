@@ -109,6 +109,10 @@ void ASTImplicitVisitor::visit(TypeIdentifier*) {
 
 }
 
+void ASTImplicitVisitor::visit(TypeToBeInferred*) {
+
+}
+
 void ASTImplicitVisitor::visit(KindSpecifier* ks) {
     ks->getSpecified()->onVisit(this);
     ks->getKindNode()->onVisit(this);

@@ -178,6 +178,18 @@ const std::string& TypeIdentifier::getValue() const {
     return _name;
 }
 
+// TYPE TO BE INFERRED
+
+TypeToBeInferred::TypeToBeInferred() {
+
+}
+
+TypeToBeInferred::~TypeToBeInferred() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeToBeInferred)
+
 // KIND SPECIFIER
 
 KindSpecifier::KindSpecifier(TypeIdentifier* specified, KindSpecifyingExpression* kind) : _specified(specified), _kind(kind) {

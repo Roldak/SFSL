@@ -66,6 +66,7 @@ public:
     virtual void visit(TypeConstructorCreation* typeconstructor) = 0;
     virtual void visit(TypeConstructorCall* tcall) = 0;
     virtual void visit(TypeIdentifier* tident) = 0;
+    virtual void visit(TypeToBeInferred* tbi) = 0;
     virtual void visit(KindSpecifier* ks) = 0;
 
     virtual void visit(ExpressionStatement* exp) = 0;

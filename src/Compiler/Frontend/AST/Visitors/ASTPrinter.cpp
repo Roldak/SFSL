@@ -166,6 +166,10 @@ void ASTPrinter::visit(TypeIdentifier* tident) {
     _ostream << tident->getValue();
 }
 
+void ASTPrinter::visit(TypeToBeInferred*) {
+
+}
+
 void ASTPrinter::visit(KindSpecifier* ks) {
     ks->getSpecified()->onVisit(this);
     _ostream << " : ";

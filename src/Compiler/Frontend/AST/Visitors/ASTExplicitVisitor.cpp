@@ -76,6 +76,10 @@ void ASTExplicitVisitor::visit(TypeIdentifier*) {
 
 }
 
+void ASTExplicitVisitor::visit(TypeToBeInferred*) {
+
+}
+
 void ASTExplicitVisitor::visit(KindSpecifier*) {
 
 }

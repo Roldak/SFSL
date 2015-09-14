@@ -87,6 +87,10 @@ public:
         setIfSame<TypeIdentifier>();
     }
 
+    virtual void visit(TypeToBeInferred*) override {
+        setIfSame<TypeToBeInferred>();
+    }
+
     virtual void visit(KindSpecifier*) override {
         setIfSame<KindSpecifier>();
     }
@@ -97,6 +101,10 @@ public:
 
     virtual void visit(BinaryExpression*) override {
         setIfSame<BinaryExpression>();
+    }
+
+    virtual void visit(AssignmentExpression*) override {
+        setIfSame<AssignmentExpression>();
     }
 
     virtual void visit(TypeSpecifier*) override {

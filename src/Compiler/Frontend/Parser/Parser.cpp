@@ -380,7 +380,15 @@ Expression* Parser::parsePrimary() {
 }
 
 TypeSpecifier* Parser::parseTypeSpecifier(Identifier* id) {
-    TypeExpression* expr = parseTypeExpression();
+    TypeExpression* expr;
+
+    if (_currentToken->getTokenType() == tok::TOK_OPER && as<tok::Operator>()->getOpType() == tok::OPER_EQ) {
+        expr = _mngr.New<TypeToBeInferred>();
+        expr->setPos(*_currentToken);
+    } else {
+        expr = parseTypeExpression();
+    }
+
     TypeSpecifier* spec = _mngr.New<TypeSpecifier>(id, expr);
     spec->setPos(*id);
     spec->setEndPos(_lastTokenEndPos);

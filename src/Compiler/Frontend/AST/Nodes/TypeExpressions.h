@@ -250,6 +250,19 @@ private:
 };
 
 /**
+ * @brief Represents the type expression used when no type is given in a local variable declaration.
+ * e.g. x: = 2;
+ *        ^
+ */
+class TypeToBeInferred : public TypeExpression {
+public:
+    TypeToBeInferred();
+    virtual ~TypeToBeInferred();
+
+    SFSL_AST_ON_VISIT_H
+};
+
+/**
  * @brief Represents a kind specifying expression, e.g `T: [*]->*`
  */
 class KindSpecifier : public TypeExpression {
