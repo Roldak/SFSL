@@ -50,7 +50,6 @@ std::string Operator::OperTypeToString(OPER_TYPE type) {
     case OPER_AND:      return "&&";
     case OPER_OR:       return "||";
     case OPER_EQ:       return "=";
-    case OPER_COL_EQ:   return ":=";
 
         // COMPARISON BINARY OPERATORS
 
@@ -101,7 +100,6 @@ std::unordered_map<std::string, OPER_TYPE> createOperatorsMap() {
     map["||"] = OPER_OR;
     map["or"] = OPER_OR;
     map["="] = OPER_EQ;
-    map[":="] = OPER_COL_EQ;
     map["=="] = OPER_EQ_EQ;
     map["!="] = OPER_NOT_EQ;
     map["<"] = OPER_LT;
@@ -136,7 +134,6 @@ std::vector<int> createOperatorsPrecedenceTable() {
     prec[OPER_MOD] = 40;
     prec[OPER_POW] = 50;
     prec[OPER_EQ] = 2;
-    prec[OPER_COL_EQ] = 2;
     prec[OPER_EQ_EQ] = 9;
     prec[OPER_NOT_EQ] = 9;
     prec[OPER_GT] = 10;
