@@ -28,7 +28,7 @@ namespace type {
 
 enum TYPE_KIND { TYPE_NYD, TYPE_TBI, TYPE_PROPER, TYPE_FUNCTION, TYPE_METHOD, TYPE_CONSTRUCTOR_TYPE, TYPE_CONSTRUCTOR_APPLY };
 
-class Type;
+class Typed;
 
 class Type : public common::MemoryManageable {
 public:
@@ -49,11 +49,31 @@ public:
     static bool applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to);
 
     static Type* NotYetDefined();
-    static Type* ToBeInferred();
 
 protected:
 
     const SubstitutionTable _subTable;
+};
+
+class TypeToBeInferred : public Type {
+public:
+    TypeToBeInferred(const std::vector<Typed*>& associatedTyped);
+
+    virtual ~TypeToBeInferred();
+
+    virtual TYPE_KIND getTypeKind() const override;
+    virtual bool isSubTypeOf(const Type*) const override;
+    virtual std::string toString() const override;
+
+    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+
+    void assignInferredType(Type* t);
+
+    static TypeToBeInferred* create(const std::vector<Typed*>& toBeInferred, CompCtx_Ptr& ctx);
+
+private:
+
+    std::vector<Typed*> _associatedTyped;
 };
 
 class ProperType : public Type {
@@ -188,6 +208,11 @@ protected:
 template<typename T>
 inline T* getIf(const Type* t) {
     return nullptr;
+}
+
+template<>
+inline TypeToBeInferred* getIf(const Type* t) {
+    return (t->getTypeKind() == TYPE_TBI) ? (TypeToBeInferred*)t : nullptr;
 }
 
 template<>

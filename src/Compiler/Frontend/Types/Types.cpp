@@ -25,10 +25,6 @@ public:
 
     virtual ~TypeNotYetDefined() {}
 
-    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override {
-        return (Type*)this;
-    }
-
     virtual TYPE_KIND getTypeKind() const override {
         return TYPE_NYD;
     }
@@ -37,42 +33,12 @@ public:
         return false;
     }
 
-    virtual Type* apply(const SubstitutionTable&, CompCtx_Ptr&) const override {
-        return Type::NotYetDefined();
+    virtual Type* substitute(const SubstitutionTable&, CompCtx_Ptr&) const override {
+        return (Type*)this;
     }
 
     virtual std::string toString() const override {
         return "<not yet defined>";
-    }
-};
-
-// TYPE MUST BE INFERRED
-
-class TypeToBeInferred : public Type {
-public:
-
-    TypeToBeInferred() {}
-
-    virtual ~TypeToBeInferred() {}
-
-    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override {
-        return (Type*)this;
-    }
-
-    virtual TYPE_KIND getTypeKind() const override {
-        return TYPE_TBI;
-    }
-
-    virtual bool isSubTypeOf(const Type*) const override {
-        return false;
-    }
-
-    virtual Type* apply(const SubstitutionTable&, CompCtx_Ptr&) const override {
-        return Type::ToBeInferred();
-    }
-
-    virtual std::string toString() const override {
-        return "<to be inferred>";
     }
 };
 
@@ -134,9 +100,38 @@ Type* Type::NotYetDefined() {
     return &nyd; // all we want is a unique memory area
 }
 
-Type*Type::ToBeInferred() {
-    static TypeToBeInferred tbi;
-    return &tbi; // all we want is a unique memory area
+// TYPE MUST BE INFERRED
+
+TypeToBeInferred::TypeToBeInferred(const std::vector<Typed*>& associatedTyped) : _associatedTyped(associatedTyped) {
+
+}
+
+TypeToBeInferred::~TypeToBeInferred() {}
+
+TYPE_KIND TypeToBeInferred::getTypeKind() const {
+    return TYPE_TBI;
+}
+
+bool TypeToBeInferred::isSubTypeOf(const Type*) const {
+    return false;
+}
+
+Type* TypeToBeInferred::substitute(const SubstitutionTable&, CompCtx_Ptr&) const {
+    return (Type*)this;
+}
+
+void TypeToBeInferred::assignInferredType(Type* t) {
+    for (Typed* tped : _associatedTyped) {
+        tped->setType(t);
+    }
+}
+
+TypeToBeInferred* TypeToBeInferred::create(const std::vector<Typed*>& toBeInferred, CompCtx_Ptr& ctx) {
+    return ctx->memoryManager().New<TypeToBeInferred>(toBeInferred);
+}
+
+std::string TypeToBeInferred::toString() const {
+    return "<to be inferred>";
 }
 
 // PROPER TYPE
