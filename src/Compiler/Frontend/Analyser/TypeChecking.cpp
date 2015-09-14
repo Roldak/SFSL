@@ -181,27 +181,33 @@ void TypeChecking::visit(AssignmentExpression* aex) {
     type::Type* lhsT = aex->getLhs()->type();
     type::Type* rhsT = aex->getRhs()->type();
 
-    if (!rhsT->apply(_ctx)->isSubTypeOf(lhsT->apply(_ctx))) {
+    if (type::TypeToBeInferred* tbi = type::getIf<type::TypeToBeInferred>(lhsT)) {
+        tbi->assignInferredType(rhsT);
+    } else if (!rhsT->apply(_ctx)->isSubTypeOf(lhsT->apply(_ctx))) {
         _rep.error(*aex, "Assigning incompatible type. Found " +
                    rhsT->toString() + ", expected " + lhsT->toString());
     }
 
-    aex->setType(lhsT);
+    aex->setType(rhsT);
 }
 
 void TypeChecking::visit(TypeSpecifier* tps) {
     ASTImplicitVisitor::visit(tps);
 
-    if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx)) {
-        Identifier* id = tps->getSpecified();
-        type::Typed* tped = nullptr;
+    Identifier* id = tps->getSpecified();
+    type::Typed* tped = nullptr;
 
-        if (id->getSymbol()->getSymbolType() == sym::SYM_VAR) {
-            tped = static_cast<sym::VariableSymbol*>(id->getSymbol());
-        } else if (id->getSymbol()->getSymbolType() == sym::SYM_DEF) {
-            tped = static_cast<sym::DefinitionSymbol*>(id->getSymbol());
-        }
+    if (id->getSymbol()->getSymbolType() == sym::SYM_VAR) {
+        tped = static_cast<sym::VariableSymbol*>(id->getSymbol());
+    } else if (id->getSymbol()->getSymbolType() == sym::SYM_DEF) {
+        tped = static_cast<sym::DefinitionSymbol*>(id->getSymbol()); // for later
+    }
 
+    if (ast::isNodeOfType<TypeToBeInferred>(tps->getTypeNode(), _ctx)) {
+        type::TypeToBeInferred* t = type::TypeToBeInferred::create({tped, tps}, _ctx);
+        tped->setType(t);
+        tps->setType(t);
+    } else if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx)) {
         tped->setType(tpe);
         tps->setType(tpe);
     } else {
