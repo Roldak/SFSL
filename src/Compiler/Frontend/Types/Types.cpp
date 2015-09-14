@@ -65,11 +65,11 @@ Type* Type::apply(CompCtx_Ptr&) const {
 std::string Type::toString() const {
     std::string toRet /*= utils::T_toString(this)*/;
     if (!_subTable.empty()) {
-        toRet += "[";
+        toRet += "{";
         for (const auto& pair : _subTable) {
             toRet += pair.first->toString() + "=>" + pair.second->toString() + ", ";
         }
-        toRet = toRet.substr(0, toRet.size() - 2) + "]";
+        toRet = toRet.substr(0, toRet.size() - 2) + "}";
     }
     return toRet;
 }
@@ -393,7 +393,7 @@ Type* ConstructorApplyType::substitute(const SubstitutionTable& table, CompCtx_P
 
 Type* ConstructorApplyType::apply(CompCtx_Ptr& ctx) const {
     TypeConstructorType* ctr = static_cast<TypeConstructorType*>(_callee->apply(ctx));
-    return ast::ASTTypeCreator::evalTypeConstructor(ctr->getTypeConstructor(), ctx, _args)->apply(ctx);
+    return ast::ASTTypeCreator::evalTypeConstructor(ctr, ctx, _args)->apply(ctx);
 }
 
 // TYPED

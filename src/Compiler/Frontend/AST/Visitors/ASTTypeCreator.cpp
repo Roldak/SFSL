@@ -84,10 +84,10 @@ type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx) {
     return creator.getCreatedType();
 }
 
-type::Type* ASTTypeCreator::evalTypeConstructor(TypeConstructorCreation* ctr, CompCtx_Ptr& ctx, const std::vector<type::Type*>& args) {
-    type::Type* created = createType(ctr->getBody(), ctx);
+type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, CompCtx_Ptr& ctx, const std::vector<type::Type*>& args) {
+    type::Type* created = createType(ctr->getTypeConstructor()->getBody(), ctx);
 
-    TypeExpression* expr = ctr->getArgs();
+    TypeExpression* expr = ctr->getTypeConstructor()->getArgs();
     std::vector<TypeExpression*> params;
 
     if (isNodeOfType<TypeTuple>(expr, ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
@@ -115,7 +115,10 @@ type::Type* ASTTypeCreator::evalTypeConstructor(TypeConstructorCreation* ctr, Co
         subs[param->type()] = args[i]->apply(ctx);
     }
 
-    return type::Type::findSubstitution(subs, created)->substitute(subs, ctx);
+    created = type::Type::findSubstitution(subs, created)->substitute(subs, ctx);
+    created = type::Type::findSubstitution(ctr->getSubstitutionTable(), created)->substitute(ctr->getSubstitutionTable(), ctx);
+
+    return created;
 }
 
 void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos) {
