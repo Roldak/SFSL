@@ -29,20 +29,50 @@ public:
         return (Type*)this;
     }
 
-    virtual TYPE_KIND getTypeKind() const {
+    virtual TYPE_KIND getTypeKind() const override {
         return TYPE_NYD;
     }
 
-    virtual bool isSubTypeOf(const Type*) const {
+    virtual bool isSubTypeOf(const Type*) const override {
         return false;
     }
 
-    virtual Type* apply(const SubstitutionTable&, CompCtx_Ptr&) const {
+    virtual Type* apply(const SubstitutionTable&, CompCtx_Ptr&) const override {
         return Type::NotYetDefined();
     }
 
-    virtual std::string toString() const {
+    virtual std::string toString() const override {
         return "<not yet defined>";
+    }
+};
+
+// TYPE MUST BE INFERRED
+
+class TypeToBeInferred : public Type {
+public:
+
+    TypeToBeInferred() {}
+
+    virtual ~TypeToBeInferred() {}
+
+    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override {
+        return (Type*)this;
+    }
+
+    virtual TYPE_KIND getTypeKind() const override {
+        return TYPE_TBI;
+    }
+
+    virtual bool isSubTypeOf(const Type*) const override {
+        return false;
+    }
+
+    virtual Type* apply(const SubstitutionTable&, CompCtx_Ptr&) const override {
+        return Type::ToBeInferred();
+    }
+
+    virtual std::string toString() const override {
+        return "<to be inferred>";
     }
 };
 
@@ -78,11 +108,6 @@ const SubstitutionTable& Type::getSubstitutionTable() const {
     return _subTable;
 }
 
-Type* Type::NotYetDefined() {
-    static TypeNotYetDefined nyd;
-    return &nyd; // all we want is a unique memory area
-}
-
 Type* Type::findSubstitution(const SubstitutionTable& table, Type* toFind, bool* matched) {
     auto found = table.find(toFind);
     bool m = (found != table.end());
@@ -102,6 +127,16 @@ bool Type::applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to) {
         matched |= tmp;
     }
     return matched;
+}
+
+Type* Type::NotYetDefined() {
+    static TypeNotYetDefined nyd;
+    return &nyd; // all we want is a unique memory area
+}
+
+Type*Type::ToBeInferred() {
+    static TypeToBeInferred tbi;
+    return &tbi; // all we want is a unique memory area
 }
 
 // PROPER TYPE

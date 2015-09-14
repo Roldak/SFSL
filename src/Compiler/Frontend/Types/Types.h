@@ -26,7 +26,7 @@ class TypeConstructorCreation;
 
 namespace type {
 
-enum TYPE_KIND { TYPE_NYD, TYPE_PROPER, TYPE_FUNCTION, TYPE_METHOD, TYPE_CONSTRUCTOR_TYPE, TYPE_CONSTRUCTOR_APPLY };
+enum TYPE_KIND { TYPE_NYD, TYPE_TBI, TYPE_PROPER, TYPE_FUNCTION, TYPE_METHOD, TYPE_CONSTRUCTOR_TYPE, TYPE_CONSTRUCTOR_APPLY };
 
 class Type;
 
@@ -45,9 +45,11 @@ public:
 
     const SubstitutionTable& getSubstitutionTable() const;
 
-    static Type* NotYetDefined();
     static Type* findSubstitution(const SubstitutionTable& table, Type* toFind, bool* matched = nullptr);
     static bool applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to);
+
+    static Type* NotYetDefined();
+    static Type* ToBeInferred();
 
 protected:
 
