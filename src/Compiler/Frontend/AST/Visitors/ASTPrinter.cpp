@@ -13,7 +13,7 @@ namespace sfsl {
 namespace ast {
 
 ASTPrinter::ASTPrinter(CompCtx_Ptr &ctx, std::ostream& ostream)
-    : ASTImplicitVisitor(ctx), _indentCount(0), _ostream(ostream) {
+    : ASTVisitor(ctx), _indentCount(0), _ostream(ostream) {
 
 }
 

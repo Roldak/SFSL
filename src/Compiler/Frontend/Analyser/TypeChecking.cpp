@@ -203,7 +203,7 @@ void TypeChecking::visit(TypeSpecifier* tps) {
         tped = static_cast<sym::DefinitionSymbol*>(id->getSymbol()); // for later
     }
 
-    if (ast::isNodeOfType<TypeToBeInferred>(tps->getTypeNode(), _ctx)) {
+    if (isNodeOfType<TypeToBeInferred>(tps->getTypeNode(), _ctx)) {
         type::TypeToBeInferred* t = type::TypeToBeInferred::create({tped, tps}, _ctx);
         tped->setType(t);
         tps->setType(t);
