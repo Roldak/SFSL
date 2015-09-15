@@ -42,6 +42,7 @@ public:
 
     virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const = 0;
     virtual Type* apply(CompCtx_Ptr& ctx) const;
+    virtual Type* applyTCCallsOnly(CompCtx_Ptr& ctx) const;
 
     const SubstitutionTable& getSubstitutionTable() const;
 
@@ -172,6 +173,7 @@ public:
 
     virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
     virtual Type* apply(CompCtx_Ptr& ctx) const override;
+    virtual Type* applyTCCallsOnly(CompCtx_Ptr& ctx) const override;
 
 private:
 

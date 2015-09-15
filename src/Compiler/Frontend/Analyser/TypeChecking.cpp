@@ -347,16 +347,16 @@ void TypeChecking::visit(FunctionCall* call) {
 
     RESTORE_MEMBER(_expectedInfo)
 
-    type::Type* calleeT = call->getCallee()->type()->apply(_ctx);
+    type::Type* calleeT = call->getCallee()->type()->applyTCCallsOnly(_ctx);
 
     const std::vector<type::Type*>* expectedArgTypes = nullptr;
     type::Type* retType = nullptr;
 
     if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
-        expectedArgTypes = &ft->getArgTypes();
+        expectedArgTypes = &static_cast<type::FunctionType*>(ft->apply(_ctx))->getArgTypes();
         retType = ft->getRetType();
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
-        expectedArgTypes = &mt->getArgTypes();
+        expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
         retType = mt->getRetType();
     } else {
         _rep.error(*call, "Expression is not callable");
