@@ -383,6 +383,9 @@ void SymbolAssignation::visit(ClassDecl* clss) {
 
         updateSubtypeRelations(clss);
 
+        for (TypeDecl* tdecl : clss->getTypeDecls()) {
+            tdecl->onVisit(this);
+        }
         for (TypeSpecifier* field : clss->getFields()) {
             field->onVisit(this);
         }

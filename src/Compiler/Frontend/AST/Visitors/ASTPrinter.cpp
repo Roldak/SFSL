@@ -72,6 +72,12 @@ void ASTPrinter::visit(ClassDecl* clss) {
 
     ++_indentCount;
 
+    for (TypeDecl* tdecl : clss->getTypeDecls()) {
+        printIndents();
+        tdecl->onVisit(this);
+        _ostream << std::endl;
+    }
+
     for (TypeSpecifier* field : clss->getFields()) {
         printIndents();
         Identifier* fieldName = static_cast<Identifier*>(field->getSpecified());

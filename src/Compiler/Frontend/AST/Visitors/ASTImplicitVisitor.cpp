@@ -53,6 +53,9 @@ void ASTImplicitVisitor::visit(ClassDecl *clss) {
     if (clss->getParent()) {
         clss->getParent()->onVisit(this);
     }
+    for (TypeDecl* tdecl: clss->getTypeDecls()) {
+        tdecl->onVisit(this);
+    }
     for (TypeSpecifier* field : clss->getFields()) {
         field->onVisit(this);
     }
