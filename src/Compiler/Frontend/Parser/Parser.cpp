@@ -250,6 +250,10 @@ Expression* Parser::parseStatement() {
         case tok::KW_DEF:   return parseDef(true, false);
         case tok::KW_IF:    return parseIf(true);
         case tok::KW_TPE:   return parseType(true);
+
+        case tok::KW_REDEF:
+            _ctx->reporter().error(startPos, "`redef` keyword can only be used inside a class scope");
+            return nullptr;
         default:
             _ctx->reporter().error(startPos, "Unexpected keyword `" + tok::Keyword::KeywordTypeToString(kw) + "`");
             return nullptr;
