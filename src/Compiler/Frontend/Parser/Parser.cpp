@@ -190,11 +190,14 @@ ClassDecl* Parser::parseClass() {
 
     expect(tok::OPER_L_BRACE, "`{`");
 
+    std::vector<TypeDecl*> tdecls;
     std::vector<TypeSpecifier*> fields;
     std::vector<DefineDecl*> defs;
 
     while (!accept(tok::OPER_R_BRACE)) {
-        if (accept(tok::KW_DEF)) {
+        if (accept(tok::KW_TPE)) {
+            tdecls.push_back(parseType(false));
+        } else if (accept(tok::KW_DEF)) {
             defs.push_back(parseDef(false, false));
         } else if (accept(tok::KW_REDEF)) {
             defs.push_back(parseDef(false, true));
@@ -212,7 +215,7 @@ ClassDecl* Parser::parseClass() {
         }
     }
 
-    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, parent, fields, defs);
+    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, parent, tdecls, fields, defs);
     classDecl->setPos(startPos);
     classDecl->setEndPos(_lastTokenEndPos);
     return classDecl;

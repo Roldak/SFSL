@@ -50,7 +50,13 @@ class ClassDecl :
         public common::HasManageableUserdata {
 public:
 
-    ClassDecl(const std::string& name, TypeExpression* parent, const std::vector<TypeSpecifier*>& fields, const std::vector<DefineDecl*>& defs);
+    ClassDecl(
+            const std::string& name,
+            TypeExpression* parent,
+            const std::vector<TypeDecl*>& tdecls,
+            const std::vector<TypeSpecifier*>& fields,
+            const std::vector<DefineDecl*>& defs);
+
     virtual ~ClassDecl();
 
     SFSL_AST_ON_VISIT_H
@@ -64,6 +70,11 @@ public:
      * @return The expression defining the parent of this class
      */
     TypeExpression* getParent() const;
+
+    /**
+     * @return The list of type declarations contained in this class
+     */
+    const std::vector<TypeDecl*>& getTypeDecls() const;
 
     /**
      * @return The list of fields declared in this class
@@ -81,6 +92,8 @@ private:
 
     std::string _name;
     TypeExpression* _parent;
+
+    std::vector<TypeDecl*> _tdecls;
     std::vector<TypeSpecifier*> _fields;
     std::vector<DefineDecl*> _defs;
 };

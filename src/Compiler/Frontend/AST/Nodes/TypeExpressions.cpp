@@ -25,10 +25,11 @@ SFSL_AST_ON_VISIT_CPP(TypeExpression)
 
 ClassDecl::ClassDecl(const std::string& name,
                      TypeExpression* parent,
+                     const std::vector<TypeDecl*>& tdecls,
                      const std::vector<TypeSpecifier*>& fields,
                      const std::vector<DefineDecl*>& defs)
 
-    : _name(name), _parent(parent), _fields(fields), _defs(defs)
+    : _name(name), _parent(parent), _tdecls(tdecls), _fields(fields), _defs(defs)
 {
 
 }
@@ -45,6 +46,10 @@ const std::string& ClassDecl::getName() const {
 
 TypeExpression* ClassDecl::getParent() const {
     return _parent;
+}
+
+const std::vector<TypeDecl*>& ClassDecl::getTypeDecls() const {
+    return _tdecls;
 }
 
 const std::vector<TypeSpecifier*>& ClassDecl::getFields() const {
