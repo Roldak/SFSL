@@ -427,12 +427,12 @@ Type* ConstructorApplyType::substitute(const SubstitutionTable& table, CompCtx_P
 
 Type* ConstructorApplyType::apply(CompCtx_Ptr& ctx) const {
     TypeConstructorType* ctr = static_cast<TypeConstructorType*>(_callee->apply(ctx));
-    return ast::ASTTypeCreator::evalTypeConstructor(ctr, ctx, _args)->apply(ctx);
+    return ast::ASTTypeCreator::evalTypeConstructor(ctr, _args, ctx)->apply(ctx);
 }
 
 Type* ConstructorApplyType::applyTCCallsOnly(CompCtx_Ptr& ctx) const {
     TypeConstructorType* ctr = static_cast<TypeConstructorType*>(_callee->apply(ctx));
-    return ast::ASTTypeCreator::evalTypeConstructor(ctr, ctx, _args)->applyTCCallsOnly(ctx);
+    return ast::ASTTypeCreator::evalTypeConstructor(ctr, _args, ctx)->applyTCCallsOnly(ctx);
 }
 
 // TYPED

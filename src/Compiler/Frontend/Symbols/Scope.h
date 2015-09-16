@@ -55,6 +55,14 @@ public:
     }
 
     template<typename T>
+    /**
+     * @brief Looks up the symbol associated to the given name into this scope
+     * or in a parent scope and assigns it to the given symbolic.
+     *
+     * @param symbolic The symbolic to assign
+     * @param id The name of the symbol to look up
+     * @return True if a symbol with the given named was found, otherwise false
+     */
     bool assignSymbolic(sym::Symbolic<T>& symbolic, const std::string& id);
 
     /**

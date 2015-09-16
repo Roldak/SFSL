@@ -100,7 +100,7 @@ type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx) {
     return creator.getCreatedType();
 }
 
-type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, CompCtx_Ptr& ctx, const std::vector<type::Type*>& args) {
+type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx) {
     type::Type* created = createType(ctr->getTypeConstructor()->getBody(), ctx);
 
     TypeExpression* expr = ctr->getTypeConstructor()->getArgs();

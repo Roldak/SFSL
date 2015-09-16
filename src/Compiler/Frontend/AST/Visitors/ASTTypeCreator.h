@@ -57,7 +57,18 @@ public:
      * @return The generated type
      */
     static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx);
-    static type::Type* evalTypeConstructor(type::TypeConstructorType* ctr, CompCtx_Ptr& ctx, const std::vector<type::Type*>& args);
+
+    /**
+     * @brief Evaluates the given type constructor with the given arguments
+     * and returns its result.
+     *
+     * @param ctr The type constructor to evaluate
+     * @param args The arguments to feed the type constructor with
+     * @param ctx The compilation context
+     * @return The type that was created after evaluating the type constructor
+     * (or the `not yet defined` type in case of failure)
+     */
+    static type::Type* evalTypeConstructor(type::TypeConstructorType* ctr, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx);
 
 protected:
 
