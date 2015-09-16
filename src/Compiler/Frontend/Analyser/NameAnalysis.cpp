@@ -467,12 +467,8 @@ void SymbolAssignation::assignMemberAccess(T* mac) {
     mac->getAccessed()->onVisit(this);
 
     if (sym::Symbol* sym = ASTSymbolExtractor::extractSymbol(mac->getAccessed(), _ctx)) {
-        switch (sym->getSymbolType()) {
-        case sym::SYM_MODULE:   assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName()); break;
-        case sym::SYM_TPE:      assignFromTypeSymbol(mac, static_cast<sym::TypeSymbol*>(sym)); break;
-        default:
-            mac->setSymbol(nullptr);
-            break;
+        if (sym->getSymbolType() == sym::SYM_MODULE) {
+            assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName());
         }
     }
 }
@@ -486,15 +482,6 @@ void SymbolAssignation::assignFromStaticScope(T* mac, sym::Scoped* scoped, const
         _ctx->reporter().error(
                     *(mac->getMember()),
                     std::string("No member named '") + id + "' in " + typeName);
-    }
-}
-
-template<typename T>
-void SymbolAssignation::assignFromTypeSymbol(T* mac, sym::TypeSymbol* tsym) {
-    if (ClassDecl* clss = getClassDeclFromTypeSymbol(tsym, _ctx)) {
-        assignFromStaticScope<T>(mac, clss, "class " + clss->getName());
-    } else {
-        _ctx->reporter().error(*mac->getMember(), "Type " + tsym->getName() + " cannot have any members");
     }
 }
 

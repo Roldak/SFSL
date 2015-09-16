@@ -82,7 +82,7 @@ protected:
  */
 inline ast::ClassDecl* getClassDeclFromTypeSymbol(sym::TypeSymbol* sym, CompCtx_Ptr& ctx) {
     if (type::Type* t = ASTTypeCreator::createType(sym->getTypeDecl()->getExpression(), ctx)) {
-        if (type::ProperType* o = type::getIf<type::ProperType>(t)) {
+        if (type::ProperType* o = type::getIf<type::ProperType>(t->applyTCCallsOnly(ctx))) {
             return o->getClass();
         }
     }

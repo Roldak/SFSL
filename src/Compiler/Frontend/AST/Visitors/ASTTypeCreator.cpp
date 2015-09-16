@@ -10,6 +10,8 @@
 #include "ASTTypeIdentifier.h"
 #include "ASTSymbolExtractor.h"
 
+#include "../../Symbols/Scope.h"
+
 namespace sfsl {
 
 namespace ast {
@@ -67,7 +69,21 @@ void ASTTypeCreator::visit(TypeConstructorCall* tcall) {
 }
 
 void ASTTypeCreator::visit(TypeMemberAccess* mac) {
-    createTypeFromSymbolic(mac, *mac);
+    mac->getAccessed()->onVisit(this);
+
+    if (_created) {
+        if (type::ProperType* pt = type::getIf<type::ProperType>(_created->applyTCCallsOnly(_ctx))) {
+            sym::Scope* classScope = pt->getClass()->getScope();
+            if (classScope->assignSymbolic(*mac->getMember(), mac->getMember()->getValue())) {
+                mac->getMember()->onVisit(this);
+                if (_created) {
+                    _created = _created->substitute(pt->getSubstitutionTable(), _ctx);
+                }
+            }
+        }
+    } else {
+        createTypeFromSymbolic(mac, *mac);
+    }
 }
 
 void ASTTypeCreator::visit(TypeIdentifier* ident) {
@@ -124,7 +140,7 @@ type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, 
 void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos) {
     if (sym::Symbol* s = symbolic->getSymbol()) {
         if (s->getSymbolType() != sym::SYM_TPE) {
-            _ctx->reporter().error(pos, "Expression is not a type");
+            return;
         }
 
         sym::TypeSymbol* ts = static_cast<sym::TypeSymbol*>(s);

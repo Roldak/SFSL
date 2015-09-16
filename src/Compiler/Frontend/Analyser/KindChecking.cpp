@@ -11,6 +11,8 @@
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTKindCreator.h"
 
+#include "../Symbols/Scope.h"
+
 namespace sfsl {
 
 namespace ast {
@@ -72,6 +74,13 @@ void KindChecking::visit(TypeMemberAccess* tdot) {
 
     if (sym::Symbol* s = tdot->getSymbol()) {
         tdot->setKind(tryGetKindOfSymbol(s));
+    } else if (type::Type* t = ASTTypeCreator::createType(tdot->getAccessed(), _ctx)) {
+        if (type::ProperType* pt = type::getIf<type::ProperType>(t->applyTCCallsOnly(_ctx))) {
+            pt->getClass()->getScope()->assignSymbolic(*tdot, tdot->getMember()->getValue()); // update member access symbolic for potential later use
+            tdot->setKind(kind::ProperKind::create());
+        } else {
+            _rep.error(*tdot->getAccessed(), "Type " + t->toString() + " cannot have any members");
+        }
     }
 }
 
