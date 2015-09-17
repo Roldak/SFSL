@@ -41,7 +41,8 @@ void ASTAssignmentChecker::visit(IfExpression* ifexpr) {
 }
 
 void ASTAssignmentChecker::visit(MemberAccess* dot) {
-    _isValid = dot->getSymbol()->getSymbolType() == sym::SYM_VAR;
+    _isValid = dot->getSymbol()
+            && dot->getSymbol()->getSymbolType() == sym::SYM_VAR;
 }
 
 void ASTAssignmentChecker::visit(Tuple* tuple) {
@@ -55,7 +56,8 @@ void ASTAssignmentChecker::visit(Tuple* tuple) {
 }
 
 void ASTAssignmentChecker::visit(Identifier* id) {
-    _isValid = id->getSymbol()->getSymbolType() == sym::SYM_VAR;
+    _isValid = id->getSymbol()
+            && id->getSymbol()->getSymbolType() == sym::SYM_VAR;
 }
 
 bool ASTAssignmentChecker::isValid() const {
