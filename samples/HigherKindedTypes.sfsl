@@ -1,0 +1,66 @@
+module sfsl {
+	module lang {
+		type unit = class {}
+		type bool = class {}
+		type byte = class {}
+		type int  = class {}
+		type real = class {}
+		type string = class {}
+	}
+}
+
+module progam {
+	type unit = sfsl.lang.unit
+	type bool = sfsl.lang.bool
+	type byte = sfsl.lang.byte
+	type int  = sfsl.lang.int
+	type real = sfsl.lang.real
+	type string = sfsl.lang.string
+	
+	type Iterable[T] => class {
+		def iterator() => x: Iterator[T]
+	}
+	
+	type Iterator[T] => class {
+		def hasNext() => x: bool
+		def next() => x: T
+	}
+	
+	type Buildable[Col: *->*, T: *] => class : Iterable[T] {
+		def builder() => x: Builder[Col, T]
+		
+		def map(f: T->T) => {
+			b := builder();
+			it := iterator();
+			if it.hasNext()
+				b.append(f(it.next()));
+			b.get();
+		}
+	}
+	
+	type Builder[Col: *->*, T: *] => class {
+		def append(x: T) => ()
+		def get() => x: Col[T]
+	}
+	
+	type List[T] => class : Buildable[List, T] {
+		redef iterator() => x: ListIterator[T]
+		redef builder() => x: ListBuilder[T]
+		def push(x: T) => ()
+	}
+	
+	type ListIterator[T] => class : Iterator[T] {
+		
+	}
+	
+	type ListBuilder[T] => class : Builder[List, T] {
+		inner: List[T];
+		redef append(x: T) => inner.push(x)
+		redef get() => inner
+	}
+	
+	def main() => {
+		x: List[int];	
+		x.map((x: int) => 2).map((x: int) => 3).push(4);
+	}
+}
