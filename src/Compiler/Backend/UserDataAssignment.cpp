@@ -30,6 +30,10 @@ void UserDataAssignment::visit(ASTNode*) {
 
 void UserDataAssignment::visit(ClassDecl* clss) {
     if (TRY_INSERT(_visitedClasses, clss)) {
+        for (TypeDecl* tdecl : clss->getTypeDecls()) {
+            tdecl->onVisit(this);
+        }
+
         std::vector<sym::VariableSymbol*> fields;
         std::vector<sym::DefinitionSymbol*> defs;
 
