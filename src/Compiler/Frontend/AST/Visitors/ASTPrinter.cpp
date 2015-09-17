@@ -296,7 +296,7 @@ void ASTPrinter::visit(RealLitteral* reallit) {
 }
 
 void ASTPrinter::visit(StringLitteral* strlit) {
-    _ostream << strlit->getValue();
+    _ostream << "\"" << strlit->getValue() << "\"";
 }
 
 void ASTPrinter::printIndents() {

@@ -49,7 +49,7 @@ void* MemoryChunk::alloc(MemoryChunk*& chunk, size_t size) {
     }
 }
 
-const MemoryChunk *MemoryChunk::getParent() const {
+const MemoryChunk* MemoryChunk::getParent() const {
     return _parent;
 }
 
