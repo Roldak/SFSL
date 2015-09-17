@@ -411,6 +411,10 @@ void TypeChecking::visit(RealLitteral* reallit) {
     reallit->setType(_res.Real());
 }
 
+void TypeChecking::visit(StringLitteral* strlit) {
+    strlit->setType(_res.String());
+}
+
 TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(MemberAccess* dot, ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
     const auto& it = clss->getScope()->getAllSymbols().equal_range(id);
 

@@ -336,6 +336,8 @@ Expression* Parser::parsePrimary() {
         break;
 
     case tok::TOK_STR_LIT:
+        toRet = _mngr.New<StringLitteral>(as<tok::StringLitteral>()->getValue());
+        toRet->setPos(*_currentToken);
         accept();
         break;
 
