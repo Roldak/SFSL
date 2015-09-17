@@ -197,6 +197,10 @@ void ASTImplicitVisitor::visit(RealLitteral*) {
 
 }
 
+void ASTImplicitVisitor::visit(StringLitteral*) {
+
+}
+
 
 
 }

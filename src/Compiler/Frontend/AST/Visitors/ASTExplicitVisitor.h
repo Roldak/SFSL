@@ -59,6 +59,7 @@ public:
     virtual void visit(BoolLitteral* boollit) override;
     virtual void visit(IntLitteral* intlit) override;
     virtual void visit(RealLitteral* reallit) override;
+    virtual void visit(StringLitteral* strlit) override;
 
 };
 

@@ -14,6 +14,7 @@
 #define BOOL_CLASS_NAME  "bool"
 #define INT_CLASS_NAME  "int"
 #define REAL_CLASS_NAME "real"
+#define STRING_CLASS_NAME "string"
 
 #include <iostream>
 #include "../AST/Nodes/Program.h"
@@ -72,6 +73,11 @@ public:
      */
     type::Type* Real() const;
 
+    /**
+     * @return The String type
+     */
+    type::Type* String() const;
+
 private:
 
     type::Type* createTypeFromSymbol(Symbol* sym);
@@ -83,6 +89,7 @@ private:
     type::Type* _boolType;
     type::Type* _intType;
     type::Type* _realType;
+    type::Type* _stringType;
 };
 
 }

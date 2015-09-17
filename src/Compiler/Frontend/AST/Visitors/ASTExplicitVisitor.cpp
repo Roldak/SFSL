@@ -144,6 +144,10 @@ void ASTExplicitVisitor::visit(RealLitteral*) {
 
 }
 
+void ASTExplicitVisitor::visit(StringLitteral*) {
+
+}
+
 }
 
 }

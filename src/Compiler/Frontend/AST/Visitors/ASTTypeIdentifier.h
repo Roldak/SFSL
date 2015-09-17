@@ -155,6 +155,10 @@ public:
         setIfSame<RealLitteral>();
     }
 
+    virtual void visit(StringLitteral*) override {
+        setIfSame<StringLitteral>();
+    }
+
     /**
      * @return True if the node is well of type T
      */

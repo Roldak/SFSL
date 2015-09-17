@@ -295,6 +295,10 @@ void ASTPrinter::visit(RealLitteral* reallit) {
     _ostream << reallit->getValue();
 }
 
+void ASTPrinter::visit(StringLitteral* strlit) {
+    _ostream << strlit->getValue();
+}
+
 void ASTPrinter::printIndents() {
     for (size_t i = 0; i < _indentCount; ++i) {
         _ostream << "    ";

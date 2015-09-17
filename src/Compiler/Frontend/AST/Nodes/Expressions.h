@@ -415,6 +415,27 @@ private:
     const sfsl_real_t _value;
 };
 
+/**
+ * @brief Represents a String litteral
+ */
+class StringLitteral : public Expression {
+public:
+
+    StringLitteral(const std::string& value);
+    virtual ~StringLitteral();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The value of the litteral
+     */
+    const std::string& getValue() const;
+
+private:
+
+    const std::string _value;
+};
+
 }
 
 }

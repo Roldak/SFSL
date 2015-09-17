@@ -306,6 +306,22 @@ sfsl_real_t RealLitteral::getValue() const {
 
 SFSL_AST_ON_VISIT_CPP(RealLitteral)
 
+// STRING LITTERAL
+
+StringLitteral::StringLitteral(const std::string& value) : _value(value) {
+
+}
+
+StringLitteral::~StringLitteral() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(StringLitteral)
+
+const std::string& StringLitteral::getValue() const {
+    return _value;
+}
+
 }
 
 }
