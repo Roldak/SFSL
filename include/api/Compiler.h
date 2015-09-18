@@ -9,7 +9,7 @@
 #ifndef __SFSL__API_Compiler__
 #define __SFSL__API_Compiler__
 
-#include "visibilities.h"
+#include "set_visibilities.h"
 #include "CompilerConfig.h"
 
 DECL_PRIVATE_IMPL_FOR(Compiler)

@@ -7,8 +7,17 @@
 //
 
 #include "api/CompilerConfig.h"
+#include "api/set_visibilities.h"
 
 namespace sfsl {
+
+CompilerConfig::CompilerConfig(size_t chunkSize) : _chunkSize(chunkSize) {
+
+}
+
+CompilerConfig::~CompilerConfig() {
+
+}
 
 void CompilerConfig::setChunkSize(size_t chunkSize) {
     _chunkSize = chunkSize;

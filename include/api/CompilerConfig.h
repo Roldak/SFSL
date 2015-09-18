@@ -10,13 +10,13 @@
 #define __SFSL__API_CompilerConfig__
 
 #include <iostream>
-#include "visibilities.h"
+#include "set_visibilities.h"
 
 namespace sfsl {
 
 class SFSL_API_PUBLIC CompilerConfig final {
 public:
-    CompilerConfig();
+    CompilerConfig(size_t chunkSize = 2048);
     ~CompilerConfig();
 
     void setChunkSize(size_t chunkSize);
