@@ -67,6 +67,7 @@ apply_target_properties(${USER_API_TARGET} ${USER_API_BUILD_TYPE} ${USER_API_OUT
 
 target_include_directories(${USER_API_TARGET} PRIVATE ./src/)
 target_include_directories(${USER_API_TARGET} PRIVATE ./include/)
+target_compile_definitions(${USER_API_TARGET} PRIVATE -DBUILD_API)
 target_link_libraries(${USER_API_TARGET} ${COMPILER_LIB_TARGET})
 
 ###################################
