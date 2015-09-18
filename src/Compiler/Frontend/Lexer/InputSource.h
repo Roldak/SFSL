@@ -46,7 +46,7 @@ public:
     /**
      * @return The name of the source
      */
-    src::InputSourceName getSourceName() const;
+    InputSourceName getSourceName() const;
 
     /**
      * @return A Positionnable corresponding to the current position

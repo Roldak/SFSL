@@ -17,7 +17,7 @@ namespace sfsl {
 namespace src {
 
 /**
- * @brief Simple class containing the name of the SFSLSource, which can be automatically managed
+ * @brief Simple class containing the name of an InputSource, which can be automatically managed
  */
 class InputSourceName final {
 public:
@@ -25,10 +25,10 @@ public:
     InputSourceName();
 
     /**
-     * @brief Creates a new SFSLsourceName object and make it managed automatically
+     * @brief Creates a new InputSourceName object and make it managed automatically
      * @param compilationContext The Compilation context from which to instantiate the object
      * @param name The name to the source file
-     * @return The newly created SFSLSourceName
+     * @return The newly created InputSourceName
      */
     static InputSourceName make(const CompCtx_Ptr& compilationContext, const std::string& name);
 

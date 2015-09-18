@@ -10,6 +10,21 @@
 #define __SFSL__API_Compiler__
 
 #include "visibilities.h"
+#include "CompilerConfig.h"
 
+DECL_PRIVATE_IMPL_FOR(Compiler)
+
+namespace sfsl {
+
+class SFSL_API_PUBLIC Compiler final {
+public:
+    Compiler(const CompilerConfig& config);
+    ~Compiler();
+
+private:
+    PRIVATE_IMPL_PTR(Compiler) _impl;
+};
+
+}
 
 #endif
