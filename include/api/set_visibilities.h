@@ -1,13 +1,13 @@
 //
-//  Visibilities.h
+//  set_visibilities.h
 //  SFSL
 //
 //  Created by Romain Beguet on 17.09.15.
 //  Copyright (c) 2015 Romain Beguet. All rights reserved.
 //
 
-#ifndef __SFSL__API_Visibilities__
-#define __SFSL__API_Visibilities__
+#ifndef __SFSL__API_Set_Visibilities__
+#define __SFSL__API_Set_Visibilities__
 
 // source: https://gcc.gnu.org/wiki/Visibility
 #if defined _WIN32 || defined __CYGWIN__
