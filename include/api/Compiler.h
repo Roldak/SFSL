@@ -11,6 +11,7 @@
 
 #include "set_visibilities.h"
 #include "CompilerConfig.h"
+#include "ProgramBuilder.h"
 
 DECL_PRIVATE_IMPL_FOR(Compiler)
 
@@ -20,6 +21,8 @@ class SFSL_API_PUBLIC Compiler final {
 public:
     Compiler(const CompilerConfig& config);
     ~Compiler();
+
+    ProgramBuilder parse(const std::string& srcName, const std::string& srcContent);
 
 private:
     PRIVATE_IMPL_PTR(Compiler) _impl;
