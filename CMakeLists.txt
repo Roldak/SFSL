@@ -7,13 +7,13 @@ cmake_minimum_required(VERSION 2.8)
 
 # TARGET OUTPUT NAMES
 
-set(COMPILER_LIB_OUTPUT_NAME    "sfslc")
+set(COMPILER_LIB_OUTPUT_NAME    "sfslc") # will become libsfslc.a
 set(USER_API_OUTPUT_NAME        "sfsl")
 set(COMPILER_EXE_OUTPUT_NAME    "sfslc")
 
 # TARGET OPTIONS
 
-set(COMPILER_LIB_TYPE           STATIC)
+set(COMPILER_LIB_TYPE           STATIC) # recommended, as symbols are not marked __declspec(dllexport) yet
 
 # TARGET BUILD TYPES
 
