@@ -8,8 +8,8 @@ cmake_minimum_required(VERSION 2.8)
 # TARGET OUTPUT NAMES
 
 set(COMPILER_LIB_OUTPUT_NAME    "sfslc")
+set(USER_API_OUTPUT_NAME        "sfsl")
 set(COMPILER_EXE_OUTPUT_NAME    "sfslc")
-set(USER_API_OUTPUT_NAME        "sfsluser")
 
 # TARGET OPTIONS
 
@@ -18,8 +18,8 @@ set(COMPILER_LIB_TYPE           STATIC)
 # TARGET BUILD TYPES
 
 set(COMPILER_LIB_BUILD_TYPE     debug)
-set(COMPILER_EXE_BUILD_TYPE     release)
 set(USER_API_BUILD_TYPE         debug)
+set(COMPILER_EXE_BUILD_TYPE     release)
 
 ###################################
 #       CMAKE DEFINITIONS         #
@@ -28,16 +28,17 @@ set(USER_API_BUILD_TYPE         debug)
 # TARGET IDENTIFIERS
 
 set(COMPILER_LIB_TARGET         libsfslc)
+set(USER_API_TARGET             sfsl)
 set(COMPILER_EXE_TARGET         sfslc)
-set(USER_API_TARGET             sfsluser)
 
 function(apply_target_properties target build_type output_name)
     if(${build_type} STREQUAL debug)
         set_target_properties(${target} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS_DEBUG})
+        set_target_properties(${target} PROPERTIES OUTPUT_NAME "${output_name}-d")
     else()
         set_target_properties(${target} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS_RELEASE} -o3")
+        set_target_properties(${target} PROPERTIES OUTPUT_NAME ${output_name})
     endif()
-    set_target_properties(${target} PROPERTIES OUTPUT_NAME ${output_name})
 endfunction()
 
 ###################################
@@ -53,18 +54,6 @@ apply_target_properties(${COMPILER_LIB_TARGET} ${COMPILER_LIB_BUILD_TYPE} ${COMP
 target_include_directories(${COMPILER_LIB_TARGET} PRIVATE ./src/)
 
 ###################################
-# COMPILER EXE BUILD INSTRUCTIONS #
-###################################
-
-set(COMPILER_MAIN_FILE ./src/main.cpp)
-
-add_executable(${COMPILER_EXE_TARGET} ${COMPILER_MAIN_FILE})
-apply_target_properties(${COMPILER_EXE_TARGET} ${COMPILER_EXE_BUILD_TYPE} ${COMPILER_EXE_OUTPUT_NAME})
-
-target_include_directories(${COMPILER_EXE_TARGET} PRIVATE ./src/)
-target_link_libraries(${COMPILER_EXE_TARGET} ${COMPILER_LIB_TARGET})
-
-###################################
 #   USER API BUILD INSTRUCTIONS   #
 ###################################
 
@@ -78,6 +67,19 @@ apply_target_properties(${USER_API_TARGET} ${USER_API_BUILD_TYPE} ${USER_API_OUT
 
 target_include_directories(${USER_API_TARGET} PRIVATE ./src/)
 target_include_directories(${USER_API_TARGET} PRIVATE ./include/)
+target_link_libraries(${USER_API_TARGET} ${COMPILER_LIB_TARGET})
+
+###################################
+# COMPILER EXE BUILD INSTRUCTIONS #
+###################################
+
+set(COMPILER_MAIN_FILE ./src/main.cpp)
+
+add_executable(${COMPILER_EXE_TARGET} ${COMPILER_MAIN_FILE})
+apply_target_properties(${COMPILER_EXE_TARGET} ${COMPILER_EXE_BUILD_TYPE} ${COMPILER_EXE_OUTPUT_NAME})
+
+target_include_directories(${COMPILER_EXE_TARGET} PRIVATE ./src/)
+target_link_libraries(${COMPILER_EXE_TARGET} ${COMPILER_LIB_TARGET})
 
 ###################################
 #          MISCELLANEOUS          #
