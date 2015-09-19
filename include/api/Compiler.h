@@ -9,6 +9,8 @@
 #ifndef __SFSL__API_Compiler__
 #define __SFSL__API_Compiler__
 
+#include <vector>
+#include <memory>
 #include "set_visibilities.h"
 #include "CompilerConfig.h"
 #include "ProgramBuilder.h"
@@ -23,6 +25,7 @@ public:
     ~Compiler();
 
     ProgramBuilder parse(const std::string& srcName, const std::string& srcContent);
+    std::vector<std::string> compile(ProgramBuilder progBuilder);
 
 private:
     PRIVATE_IMPL_PTR(Compiler) _impl;

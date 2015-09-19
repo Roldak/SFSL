@@ -16,8 +16,11 @@ DECL_PRIVATE_IMPL_FOR(ProgramBuilder)
 namespace sfsl {
 
 class SFSL_API_PUBLIC ProgramBuilder final {
+public:
 
     ~ProgramBuilder();
+
+    operator bool() const;
 
 private:
     friend class Compiler;

@@ -19,7 +19,7 @@ set(COMPILER_LIB_TYPE           STATIC) # recommended, as symbols are not marked
 
 set(COMPILER_LIB_BUILD_TYPE     debug)
 set(USER_API_BUILD_TYPE         debug)
-set(COMPILER_EXE_BUILD_TYPE     release)
+set(COMPILER_EXE_BUILD_TYPE     debug)
 
 ###################################
 #       CMAKE DEFINITIONS         #

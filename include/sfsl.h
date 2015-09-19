@@ -9,6 +9,7 @@
 #ifndef __SFSL__API_H__
 #define __SFSL__API_H__
 
+#include "api/Errors.h"
 #include "api/Compiler.h"
 #include "api/unset_visibilities.h"
 

@@ -46,9 +46,9 @@
 #define END_PRIVATE_DEF } }
 
 #define PRIVATE_IMPL(type) EVAL_PASTER(sfsl::PRIVATE_IMPL_NAMESPACE_NAME::type, PRIVATE_IMPL_SUFFIX)
-#define PRIVATE_IMPL_PTR(type) PRIVATE_IMPL(type)*
+#define PRIVATE_IMPL_PTR(type) std::shared_ptr<PRIVATE_IMPL(type)>
 #define NAME_OF_IMPL(type) EVAL_PASTER(type, PRIVATE_IMPL_SUFFIX)
 
-#define NEW_PRIV_IMPL(type) new PRIVATE_IMPL(type)
+#define NEW_PRIV_IMPL(type) std::make_shared<PRIVATE_IMPL(type)>
 
 #endif
