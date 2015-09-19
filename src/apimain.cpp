@@ -2,9 +2,10 @@
 #include <stdexcept>
 
 int main() {
-    sfsl::CompilerConfig config{2048};
+    sfsl::CompilerConfig config(2048);
     sfsl::Compiler cmp(config);
-    sfsl::ProgramBuilder builder = cmp.parse("test", "module sfsl {"
+    sfsl::ProgramBuilder builder = cmp.parse("test",
+                                         "module sfsl {"
                                              "module lang {"
                                                  "type unit = class {}"
                                                  "type bool = class {}"
@@ -13,7 +14,8 @@ int main() {
                                                  "type real = class {}"
                                                  "type string = class {}"
                                              "}"
-                                         "} module program { def main() => {} }");
+                                         "}"
+                                         "module program { def main() => {} }");
 
     try {
         for (const std::string& str : cmp.compile(builder)) {

@@ -1,5 +1,5 @@
 //
-//  set_visibilities.h
+//  SetVisibilities.h
 //  SFSL
 //
 //  Created by Romain Beguet on 17.09.15.

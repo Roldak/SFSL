@@ -11,7 +11,7 @@
 
 #include <vector>
 #include <memory>
-#include "set_visibilities.h"
+#include "SetVisibilities.h"
 #include "CompilerConfig.h"
 #include "ProgramBuilder.h"
 

@@ -11,6 +11,6 @@
 
 #include "api/Errors.h"
 #include "api/Compiler.h"
-#include "api/unset_visibilities.h"
+#include "api/UnsetVisibilities.h"
 
 #endif

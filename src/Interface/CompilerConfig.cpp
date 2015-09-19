@@ -7,7 +7,6 @@
 //
 
 #include "api/CompilerConfig.h"
-#include "api/set_visibilities.h"
 
 namespace sfsl {
 

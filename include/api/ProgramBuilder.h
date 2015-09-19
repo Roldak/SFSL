@@ -9,7 +9,7 @@
 #ifndef __SFSL__API_ProgramBuilder__
 #define __SFSL__API_ProgramBuilder__
 
-#include "set_visibilities.h"
+#include "SetVisibilities.h"
 
 DECL_PRIVATE_IMPL_FOR(ProgramBuilder)
 

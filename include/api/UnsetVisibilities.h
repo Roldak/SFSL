@@ -1,5 +1,5 @@
 //
-//  unset_visibilities.h
+//  UnsetVisibilities.h
 //  SFSL
 //
 //  Created by Romain Beguet on 18.09.15.

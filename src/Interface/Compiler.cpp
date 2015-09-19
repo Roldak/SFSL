@@ -41,7 +41,7 @@ END_PRIVATE_DEF
 namespace sfsl {
 
 Compiler::Compiler(const CompilerConfig& config)
-    : _impl(new PRIVATE_IMPL(Compiler)(common::CompilationContext::DefaultCompilationContext(config.getChunkSize()))) {
+    : _impl(NEW_PRIV_IMPL(Compiler)(common::CompilationContext::DefaultCompilationContext(config.getChunkSize()))) {
 
 }
 

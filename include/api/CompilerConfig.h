@@ -10,7 +10,7 @@
 #define __SFSL__API_CompilerConfig__
 
 #include <iostream>
-#include "set_visibilities.h"
+#include "SetVisibilities.h"
 
 namespace sfsl {
 

@@ -10,7 +10,7 @@
 #define __SFSL__API_Errors__
 
 #include <stdexcept>
-#include "set_visibilities.h"
+#include "SetVisibilities.h"
 
 namespace sfsl {
 
