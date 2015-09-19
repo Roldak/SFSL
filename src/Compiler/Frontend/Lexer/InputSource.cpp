@@ -66,7 +66,7 @@ void IStreamSource::produceNext() {
 // INPUT STRING SOURCE
 
 StringSource::StringSource(InputSourceName sourceName, const std::string &source)
-    : InputSource(sourceName), _input(source), _size(source.size()), _curIndex(0) {
+    : InputSource(sourceName), _input(source), _size(source.size()) {
 
 }
 
@@ -77,8 +77,8 @@ StringSource::~StringSource() {
 size_t StringSource::getNexts(char* buffer, size_t maxBufferSize) {
     size_t i = 0;
 
-    while (_curIndex < _size && i < maxBufferSize) {
-        buffer[i++] = _input[_curIndex++];
+    while (_position < _size && i < maxBufferSize) {
+        buffer[i++] = _input[_position++];
     }
 
     return i;

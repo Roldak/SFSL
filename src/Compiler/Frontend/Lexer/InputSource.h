@@ -111,8 +111,6 @@ private:
     const std::string _input;
 
     size_t _size;
-    size_t _curIndex;
-
 };
 
 }
