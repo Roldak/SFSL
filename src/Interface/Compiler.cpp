@@ -8,6 +8,7 @@
 
 #include "api/Compiler.h"
 #include "api/Errors.h"
+
 #include "Compiler/Frontend/Parser/Parser.h"
 #include "Compiler/Frontend/AST/Visitors/ASTPrinter.h"
 #include "Compiler/Frontend/Analyser/NameAnalysis.h"
@@ -16,6 +17,8 @@
 #include "Compiler/Frontend/Symbols/SymbolResolver.h"
 #include "Compiler/Backend/UserDataAssignment.h"
 #include "Compiler/Backend/BytecodeGenerator.h"
+
+#include "Compiler/Frontend/Symbols/Scope.h"
 
 BEGIN_PRIVATE_DEF
 
@@ -33,6 +36,14 @@ public:
     ~NAME_OF_IMPL(ProgramBuilder)() { }
 
     ast::Program* _prog;
+};
+
+class NAME_OF_IMPL(Module) {
+public:
+    NAME_OF_IMPL(Module)(sym::ModuleSymbol* module) : _module(module) { }
+    ~NAME_OF_IMPL(Module)() { }
+
+    sym::ModuleSymbol* _module;
 };
 
 END_PRIVATE_DEF
@@ -55,7 +66,14 @@ ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& sr
     ast::Parser parser(_impl->ctx, lexer);
     ast::Program* program = parser.parse();
 
-    return ProgramBuilder(NEW_PRIV_IMPL(ProgramBuilder)(_impl->ctx->reporter().getErrorCount() == 0 ? program : nullptr));
+    try {
+        ast::ScopeGeneration scopeGen(_impl->ctx);
+        program->onVisit(&scopeGen);
+
+        return ProgramBuilder(NEW_PRIV_IMPL(ProgramBuilder)(_impl->ctx->reporter().getErrorCount() == 0 ? program : nullptr));
+    } catch (const common::CompilationFatalError& err) {
+        throw CompileError(err.what());
+    }
 }
 
 std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
@@ -68,11 +86,9 @@ std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
 
     try {
 
-        ast::ScopeGeneration scopeGen(ctx);
         ast::TypeDependencyFixation typeDep(ctx);
         ast::SymbolAssignation symAssign(ctx);
 
-        prog->onVisit(&scopeGen);
         prog->onVisit(&typeDep);
         prog->onVisit(&symAssign);
 
@@ -135,6 +151,36 @@ ProgramBuilder::~ProgramBuilder() {
 
 ProgramBuilder::operator bool() const {
     return _impl != nullptr;
+}
+
+Module ProgramBuilder::openModule(const std::string& moduleName) const {
+    if (_impl) {
+        if (sym::ModuleSymbol* module = _impl->_prog->getScope()->getSymbol<sym::ModuleSymbol>(moduleName)) {
+            return Module(NEW_PRIV_IMPL(Module)(module));
+        }
+    }
+    return Module(NEW_PRIV_IMPL(Module)(nullptr));
+}
+
+Module::Module(PRIVATE_IMPL_PTR(Module) impl) : _impl(impl) {
+
+}
+
+Module::~Module() {
+
+}
+
+Module::operator bool() const {
+    return _impl != nullptr;
+}
+
+Module Module::openModule(const std::string& moduleName) const {
+    if (_impl) {
+        if (sym::ModuleSymbol* module = _impl->_module->getScope()->getSymbol<sym::ModuleSymbol>(moduleName)) {
+            return Module(NEW_PRIV_IMPL(Module)(module));
+        }
+    }
+    return Module(NEW_PRIV_IMPL(Module)(nullptr));
 }
 
 }

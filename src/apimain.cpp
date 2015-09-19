@@ -17,10 +17,15 @@ int main() {
                                          "}"
                                          "module program { def main() => {} }");
 
+    sfsl::Module mod = builder.openModule("sfsl").openModule("lang");
+    if (mod) {
+        std::cout << "OKAY" << std::endl;
+    }
+
     try {
-        for (const std::string& str : cmp.compile(builder)) {
+        /*for (const std::string& str : cmp.compile(builder)) {
             std::cout << str << std::endl;
-        }
+        }*/
     } catch (const sfsl::CompileError& err) {
         std::cout << err.what() << std::endl;
     }

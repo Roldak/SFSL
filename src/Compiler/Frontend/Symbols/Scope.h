@@ -50,7 +50,7 @@ public:
      * @param recursive Sets whether or not to recursively look in the parents scope
      * @return The Symbol that matched the given arguments, or nullptr if none was found
      */
-    T* getSymbol(const std::string &name, bool recursive = true) const {
+    T* getSymbol(const std::string& name, bool recursive = true) const {
         return nullptr;
     }
 

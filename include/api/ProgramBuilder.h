@@ -9,7 +9,9 @@
 #ifndef __SFSL__API_ProgramBuilder__
 #define __SFSL__API_ProgramBuilder__
 
+#include <iostream>
 #include "SetVisibilities.h"
+#include "Module.h"
 
 DECL_PRIVATE_IMPL_FOR(ProgramBuilder)
 
@@ -19,8 +21,9 @@ class SFSL_API_PUBLIC ProgramBuilder final {
 public:
 
     ~ProgramBuilder();
-
     operator bool() const;
+
+    Module openModule(const std::string& moduleName) const;
 
 private:
     friend class Compiler;
