@@ -27,6 +27,11 @@ Program* Parser::parse() {
     return parseProgram();
 }
 
+TypeExpression* Parser::parseType() {
+    _currentToken = _lex.getNext();
+    return parseTypeExpression();
+}
+
 // Utils
 
 const std::string Parser::AnonymousClassName = "<anonymous class>";

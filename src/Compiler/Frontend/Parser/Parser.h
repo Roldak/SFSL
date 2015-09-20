@@ -46,6 +46,11 @@ public:
      */
     ast::Program* parse();
 
+    /**
+     * @return Start parsing the given input assuming it is a type expression
+     */
+    ast::TypeExpression* parseType();
+
 private:
 
     // Static Members
