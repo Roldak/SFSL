@@ -404,11 +404,11 @@ TypeSpecifier* Parser::parseTypeSpecifier(Identifier* id) {
     return spec;
 }
 
-TypeExpression* Parser::parseTypeExpression() {
-    return parseTypeBinary(parseTypePrimary(), 0);
+TypeExpression* Parser::parseTypeExpression(bool allowTypeConstructor) {
+    return parseTypeBinary(parseTypePrimary(), 0, allowTypeConstructor);
 }
 
-TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence) {
+TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence, bool allowTypeConstructor) {
     while (isType(tok::TOK_OPER)) {
         tok::Operator* op = as<tok::Operator>();
         int newOpPrec = op->getPrecedence();
@@ -424,6 +424,10 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence) {
                 expr = _mngr.New<TypeConstructorCall>(left, parseTypeTuple());
                 break;
             case tok::OPER_FAT_ARROW:
+                if (!allowTypeConstructor) {
+                    return left;
+                }
+
                 expr = _mngr.New<TypeConstructorCreation>(
                             _currentTypeName.empty() ? AnonymousTypeConstructorName : _currentTypeName,
                             left, parseTypeExpression());
@@ -609,6 +613,11 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
         res = _mngr.New<FunctionCreation>(
                     _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
                     left, parseExpression());
+    } else if (accept(tok::OPER_THIN_ARROW)) {
+        TypeExpression* retType = parseTypeExpression(false);
+        res = _mngr.New<FunctionCreation>(
+                    _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
+                    left, parseExpression(), retType);
     } else if (accept(tok::OPER_DOT)) {
         res = _mngr.New<MemberAccess>(left, parseIdentifier("Expected attribute / method name"));
     } // no match is not an error

@@ -182,8 +182,8 @@ const std::vector<Expression*>& Tuple::getExpressions() {
 
 // FUNCTION CREATION
 
-FunctionCreation::FunctionCreation(const std::string& name, Expression *args, Expression* body)
-    : _name(name), _args(args), _body(body) {
+FunctionCreation::FunctionCreation(const std::string& name, Expression *args, Expression* body, TypeExpression* retType)
+    : _name(name), _args(args), _body(body), _retType(retType) {
 
 }
 
@@ -203,6 +203,10 @@ Expression* FunctionCreation::getArgs() const {
 
 Expression* FunctionCreation::getBody() const {
     return _body;
+}
+
+TypeExpression*FunctionCreation::getReturnType() const {
+    return _retType;
 }
 
 // FUNCTION CALL

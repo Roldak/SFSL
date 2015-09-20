@@ -169,6 +169,11 @@ void ASTImplicitVisitor::visit(Tuple* tuple) {
 
 void ASTImplicitVisitor::visit(FunctionCreation* func) {
     func->getArgs()->onVisit(this);
+
+    if (TypeExpression* retType = func->getReturnType()) {
+        retType->onVisit(this);
+    }
+
     func->getBody()->onVisit(this);
 }
 

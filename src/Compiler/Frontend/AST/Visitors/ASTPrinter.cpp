@@ -270,6 +270,12 @@ void ASTPrinter::visit(Tuple* tuple) {
 void ASTPrinter::visit(FunctionCreation* func) {
     _ostream << "(";
     func->getArgs()->onVisit(this);
+
+    if (TypeExpression* retType = func->getReturnType()) {
+        _ostream << "->";
+        retType->onVisit(this);
+    }
+
     _ostream << " => ";
     func->getBody()->onVisit(this);
     _ostream << ")";

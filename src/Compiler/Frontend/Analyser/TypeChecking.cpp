@@ -310,6 +310,18 @@ void TypeChecking::visit(FunctionCreation* func) {
     std::vector<type::Type*> argTypes(args.size());
     type::Type* retType = func->getBody()->type();
 
+    if (TypeExpression* retTypeExpr = func->getReturnType()) {
+        if (type::Type* type = ASTTypeCreator::createType(retTypeExpr, _ctx)) {
+            if (!retType->apply(_ctx)->isSubTypeOf(type->apply(_ctx))) {
+                _rep.error(*func->getBody(),
+                           "Return type mismatch. Expected " + type->apply(_ctx)->toString() + ", found " + retType->apply(_ctx)->toString());
+            }
+            retType = type;
+        } else {
+            _rep.error(*retTypeExpr, "Invalid return type");
+        }
+    }
+
     for (size_t i = 0; i < args.size(); ++i) {
         argTypes[i] = args[i]->type();
     }

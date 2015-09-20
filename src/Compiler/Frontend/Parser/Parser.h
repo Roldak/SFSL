@@ -94,8 +94,8 @@ private:
     ast::Expression* parsePrimary();
     ast::TypeSpecifier* parseTypeSpecifier(ast::Identifier* id);
 
-    ast::TypeExpression* parseTypeExpression();
-    ast::TypeExpression* parseTypeBinary(ast::TypeExpression* left, int precedence);
+    ast::TypeExpression* parseTypeExpression(bool allowTypeConstructor = true);
+    ast::TypeExpression* parseTypeBinary(ast::TypeExpression* left, int precedence, bool allowTypeConstructor);
     ast::TypeExpression* parseTypePrimary();
     ast::KindSpecifier* parseKindSpecifier(ast::TypeIdentifier* id);
 

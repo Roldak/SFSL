@@ -261,7 +261,7 @@ class FunctionCreation :
         public type::TypeParametrizable {
 public:
 
-    FunctionCreation(const std::string& name, Expression* args, Expression* body);
+    FunctionCreation(const std::string& name, Expression* args, Expression* body, TypeExpression* retType = nullptr);
     virtual ~FunctionCreation();
 
     SFSL_AST_ON_VISIT_H
@@ -281,11 +281,17 @@ public:
      */
     Expression* getBody() const;
 
+    /**
+     * @return The type expression specifying the return type (nullptr if none was specified)
+     */
+    TypeExpression* getReturnType() const;
+
 private:
 
     std::string _name;
     Expression* _args;
     Expression* _body;
+    TypeExpression* _retType;
 };
 
 /**

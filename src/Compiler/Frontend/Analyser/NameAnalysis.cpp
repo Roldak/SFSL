@@ -215,6 +215,10 @@ void ScopeGeneration::visit(FunctionCreation* func) {
         }
     }
 
+    if (TypeExpression* retType = func->getReturnType()) {
+        retType->onVisit(this);
+    }
+
     func->getBody()->onVisit(this);
 
     popScope();
