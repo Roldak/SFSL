@@ -417,10 +417,9 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence, bo
 
             TypeExpression* expr;
 
-            accept();
-
             switch (op->getOpType()) {
             case tok::OPER_L_BRACKET:
+                accept();
                 expr = _mngr.New<TypeConstructorCall>(left, parseTypeTuple());
                 break;
             case tok::OPER_FAT_ARROW:
@@ -428,14 +427,17 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence, bo
                     return left;
                 }
 
+                accept();
                 expr = _mngr.New<TypeConstructorCreation>(
                             _currentTypeName.empty() ? AnonymousTypeConstructorName : _currentTypeName,
                             left, parseTypeExpression());
                 break;
             case tok::OPER_DOT:
+                accept();
                 expr = _mngr.New<TypeMemberAccess>(left, parseTypeIdentifier("Expected member name"));
                 break;
             default:
+                accept();
                 _ctx->reporter().error(*op, "Unexpected operator `" + op->toString() + "`");
                 continue;
             }
@@ -615,6 +617,7 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
                     left, parseExpression());
     } else if (accept(tok::OPER_THIN_ARROW)) {
         TypeExpression* retType = parseTypeExpression(false);
+        expect(tok::OPER_FAT_ARROW, "`=>`");
         res = _mngr.New<FunctionCreation>(
                     _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
                     left, parseExpression(), retType);
