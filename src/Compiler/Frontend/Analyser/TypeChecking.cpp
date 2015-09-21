@@ -321,10 +321,19 @@ void TypeChecking::visit(MemberAccess* dot) {
                 _rep.error(*dot->getMember(), "No member named " + dot->getMember()->getValue() +
                            " in class " + clss->getName());
             }
+
+            return;
         }
     }
 
-    // TODO : static access
+    // TODO : Factor out this code since it's the same as the onVisit(Identifer*)
+    const AnySymbolicData data = resolveOverload(dot, dot->getSymbolDatas().cbegin(), dot->getSymbolDatas().cend(), {});
+    if (sym::Symbol* sym = data.symbol) {
+        dot->setSymbol(sym);
+        if (type::Type* t = tryGetTypeOfSymbol(sym)) {
+            dot->setType(data.env ? type::Type::findSubstitution(*data.env, t)->substitute(*data.env, _ctx) : t);
+        }
+    }
 }
 
 void TypeChecking::visit(Tuple* tuple) {
