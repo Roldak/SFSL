@@ -12,8 +12,6 @@
 #include "api/Module.h"
 #include "Compiler/Frontend/AST/Nodes/Declarations.h"
 
-DECL_PRIVATE_IMPL_FOR(Module)
-
 class ModuleContainer {
 public:
     virtual ~ModuleContainer();

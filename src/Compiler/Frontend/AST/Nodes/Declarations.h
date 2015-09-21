@@ -80,7 +80,7 @@ private:
 class DefineDecl : public Expression, public sym::Symbolic<sym::DefinitionSymbol> {
 public:
 
-    DefineDecl(Identifier* name, Expression* value, bool isRedef);
+    DefineDecl(Identifier* name, Expression* value, bool isRedef, bool isExtern);
     virtual ~DefineDecl();
 
     SFSL_AST_ON_VISIT_H
@@ -100,11 +100,18 @@ public:
      */
     bool isRedef() const;
 
+    /**
+     * @return True if the definition is marked with the `extern` flag
+     */
+    bool isExtern() const;
+
 private:
 
     Identifier* _name;
     Expression* _value;
+
     bool _isRedef;
+    bool _isExtern;
 
 };
 

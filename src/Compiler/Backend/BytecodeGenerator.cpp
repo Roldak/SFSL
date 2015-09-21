@@ -142,6 +142,10 @@ void DefaultBytecodeGenerator::visit(ClassDecl* clss){
 }
 
 void DefaultBytecodeGenerator::visit(DefineDecl* decl) {
+    if (decl->isExtern()) {
+        return;
+    }
+
     START_WRITING_TO_CONSTANT_POOL
 
     decl->getValue()->onVisit(this);

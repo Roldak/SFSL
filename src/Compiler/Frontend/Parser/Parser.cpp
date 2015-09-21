@@ -144,8 +144,11 @@ ModuleDecl* Parser::parseModule() {
             mods.push_back(parseModule());
         } else if (accept(tok::KW_TPE)) {
             types.push_back(parseType(false));
+        } else if (accept(tok::KW_EXTERN)) {
+            expect(tok::KW_DEF, "`def`");
+            decls.push_back(parseDef(false, false, true));
         } else if (accept(tok::KW_DEF)) {
-            decls.push_back(parseDef(false, false));
+            decls.push_back(parseDef(false, false, false));
         } else {
             expect(tok::OPER_R_BRACE, "`}`");
             break;
@@ -159,7 +162,7 @@ ModuleDecl* Parser::parseModule() {
     return modDecl;
 }
 
-DefineDecl* Parser::parseDef(bool asStatement, bool isRedef) {
+DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern) {
 
     Identifier* defName = parseIdentifier("Expected definition name");
 
@@ -172,7 +175,7 @@ DefineDecl* Parser::parseDef(bool asStatement, bool isRedef) {
         expect(tok::OPER_SEMICOLON, "`;`");
     }
 
-    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, expr, isRedef);
+    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, expr, isRedef, isExtern);
     defDecl->setPos(*defName);
     defDecl->setEndPos(_lastTokenEndPos);
     return defDecl;
@@ -203,9 +206,9 @@ ClassDecl* Parser::parseClass() {
         if (accept(tok::KW_TPE)) {
             tdecls.push_back(parseType(false));
         } else if (accept(tok::KW_DEF)) {
-            defs.push_back(parseDef(false, false));
+            defs.push_back(parseDef(false, false, false));
         } else if (accept(tok::KW_REDEF)) {
-            defs.push_back(parseDef(false, true));
+            defs.push_back(parseDef(false, true, false));
         } else {
             Identifier* fieldName = parseIdentifier("Expected field name | def");
             expect(tok::OPER_COLON, "`:`");
@@ -255,7 +258,7 @@ Expression* Parser::parseStatement() {
         accept();
 
         switch (kw) {
-        case tok::KW_DEF:   return parseDef(true, false);
+        case tok::KW_DEF:   return parseDef(true, false, false);
         case tok::KW_IF:    return parseIf(true);
         case tok::KW_TPE:   return parseType(true);
 
