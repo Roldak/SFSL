@@ -9,6 +9,8 @@
 #include "api/Compiler.h"
 #include "api/Errors.h"
 
+#include "ModuleContainer.h"
+
 #include "Compiler/Frontend/Parser/Parser.h"
 #include "Compiler/Frontend/AST/Visitors/ASTPrinter.h"
 #include "Compiler/Frontend/Analyser/NameAnalysis.h"
@@ -30,26 +32,76 @@ public:
     CompCtx_Ptr ctx;
 };
 
-class NAME_OF_IMPL(ProgramBuilder) {
+class NAME_OF_IMPL(Type) {
 public:
-    NAME_OF_IMPL(ProgramBuilder)(ast::Program* prog) : _prog(prog) { }
-    ~NAME_OF_IMPL(ProgramBuilder)() { }
+    NAME_OF_IMPL(Type)(ast::TypeExpression* type) : _type(type) { }
+    ~NAME_OF_IMPL(Type)() { }
 
-    ast::Program* _prog;
+    ast::TypeExpression* _type;
 };
 
-class NAME_OF_IMPL(Module) {
+class NAME_OF_IMPL(Module) : public ModuleContainer {
 public:
-    NAME_OF_IMPL(Module)(sym::ModuleSymbol* module) : _module(module) { }
-    ~NAME_OF_IMPL(Module)() { }
+    NAME_OF_IMPL(Module)(common::AbstractMemoryManager& mngr, const std::string& name) : mngr(mngr), _name(name) { }
+    virtual ~NAME_OF_IMPL(Module)() { }
 
-    sym::ModuleSymbol* _module;
+    virtual Module createProxyModule(const std::string& name) const {
+        return Module(NEW_PRIV_IMPL(Module)(mngr, name));
+    }
+
+    virtual ast::ModuleDecl* buildModule(Module m) {
+        return m._impl->closeModule();
+    }
+
+    ast::ModuleDecl* closeModule() {
+        return mngr.New<ast::ModuleDecl>(mngr.New<ast::Identifier>(_name), closeContainer(mngr), _tdecls, _ddecls);
+    }
+
+    void typeDef(const std::string& name, Type type) {
+        _tdecls.push_back(mngr.New<ast::TypeDecl>(mngr.New<ast::TypeIdentifier>(name), type._impl->_type));
+    }
+
+    common::AbstractMemoryManager& mngr;
+
+    const std::string& _name;
+    std::vector<ast::TypeDecl*> _tdecls;
+    std::vector<ast::DefineDecl*> _ddecls;
+};
+
+class NAME_OF_IMPL(ProgramBuilder) : public ModuleContainer {
+public:
+    NAME_OF_IMPL(ProgramBuilder)(common::AbstractMemoryManager& mngr, ast::Program* prog) : mngr(mngr), _prog(prog) { }
+    virtual ~NAME_OF_IMPL(ProgramBuilder)() { }
+
+    virtual Module createProxyModule(const std::string& name) const {
+        return Module(NEW_PRIV_IMPL(Module)(mngr, name));
+    }
+
+    virtual ast::ModuleDecl* buildModule(Module m) {
+        return m._impl->closeModule();
+    }
+
+    ast::Program* createUpdatedProgram() {
+        if (openModulesCount()) {
+            std::vector<ast::ModuleDecl*> modules(closeContainer(mngr));
+            modules.insert(modules.end(), _prog->getModules().begin(), _prog->getModules().end());
+            return mngr.New<ast::Program>(modules);
+        } else {
+            return _prog;
+        }
+    }
+
+    common::AbstractMemoryManager& mngr;
+
+    ast::Program* _prog;
 };
 
 END_PRIVATE_DEF
 
 
 namespace sfsl {
+
+// COMPILER
 
 Compiler::Compiler(const CompilerConfig& config)
     : _impl(NEW_PRIV_IMPL(Compiler)(common::CompilationContext::DefaultCompilationContext(config.getChunkSize()))) {
@@ -66,14 +118,7 @@ ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& sr
     ast::Parser parser(_impl->ctx, lexer);
     ast::Program* program = parser.parse();
 
-    try {
-        ast::ScopeGeneration scopeGen(_impl->ctx);
-        program->onVisit(&scopeGen);
-
-        return ProgramBuilder(NEW_PRIV_IMPL(ProgramBuilder)(_impl->ctx->reporter().getErrorCount() == 0 ? program : nullptr));
-    } catch (const common::CompilationFatalError& err) {
-        throw CompileError(err.what());
-    }
+    return ProgramBuilder(NEW_PRIV_IMPL(ProgramBuilder)(_impl->ctx->memoryManager(), _impl->ctx->reporter().getErrorCount() == 0 ? program : nullptr));
 }
 
 std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
@@ -82,13 +127,15 @@ std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
     }
 
     CompCtx_Ptr ctx = _impl->ctx;
-    ast::Program* prog = progBuilder._impl->_prog;
+    ast::Program* prog = progBuilder._impl->createUpdatedProgram();
 
     try {
 
+        ast::ScopeGeneration scopeGen(ctx);
         ast::TypeDependencyFixation typeDep(ctx);
         ast::SymbolAssignation symAssign(ctx);
 
+        prog->onVisit(&scopeGen);
         prog->onVisit(&typeDep);
         prog->onVisit(&symAssign);
 
@@ -141,6 +188,17 @@ std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
     }
 }
 
+Type Compiler::parseType(const std::string& str) {
+    src::StringSource source(src::InputSourceName::make(_impl->ctx, "type"), str);
+    lex::Lexer lexer(_impl->ctx, source);
+    ast::Parser parser(_impl->ctx, lexer);
+    ast::TypeExpression* tpe = parser.parseType();
+
+    return Type(NEW_PRIV_IMPL(Type)(_impl->ctx->reporter().getErrorCount() == 0 ? tpe : nullptr));
+}
+
+// PROGRAM BUILDER
+
 ProgramBuilder::ProgramBuilder(PRIVATE_IMPL_PTR(ProgramBuilder) impl) : _impl(impl) {
 
 }
@@ -153,13 +211,13 @@ ProgramBuilder::operator bool() const {
     return _impl != nullptr;
 }
 
+// MODULE
+
 Module ProgramBuilder::openModule(const std::string& moduleName) const {
     if (_impl) {
-        if (sym::ModuleSymbol* module = _impl->_prog->getScope()->getSymbol<sym::ModuleSymbol>(moduleName)) {
-            return Module(NEW_PRIV_IMPL(Module)(module));
-        }
+        return _impl->openModule(moduleName);
     }
-    return Module(NEW_PRIV_IMPL(Module)(nullptr));
+    return Module(NEW_PRIV_IMPL(Module)(_impl->mngr, nullptr));
 }
 
 Module::Module(PRIVATE_IMPL_PTR(Module) impl) : _impl(impl) {
@@ -176,11 +234,27 @@ Module::operator bool() const {
 
 Module Module::openModule(const std::string& moduleName) const {
     if (_impl) {
-        if (sym::ModuleSymbol* module = _impl->_module->getScope()->getSymbol<sym::ModuleSymbol>(moduleName)) {
-            return Module(NEW_PRIV_IMPL(Module)(module));
-        }
+        return _impl->openModule(moduleName);
     }
-    return Module(NEW_PRIV_IMPL(Module)(nullptr));
+    return Module(NEW_PRIV_IMPL(Module)(_impl->mngr, nullptr));
+}
+
+void Module::typeDef(const std::string& typeName, Type type) {
+    _impl->typeDef(typeName, type);
+}
+
+// TYPE
+
+Type::Type(PRIVATE_IMPL_PTR(Type) impl) : _impl(impl) {
+
+}
+
+Type::~Type() {
+
+}
+
+Type::operator bool() const {
+    return _impl != nullptr;
 }
 
 }

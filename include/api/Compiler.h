@@ -14,6 +14,7 @@
 #include "SetVisibilities.h"
 #include "CompilerConfig.h"
 #include "ProgramBuilder.h"
+#include "Type.h"
 
 DECL_PRIVATE_IMPL_FOR(Compiler)
 
@@ -26,6 +27,8 @@ public:
 
     ProgramBuilder parse(const std::string& srcName, const std::string& srcContent);
     std::vector<std::string> compile(ProgramBuilder progBuilder);
+
+    Type parseType(const std::string& str);
 
 private:
     PRIVATE_IMPL_PTR(Compiler) _impl;

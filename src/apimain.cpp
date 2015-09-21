@@ -15,17 +15,15 @@ int main() {
                                                  "type string = class {}"
                                              "}"
                                          "}"
-                                         "module program { def main() => {} }");
+                                         "module program { def main() => {x: int; x;} }");
 
-    sfsl::Module mod = builder.openModule("sfsl").openModule("lang");
-    if (mod) {
-        std::cout << "OKAY" << std::endl;
-    }
+    sfsl::Module mod = builder.openModule("program");
+    mod.typeDef("int", cmp.parseType("sfsl.lang.int"));
 
     try {
-        /*for (const std::string& str : cmp.compile(builder)) {
+        for (const std::string& str : cmp.compile(builder)) {
             std::cout << str << std::endl;
-        }*/
+        }
     } catch (const sfsl::CompileError& err) {
         std::cout << err.what() << std::endl;
     }
