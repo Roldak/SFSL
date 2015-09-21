@@ -69,7 +69,9 @@ void ASTImplicitVisitor::visit(DefineDecl* decl) {
     if (TypeExpression* expr = decl->getTypeSpecifier()) {
         expr->onVisit(this);
     }
-    decl->getValue()->onVisit(this);
+    if (Expression* val = decl->getValue()) {
+        val->onVisit(this);
+    }
 }
 
 void ASTImplicitVisitor::visit(ProperTypeKindSpecifier* ptks) {

@@ -99,6 +99,9 @@ void ASTPrinter::visit(ClassDecl* clss) {
 }
 
 void ASTPrinter::visit(DefineDecl* decl) {
+    if (decl->isExtern()) {
+        _ostream << "extern ";
+    }
     _ostream << "def ";
 
     decl->getName()->onVisit(this);
@@ -108,9 +111,10 @@ void ASTPrinter::visit(DefineDecl* decl) {
         expr->onVisit(this);
     }
 
-    _ostream << " = ";
-
-    decl->getValue()->onVisit(this);
+    if (Expression* val = decl->getValue()) {
+        _ostream << " = ";
+        val->onVisit(this);
+    }
 }
 
 void ASTPrinter::visit(ProperTypeKindSpecifier*) {

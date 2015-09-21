@@ -74,13 +74,20 @@ void TopLevelTypeChecking::visit(ClassDecl* clss) {
 }
 
 void TopLevelTypeChecking::visit(DefineDecl* decl) {
-    if (TypeExpression* expr = decl->getTypeSpecifier()) {
-        expr->onVisit(this);
-    }
+    if (TypeExpression* typeExpr = decl->getTypeSpecifier()) {
+        typeExpr->onVisit(this);
+        type::Type* tp = ASTTypeCreator::createType(typeExpr, _ctx);
+        decl->getSymbol()->setType(tp);
 
-    _nextDef = decl->getValue();
-    decl->getValue()->onVisit(this);
-    decl->getSymbol()->setType(decl->getValue()->type());
+        // visit value but don't need to create the type, so don't set _nextDef
+        if (Expression* value = decl->getValue()) {
+            value->onVisit(this);
+        }
+    } else if (Expression* value = decl->getValue()) {
+        _nextDef = value;
+        value->onVisit(this);
+        decl->getSymbol()->setType(value->type());
+    }
 }
 
 void TopLevelTypeChecking::visit(FunctionCreation* func) {
@@ -151,30 +158,42 @@ void TypeChecking::visit(DefineDecl* decl) {
         SAVE_MEMBER_AND_SET(_nextDef, decl->getValue())
 
         type::Type* expectedType = nullptr;
+        type::Type* foundType = nullptr;
 
         if (TypeExpression* expr = decl->getTypeSpecifier()) {
             expr->onVisit(this);
             expectedType = ASTTypeCreator::createType(expr, _ctx);
         }
 
-        decl->getValue()->onVisit(this);
-        type::Type* foundType = decl->getValue()->type();
+        if (Expression* value = decl->getValue()) {
+            value->onVisit(this);
+            foundType = value->type();
+        }
 
         RESTORE_MEMBER(_nextDef)
         RESTORE_MEMBER(_currentThis)
 
-        if (expectedType) {
-            if (foundType->apply(_ctx)->isSubTypeOf(expectedType->apply(_ctx))) {
-                foundType = expectedType;
-            } else {
+        if (expectedType && foundType) {
+            if (!foundType->apply(_ctx)->isSubTypeOf(expectedType->apply(_ctx))) {
                 _rep.error(*decl->getValue(),
                            "Type mismatch. Expected " + expectedType->apply(_ctx)->toString() +
                            ", found " + foundType->apply(_ctx)->toString());
             }
-        }
 
-        decl->getName()->setType(decl->getValue()->type());
-        decl->getSymbol()->setType(decl->getValue()->type());
+            decl->getName()->setType(expectedType);
+            decl->getSymbol()->setType(expectedType);
+        }
+        else if (expectedType) {
+            decl->getName()->setType(expectedType);
+            decl->getSymbol()->setType(expectedType);
+        }
+        else if (foundType) {
+            decl->getName()->setType(foundType);
+            decl->getSymbol()->setType(foundType);
+        }
+        else { // "cannot happen"
+            _rep.fatal(*decl, "No way to typecheck this define");
+        }
 
         if (decl->isRedef()) {
             _redefs.push_back(decl);
