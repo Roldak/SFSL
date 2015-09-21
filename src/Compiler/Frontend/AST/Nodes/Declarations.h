@@ -80,7 +80,7 @@ private:
 class DefineDecl : public Expression, public sym::Symbolic<sym::DefinitionSymbol> {
 public:
 
-    DefineDecl(Identifier* name, Expression* value, bool isRedef, bool isExtern);
+    DefineDecl(Identifier* name, TypeExpression* tp, Expression* value, bool isRedef, bool isExtern);
     virtual ~DefineDecl();
 
     SFSL_AST_ON_VISIT_H
@@ -89,6 +89,11 @@ public:
      * @return The name of this definition
      */
     Identifier* getName() const;
+
+    /**
+     * @return The type specifying expression (nullptr if none were specified)
+     */
+    TypeExpression* getTypeSpecifier() const;
 
     /**
      * @return The value associated to this definition
@@ -108,6 +113,7 @@ public:
 private:
 
     Identifier* _name;
+    TypeExpression* _typeSpecifier;
     Expression* _value;
 
     bool _isRedef;

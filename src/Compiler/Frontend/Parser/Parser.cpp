@@ -166,8 +166,14 @@ DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern) {
 
     Identifier* defName = parseIdentifier("Expected definition name");
 
-    if (!(isType(tok::TOK_OPER) && as<tok::Operator>()->getOpType() == tok::OPER_L_PAREN))
+    TypeExpression* typeSpecifier = nullptr;
+
+    if (accept(tok::OPER_COLON)) {
+        typeSpecifier = parseTypeExpression();
         expect(tok::OPER_EQ, "`=`");
+    } else if (!(isType(tok::TOK_OPER) && as<tok::Operator>()->getOpType() == tok::OPER_L_PAREN)) {
+        expect(tok::OPER_EQ, "`=`");
+    }
 
     Expression* expr = parseExpression();
 
@@ -175,7 +181,7 @@ DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern) {
         expect(tok::OPER_SEMICOLON, "`;`");
     }
 
-    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, expr, isRedef, isExtern);
+    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, typeSpecifier, expr, isRedef, isExtern);
     defDecl->setPos(*defName);
     defDecl->setEndPos(_lastTokenEndPos);
     return defDecl;

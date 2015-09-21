@@ -103,12 +103,17 @@ void ASTPrinter::visit(DefineDecl* decl) {
 
     decl->getName()->onVisit(this);
 
+    if (TypeExpression* expr = decl->getTypeSpecifier()) {
+        _ostream << ": ";
+        expr->onVisit(this);
+    }
+
     _ostream << " = ";
 
     decl->getValue()->onVisit(this);
 }
 
-void ASTPrinter::visit(ProperTypeKindSpecifier *ptks) {
+void ASTPrinter::visit(ProperTypeKindSpecifier*) {
     _ostream << "*";
 }
 

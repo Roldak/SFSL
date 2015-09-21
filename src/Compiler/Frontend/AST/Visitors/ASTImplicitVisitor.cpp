@@ -66,6 +66,9 @@ void ASTImplicitVisitor::visit(ClassDecl *clss) {
 
 void ASTImplicitVisitor::visit(DefineDecl* decl) {
     decl->getName()->onVisit(this);
+    if (TypeExpression* expr = decl->getTypeSpecifier()) {
+        expr->onVisit(this);
+    }
     decl->getValue()->onVisit(this);
 }
 

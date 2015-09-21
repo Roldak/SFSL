@@ -73,10 +73,14 @@ void TopLevelTypeChecking::visit(ClassDecl* clss) {
     }
 }
 
-void TopLevelTypeChecking::visit(DefineDecl* def) {
-    _nextDef = def->getValue();
-    def->getValue()->onVisit(this);
-    def->getSymbol()->setType(def->getValue()->type());
+void TopLevelTypeChecking::visit(DefineDecl* decl) {
+    if (TypeExpression* expr = decl->getTypeSpecifier()) {
+        expr->onVisit(this);
+    }
+
+    _nextDef = decl->getValue();
+    decl->getValue()->onVisit(this);
+    decl->getSymbol()->setType(decl->getValue()->type());
 }
 
 void TopLevelTypeChecking::visit(FunctionCreation* func) {
@@ -146,12 +150,29 @@ void TypeChecking::visit(DefineDecl* decl) {
         SAVE_MEMBER_AND_SET(_currentThis, decl->getSymbol()->getOwner())
         SAVE_MEMBER_AND_SET(_nextDef, decl->getValue())
 
+        type::Type* expectedType = nullptr;
+
+        if (TypeExpression* expr = decl->getTypeSpecifier()) {
+            expr->onVisit(this);
+            expectedType = ASTTypeCreator::createType(expr, _ctx);
+        }
+
         decl->getValue()->onVisit(this);
+        type::Type* foundType = decl->getValue()->type();
 
         RESTORE_MEMBER(_nextDef)
         RESTORE_MEMBER(_currentThis)
 
-        // type inference
+        if (expectedType) {
+            if (foundType->apply(_ctx)->isSubTypeOf(expectedType->apply(_ctx))) {
+                foundType = expectedType;
+            } else {
+                _rep.error(*decl->getValue(),
+                           "Type mismatch. Expected " + expectedType->apply(_ctx)->toString() +
+                           ", found " + foundType->apply(_ctx)->toString());
+            }
+        }
+
         decl->getName()->setType(decl->getValue()->type());
         decl->getSymbol()->setType(decl->getValue()->type());
 

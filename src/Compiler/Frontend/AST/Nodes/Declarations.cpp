@@ -49,8 +49,8 @@ Identifier *ModuleDecl::getName() const {
 
 // DEFINE DECLARATION
 
-DefineDecl::DefineDecl(Identifier* name, Expression* value, bool isRedef, bool isExtern)
-    : _name(name), _value(value), _isRedef(isRedef), _isExtern(isExtern) {
+DefineDecl::DefineDecl(Identifier* name, TypeExpression* typeSpecifier, Expression* value, bool isRedef, bool isExtern)
+    : _name(name), _typeSpecifier(typeSpecifier), _value(value), _isRedef(isRedef), _isExtern(isExtern) {
 
 }
 
@@ -62,6 +62,10 @@ SFSL_AST_ON_VISIT_CPP(DefineDecl)
 
 Identifier* DefineDecl::getName() const {
     return _name;
+}
+
+TypeExpression*DefineDecl::getTypeSpecifier() const {
+    return _typeSpecifier;
 }
 
 Expression* DefineDecl::getValue() const {

@@ -65,6 +65,16 @@ void KindChecking::visit(ClassDecl* clss) {
     }
 }
 
+void KindChecking::visit(DefineDecl* decl) {
+    ASTImplicitVisitor::visit(decl);
+
+    if (TypeExpression* expr = decl->getTypeSpecifier()) {
+        if (expr->kind()->getKindGenre() != kind::KIND_PROPER) {
+            _rep.error(*expr, "Kind mismatch. Expected proper type, found " + expr->kind()->toString());
+        }
+    }
+}
+
 void KindChecking::visit(FunctionTypeDecl* ftdecl) {
     ftdecl->setKind(kind::ProperKind::create());
 }

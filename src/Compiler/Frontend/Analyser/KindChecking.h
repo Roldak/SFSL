@@ -33,6 +33,7 @@ public:
 
     virtual void visit(TypeDecl* tdecl) override;
     virtual void visit(ClassDecl* clss) override;
+    virtual void visit(DefineDecl* decl) override;
 
     virtual void visit(FunctionTypeDecl* ftdecl) override;
     virtual void visit(TypeMemberAccess* tdot) override;
