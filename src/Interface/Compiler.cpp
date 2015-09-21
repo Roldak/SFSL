@@ -22,31 +22,46 @@
 
 #include "Compiler/Frontend/Symbols/Scope.h"
 
+#define COMPILER_IMPL_NAME          NAME_OF_IMPL(Compiler)
+#define TYPE_IMPL_NAME              NAME_OF_IMPL(Type)
+#define MODULE_IMPL_NAME            NAME_OF_IMPL(Module)
+#define PROGRAMBUILDER_IMPL_NAME    NAME_OF_IMPL(ProgramBuilder)
+
+#define COMPILER_IMPL_PTR           PRIVATE_IMPL_PTR(Compiler)
+#define TYPE_IMPL_PTR               PRIVATE_IMPL_PTR(Type)
+#define MODULE_IMPL_PTR             PRIVATE_IMPL_PTR(Module)
+#define PROGRAMBUILDER_IMPL_PTR     PRIVATE_IMPL_PTR(ProgramBuilder)
+
+#define NEW_COMPILER_IMPL           NEW_PRIV_IMPL(Compiler)
+#define NEW_TYPE_IMPL               NEW_PRIV_IMPL(Type)
+#define NEW_MODULE_IMPL             NEW_PRIV_IMPL(Module)
+#define NEW_PROGRAMBUILDER_IMPL     NEW_PRIV_IMPL(ProgramBuilder)
+
 BEGIN_PRIVATE_DEF
 
-class NAME_OF_IMPL(Compiler) {
+class COMPILER_IMPL_NAME {
 public:
-    NAME_OF_IMPL(Compiler)(CompCtx_Ptr ctx) : ctx(ctx) {}
-    ~NAME_OF_IMPL(Compiler)() {}
+    COMPILER_IMPL_NAME(CompCtx_Ptr ctx) : ctx(ctx) {}
+    ~COMPILER_IMPL_NAME() {}
 
     CompCtx_Ptr ctx;
 };
 
-class NAME_OF_IMPL(Type) {
+class TYPE_IMPL_NAME {
 public:
-    NAME_OF_IMPL(Type)(ast::TypeExpression* type) : _type(type) { }
-    ~NAME_OF_IMPL(Type)() { }
+    TYPE_IMPL_NAME(ast::TypeExpression* type) : _type(type) { }
+    ~TYPE_IMPL_NAME() { }
 
     ast::TypeExpression* _type;
 };
 
-class NAME_OF_IMPL(Module) : public ModuleContainer {
+class MODULE_IMPL_NAME : public ModuleContainer {
 public:
-    NAME_OF_IMPL(Module)(common::AbstractMemoryManager& mngr, const std::string& name) : mngr(mngr), _name(name) { }
-    virtual ~NAME_OF_IMPL(Module)() { }
+    MODULE_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name) : mngr(mngr), _name(name) { }
+    virtual ~MODULE_IMPL_NAME() { }
 
     virtual Module createProxyModule(const std::string& name) const {
-        return Module(NEW_PRIV_IMPL(Module)(mngr, name));
+        return Module(NEW_MODULE_IMPL(mngr, name));
     }
 
     virtual ast::ModuleDecl* buildModule(Module m) {
@@ -68,13 +83,13 @@ public:
     std::vector<ast::DefineDecl*> _ddecls;
 };
 
-class NAME_OF_IMPL(ProgramBuilder) : public ModuleContainer {
+class PROGRAMBUILDER_IMPL_NAME : public ModuleContainer {
 public:
-    NAME_OF_IMPL(ProgramBuilder)(common::AbstractMemoryManager& mngr, ast::Program* prog) : mngr(mngr), _prog(prog) { }
-    virtual ~NAME_OF_IMPL(ProgramBuilder)() { }
+    PROGRAMBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, ast::Program* prog) : mngr(mngr), _prog(prog) { }
+    virtual ~PROGRAMBUILDER_IMPL_NAME() { }
 
     virtual Module createProxyModule(const std::string& name) const {
-        return Module(NEW_PRIV_IMPL(Module)(mngr, name));
+        return Module(NEW_MODULE_IMPL(mngr, name));
     }
 
     virtual ast::ModuleDecl* buildModule(Module m) {
@@ -104,7 +119,7 @@ namespace sfsl {
 // COMPILER
 
 Compiler::Compiler(const CompilerConfig& config)
-    : _impl(NEW_PRIV_IMPL(Compiler)(common::CompilationContext::DefaultCompilationContext(config.getChunkSize()))) {
+    : _impl(NEW_COMPILER_IMPL(common::CompilationContext::DefaultCompilationContext(config.getChunkSize()))) {
 
 }
 
@@ -118,7 +133,7 @@ ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& sr
     ast::Parser parser(_impl->ctx, lexer);
     ast::Program* program = parser.parse();
 
-    return ProgramBuilder(NEW_PRIV_IMPL(ProgramBuilder)(_impl->ctx->memoryManager(), _impl->ctx->reporter().getErrorCount() == 0 ? program : nullptr));
+    return ProgramBuilder(NEW_PROGRAMBUILDER_IMPL(_impl->ctx->memoryManager(), _impl->ctx->reporter().getErrorCount() == 0 ? program : nullptr));
 }
 
 std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
@@ -194,12 +209,12 @@ Type Compiler::parseType(const std::string& str) {
     ast::Parser parser(_impl->ctx, lexer);
     ast::TypeExpression* tpe = parser.parseType();
 
-    return Type(NEW_PRIV_IMPL(Type)(_impl->ctx->reporter().getErrorCount() == 0 ? tpe : nullptr));
+    return Type(NEW_TYPE_IMPL(_impl->ctx->reporter().getErrorCount() == 0 ? tpe : nullptr));
 }
 
 // PROGRAM BUILDER
 
-ProgramBuilder::ProgramBuilder(PRIVATE_IMPL_PTR(ProgramBuilder) impl) : _impl(impl) {
+ProgramBuilder::ProgramBuilder(PROGRAMBUILDER_IMPL_PTR impl) : _impl(impl) {
 
 }
 
@@ -217,10 +232,10 @@ Module ProgramBuilder::openModule(const std::string& moduleName) const {
     if (_impl) {
         return _impl->openModule(moduleName);
     }
-    return Module(NEW_PRIV_IMPL(Module)(_impl->mngr, nullptr));
+    return Module(NEW_MODULE_IMPL(_impl->mngr, nullptr));
 }
 
-Module::Module(PRIVATE_IMPL_PTR(Module) impl) : _impl(impl) {
+Module::Module(MODULE_IMPL_PTR impl) : _impl(impl) {
 
 }
 
@@ -236,7 +251,7 @@ Module Module::openModule(const std::string& moduleName) const {
     if (_impl) {
         return _impl->openModule(moduleName);
     }
-    return Module(NEW_PRIV_IMPL(Module)(_impl->mngr, nullptr));
+    return Module(NEW_MODULE_IMPL(_impl->mngr, nullptr));
 }
 
 void Module::typeDef(const std::string& typeName, Type type) {
@@ -245,7 +260,7 @@ void Module::typeDef(const std::string& typeName, Type type) {
 
 // TYPE
 
-Type::Type(PRIVATE_IMPL_PTR(Type) impl) : _impl(impl) {
+Type::Type(TYPE_IMPL_PTR impl) : _impl(impl) {
 
 }
 
