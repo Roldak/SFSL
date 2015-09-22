@@ -27,6 +27,9 @@ public:
 
     virtual ~ASTPrinter();
 
+    virtual void visit(ASTNode* node) override;
+
+    virtual void visit(Program* prog) override;
     virtual void visit(ModuleDecl* module) override;
     virtual void visit(TypeDecl* tdecl) override;
     virtual void visit(ClassDecl* clss) override;
@@ -39,6 +42,7 @@ public:
     virtual void visit(TypeMemberAccess* tdot) override;
     virtual void visit(TypeTuple* ttuple) override;
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
+    virtual void visit(TypeConstructorCall* tcall) override;
     virtual void visit(TypeIdentifier* tident) override;
     virtual void visit(TypeToBeInferred* tbi) override;
     virtual void visit(KindSpecifier* ks) override;
@@ -53,6 +57,7 @@ public:
     virtual void visit(MemberAccess* dot) override;
     virtual void visit(Tuple* tuple) override;
     virtual void visit(FunctionCreation* func) override;
+    virtual void visit(FunctionCall* call) override;
     virtual void visit(Identifier* ident) override;
     virtual void visit(This* ths) override;
     virtual void visit(BoolLitteral* boollit) override;

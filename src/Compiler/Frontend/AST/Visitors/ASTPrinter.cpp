@@ -21,6 +21,16 @@ ASTPrinter::~ASTPrinter() {
 
 }
 
+void ASTPrinter::visit(ASTNode*) {
+    throw common::CompilationFatalError("Unimplemented visitor");
+}
+
+void ASTPrinter::visit(Program* prog) {
+    for (ast::ModuleDecl* mod : prog->getModules()) {
+        mod->onVisit(this);
+    }
+}
+
 void ASTPrinter::visit(ModuleDecl *module) {
     _ostream << "module " << module->getName()->getValue() << " {" << std::endl;
 
@@ -177,6 +187,11 @@ void ASTPrinter::visit(TypeConstructorCreation* typeconstructor) {
     _ostream << ")";
 }
 
+void ASTPrinter::visit(TypeConstructorCall* tcall) {
+    tcall->getCallee()->onVisit(this);
+    tcall->getArgsTuple()->onVisit(this);
+}
+
 void ASTPrinter::visit(TypeIdentifier* tident) {
     _ostream << tident->getValue();
 }
@@ -288,6 +303,11 @@ void ASTPrinter::visit(FunctionCreation* func) {
     _ostream << " => ";
     func->getBody()->onVisit(this);
     _ostream << ")";
+}
+
+void ASTPrinter::visit(FunctionCall* call) {
+    call->getCallee()->onVisit(this);
+    call->getArgsTuple()->onVisit(this);
 }
 
 void ASTPrinter::visit(Identifier* ident) {
