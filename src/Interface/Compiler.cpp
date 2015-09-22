@@ -72,7 +72,7 @@ public:
         return mngr.New<ast::ModuleDecl>(mngr.New<ast::Identifier>(_name), closeContainer(mngr), _tdecls, _ddecls);
     }
 
-    void def(const std::string& defName, Type defType) {
+    void externDef(const std::string& defName, Type defType) {
         ast::Identifier* nameId = mngr.New<ast::Identifier>(defName);
         _ddecls.push_back(mngr.New<ast::DefineDecl>(nameId, defType._impl->_type, nullptr, false, true));
     }
@@ -262,8 +262,8 @@ Module Module::openModule(const std::string& moduleName) const {
     return Module(NEW_MODULE_IMPL(_impl->mngr, nullptr));
 }
 
-void Module::def(const std::string& defName, Type defType) {
-    _impl->def(defName, defType);
+void Module::externDef(const std::string& defName, Type defType) {
+    _impl->externDef(defName, defType);
 }
 
 void Module::typeDef(const std::string& typeName, Type type) {

@@ -26,7 +26,7 @@ public:
 
     Module openModule(const std::string& name) const;
 
-    void def(const std::string& defName, Type defType);
+    void externDef(const std::string& defName, Type defType);
     void typeDef(const std::string& typeName, Type type);
 
 private:
