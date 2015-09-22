@@ -72,13 +72,18 @@ public:
         return mngr.New<ast::ModuleDecl>(mngr.New<ast::Identifier>(_name), closeContainer(mngr), _tdecls, _ddecls);
     }
 
+    void def(const std::string& defName, Type defType) {
+        ast::Identifier* nameId = mngr.New<ast::Identifier>(defName);
+        _ddecls.push_back(mngr.New<ast::DefineDecl>(nameId, defType._impl->_type, nullptr, false, true));
+    }
+
     void typeDef(const std::string& name, Type type) {
         _tdecls.push_back(mngr.New<ast::TypeDecl>(mngr.New<ast::TypeIdentifier>(name), type._impl->_type));
     }
 
     common::AbstractMemoryManager& mngr;
 
-    const std::string& _name;
+    const std::string _name;
     std::vector<ast::TypeDecl*> _tdecls;
     std::vector<ast::DefineDecl*> _ddecls;
 };
@@ -143,6 +148,9 @@ std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
 
     CompCtx_Ptr ctx = _impl->ctx;
     ast::Program* prog = progBuilder._impl->createUpdatedProgram();
+
+    ast::ASTPrinter printer(ctx, std::cout);
+    prog->onVisit(&printer);
 
     try {
 
@@ -252,6 +260,10 @@ Module Module::openModule(const std::string& moduleName) const {
         return _impl->openModule(moduleName);
     }
     return Module(NEW_MODULE_IMPL(_impl->mngr, nullptr));
+}
+
+void Module::def(const std::string& defName, Type defType) {
+    _impl->def(defName, defType);
 }
 
 void Module::typeDef(const std::string& typeName, Type type) {

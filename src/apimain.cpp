@@ -15,10 +15,11 @@ int main() {
                                                  "type string = class {}"
                                              "}"
                                          "}"
-                                         "module program { def main() => {x: int; x;} }");
+                                         "module program { def main() => {x: int; f(x);} }");
 
     sfsl::Module mod = builder.openModule("program");
     mod.typeDef("int", cmp.parseType("sfsl.lang.int"));
+    mod.def("f", cmp.parseType("(int)->sfsl.lang.real"));
 
     try {
         for (const std::string& str : cmp.compile(builder)) {

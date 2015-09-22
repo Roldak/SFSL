@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
             return 1;
         }
 
-        std::cout << "Execution Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << std::endl << std::endl;
+        std::cout << "Compilation Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << std::endl << std::endl;
 
     } catch(const sfsl::common::CompilationFatalError& ex) {
         std::cerr << ex.what() << std::endl;
