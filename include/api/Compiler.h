@@ -29,6 +29,7 @@ public:
     std::vector<std::string> compile(ProgramBuilder progBuilder);
 
     Type parseType(const std::string& str);
+    Type createFunctionType(const std::vector<Type>& argTypes, Type retType);
 
 private:
     PRIVATE_IMPL_PTR(Compiler) _impl;

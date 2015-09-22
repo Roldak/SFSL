@@ -18,8 +18,10 @@ int main() {
                                          "module program { def main() => {math.sin(math.pi);} }");
 
     sfsl::Module mod = builder.openModule("math");
-    mod.externDef("pi", cmp.parseType("sfsl.lang.real"));
-    mod.externDef("sin", cmp.parseType("(sfsl.lang.real)->sfsl.lang.real"));
+    sfsl::Type real = cmp.parseType("sfsl.lang.real");
+
+    mod.externDef("pi", real);
+    mod.externDef("sin", cmp.createFunctionType({real}, real));
 
     try {
         for (const std::string& str : cmp.compile(builder)) {

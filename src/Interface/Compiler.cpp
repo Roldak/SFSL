@@ -220,6 +220,15 @@ Type Compiler::parseType(const std::string& str) {
     return Type(NEW_TYPE_IMPL(_impl->ctx->reporter().getErrorCount() == 0 ? tpe : nullptr));
 }
 
+Type Compiler::createFunctionType(const std::vector<Type>& argTypes, Type retType) {
+    std::vector<ast::TypeExpression*> argTypeExprs(argTypes.size());
+    ast::TypeExpression* retTypeExpr = retType._impl->_type;
+
+    std::transform(argTypes.begin(), argTypes.end(), argTypeExprs.begin(), [](Type t) { return t._impl->_type;});
+
+    return Type(NEW_TYPE_IMPL(_impl->ctx->memoryManager().New<ast::FunctionTypeDecl>(argTypeExprs, retTypeExpr)));
+}
+
 // PROGRAM BUILDER
 
 ProgramBuilder::ProgramBuilder(PROGRAMBUILDER_IMPL_PTR impl) : _impl(impl) {
