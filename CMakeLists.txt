@@ -48,7 +48,7 @@ endfunction()
 file(GLOB_RECURSE COMPILER_SRC_LIST ./src/Compiler/*.cpp)
 file(GLOB_RECURSE UTILS_SRC_LIST ./src/Utils/*.cpp)
 
-add_library(${COMPILER_LIB_TARGET} ${COMPILER_LIB_TYPE} ${COMPILER_SRC_LIST})
+add_library(${COMPILER_LIB_TARGET} ${COMPILER_LIB_TYPE} ${COMPILER_SRC_LIST} ${UTILS_SRC_LIST})
 apply_target_properties(${COMPILER_LIB_TARGET} ${COMPILER_LIB_BUILD_TYPE} ${COMPILER_LIB_OUTPUT_NAME})
 
 target_include_directories(${COMPILER_LIB_TARGET} PRIVATE ./src/)
