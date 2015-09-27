@@ -135,6 +135,8 @@ public:
     const std::vector<Type*>& getArgTypes() const;
     Type* getRetType() const;
 
+    static MethodType* fromFunctionType(const FunctionType* ft, ast::ClassDecl* owner, CompCtx_Ptr& ctx);
+
 private:
 
     ast::ClassDecl* _owner;

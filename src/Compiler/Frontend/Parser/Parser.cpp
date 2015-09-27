@@ -112,6 +112,12 @@ TypeIdentifier* Parser::parseTypeIdentifier(const std::string& errMsg) {
     return parseIdentifierHelper<TypeIdentifier>(errMsg);
 }
 
+bool consumeExtern(bool& externVal) {
+    bool tmp = externVal;
+    externVal = false;
+    return tmp;
+}
+
 // Parsing
 
 Program* Parser::parseProgram() {
@@ -140,18 +146,22 @@ ModuleDecl* Parser::parseModule() {
     expect(tok::OPER_L_BRACE, "`{`");
 
     while (!accept(tok::OPER_R_BRACE)) {
+        bool isExtern = accept(tok::KW_EXTERN);
+        SAVE_POS(externElemPos);
+
         if (accept(tok::KW_MODULE)) {
             mods.push_back(parseModule());
         } else if (accept(tok::KW_TPE)) {
             types.push_back(parseType(false));
-        } else if (accept(tok::KW_EXTERN)) {
-            expect(tok::KW_DEF, "`def`");
-            decls.push_back(parseDef(false, false, true));
         } else if (accept(tok::KW_DEF)) {
-            decls.push_back(parseDef(false, false, false));
+            decls.push_back(parseDef(false, false, consumeExtern(isExtern)));
         } else {
             expect(tok::OPER_R_BRACE, "`}`");
             break;
+        }
+
+        if (isExtern) {
+            _ctx->reporter().error(externElemPos, "Modules or type declarations cannot be declared extern");
         }
     }
 
@@ -219,12 +229,15 @@ ClassDecl* Parser::parseClass() {
     std::vector<DefineDecl*> defs;
 
     while (!accept(tok::OPER_R_BRACE)) {
+        bool isExtern = accept(tok::KW_EXTERN);
+        SAVE_POS(externElemPos);
+
         if (accept(tok::KW_TPE)) {
             tdecls.push_back(parseType(false));
         } else if (accept(tok::KW_DEF)) {
-            defs.push_back(parseDef(false, false, false));
+            defs.push_back(parseDef(false, false, consumeExtern(isExtern)));
         } else if (accept(tok::KW_REDEF)) {
-            defs.push_back(parseDef(false, true, false));
+            defs.push_back(parseDef(false, true, consumeExtern(isExtern)));
         } else {
             Identifier* fieldName = parseIdentifier("Expected field name | def");
             expect(tok::OPER_COLON, "`:`");
@@ -236,6 +249,10 @@ ClassDecl* Parser::parseClass() {
             field->setEndPos(_lastTokenEndPos);
 
             fields.push_back(field);
+        }
+
+        if (isExtern) {
+            _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared extern");
         }
     }
 

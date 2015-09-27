@@ -163,6 +163,12 @@ void TypeChecking::visit(DefineDecl* decl) {
         if (TypeExpression* expr = decl->getTypeSpecifier()) {
             expr->onVisit(this);
             expectedType = ASTTypeCreator::createType(expr, _ctx);
+
+            if (expectedType->applyTCCallsOnly(_ctx)->getTypeKind() == type::TYPE_FUNCTION && _currentThis) {
+                expectedType = type::MethodType::fromFunctionType(
+                            static_cast<type::FunctionType*>(expectedType->applyTCCallsOnly(_ctx)),
+                            static_cast<ast::ClassDecl*>(_currentThis), _ctx);
+            }
         }
 
         if (Expression* value = decl->getValue()) {

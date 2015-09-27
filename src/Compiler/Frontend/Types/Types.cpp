@@ -341,6 +341,10 @@ Type* MethodType::getRetType() const {
     return _retType;
 }
 
+MethodType* MethodType::fromFunctionType(const FunctionType* ft, ast::ClassDecl* owner, CompCtx_Ptr& ctx) {
+    return ctx->memoryManager().New<MethodType>(owner, ft->getArgTypes(), ft->getRetType(), ft->getSubstitutionTable());
+}
+
 // TYPE CONSTRUCTOR
 
 TypeConstructorType::TypeConstructorType(ast::TypeConstructorCreation*typeConstructor, const SubstitutionTable& substitutionTable)
