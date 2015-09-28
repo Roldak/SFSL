@@ -227,7 +227,6 @@ void ScopeGeneration::visit(FunctionCreation* func) {
 void ScopeGeneration::visit(TypeSpecifier* tps) {
     tps->getTypeNode()->onVisit(this);
     createVar(tps->getSpecified());
-    setVariableSymbolicUsed(tps->getSpecified(), false);
 }
 
 void ScopeGeneration::createVar(Identifier* id) {
@@ -430,6 +429,11 @@ void SymbolAssignation::visit(TypeIdentifier* id) {
 void SymbolAssignation::visit(BinaryExpression* exp) {
     exp->getLhs()->onVisit(this);
     exp->getRhs()->onVisit(this);
+}
+
+void SymbolAssignation::visit(TypeSpecifier* tps) {
+    tps->getTypeNode()->onVisit(this);
+    setVariableSymbolicUsed(tps->getSpecified(), false);
 }
 
 void SymbolAssignation::visit(MemberAccess* mac) {

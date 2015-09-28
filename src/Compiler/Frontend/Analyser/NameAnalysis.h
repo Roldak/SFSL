@@ -118,6 +118,7 @@ public:
     virtual void visit(TypeIdentifier* tident) override;
 
     virtual void visit(BinaryExpression* exp) override;
+    virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(MemberAccess* mac) override;
     virtual void visit(Block* block) override;
     virtual void visit(FunctionCreation* func) override;
