@@ -138,25 +138,35 @@ type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, 
 }
 
 void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos) {
-    if (sym::Symbol* s = symbolic->getSymbol()) {
-        if (s->getSymbolType() != sym::SYM_TPE) {
-            return;
+    std::vector<sym::TypeSymbol*> typeSyms;
+    for (const auto& symData : symbolic->getSymbolDatas()) {
+        if (symData.symbol->getSymbolType() == sym::SYM_TPE) {
+            typeSyms.push_back(static_cast<sym::TypeSymbol*>(symData.symbol));
         }
+    }
 
-        sym::TypeSymbol* ts = static_cast<sym::TypeSymbol*>(s);
+    if (typeSyms.empty()) {
+        return;
+    } else if (typeSyms.size() > 1) {
+        _ctx->reporter().error(pos, "Symbolic refers to multiple type symbols (" + utils::T_toString(typeSyms.size()) + " found)");
+        for (const sym::TypeSymbol* ts : typeSyms) {
+            _ctx->reporter().info(*ts, "This one");
+        }
+    }
 
-        if (ts->type() == type::Type::NotYetDefined()) {
+    sym::TypeSymbol* ts = typeSyms.front();
 
-            if (TRY_INSERT(_visitedTypes, ts)) {
-                ts->getTypeDecl()->getExpression()->onVisit(this);
-                ts->setType(_created);
-            } else {
-                _ctx->reporter().error(pos, "A cyclic dependency was found");
-            }
+    if (ts->type() == type::Type::NotYetDefined()) {
 
+        if (TRY_INSERT(_visitedTypes, ts)) {
+            ts->getTypeDecl()->getExpression()->onVisit(this);
+            ts->setType(_created);
         } else {
-            _created = ts->type();
+            _ctx->reporter().error(pos, "A cyclic dependency was found");
         }
+
+    } else {
+        _created = ts->type();
     }
 }
 
