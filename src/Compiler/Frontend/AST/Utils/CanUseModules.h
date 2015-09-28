@@ -23,6 +23,9 @@ namespace ast {
  * an object is using
  */
 class CanUseModules {
+protected:
+    CanUseModules();
+
 public:
     /**
      * @brief A module path

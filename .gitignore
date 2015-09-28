@@ -1,3 +1,2 @@
 *.autosave
-/CMakeLists.txt.user.16
-*.txt.user
+*.txt.user*

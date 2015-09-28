@@ -89,6 +89,7 @@ public:
 private:
 
     Symbol* _getSymbol(const std::string& name, SYM_TYPE symType, bool recursive, bool searchUsings) const;
+    bool _assignSymbolicPrologue(Symbolic<Symbol>& symbolic, const std::string& id, bool searchUsings) const;
     bool _assignSymbolic(Symbolic<Symbol>& symbolic, const std::string& id, bool searchUsings) const;
 
     Scope* _parent;
@@ -101,7 +102,7 @@ private:
 
 template<typename T>
 bool Scope::assignSymbolic(Symbolic<T>& symbolic, const std::string& id) {
-    return _assignSymbolic(static_cast<Symbolic<Symbol>&>(symbolic), id, true);
+    return _assignSymbolicPrologue(static_cast<Symbolic<Symbol>&>(symbolic), id, true);
 }
 
 template<>

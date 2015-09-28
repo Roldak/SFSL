@@ -40,6 +40,7 @@ public:
     bool isUsed() const;
 
 private:
+
     bool _used;
 };
 
