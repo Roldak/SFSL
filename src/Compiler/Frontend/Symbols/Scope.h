@@ -80,6 +80,7 @@ public:
      * @brief Builds the related scopes from the using statements
      * given by the CanUseModules object.
      *
+     * @param ctx The compilation context
      * @param obj The CanUseModules object which contains
      * the paths to the "used" modules
      */

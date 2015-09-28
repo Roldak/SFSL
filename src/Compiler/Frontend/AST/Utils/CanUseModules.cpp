@@ -43,7 +43,7 @@ std::string CanUseModules::ModulePath::toString(size_t toElemIndex) const {
         toRet += _pathUnits[i] + ".";
     }
 
-    return toRet + _pathUnits.back();
+    return toRet + _pathUnits[toElemIndex - 1];
 }
 
 CanUseModules::~CanUseModules() {
