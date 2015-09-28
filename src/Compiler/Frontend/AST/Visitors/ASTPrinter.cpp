@@ -31,10 +31,12 @@ void ASTPrinter::visit(Program* prog) {
     }
 }
 
-void ASTPrinter::visit(ModuleDecl *module) {
+void ASTPrinter::visit(ModuleDecl* module) {
     _ostream << "module " << module->getName()->getValue() << " {" << std::endl;
 
     ++_indentCount;
+
+    printUsings(*module, false);
 
     for (ModuleDecl* mod : module->getSubModules()) {
         printIndents();
@@ -337,6 +339,17 @@ void ASTPrinter::visit(StringLitteral* strlit) {
 void ASTPrinter::printIndents() {
     for (size_t i = 0; i < _indentCount; ++i) {
         _ostream << "    ";
+    }
+}
+
+void ASTPrinter::printUsings(const CanUseModules& canUseModules, bool asStatement) {
+    for (const CanUseModules::ModulePath& path : canUseModules.getUsedModules()) {
+        printIndents();
+        _ostream << "using " << path.toString();
+        if (asStatement) {
+            _ostream << ";";
+        }
+        _ostream << std::endl;
     }
 }
 

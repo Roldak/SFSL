@@ -68,6 +68,7 @@ public:
 private :
 
     void printIndents();
+    void printUsings(const CanUseModules& canUseModules, bool asStatement);
 
     size_t _indentCount;
 

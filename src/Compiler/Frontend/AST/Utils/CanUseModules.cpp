@@ -28,6 +28,24 @@ size_t CanUseModules::ModulePath::size() const {
     return _pathUnits.size();
 }
 
+std::string CanUseModules::ModulePath::toString() const {
+    return toString(size());
+}
+
+std::string CanUseModules::ModulePath::toString(size_t toElemIndex) const {
+    if (toElemIndex == 0) {
+        return "";
+    }
+
+    std::string toRet = "";
+
+    for (size_t i = 0; i < toElemIndex - 1; ++i) {
+        toRet += _pathUnits[i] + ".";
+    }
+
+    return toRet + _pathUnits.back();
+}
+
 CanUseModules::~CanUseModules() {
 
 }

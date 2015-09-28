@@ -29,6 +29,9 @@ public:
         const std::string& operator[](size_t index) const;
         size_t size() const;
 
+        std::string toString() const;
+        std::string toString(size_t toElemIndex) const;
+
     private:
 
         std::vector<std::string> _pathUnits;
