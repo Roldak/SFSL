@@ -191,11 +191,11 @@ void ASTImplicitVisitor::visit(Identifier*) {
 
 }
 
-void ASTImplicitVisitor::visit(This* ths) {
+void ASTImplicitVisitor::visit(This*) {
 
 }
 
-void ASTImplicitVisitor::visit(BoolLitteral* boollit) {
+void ASTImplicitVisitor::visit(BoolLitteral*) {
 
 }
 

@@ -14,9 +14,9 @@
 #include "../../Common/MemoryManageable.h"
 #include "../../Common/Positionnable.h"
 #include "../../Common/ManageableUserData.h"
-#include "../../../Utils/Utils.h"
 #include "../Types/Types.h"
 #include "../Kinds/Kinds.h"
+#include "../AST/Utils/UsageTrackable.h"
 #include "Scoped.h"
 
 namespace sfsl {
@@ -123,7 +123,11 @@ private:
 /**
  * @brief Represents the symbol associated to a variable
  */
-class VariableSymbol : public Symbol, public type::Typed, public utils::UsageTrackable, public common::HasManageableUserdata {
+class VariableSymbol :
+        public Symbol,
+        public type::Typed,
+        public ast::UsageTrackable,
+        public common::HasManageableUserdata {
 public:
     VariableSymbol(const std::string& name);
     virtual ~VariableSymbol();
