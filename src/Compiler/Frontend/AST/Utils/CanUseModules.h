@@ -12,13 +12,27 @@
 #include <iostream>
 #include <vector>
 
+#include "../../../Common/Positionnable.h"
+
 namespace sfsl {
 
 namespace ast {
 
 class CanUseModules {
 public:
-    typedef std::vector<std::string> ModulePath;
+    class ModulePath : public common::Positionnable {
+    public:
+
+        virtual ~ModulePath();
+
+        void push_back(const std::string& pathUnit);
+        const std::string& operator[](size_t index) const;
+        size_t size() const;
+
+    private:
+
+        std::vector<std::string> _pathUnits;
+    };
 
     virtual ~CanUseModules();
 

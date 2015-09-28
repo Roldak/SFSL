@@ -137,7 +137,6 @@ Program* Parser::parseProgram() {
 }
 
 ModuleDecl* Parser::parseModule() {
-
     Identifier* moduleName = parseIdentifier("Expected module name");
     std::vector<ModuleDecl*> mods;
     std::vector<TypeDecl*> types;
@@ -689,7 +688,7 @@ TypeTuple* Parser::parseTypeTuple() {
     return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression>(exprs, [&](){return parseTypeExpression();});
 }
 
-CanUseModules::ModulePath Parser::parseUsing(common::Positionnable usingpos, bool asStatement) {
+CanUseModules::ModulePath Parser::parseUsing(const common::Positionnable& usingpos, bool asStatement) {
     CanUseModules::ModulePath mpath;
 
     do {
@@ -706,6 +705,9 @@ CanUseModules::ModulePath Parser::parseUsing(common::Positionnable usingpos, boo
     if (asStatement) {
         expect(tok::OPER_SEMICOLON, "`;`");
     }
+
+    mpath.setPos(usingpos);
+    mpath.setEndPos(_lastTokenEndPos);
 
     return mpath;
 }

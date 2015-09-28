@@ -12,6 +12,22 @@ namespace sfsl {
 
 namespace ast {
 
+CanUseModules::ModulePath::~ModulePath() {
+
+}
+
+void CanUseModules::ModulePath::push_back(const std::string& pathUnit) {
+    _pathUnits.push_back(pathUnit);
+}
+
+const std::string& CanUseModules::ModulePath::operator[](size_t index) const {
+    return _pathUnits[index];
+}
+
+size_t CanUseModules::ModulePath::size() const {
+    return _pathUnits.size();
+}
+
 CanUseModules::~CanUseModules() {
 
 }

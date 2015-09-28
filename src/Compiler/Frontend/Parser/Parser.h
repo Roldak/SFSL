@@ -114,7 +114,7 @@ private:
     ast::Tuple* parseTuple();
     ast::TypeTuple* parseTypeTuple();
 
-    ast::CanUseModules::ModulePath parseUsing(common::Positionnable usingpos, bool asStatement);
+    ast::CanUseModules::ModulePath parseUsing(const common::Positionnable& usingpos, bool asStatement);
 
         // others
 
