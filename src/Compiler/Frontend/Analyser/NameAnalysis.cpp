@@ -354,6 +354,8 @@ SymbolAssignation::~SymbolAssignation() {
 void SymbolAssignation::visit(ModuleDecl* mod) {
     SAVE_SCOPE(mod->getSymbol())
 
+    _curScope->buildUsingsFromPaths(_ctx, *mod);
+
     ASTImplicitVisitor::visit(mod);
 
     RESTORE_SCOPE

@@ -46,7 +46,35 @@ const std::multimap<std::string, SymbolData>& Scope::getAllSymbols() const {
     return _symbols;
 }
 
-Symbol* Scope::_getSymbol(const std::string& name, SYM_TYPE symType, bool recursive) const {
+void Scope::buildUsingsFromPaths(CompCtx_Ptr& ctx, const ast::CanUseModules& obj) {
+    const std::vector<ast::CanUseModules::ModulePath>& paths(obj.getUsedModules());
+
+    for (const ast::CanUseModules::ModulePath& path : paths) {
+        ModuleSymbol* curMod = static_cast<ModuleSymbol*>(_getSymbol(path[0], sym::SYM_MODULE, true, false));
+        if (!curMod) {
+            ctx->reporter().error(path, "Cannot find any module named `" + path[0] + "`");
+            break;
+        }
+
+        bool ok = true;
+        for (size_t i = 1; i < path.size(); ++i) {
+            if (ModuleSymbol* next = static_cast<ModuleSymbol*>(
+                        curMod->getScope()->_getSymbol(path[i], sym::SYM_MODULE, false, false))) {
+                curMod = next;
+            } else {
+                ok = false;
+                ctx->reporter().error(path, "No module named `" + path[i] + "` inside module `" + path.toString(i) + "`");
+                break;
+            }
+        }
+
+        if (ok) {
+            _usedScopes.push_back(curMod->getScope());
+        }
+    }
+}
+
+Symbol* Scope::_getSymbol(const std::string& name, SYM_TYPE symType, bool recursive, bool searchUsings) const {
     if (_isDefScope && symType == SYM_VAR) {
         return nullptr;
     }
@@ -55,14 +83,22 @@ Symbol* Scope::_getSymbol(const std::string& name, SYM_TYPE symType, bool recurs
 
     if (it != _symbols.end() && (it->second.symbol->getSymbolType() == symType || symType == -1)) {
         return it->second.symbol;
-    } else if (_parent && recursive) {
-        return _parent->_getSymbol(name, symType, recursive);
+    } else if (recursive) {
+        Symbol* found = _parent ? _parent->_getSymbol(name, symType, recursive, searchUsings) : nullptr;
+        if (!found && searchUsings) {
+            for (const Scope* s : _usedScopes) {
+                if ((found = s->_getSymbol(name, symType, false, false))) {
+                    break;
+                }
+            }
+        }
+        return found;
     } else {
         return nullptr;
     }
 }
 
-bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& id) const {
+bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& id, bool searchUsings) const {
     const auto& itPair = _symbols.equal_range(id);
 
     if (itPair.first != itPair.second) {
@@ -72,11 +108,19 @@ bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& 
             symbolic._symbols.push_back(Symbolic<Symbol>::SymbolData{.symbol = data.symbol, .env = &data.env});
         }
         return true;
-    } else if (_parent) {
-        return _parent->_assignSymbolic(symbolic, id);
-    } else {
-        return false;
+    } else if (searchUsings) {
+        if (_parent && _parent->_assignSymbolic(symbolic, id, searchUsings)) {
+            return true;
+        }
+
+        for (const Scope* s : _usedScopes) {
+            if (s->_assignSymbolic(symbolic, id, false)) {
+                return true;
+            }
+        }
     }
+
+    return false;
 }
 
 }
