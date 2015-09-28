@@ -142,12 +142,14 @@ ModuleDecl* Parser::parseModule() {
     std::vector<ModuleDecl*> mods;
     std::vector<TypeDecl*> types;
     std::vector<DefineDecl*> decls;
+    std::vector<CanUseModules::ModulePath> usings;
 
     expect(tok::OPER_L_BRACE, "`{`");
 
     while (!accept(tok::OPER_R_BRACE)) {
+        SAVE_POS(keywordPos)
         bool isExtern = accept(tok::KW_EXTERN);
-        SAVE_POS(externElemPos);
+        SAVE_POS(externElemPos)
 
         if (accept(tok::KW_MODULE)) {
             mods.push_back(parseModule());
@@ -155,6 +157,8 @@ ModuleDecl* Parser::parseModule() {
             types.push_back(parseType(false));
         } else if (accept(tok::KW_DEF)) {
             decls.push_back(parseDef(false, false, consumeExtern(isExtern)));
+        } else if (accept(tok::KW_USING)) {
+            usings.push_back(parseUsing(keywordPos, false));
         } else {
             expect(tok::OPER_R_BRACE, "`}`");
             break;
@@ -166,6 +170,7 @@ ModuleDecl* Parser::parseModule() {
     }
 
     ModuleDecl* modDecl = _mngr.New<ModuleDecl>(moduleName, mods, types, decls);
+    modDecl->setUsedModules(usings);
     modDecl->setPos(*moduleName);
     modDecl->setEndPos(_lastTokenEndPos);
 
@@ -682,6 +687,27 @@ Tuple* Parser::parseTuple() {
 TypeTuple* Parser::parseTypeTuple() {
     std::vector<TypeExpression*> exprs;
     return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression>(exprs, [&](){return parseTypeExpression();});
+}
+
+CanUseModules::ModulePath Parser::parseUsing(common::Positionnable usingpos, bool asStatement) {
+    CanUseModules::ModulePath mpath;
+
+    do {
+        if (isType(tok::TOK_ID)) {
+            tok::Identifier* id = as<tok::Identifier>();
+            mpath.push_back(id->toString());
+            accept();
+        } else {
+            _ctx->reporter().error(*_currentToken, "Expected identifier in module path, but got `" + _currentToken->toString()+ "`");
+            break;
+        }
+    } while (accept(tok::OPER_DOT));
+
+    if (asStatement) {
+        expect(tok::OPER_SEMICOLON, "`;`");
+    }
+
+    return mpath;
 }
 
 template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>

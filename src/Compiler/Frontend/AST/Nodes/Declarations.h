@@ -16,6 +16,7 @@
 #include "KindExpressions.h"
 #include "../../Symbols/Symbols.h"
 #include "../../Symbols/Symbolic.h"
+#include "../Utils/CanUseModules.h"
 
 namespace sfsl {
 
@@ -32,7 +33,10 @@ class TypeDecl;
  *  - The list of its classes
  *  - The list of its definitions
  */
-class ModuleDecl : public ASTNode, public sym::Symbolic<sym::ModuleSymbol> {
+class ModuleDecl :
+        public ASTNode,
+        public sym::Symbolic<sym::ModuleSymbol>,
+        public CanUseModules {
 public:
 
     ModuleDecl(Identifier* name,

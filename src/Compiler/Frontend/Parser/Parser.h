@@ -114,6 +114,8 @@ private:
     ast::Tuple* parseTuple();
     ast::TypeTuple* parseTypeTuple();
 
+    ast::CanUseModules::ModulePath parseUsing(common::Positionnable usingpos, bool asStatement);
+
         // others
 
     template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
