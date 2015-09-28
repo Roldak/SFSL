@@ -713,6 +713,8 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         }
     }
 
+    OverloadedDefSymbolCandidate* chosen;
+
     switch (theChosenOnes.size()) {
     case 0:
         _rep.error(*triggerer, "No viable candidate found among " + utils::T_toString(candidates.size()) + " overloads");
@@ -720,15 +722,16 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
 
     default: {
         size_t properDefCount = 0;
+        chosen = theChosenOnes[0];
         for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
             if (!candidate->symbol()->getDef()->isRedef()) {
-                theChosenOnes[0] = candidate;
+                chosen = candidate;
                 ++properDefCount;
             }
         }
 
         if (properDefCount > 1) {
-            _rep.error(*triggerer, "Ambiguous symbol access. Multiple candidates match the required type:");
+            _rep.error(*triggerer, "Ambiguous symbol access. Multiple candidates match the requirement:");
             for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
                 _rep.info(*candidate->symbol(), "Is a viable candidate (has type " + candidate->appliedType()->toString() + ")");
             }
@@ -736,7 +739,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
     }
 
     case 1:
-        return {theChosenOnes[0]->symbol(), theChosenOnes[0]->env()};
+        return {chosen->symbol(), chosen->env()};
     }
 }
 

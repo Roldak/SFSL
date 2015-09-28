@@ -117,10 +117,14 @@ bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& 
             return true;
         }
 
+        bool ok = false;
+
         for (const Scope* s : _usedScopes) {
-            if (s->_assignSymbolic(symbolic, id, false)) {
-                return true;
-            }
+            ok = ok | s->_assignSymbolic(symbolic, id, false);
+        }
+
+        if (ok) {
+            return true;
         }
     }
 
