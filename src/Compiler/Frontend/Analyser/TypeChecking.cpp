@@ -713,7 +713,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         }
     }
 
-    OverloadedDefSymbolCandidate* chosen;
+    OverloadedDefSymbolCandidate* chosen = theChosenOnes.empty() ? nullptr : theChosenOnes.front();
 
     switch (theChosenOnes.size()) {
     case 0:
@@ -722,7 +722,6 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
 
     default: {
         size_t properDefCount = 0;
-        chosen = theChosenOnes[0];
         for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
             if (!candidate->symbol()->getDef()->isRedef()) {
                 chosen = candidate;
