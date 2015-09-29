@@ -30,6 +30,10 @@ ScopePossessorVisitor::~ScopePossessorVisitor() {
 
 }
 
+void ScopePossessorVisitor::buildUsingsFromPaths(const CanUseModules* canUseModules) {
+    _curScope->buildUsingsFromPaths(_ctx, *canUseModules);
+}
+
 void ScopePossessorVisitor::tryAddSymbol(sym::Symbol* sym) {
     if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
         _ctx->reporter().error(*sym, std::string("Multiple definitions of symbol '") +
@@ -353,7 +357,7 @@ SymbolAssignation::~SymbolAssignation() {
 void SymbolAssignation::visit(ModuleDecl* mod) {
     SAVE_SCOPE(mod->getSymbol())
 
-    _curScope->buildUsingsFromPaths(_ctx, *mod);
+    buildUsingsFromPaths(mod);
 
     ASTImplicitVisitor::visit(mod);
 
@@ -436,18 +440,20 @@ void SymbolAssignation::visit(TypeSpecifier* tps) {
     setVariableSymbolicUsed(tps->getSpecified(), false);
 }
 
-void SymbolAssignation::visit(MemberAccess* mac) {
-    assignMemberAccess(mac);
-}
-
 void SymbolAssignation::visit(Block* block) {
     SAVE_SCOPE(block)
+
+    buildUsingsFromPaths(block);
 
     ASTImplicitVisitor::visit(block);
 
     warnForUnusedVariableInCurrentScope();
 
     RESTORE_SCOPE
+}
+
+void SymbolAssignation::visit(MemberAccess* mac) {
+    assignMemberAccess(mac);
 }
 
 void SymbolAssignation::visit(FunctionCreation* func) {

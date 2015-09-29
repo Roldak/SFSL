@@ -17,6 +17,7 @@
 #include "../../Symbols/Symbolic.h"
 #include "../../Types/Types.h"
 #include "../../Types/TypeParametrizable.h"
+#include "../Utils/CanUseModules.h"
 
 namespace sfsl {
 
@@ -150,7 +151,10 @@ private:
 /**
  * @brief Represents a block, aka a list of statements
  */
-class Block : public Expression, public sym::Scoped {
+class Block :
+        public Expression,
+        public sym::Scoped,
+        public CanUseModules {
 public:
     Block(const std::vector<Expression*>& stats);
     virtual ~Block();

@@ -612,14 +612,22 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
 
 Block* Parser::parseBlock() {
     std::vector<Expression*> stats;
+    std::vector<CanUseModules::ModulePath> usings;
 
     SAVE_POS(startPos)
 
     while (!accept(tok::OPER_R_BRACE)) {
-        stats.push_back(parseStatement());
+        SAVE_POS(usingPos)
+
+        if (accept(tok::KW_USING)) {
+            usings.push_back(parseUsing(usingPos, true));
+        } else {
+            stats.push_back(parseStatement());
+        }
     }
 
     Block* block = _mngr.New<Block>(stats);
+    block->setUsedModules(usings);
     block->setPos(startPos);
     block->setEndPos(_lastTokenEndPos);
 

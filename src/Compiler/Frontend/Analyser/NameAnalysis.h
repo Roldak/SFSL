@@ -35,6 +35,8 @@ protected:
     template<typename T>
     void setVariableSymbolicUsed(T* symbolic, bool val);
 
+    void buildUsingsFromPaths(const CanUseModules* canUseModules);
+
     sym::DefinitionSymbol* createSymbol(DefineDecl* node, TypeExpression* currentThis);
     sym::TypeSymbol* createSymbol(TypeDecl* node);
 
@@ -119,8 +121,8 @@ public:
 
     virtual void visit(BinaryExpression* exp) override;
     virtual void visit(TypeSpecifier* tps) override;
-    virtual void visit(MemberAccess* mac) override;
     virtual void visit(Block* block) override;
+    virtual void visit(MemberAccess* mac) override;
     virtual void visit(FunctionCreation* func) override;
     virtual void visit(Identifier* id) override;
 
