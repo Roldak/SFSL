@@ -113,19 +113,19 @@ bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& 
         }
         return true;
     } else if (searchUsings) {
-        if (_parent && _parent->_assignSymbolic(symbolic, id, searchUsings)) {
-            return true;
-        }
-
         bool ok = false;
 
         for (const Scope* s : _usedScopes) {
             ok = ok | s->_assignSymbolic(symbolic, id, false);
         }
 
-        if (ok) {
-            return true;
+        if (!ok) { // couldn't find symbol in usings
+            if (!(_parent && _parent->_assignSymbolic(symbolic, id, searchUsings))) { // couldn't find symbol in parents
+                return false;
+            }
         }
+
+        return true;
     }
 
     return false;
