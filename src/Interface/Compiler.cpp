@@ -26,16 +26,19 @@
 #define TYPE_IMPL_NAME              NAME_OF_IMPL(Type)
 #define MODULE_IMPL_NAME            NAME_OF_IMPL(Module)
 #define PROGRAMBUILDER_IMPL_NAME    NAME_OF_IMPL(ProgramBuilder)
+#define CLASSBUILDER_IMPL_NAME      NAME_OF_IMPL(ClassBuilder)
 
 #define COMPILER_IMPL_PTR           PRIVATE_IMPL_PTR(Compiler)
 #define TYPE_IMPL_PTR               PRIVATE_IMPL_PTR(Type)
 #define MODULE_IMPL_PTR             PRIVATE_IMPL_PTR(Module)
 #define PROGRAMBUILDER_IMPL_PTR     PRIVATE_IMPL_PTR(ProgramBuilder)
+#define CLASSBUILDER_IMPL_PTR       PRIVATE_IMPL_PTR(ClassBuilder)
 
 #define NEW_COMPILER_IMPL           NEW_PRIV_IMPL(Compiler)
 #define NEW_TYPE_IMPL               NEW_PRIV_IMPL(Type)
 #define NEW_MODULE_IMPL             NEW_PRIV_IMPL(Module)
 #define NEW_PROGRAMBUILDER_IMPL     NEW_PRIV_IMPL(ProgramBuilder)
+#define NEW_CLASSBUILDER_IMPL       NEW_PRIV_IMPL(ClassBuilder)
 
 BEGIN_PRIVATE_DEF
 
@@ -112,8 +115,35 @@ public:
     }
 
     common::AbstractMemoryManager& mngr;
-
     ast::Program* _prog;
+};
+
+class CLASSBUILDER_IMPL_NAME {
+public:
+    CLASSBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name) : _mngr(mngr), _name(name) { }
+    virtual ~CLASSBUILDER_IMPL_NAME() { }
+
+    void addField(const std::string& fieldName, Type fieldType) {
+        ast::Identifier* id = _mngr.New<ast::Identifier>(fieldName);
+        ast::TypeExpression* tpe = fieldType._impl->_type;
+        _fields.push_back(_mngr.New<ast::TypeSpecifier>(id, tpe));
+    }
+
+    Type build() const {
+        ast::ClassDecl* clss = _mngr.New<ast::ClassDecl>(_name, nullptr,
+                                         std::vector<ast::TypeDecl*>(),
+                                         _fields, _defs);
+
+        return Type(NEW_TYPE_IMPL(clss));
+    }
+
+private:
+
+    common::AbstractMemoryManager& _mngr;
+
+    std::string _name;
+    std::vector<ast::TypeSpecifier*> _fields;
+    std::vector<ast::DefineDecl*> _defs;
 };
 
 END_PRIVATE_DEF
@@ -229,6 +259,10 @@ Type Compiler::createFunctionType(const std::vector<Type>& argTypes, Type retTyp
     return Type(NEW_TYPE_IMPL(_impl->ctx->memoryManager().New<ast::FunctionTypeDecl>(argTypeExprs, retTypeExpr)));
 }
 
+ClassBuilder Compiler::classBuilder(const std::string& className) {
+    return ClassBuilder(NEW_CLASSBUILDER_IMPL(_impl->ctx->memoryManager(), className));
+}
+
 // PROGRAM BUILDER
 
 ProgramBuilder::ProgramBuilder(PROGRAMBUILDER_IMPL_PTR impl) : _impl(impl) {
@@ -241,6 +275,25 @@ ProgramBuilder::~ProgramBuilder() {
 
 ProgramBuilder::operator bool() const {
     return _impl != nullptr;
+}
+
+// CLASS BUILDER
+
+ClassBuilder::ClassBuilder(CLASSBUILDER_IMPL_PTR impl) : _impl(impl) {
+
+}
+
+ClassBuilder::~ClassBuilder() {
+
+}
+
+ClassBuilder& ClassBuilder::addField(const std::string& fieldName, Type fieldType) {
+    _impl->addField(fieldName, fieldType);
+    return *this;
+}
+
+Type ClassBuilder::build() const {
+    return _impl->build();
 }
 
 // MODULE

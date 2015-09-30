@@ -14,6 +14,7 @@
 #include "SetVisibilities.h"
 #include "CompilerConfig.h"
 #include "ProgramBuilder.h"
+#include "ClassBuilder.h"
 #include "Type.h"
 
 DECL_PRIVATE_IMPL_FOR(Compiler)
@@ -30,6 +31,8 @@ public:
 
     Type parseType(const std::string& str);
     Type createFunctionType(const std::vector<Type>& argTypes, Type retType);
+
+    ClassBuilder classBuilder(const std::string& className);
 
 private:
     PRIVATE_IMPL_PTR(Compiler) _impl;
