@@ -1,0 +1,17 @@
+module test {
+	// def reference
+	def f1() => {
+		{
+			def g = 2;
+		}
+		g;
+	}
+	
+	// var reference
+	def f2() => {
+		{
+			x := 2;
+		}
+		x;
+	}
+}

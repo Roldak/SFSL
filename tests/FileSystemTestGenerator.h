@@ -37,7 +37,8 @@ private:
     static TEST_TYPE typeFromName(const std::string& name);
 
     void buildTestSuite(TestSuiteBuilder& builder, const std::string& path, DIR* dir);
-    void createTestsForType(TestSuiteBuilder& builder, TEST_TYPE type, DIR* dir);
+    void createTestsForType(TestSuiteBuilder& builder, TEST_TYPE type, const std::string& path, DIR* dir);
+    std::string testNameFromTestPath(const std::string& path);
 
     const std::string _path;
 };

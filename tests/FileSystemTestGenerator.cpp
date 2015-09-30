@@ -7,6 +7,7 @@
 //
 
 #include <fstream>
+#include <algorithm>
 
 #include "FileSystemTestGenerator.h"
 #include "CompilationTest.h"
@@ -71,21 +72,22 @@ void FileSystemTestGenerator::buildTestSuite(TestSuiteBuilder& builder, const st
             std::string subdirPath = path + "/" + entryName;
 
             if (DIR* subdir = opendir(subdirPath.c_str())) {
-                createTestsForType(builder, type, subdir);
+                createTestsForType(builder, type, subdirPath, subdir);
                 closedir(subdir);
             }
         }
     }
 }
 
-void FileSystemTestGenerator::createTestsForType(TestSuiteBuilder& builder, FileSystemTestGenerator::TEST_TYPE type, DIR* dir) {
+void FileSystemTestGenerator::createTestsForType(TestSuiteBuilder& builder, FileSystemTestGenerator::TEST_TYPE type, const std::string& path, DIR* dir) {
     while (dirent* ent = readdir(dir)) {
-        std::string testName(ent->d_name, ent->d_namlen);
+        std::string testPath(ent->d_name, ent->d_namlen);
 
-        if (isValidEntryName(testName)) {
+        if (isValidEntryName(testPath)) {
+            std::string testName = testNameFromTestPath(testPath);
             std::string source;
 
-            std::ifstream f(testName);
+            std::ifstream f(path + "/" + testPath);
             while (f.good()) {
                 source += f.get();
             }
@@ -102,6 +104,20 @@ void FileSystemTestGenerator::createTestsForType(TestSuiteBuilder& builder, File
             }
         }
     }
+}
+
+std::string FileSystemTestGenerator::testNameFromTestPath(const std::string& path) {
+    std::string copy;
+    size_t indexOfDot = path.find('.');
+
+    if (indexOfDot != std::string::npos) {
+        copy = path.substr(0, indexOfDot);
+    } else {
+        copy = path;
+    }
+
+    std::replace(copy.begin(), copy.end(), '_', ' ');
+    return copy;
 }
 
 }

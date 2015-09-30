@@ -24,15 +24,24 @@ CompilationTest::~CompilationTest() {
 bool CompilationTest::run(AbstractTestLogger& logger) {
     bool success;
 
+    Compiler cmp(CompilerConfig(2048));
+
     try {
-        Compiler cmp(CompilerConfig(2048));
         ProgramBuilder builder = cmp.parse(_name, _source);
-        buildSTDModules(cmp, builder);
-        success = (!cmp.compile(builder).empty()) == _shouldCompile;
-        logger.result(_name, success);
+
+        try {
+            buildSTDModules(cmp, builder);
+            std::vector<std::string> res = cmp.compile(builder);
+            success = (!res.empty()) == _shouldCompile;
+            logger.result(_name, success);
+        } catch (const CompileError& err) {
+            success = !_shouldCompile;
+            logger.result(_name, success, std::string("Fatal: ") + err.what());
+        }
+
     } catch (const CompileError& err) {
-        success = !_shouldCompile;
-        logger.result(_name, success, std::string("Fatal: ") + err.what());
+        logger.result(_name, false, std::string("Fatal: ") + err.what());
+        success = false;
     }
 
     return success;
