@@ -35,8 +35,9 @@ private:
 
 class TestSuiteBuilder final {
 public:
+    TestSuiteBuilder(const std::string& name);
+    ~TestSuiteBuilder();
 
-    void setName(const std::string& name);
     void addTest(AbstractTest* test);
     TestSuite* build() const;
 

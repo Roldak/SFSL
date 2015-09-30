@@ -19,9 +19,9 @@ public:
     }
 
     virtual void result(const std::string& testName, bool success, const std::string& note) override {
-        std::cout << "\t\t- " << testName << resultFor(success);
+        std::cout << "\t\t[" << resultFor(success) << "] " << testName;
         if (!note.empty()) {
-            std::cout << " [" << note << "]";
+            std::cout << " (" << note << ")";
         }
         std::cout << std::endl;
     }
@@ -37,13 +37,13 @@ public:
 private:
 
     std::string resultFor(bool success) {
-        return success ? "SUCCESS" : "FAILURE";
+        return success ? "V" : "X";
     }
 
 };
 
 int main() {
     CoutLogger logger;
-    test::FileSystemTestGenerator gen("sfsl");
+    test::FileSystemTestGenerator gen("../SFSL/tests/sfsl");
     return gen.findAndGenerate()->run(logger);
 }

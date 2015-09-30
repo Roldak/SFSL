@@ -178,10 +178,10 @@ std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
 
     CompCtx_Ptr ctx = _impl->ctx;
     ast::Program* prog = progBuilder._impl->createUpdatedProgram();
-
+/*
     ast::ASTPrinter printer(ctx, std::cout);
     prog->onVisit(&printer);
-
+*/
     try {
 
         ast::ScopeGeneration scopeGen(ctx);

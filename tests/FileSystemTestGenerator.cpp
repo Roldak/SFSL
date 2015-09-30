@@ -6,15 +6,16 @@
 //  Copyright (c) 2015 Romain Beguet. All rights reserved.
 //
 
-#include "FileSystemTestGenerator.h"
+#include <fstream>
 
-#include "dirent.h"
+#include "FileSystemTestGenerator.h"
+#include "CompilationTest.h"
 
 namespace sfsl {
 
 namespace test {
 
-FileSystemTestGenerator::FileSystemTestGenerator(const std::__cxx11::string& path) : _path(path) {
+FileSystemTestGenerator::FileSystemTestGenerator(const std::string& path) : _path(path) {
 
 }
 
@@ -22,8 +23,85 @@ FileSystemTestGenerator::~FileSystemTestGenerator() {
 
 }
 
-TestRunner* FileSystemTestGenerator::findAndGenerate() {
+bool isValidEntryName(const std::string& name) {
+    return name != "." && name != "..";
+}
 
+TestRunner* FileSystemTestGenerator::findAndGenerate() {
+    std::vector<TestSuite*> testSuites;
+
+    if (DIR* root = opendir(_path.c_str())) {
+        while (dirent* ent = readdir(root)) {
+            std::string entryName(ent->d_name, ent->d_namlen);
+
+            if (isValidEntryName(entryName)) {
+                std::string subdirPath = _path + "/" + entryName;
+
+                if (DIR* subdir = opendir(subdirPath.c_str())) {
+                    TestSuiteBuilder builder(entryName);
+                    buildTestSuite(builder, subdirPath, subdir);
+                    testSuites.push_back(builder.build());
+                    closedir(subdir);
+                }
+            }
+        }
+
+        closedir(root);
+    }
+
+    return new TestRunner("FileSystemTestGenerator", testSuites);
+}
+
+FileSystemTestGenerator::TEST_TYPE FileSystemTestGenerator::typeFromName(const std::string& name) {
+    if (name == "MustCompile") {
+        return MUST_COMPILE;
+    } else if (name == "MustNotCompile") {
+        return MUST_NOT_COMPILE;
+    } else {
+        return UNKNOWN_TEST_TYPE;
+    }
+}
+
+void FileSystemTestGenerator::buildTestSuite(TestSuiteBuilder& builder, const std::string& path, DIR* dir) {
+    while (dirent* ent = readdir(dir)) {
+        std::string entryName(ent->d_name, ent->d_namlen);
+        TEST_TYPE type = typeFromName(entryName);
+
+        if (isValidEntryName(entryName) && type != UNKNOWN_TEST_TYPE) {
+            std::string subdirPath = path + "/" + entryName;
+
+            if (DIR* subdir = opendir(subdirPath.c_str())) {
+                createTestsForType(builder, type, subdir);
+                closedir(subdir);
+            }
+        }
+    }
+}
+
+void FileSystemTestGenerator::createTestsForType(TestSuiteBuilder& builder, FileSystemTestGenerator::TEST_TYPE type, DIR* dir) {
+    while (dirent* ent = readdir(dir)) {
+        std::string testName(ent->d_name, ent->d_namlen);
+
+        if (isValidEntryName(testName)) {
+            std::string source;
+
+            std::ifstream f(testName);
+            while (f.good()) {
+                source += f.get();
+            }
+
+            switch (type) {
+            case MUST_COMPILE:
+                builder.addTest(new CompilationTest(testName, source, true));
+                break;
+            case MUST_NOT_COMPILE:
+                builder.addTest(new CompilationTest(testName, source, false));
+                break;
+            default:
+                break;
+            }
+        }
+    }
 }
 
 }

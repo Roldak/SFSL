@@ -20,16 +20,15 @@ namespace test {
 
 class CompilationTest : public AbstractTest {
 public:
-    CompilationTest(const std::string& name, Compiler& cmp, const std::string& source, bool shouldCompile);
+    CompilationTest(const std::string& name, const std::string& source, bool shouldCompile);
     virtual ~CompilationTest();
 
     virtual bool run(AbstractTestLogger& logger) override;
 
 private:
 
-    void buildSTDModules(ProgramBuilder builder);
+    static void buildSTDModules(Compiler& cmp, ProgramBuilder builder);
 
-    Compiler& _cmp;
     const std::string _source;
     bool _shouldCompile;
 };

@@ -19,14 +19,12 @@ namespace test {
 
 class TestRunner final {
 public:
+    TestRunner(const std::string& name, const std::vector<TestSuite*>& testSuites);
     ~TestRunner();
 
     bool run(AbstractTestLogger& logger) const;
 
 private:
-    friend class TestGenerator;
-
-    TestRunner(const std::string& name, const std::vector<TestSuite*>& testSuites);
 
     const std::string _name;
     const std::vector<TestSuite*> _testSuites;

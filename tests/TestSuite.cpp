@@ -43,8 +43,12 @@ bool TestSuite::run(AbstractTestLogger& logger) const {
 
 // TEST SUITE BUILDER
 
-void TestSuiteBuilder::setName(const std::__cxx11::string& name) {
-    _name = name;
+TestSuiteBuilder::TestSuiteBuilder(const std::string& name) : _name(name) {
+
+}
+
+TestSuiteBuilder::~TestSuiteBuilder() {
+
 }
 
 void TestSuiteBuilder::addTest(AbstractTest* test) {
