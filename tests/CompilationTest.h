@@ -11,6 +11,7 @@
 
 #include <iostream>
 
+#include "sfsl.h"
 #include "AbstractTest.h"
 
 namespace sfsl {
@@ -19,8 +20,18 @@ namespace test {
 
 class CompilationTest : public AbstractTest {
 public:
-    CompilationTest();
+    CompilationTest(const std::string& name, Compiler& cmp, const std::string& source, bool shouldCompile);
     virtual ~CompilationTest();
+
+    virtual bool run(AbstractTestLogger& logger) override;
+
+private:
+
+    void buildSTDModules(ProgramBuilder builder);
+
+    Compiler& _cmp;
+    const std::string _source;
+    bool _shouldCompile;
 };
 
 }

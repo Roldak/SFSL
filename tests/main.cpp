@@ -10,15 +10,15 @@ public:
 
     }
 
-    virtual void testRunnerStart(const std::string& testRunnerStart) {
+    virtual void testRunnerStart(const std::string& testRunnerStart) override {
         std::cout << testRunnerStart << ":" << std::endl;
     }
 
-    virtual void testSuiteStart(const std::string& testSuiteName) {
+    virtual void testSuiteStart(const std::string& testSuiteName) override {
         std::cout << "\t" << testSuiteName << ":" << std::endl;
     }
 
-    virtual void result(const std::string& testName, bool success, const std::string& note) {
+    virtual void result(const std::string& testName, bool success, const std::string& note) override {
         std::cout << "\t\t- " << testName << resultFor(success);
         if (!note.empty()) {
             std::cout << " [" << note << "]";
@@ -26,11 +26,11 @@ public:
         std::cout << std::endl;
     }
 
-    virtual void testSuiteEnd(size_t passedTests, size_t totalTests) {
+    virtual void testSuiteEnd(size_t passedTests, size_t totalTests) override {
         std::cout << std::endl << "\t\tPassed: " << passedTests << "/" << totalTests << std::endl;
     }
 
-    virtual void testRunnerEnd(size_t passedSuites, size_t totalSuites) {
+    virtual void testRunnerEnd(size_t passedSuites, size_t totalSuites) override {
         std::cout << std::endl << "\tPassed Suites: " << passedSuites << "/" << totalSuites << std::endl;
     }
 
