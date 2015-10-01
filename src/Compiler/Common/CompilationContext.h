@@ -50,12 +50,18 @@ public:
      */
     static std::shared_ptr<CompilationContext> DefaultCompilationContext(size_t chunksize);
 
+    /**
+     * @return Creates a CompilationContext the default memory manager
+     * and a custom reporter.
+     */
+    static std::shared_ptr<CompilationContext> CustomReporterCompilationContext(size_t chunksize, std::unique_ptr<AbstractReporter> rep);
+
 private:
 
-    CompilationContext(AbstractMemoryManager* manager, AbstractReporter* reporter);
+    CompilationContext(std::unique_ptr<AbstractMemoryManager> manager, std::unique_ptr<AbstractReporter> reporter);
 
-    AbstractMemoryManager* _mngr;
-    AbstractReporter* _rprt;
+    std::unique_ptr<AbstractMemoryManager> _mngr;
+    std::unique_ptr<AbstractReporter> _rprt;
 
 };
 

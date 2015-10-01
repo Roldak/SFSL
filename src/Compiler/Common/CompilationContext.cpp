@@ -7,18 +7,19 @@
 //
 
 #include "CompilationContext.h"
+#include <memory>
 
 namespace sfsl {
 
 namespace common {
 
-CompilationContext::CompilationContext(AbstractMemoryManager* manager, AbstractReporter* reporter) : _mngr(manager), _rprt(reporter) {
+CompilationContext::CompilationContext(std::unique_ptr<AbstractMemoryManager> manager, std::unique_ptr<AbstractReporter> reporter)
+    : _mngr(std::move(manager)), _rprt(std::move(reporter)) {
 
 }
 
 CompilationContext::~CompilationContext() {
-    delete _mngr;
-    delete _rprt;
+
 }
 
 AbstractMemoryManager& CompilationContext::memoryManager() const {
@@ -30,7 +31,15 @@ AbstractReporter& CompilationContext::reporter() const {
 }
 
 std::shared_ptr<CompilationContext> CompilationContext::DefaultCompilationContext(size_t chunksize) {
-    return std::shared_ptr<CompilationContext>(new CompilationContext(new ChunkedMemoryManager(chunksize), new StandartErrReporter()));
+    return std::shared_ptr<CompilationContext>(
+                new CompilationContext(std::move(std::unique_ptr<ChunkedMemoryManager>(new ChunkedMemoryManager(chunksize))),
+                                       std::move(std::unique_ptr<StandartErrReporter>(new StandartErrReporter()))));
+}
+
+std::shared_ptr<CompilationContext> CompilationContext::CustomReporterCompilationContext(size_t chunksize, std::unique_ptr<AbstractReporter> rep) {
+    return std::shared_ptr<CompilationContext>(
+                new CompilationContext(std::move(std::unique_ptr<ChunkedMemoryManager>(new ChunkedMemoryManager(chunksize))),
+                                       std::move(rep)));
 }
 
 
