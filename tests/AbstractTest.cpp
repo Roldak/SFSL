@@ -12,7 +12,7 @@ namespace sfsl {
 
 namespace test {
 
-AbstractTest::AbstractTest(const std::__cxx11::string& name) : _name(name) {
+AbstractTest::AbstractTest(const std::string& name) : _name(name) {
 
 }
 

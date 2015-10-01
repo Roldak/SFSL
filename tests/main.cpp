@@ -44,6 +44,6 @@ private:
 
 int main() {
     CoutLogger logger;
-    test::FileSystemTestGenerator gen("../SFSL/tests/sfsl");
+    test::FileSystemTestGenerator gen("sfsl");
     return gen.findAndGenerate()->run(logger);
 }

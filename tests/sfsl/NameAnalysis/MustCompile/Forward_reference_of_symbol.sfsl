@@ -1,0 +1,19 @@
+module test {
+	def f() => g()
+	def g() => h()
+	def h() => i()
+	def i() => j()
+	def j() => k()
+	def k() => l()
+	def l() => ()
+	
+	def m = n
+	def n = o
+	def o = q
+	def p = ()
+	def q = p
+	
+	type X = Y
+	type Y = Z
+	type Z = class {}
+}
