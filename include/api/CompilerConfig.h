@@ -11,19 +11,24 @@
 
 #include <iostream>
 #include "SetVisibilities.h"
+#include "AbstractReporter.h"
 
 namespace sfsl {
 
 class SFSL_API_PUBLIC CompilerConfig final {
 public:
-    CompilerConfig(size_t chunkSize = 2048);
+    CompilerConfig(AbstractReporter* rep = nullptr, size_t chunkSize = 2048);
     ~CompilerConfig();
 
     void setChunkSize(size_t chunkSize);
     size_t getChunkSize() const;
 
+    void setReporter(AbstractReporter* rep);
+    AbstractReporter* getReporter() const;
+
 private:
 
+    AbstractReporter* _rep;
     size_t _chunkSize;
 };
 

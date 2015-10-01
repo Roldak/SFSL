@@ -10,7 +10,7 @@
 
 namespace sfsl {
 
-CompilerConfig::CompilerConfig(size_t chunkSize) : _chunkSize(chunkSize) {
+CompilerConfig::CompilerConfig(AbstractReporter* rep, size_t chunkSize) : _rep(rep), _chunkSize(chunkSize) {
 
 }
 
@@ -24,6 +24,14 @@ void CompilerConfig::setChunkSize(size_t chunkSize) {
 
 size_t CompilerConfig::getChunkSize() const {
     return _chunkSize;
+}
+
+void CompilerConfig::setReporter(AbstractReporter* rep) {
+    _rep = rep;
+}
+
+AbstractReporter* CompilerConfig::getReporter() const {
+    return _rep;
 }
 
 }

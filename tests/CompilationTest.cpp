@@ -24,11 +24,9 @@ CompilationTest::~CompilationTest() {
 bool CompilationTest::run(AbstractTestLogger& logger) {
     bool success;
 
-    Compiler cmp(CompilerConfig(2048));
-
+    Compiler cmp(CompilerConfig(StandartReporter::EmptyReporter, 2048));
     try {
         ProgramBuilder builder = cmp.parse(_name, _source);
-
         try {
             buildSTDModules(cmp, builder);
             std::vector<std::string> res = cmp.compile(builder);

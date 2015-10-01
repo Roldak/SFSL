@@ -1,0 +1,16 @@
+module a {
+	module b {
+		def f() => ()
+	}
+	def g() => ()
+}
+
+module test {
+	using a
+	
+	def f1() => b.f()
+	def f2() => {
+		using a.b;
+		f();
+	}
+}

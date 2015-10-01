@@ -10,6 +10,7 @@
 #include "api/Errors.h"
 
 #include "ModuleContainer.h"
+#include "ReporterAdapter.h"
 
 #include "Compiler/Frontend/Parser/Parser.h"
 #include "Compiler/Frontend/AST/Visitors/ASTPrinter.h"
@@ -148,13 +149,21 @@ private:
 
 END_PRIVATE_DEF
 
-
 namespace sfsl {
 
 // COMPILER
 
-Compiler::Compiler(const CompilerConfig& config)
-    : _impl(NEW_COMPILER_IMPL(common::CompilationContext::DefaultCompilationContext(config.getChunkSize()))) {
+Compiler::Compiler(const CompilerConfig& config) {
+    CompCtx_Ptr ctx;
+
+    if (config.getReporter() == nullptr) {
+        ctx = common::CompilationContext::DefaultCompilationContext(config.getChunkSize());
+    } else {
+        std::unique_ptr<ReporterAdapter> rep(new ReporterAdapter(config.getReporter()));
+        ctx = common::CompilationContext::CustomReporterCompilationContext(config.getChunkSize(), std::move(rep));
+    }
+
+    _impl = NEW_COMPILER_IMPL(ctx);
 
 }
 
@@ -178,6 +187,7 @@ std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
 
     CompCtx_Ptr ctx = _impl->ctx;
     ast::Program* prog = progBuilder._impl->createUpdatedProgram();
+
 /*
     ast::ASTPrinter printer(ctx, std::cout);
     prog->onVisit(&printer);

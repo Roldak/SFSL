@@ -19,8 +19,9 @@ public:
     virtual ~AbstractReporter();
 
     virtual void info(const std::string& sourceName, size_t start, size_t end, const std::string& message) = 0;
-    virtual void warn(const std::string& sourceName, size_t start, size_t end, const std::string& message) = 0;
+    virtual void warning(const std::string& sourceName, size_t start, size_t end, const std::string& message) = 0;
     virtual void error(const std::string& sourceName, size_t start, size_t end, const std::string& message) = 0;
+    virtual void fatal(const std::string& sourceName, size_t start, size_t end, const std::string& message) = 0;
 
 private:
 };

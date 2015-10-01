@@ -17,6 +17,10 @@ AbstractReporter::~AbstractReporter() {
 
 }
 
+void AbstractReporter::fatal(const Positionnable&, const std::string& msg) {
+    throw CompilationFatalError(msg);
+}
+
 size_t AbstractReporter::getErrorCount() {
     return _errorCount;
 }
@@ -29,26 +33,26 @@ StandartErrReporter::~StandartErrReporter() {
 
 }
 
-void StandartErrReporter::info(const Positionnable &pos, const std::string &msg) {
+void StandartErrReporter::info(const Positionnable& pos, const std::string& msg) {
     reportMessage("info", pos, msg);
 }
 
-void StandartErrReporter::warning(const Positionnable &pos, const std::string &msg) {
+void StandartErrReporter::warning(const Positionnable& pos, const std::string& msg) {
     reportMessage("warning", pos, msg);
 }
 
-void StandartErrReporter::error(const Positionnable &pos, const std::string &msg) {
+void StandartErrReporter::error(const Positionnable& pos, const std::string& msg) {
     reportMessage("error", pos, msg);
     ++_errorCount;
 }
 
-void StandartErrReporter::fatal(const Positionnable &pos, const std::string &msg) {
+void StandartErrReporter::fatal(const Positionnable& pos, const std::string& msg) {
     reportMessage("fatal", pos, msg);
     ++_errorCount;
-    throw CompilationFatalError(msg);
+    AbstractReporter::fatal(pos, msg);
 }
 
-void StandartErrReporter::reportMessage(const std::string &prefix, const Positionnable& pos, const std::string &msg) {
+void StandartErrReporter::reportMessage(const std::string& prefix, const Positionnable& pos, const std::string& msg) {
     std::cerr << pos.positionStr() << ":" << prefix << ":" << msg << std::endl;
 }
 

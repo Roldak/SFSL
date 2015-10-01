@@ -26,12 +26,16 @@ void StandartReporter::info(const std::string& sourceName, size_t start, size_t 
     _ostream << sourceName << ":" << start << ":" << end << ":info:" << message;
 }
 
-void StandartReporter::warn(const std::string& sourceName, size_t start, size_t end, const std::string& message) {
+void StandartReporter::warning(const std::string& sourceName, size_t start, size_t end, const std::string& message) {
     _ostream << sourceName << ":" << start << ":" << end << ":warn:" << message;
 }
 
 void StandartReporter::error(const std::string& sourceName, size_t start, size_t end, const std::string& message) {
     _ostream << sourceName << ":" << start << ":" << end << ":error:" << message;
+}
+
+void StandartReporter::fatal(const std::string& sourceName, size_t start, size_t end, const std::string& message) {
+    _ostream << sourceName << ":" << start << ":" << end << ":fatal:" << message;
 }
 
 class EmptyReporterImpl : public AbstractReporter {
@@ -41,8 +45,9 @@ public:
     }
 
     virtual void info(const std::string&, size_t, size_t, const std::string&) override { }
-    virtual void warn(const std::string&, size_t, size_t, const std::string&) override { }
+    virtual void warning(const std::string&, size_t, size_t, const std::string&) override { }
     virtual void error(const std::string&, size_t, size_t, const std::string&) override { }
+    virtual void fatal(const std::string&, size_t, size_t, const std::string&) override { }
 };
 
 StandartReporter* const StandartReporter::CoutReporter = new StandartReporter(std::cout);

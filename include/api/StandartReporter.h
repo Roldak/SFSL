@@ -20,8 +20,9 @@ public:
     virtual ~StandartReporter();
 
     virtual void info(const std::string& sourceName, size_t start, size_t end, const std::string& message) override;
-    virtual void warn(const std::string& sourceName, size_t start, size_t end, const std::string& message) override;
+    virtual void warning(const std::string& sourceName, size_t start, size_t end, const std::string& message) override;
     virtual void error(const std::string& sourceName, size_t start, size_t end, const std::string& message) override;
+    virtual void fatal(const std::string& sourceName, size_t start, size_t end, const std::string& message) override;
 
     static StandartReporter* const CoutReporter;
     static StandartReporter* const CerrReporter;
