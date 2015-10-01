@@ -12,6 +12,7 @@
 #include "api/Errors.h"
 #include "api/Compiler.h"
 #include "api/Module.h"
+#include "api/StandartReporter.h"
 
 #include "api/UnsetVisibilities.h"
 
