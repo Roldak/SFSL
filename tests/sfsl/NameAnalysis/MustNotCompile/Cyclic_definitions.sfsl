@@ -1,0 +1,5 @@
+module test {
+	def f = g
+	def g = h
+	def h = f
+}

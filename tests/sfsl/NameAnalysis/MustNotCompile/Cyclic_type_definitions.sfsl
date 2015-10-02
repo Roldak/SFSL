@@ -1,0 +1,5 @@
+module test {
+	type f = g
+	type g = h
+	type h = f
+}

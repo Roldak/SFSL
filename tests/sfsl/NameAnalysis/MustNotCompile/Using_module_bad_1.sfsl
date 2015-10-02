@@ -1,0 +1,13 @@
+module test {
+	using ma.mb
+	
+	def x = f
+}
+
+module ma {
+	module mb {
+	
+	}
+	
+	def f() => ()
+}
