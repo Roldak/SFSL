@@ -97,6 +97,7 @@ file(GLOB_RECURSE COMPILER_TESTS_SRC_LIST ./tests/*.cpp)
 add_executable(${COMPILER_TESTS_TARGET} ${COMPILER_TESTS_SRC_LIST} ${COMPILER_TESTS_MAIN_FILE})
 apply_target_properties(${COMPILER_TESTS_TARGET} ${COMPILER_TESTS_BUILD_TYPE} ${COMPILER_TESTS_OUTPUT_NAME})
 
+target_include_directories(${COMPILER_TESTS_TARGET} PRIVATE ./src/)
 target_include_directories(${COMPILER_TESTS_TARGET} PRIVATE ./include/)
 target_link_libraries(${COMPILER_TESTS_TARGET} ${USER_API_TARGET})
 
