@@ -136,6 +136,9 @@ Token* Lexer::getRightTokenFromIdentifier(const std::string& str) const{
 
 void Lexer::handleStringLitteral(std::string& soFar) {
     soFar = "";
+    if (_lastChar.chr == '\"')
+        return;
+
     soFar += _lastChar.chr;
 
     bool escaping = false;
