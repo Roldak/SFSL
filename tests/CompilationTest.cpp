@@ -36,7 +36,6 @@ bool CompilationTest::run(AbstractTestLogger& logger) {
             success = !_shouldCompile;
             logger.result(_name, success, std::string("Fatal: ") + err.what());
         }
-
     } catch (const CompileError& err) {
         logger.result(_name, false, std::string("Fatal: ") + err.what());
         success = false;

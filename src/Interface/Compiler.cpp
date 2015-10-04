@@ -172,12 +172,21 @@ Compiler::~Compiler() {
 }
 
 ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& srcContent) {
-    src::StringSource source(src::InputSourceName::make(_impl->ctx, srcName), srcContent);
-    lex::Lexer lexer(_impl->ctx, source);
-    ast::Parser parser(_impl->ctx, lexer);
-    ast::Program* program = parser.parse();
+    try {
+        src::StringSource source(src::InputSourceName::make(_impl->ctx, srcName), srcContent);
+        lex::Lexer lexer(_impl->ctx, source);
+        ast::Parser parser(_impl->ctx, lexer);
+        ast::Program* program = parser.parse();
+        std::cerr << _impl->ctx->reporter().getErrorCount() << std::endl;
 
-    return ProgramBuilder(NEW_PROGRAMBUILDER_IMPL(_impl->ctx->memoryManager(), _impl->ctx->reporter().getErrorCount() == 0 ? program : nullptr));
+        if (_impl->ctx->reporter().getErrorCount() == 0) {
+            return ProgramBuilder(NEW_PROGRAMBUILDER_IMPL(_impl->ctx->memoryManager(), program));
+        } else {
+            return ProgramBuilder(nullptr);
+        }
+    } catch (const common::CompilationFatalError& err) {
+        throw CompileError(err.what());
+    }
 }
 
 std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
@@ -287,6 +296,13 @@ ProgramBuilder::operator bool() const {
     return _impl != nullptr;
 }
 
+Module ProgramBuilder::openModule(const std::string& moduleName) const {
+    if (_impl) {
+        return _impl->openModule(moduleName);
+    }
+    return Module(nullptr);
+}
+
 // CLASS BUILDER
 
 ClassBuilder::ClassBuilder(CLASSBUILDER_IMPL_PTR impl) : _impl(impl) {
@@ -308,13 +324,6 @@ Type ClassBuilder::build() const {
 
 // MODULE
 
-Module ProgramBuilder::openModule(const std::string& moduleName) const {
-    if (_impl) {
-        return _impl->openModule(moduleName);
-    }
-    return Module(NEW_MODULE_IMPL(_impl->mngr, nullptr));
-}
-
 Module::Module(MODULE_IMPL_PTR impl) : _impl(impl) {
 
 }
@@ -331,15 +340,19 @@ Module Module::openModule(const std::string& moduleName) const {
     if (_impl) {
         return _impl->openModule(moduleName);
     }
-    return Module(NEW_MODULE_IMPL(_impl->mngr, nullptr));
+    return Module(nullptr);
 }
 
 void Module::externDef(const std::string& defName, Type defType) {
-    _impl->externDef(defName, defType);
+    if (_impl) {
+        _impl->externDef(defName, defType);
+    }
 }
 
 void Module::typeDef(const std::string& typeName, Type type) {
-    _impl->typeDef(typeName, type);
+    if (_impl) {
+        _impl->typeDef(typeName, type);
+    }
 }
 
 // TYPE
@@ -353,7 +366,7 @@ Type::~Type() {
 }
 
 Type::operator bool() const {
-    return _impl != nullptr;
+    return _impl->_type != nullptr;
 }
 
 }
