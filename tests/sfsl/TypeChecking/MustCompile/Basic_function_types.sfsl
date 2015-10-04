@@ -1,0 +1,23 @@
+module test {
+	using sfsl.lang
+	
+	def t1 = {
+		basic: ()->unit = () => ();
+		one_arg: (int)->real = (x: int) => 3.141592653589793;
+		multi_arg: (unit, bool, int, real, string)->unit = (a: unit, b: bool, c: int, d: real, e: string) => {};
+		func_ret: (int)->(int)->bool = (x: int) => (y: int) => true;
+		func_arg: ((int)->int)->unit = (f: (int)->int) => ();
+		multi_arg_with_func: (int->int, int)->int = (f: int->int, x: int) => f(x);
+		func_arg_func_ret: (int->int)->(int)->int = (f: int->int) => (x: int) => f(x);
+	}
+	
+	def t2 = {
+		basic: ()->unit = ()->unit => ();
+		one_arg: (int)->real = (x: int)->real => 3.141592653589793;
+		multi_arg: (unit, bool, int, real, string)->unit = (a: unit, b: bool, c: int, d: real, e: string)->unit => {};
+		func_ret: (int)->(int)->bool = (x: int) => (y: int)->bool => true;
+		func_arg: ((int)->int)->unit = (f: (int)->int)->unit => ();
+		multi_arg_with_func: (int->int, int)->int = (f: int->int, x: int)->int => f(x);
+		func_arg_func_ret: (int->int)->(int)->int = (f: int->int) => (x: int)->int => f(x);
+	}
+}

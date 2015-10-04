@@ -177,7 +177,6 @@ ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& sr
         lex::Lexer lexer(_impl->ctx, source);
         ast::Parser parser(_impl->ctx, lexer);
         ast::Program* program = parser.parse();
-        std::cerr << _impl->ctx->reporter().getErrorCount() << std::endl;
 
         if (_impl->ctx->reporter().getErrorCount() == 0) {
             return ProgramBuilder(NEW_PROGRAMBUILDER_IMPL(_impl->ctx->memoryManager(), program));

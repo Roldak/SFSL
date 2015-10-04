@@ -1,0 +1,20 @@
+module test {
+	using sfsl.lang
+	
+	def f1 = () => ()
+	def f2 = (x: int) => 2.4
+	def f3 = (a: unit, b: bool, c: int, d: real, e: string) => ()
+	def f4 = (x: int) => (y: int) => y
+	def f5 = (f: int->int) => f(2)
+	def f6 = (f: int->int) => (x: int) => 2
+	def f7 = (f: int->int, x: int) => f(x)
+	
+	def t1: unit = f1()
+	def t2: real = f2(2)
+	def t3: unit = f3((), true, 42, 3.14, "hello world")
+	def t4a: int->int = f4(4)
+	def t4b: int = f4(4)(2)
+	def t5: int = f5((x: int) => 3)
+	def t6: int = f6((x: int) => 4)(12)
+	def t7: int = f7((x: int) => 4, 2)
+}

@@ -1,0 +1,3 @@
+module test {	
+	def t: real = "hello world"
+}

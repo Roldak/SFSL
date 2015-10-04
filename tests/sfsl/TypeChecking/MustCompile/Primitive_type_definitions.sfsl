@@ -1,0 +1,9 @@
+module test {
+	using sfsl.lang
+	
+	def a: unit = ()
+	def b: bool = true
+	def c: int = 3141592653589793
+	def d: real = 3.141592653589793
+	def e: string = "hello world"
+}

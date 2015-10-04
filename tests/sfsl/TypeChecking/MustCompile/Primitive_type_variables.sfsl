@@ -1,0 +1,11 @@
+module test {
+	using sfsl.lang
+	
+	def t = {
+		a: unit = ();
+		b: bool = false;
+		c: int = 0;
+		d: real = 0.0;
+		e: string = "";
+	}
+}

@@ -1,0 +1,7 @@
+module test {
+	using sfsl.lang
+	
+	def f(x: int, f: int->real) => f(x)
+	
+	def t = f(2, (x: int) => 2)
+}
