@@ -153,7 +153,7 @@ TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
 
 bool ProperType::isSubTypeOf(const Type* other) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
-        if (_class->CanSubtypeClasses::extends(objother->_class)) { // TODO : change that when inheritance is supported.
+        if (_class->CanSubtypeClasses::extends(objother->_class)) {
             const SubstitutionTable& osub = objother->getSubstitutionTable();
             for (const auto& pair : _subTable) {
                 const auto& subpair = osub.find(pair.first);

@@ -1,0 +1,14 @@
+module test {
+	using sfsl.lang
+	
+	type A = class {}
+	type B = class : A {}
+	
+	def f(x: A) => ()
+	
+	def t1 = {
+		x: B;
+		f(x);
+		y: A = x;
+	}
+}

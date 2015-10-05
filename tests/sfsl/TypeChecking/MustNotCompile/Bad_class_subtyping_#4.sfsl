@@ -1,0 +1,11 @@
+module test {
+	using sfsl.lang
+	
+	type A[T] => class {}
+	type B[K] => class : A[K] {}
+	
+	def t1: A[int] = {
+		x: B[real];
+		x;
+	}
+}

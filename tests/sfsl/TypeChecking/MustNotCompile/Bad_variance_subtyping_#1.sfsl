@@ -1,0 +1,10 @@
+module test {
+	using sfsl.lang
+	
+	type A[T] => class {}
+	
+	def t1: A[F] = {
+		x: A[E];
+		x;
+	}
+}

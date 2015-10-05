@@ -1,0 +1,32 @@
+module test {
+	using sfsl.lang
+	
+	type A[T] => class {}
+	type B[K] => class : A[K] {}
+	
+	type E = class {}
+	type F = class : E {}
+	
+	type C = class : A[F] {}
+	type D = class : B[F] {}
+	
+	def t1: A[E] = {
+		x: A[F];
+		x;
+	}
+
+	def t2: A[E] = {
+		x: B[F];
+		x;
+	}
+	
+	def t3: A[E] = {
+		x: C;
+		x;
+	}
+	
+	def t4: A[E] = {
+		x: D;
+		x;
+	}
+}
