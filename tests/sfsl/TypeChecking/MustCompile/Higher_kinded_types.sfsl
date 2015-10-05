@@ -1,0 +1,38 @@
+module test {
+	using sfsl.lang
+	
+	type Box[T] => class {
+		x: T;
+	}
+	
+	type OfInt[TC: *->*] => TC[int]
+	
+	type Eval[TC: *->*, T: *] => TC[T]
+	
+	type Eval2[TCC: [*->*]->*, TC: *->*] => TCC[TC]
+	
+	def t1: Box[int] = {
+		x: OfInt[Box];
+		x;
+	}
+	
+	def t2: int = {
+		x: OfInt[Box];
+		x.x;
+	}
+	
+	def t3: Box[int] = {
+		x: Eval[Box, int];
+		x;
+	}
+	
+	def t4: int = {
+		x: Eval[Box, int];
+		x.x;
+	}
+	
+	def t5: Box[int] = {
+		x: Eval2[OfInt, Box];
+		x;
+	}
+}

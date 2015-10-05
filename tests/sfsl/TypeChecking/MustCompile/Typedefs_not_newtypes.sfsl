@@ -1,0 +1,25 @@
+module test {
+	using sfsl.lang
+	
+	type A = int
+	type B = unit
+	type AtoB = int->unit
+	
+	def f1(x: int)->unit => ()
+	def f2(x: A)->B => ()
+	
+	def t1: A = 2
+	def t2: int = t1
+	def t3: A = t2
+	def t4: B = ()
+	def t5: int->unit = f2
+	def t6: A->B = f2
+	def t7: A->B = t6
+	def t8: A->B = f1
+	def t9: B = f2(2)
+	def t10: B = f1(2)
+	def t11: AtoB = f1
+	def t12: AtoB = f2
+	def t13: AtoB = t8
+	def t14: AtoB = t5
+}

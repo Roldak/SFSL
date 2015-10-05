@@ -1,0 +1,49 @@
+module test {
+	using sfsl.lang
+	
+	type Box = [T] => class {
+		x: T;
+	}
+	
+	type Pair = [A, B] => class {
+		a: A;
+		b: B;
+	}
+	
+	def f1(x: Box[int]) => x.x
+	
+	def t1: Box[int] = {
+		x: Box[int];
+		x;
+	}
+	
+	def t2: int = {
+		x: Box[int];
+		x.x;
+	}
+	
+	def t3: int = {
+		x: Box[int];
+		f1(x);
+	}
+	
+	def t4: Pair[int, real] = {
+		x: Pair[int, real];
+		x;
+	}
+	
+	def t5: real = {
+		x: Pair[int, real];
+		x.b;
+	}
+	
+	def t6: Box[int] = {
+		x: Box[Box[int]];
+		x.x;
+	}
+	
+	def t7: real = {
+		x: Box[Pair[Box[int], Box[Pair[int, real]]]];
+		x.x.b.x.b;
+	}
+}
