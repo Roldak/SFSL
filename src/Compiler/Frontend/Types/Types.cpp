@@ -104,6 +104,12 @@ Type* Type::NotYetDefined() {
     return &nyd; // all we want is a unique memory area
 }
 
+std::string Type::debugSubstitutionTableToString(const SubstitutionTable& table) {
+    return std::accumulate(table.begin(), table.end(), std::string("{"), [](const std::string& str, const std::pair<Type*, Type*>& pair) {
+        return str + pair.first->toString() + " => " + pair.second->toString();
+    }) + "}";
+}
+
 // TYPE MUST BE INFERRED
 
 TypeToBeInferred::TypeToBeInferred(const std::vector<Typed*>& associatedTyped) : _associatedTyped(associatedTyped) {
@@ -155,6 +161,10 @@ bool ProperType::isSubTypeOf(const Type* other) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
         if (_class->CanSubtypeClasses::extends(objother->_class)) {
             const SubstitutionTable& osub = objother->getSubstitutionTable();
+
+            std::cout << toString() << " : " << debugSubstitutionTableToString(getSubstitutionTable()) << std::endl;
+            std::cout << other->toString() << " : " << debugSubstitutionTableToString(other->getSubstitutionTable()) << std::endl;
+
             for (const auto& pair : _subTable) {
                 const auto& subpair = osub.find(pair.first);
                 if (subpair != osub.end() && !pair.second->isSubTypeOf(subpair->second)) { // TODO support contravariance maybe?

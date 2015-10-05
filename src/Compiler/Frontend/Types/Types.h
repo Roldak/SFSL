@@ -51,6 +51,8 @@ public:
 
     static Type* NotYetDefined();
 
+    static std::string debugSubstitutionTableToString(const SubstitutionTable& table);
+
 protected:
 
     const SubstitutionTable _subTable;

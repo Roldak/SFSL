@@ -2,6 +2,9 @@ module test {
 	using sfsl.lang
 	
 	type A[T] => class {}
+		
+	type E = class {}
+	type F = class : E {}
 	
 	def t1: A[F] = {
 		x: A[E];
