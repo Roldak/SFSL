@@ -1,0 +1,29 @@
+module test {
+	using sfsl.lang
+	
+	type A = class {}
+	type B = class : A {}
+	
+	def f1(x: A) => {
+		y: B;
+		y;
+	}
+	
+	def f2(f: B->A, x: A)->B => {
+		y: B;
+		y;
+	}
+	
+	def t1: B->B = f1
+	def t2: A->A = f1
+	def t3: B->A = f1
+	
+	def t4: (B->A, A)->B = f2
+	def t5: (B->A, B)->B = f2
+	def t6: (A->B, A)->B = f2
+	def t7: (A->B, B)->B = f2
+	def t8: (B->A, A)->A = f2
+	def t9: (B->A, B)->A = f2
+	def t10: (A->B, A)->A = f2
+	def t11: (A->B, B)->A = f2
+}
