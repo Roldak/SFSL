@@ -391,7 +391,7 @@ void TypeChecking::visit(FunctionCreation* func) {
         func->setType(_mngr.New<type::FunctionType>(argTypes, retType, nullptr));
     }
 
-    _rep.info(*func->getArgs(), func->type()->toString());
+    _rep.info(*func->getArgs(), func->type()->apply(_ctx)->toString());
 }
 
 void TypeChecking::visit(FunctionCall* call) {

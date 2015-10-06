@@ -1,0 +1,39 @@
+module sfsl {
+	module lang {
+		type unit 	= class {}
+		type bool 	= class {}
+		type byte 	= class {}
+		type int 	= class {}
+		type real 	= class {}
+		type string = class {}
+	}
+}
+
+module Main {
+	using sfsl.lang
+	
+	type Box[T] => class {
+		x: T;
+	}
+	
+	type C0 = [S: *->*] => [Z] => Z
+	
+	type Succ = [N: [*->*]->*->*] 
+			=> [S: *->*] => [Z] => S[N[S][Z]]
+	
+	type Plus = [A: [*->*]->*->*] => [B: [*->*]->*->*] 
+			=> [S: *->*] => [Z] => A[S][B[S][Z]]
+			
+	type Times = [A: [*->*]->*->*] => [B: [*->*]->*->*] 
+			=> [S: *->*] => [Z] => A[B[S]][Z]
+	
+	type C1 = Succ[C0]
+	type C2 = Succ[C1]
+	type C3 = Succ[C2]
+	type C4 = Succ[C3]
+	
+	def main() => {
+		x: Times[C2][Plus[C1][C2]][Box][int];
+		x; // Box[Box[Box[Box[Box[Box[int]]]]]]
+	}
+}
