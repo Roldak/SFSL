@@ -1,0 +1,59 @@
+module sfsl {
+	module lang {
+		type unit 	= class {}
+		type bool 	= class {}
+		type byte 	= class {}
+		type int 	= class {}
+		type real 	= class {}
+		type string = class {}
+	}
+}
+
+module Main {
+	using sfsl.lang
+	
+	type Box[T] => class {
+		x: T;
+	}
+	
+	type DoubleBox[T] => class {
+		x: T;
+		y: T;
+	}
+	
+	type C0 = [S: *->*] => [Z] => Z
+	
+	type Succ = [N: [*->*]->*->*] 
+			=> [S: *->*] => [Z] => S[N[S][Z]]
+	
+	type Plus = [A: [*->*]->*->*] => [B: [*->*]->*->*] 
+			=> [S: *->*] => [Z] => A[S][B[S][Z]]
+			
+	type Times = [A: [*->*]->*->*] => [B: [*->*]->*->*] 
+			=> [S: *->*] => [Z] => A[B[S]][Z]
+	
+	type C1 = Succ[C0]
+	type C2 = Succ[C1]
+	type C3 = Succ[C2]
+	type C4 = Succ[C3]
+	
+	type True = [T: *->*] => [F: *->*] => T
+	type False = [T: *->*] => [F: *->*] => F
+	
+	type Not = [B: [*->*]->[*->*]->*->*] 
+			=> [T: *->*] => [F: *->*] => B[F][T]
+			
+	type And = [A: [*->*]->[*->*]->*->*] => [B: [*->*]->[*->*]->*->*]
+			=> [T: *->*] => [F: *->*] => A[B[T][F]][F]
+	
+	type Or = [A: [*->*]->[*->*]->*->*] => [B: [*->*]->[*->*]->*->*]
+			=> [T: *->*] => [F: *->*] => A[T][B[T][F]]
+			
+	type Or2 = [A: [*->*]->[*->*]->*->*] => [B: [*->*]->[*->*]->*->*]
+			=> Not[And[Not[A]][Not[B]]]
+	
+	def main() => {
+		x: Or2[False][True][Box][DoubleBox][int];
+		x;
+	}
+}
