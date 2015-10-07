@@ -160,9 +160,9 @@ void TypeChecking::visit(DefineDecl* decl) {
         type::Type* expectedType = nullptr;
         type::Type* foundType = nullptr;
 
-        if (TypeExpression* expr = decl->getTypeSpecifier()) {
-            expr->onVisit(this);
-            expectedType = ASTTypeCreator::createType(expr, _ctx);
+        if (TypeExpression* tpexpr = decl->getTypeSpecifier()) {
+            tpexpr->onVisit(this);
+            expectedType = ASTTypeCreator::createType(tpexpr, _ctx);
 
             if (expectedType->applyTCCallsOnly(_ctx)->getTypeKind() == type::TYPE_FUNCTION && _currentThis) {
                 expectedType = type::MethodType::fromFunctionType(
@@ -178,6 +178,10 @@ void TypeChecking::visit(DefineDecl* decl) {
 
         RESTORE_MEMBER(_nextDef)
         RESTORE_MEMBER(_currentThis)
+
+        if (foundType && !type::getIf<type::ProperType>(foundType->applyTCCallsOnly(_ctx))) {
+            _rep.error(*decl->getValue(), "Right-hand side of definition must evaluate to a proper type. Found " + foundType->toString());
+        }
 
         if (expectedType && foundType) {
             if (!foundType->apply(_ctx)->isSubTypeOf(expectedType->apply(_ctx))) {
@@ -198,7 +202,7 @@ void TypeChecking::visit(DefineDecl* decl) {
             decl->getSymbol()->setType(foundType);
         }
         else { // "cannot happen"
-            _rep.fatal(*decl, "No way to typecheck this define");
+            _rep.fatal(*decl, "Define statement cannot be typechecked");
         }
 
         if (decl->isRedef()) {
