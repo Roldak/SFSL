@@ -24,14 +24,20 @@ public:
             std::cout << " (" << note << ")";
         }
         std::cout << std::endl;
+
+        if (success) {
+            ++_passed;
+        }
     }
 
     virtual void testSuiteEnd(size_t passedTests, size_t totalTests) override {
         std::cout << std::endl << "\t\tPassed: " << passedTests << "/" << totalTests << std::endl;
+        _total += totalTests;
     }
 
     virtual void testRunnerEnd(size_t passedSuites, size_t totalSuites) override {
-        std::cout << std::endl << "\tPassed Suites: " << passedSuites << "/" << totalSuites << std::endl;
+        std::cout << std::endl << "\tPassed Suites: " << passedSuites << "/" << totalSuites;
+        std::cout << std::endl << "\tPassed Tests:  " << _passed << "/" << _total << std::endl;
     }
 
 private:
@@ -39,6 +45,9 @@ private:
     std::string resultFor(bool success) {
         return success ? "V" : "X";
     }
+
+    size_t _passed {0};
+    size_t _total {0};
 
 };
 

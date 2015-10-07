@@ -1,0 +1,8 @@
+module test {
+	module ma {
+		using ma.mb
+	}
+	
+	module mb {
+	}
+}
