@@ -1,0 +1,11 @@
+module test {
+	using sfsl.lang
+	
+	type Box[T] => class {
+		x: T;
+	}
+	
+	def main() => {
+		x: Box;
+	}
+}

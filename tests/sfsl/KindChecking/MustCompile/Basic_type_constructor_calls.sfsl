@@ -1,0 +1,21 @@
+module test {
+	using sfsl.lang
+	
+	type F1 = [] => class {}
+	type F2 = [T] => int
+	type F3 = [A, B, C, D, E] => class {}
+	type F4 = [T] => [K] => K
+	type F5 = [F: *->*] => F[int]
+	type F6 = [F: *->*] => [K] => int
+	type F7 = [F: *->*, X: *] => F[X]
+	type F8 = [F: [[*->*]->[*->*]->*]->[*->*]->*] => int
+	
+	type T1 = F1[]
+	type T2 = F2[real]
+	type T3 = F3[unit, bool, int, real, string]
+	type T4 = F4[int][real]
+	type T5 = F5[[X] => X]
+	type T6 = F6[[X] => X][int]
+	type T7 = F7[[X] => X, int]
+	type T8 = F8[[F: [*->*]->[*->*]->*] => [G: *->*] => real]
+}

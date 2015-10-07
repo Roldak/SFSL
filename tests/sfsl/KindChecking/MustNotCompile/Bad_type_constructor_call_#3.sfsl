@@ -1,0 +1,7 @@
+module test {
+	using sfsl.lang
+	
+	type F1 = [F: [*->*]->*] => int
+	
+	type T1 = F1[[X: *->*->*] => real]
+}

@@ -1,0 +1,9 @@
+module test {
+	using sfsl.lang
+	
+	type Box[T] => class {
+		x: T;
+	}
+	
+	type T1 = Box[[X] => X]
+}
