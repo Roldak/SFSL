@@ -6,8 +6,21 @@
 //  Copyright (c) 2015 Romain Beguet. All rights reserved.
 //
 
-#include "Pipeline.h"
+#include "api/Pipeline.h"
 
 namespace sfsl {
+
+Pipeline::Pipeline() {
+
+}
+
+Pipeline::~Pipeline() {
+
+}
+
+Pipeline& Pipeline::insert(std::shared_ptr<Phase> phase) {
+    _phases.insert(phase);
+    return *this;
+}
 
 }

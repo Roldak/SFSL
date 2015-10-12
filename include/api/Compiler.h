@@ -16,6 +16,7 @@
 #include "ProgramBuilder.h"
 #include "ClassBuilder.h"
 #include "Type.h"
+#include "Pipeline.h"
 
 DECL_PRIVATE_IMPL_FOR(Compiler)
 

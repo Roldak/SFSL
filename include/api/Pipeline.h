@@ -9,7 +9,8 @@
 #ifndef __SFSL__API_Pipeline__
 #define __SFSL__API_Pipeline__
 
-#include <vector>
+#include <set>
+#include <memory>
 #include "Phase.h"
 
 namespace sfsl {
@@ -19,9 +20,11 @@ public:
     Pipeline();
     ~Pipeline();
 
+    Pipeline& insert(std::shared_ptr<Phase> phase);
+
 private:
 
-    std::vector<Phase*> phase;
+    std::set<std::shared_ptr<Phase>> _phases;
 };
 
 }
