@@ -25,6 +25,9 @@ public:
 
     virtual void run() = 0;
 
+    const std::string& getName() const;
+    const std::string& getDescr() const;
+
     static const std::string NoPhase;
     static const std::vector<std::string> None;
 

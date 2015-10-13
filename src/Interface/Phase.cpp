@@ -37,4 +37,12 @@ const std::vector<std::string> Phase::runsBefore() const {
     return None;
 }
 
+const std::string& Phase::getName() const {
+    return _name;
+}
+
+const std::string&Phase::getDescr() const {
+    return _descr;
+}
+
 }
