@@ -132,7 +132,7 @@ std::map<PhasePtr, PhasePtr> PhaseGraph::findStrongRelations(const std::vector<P
     return rels;
 }
 
-PhasePtr find(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, std::set<PhasePtr>& visited, size_t* depth = nullptr) {
+PhasePtr findHelper(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, std::set<PhasePtr>& visited, size_t* depth) {
     if (!visited.insert(node).second) {
         throw PhaseGraphResolutionError("A cyclic dependency was found in the phase graph");
     }
@@ -143,8 +143,13 @@ PhasePtr find(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, std::s
         return node;
     } else {
         if (depth) (*depth)++;
-        return find(parents, it->second, visited, depth);
+        return findHelper(parents, it->second, visited, depth);
     }
+}
+
+PhasePtr find(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, size_t* depth = nullptr) {
+    std::set<PhasePtr> visited;
+    return findHelper(parents, node, visited, depth);
 }
 
 std::vector<PhaseNode> PhaseGraph::createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rels, const std::vector<PhaseEdge>& edges) {
@@ -164,10 +169,9 @@ std::vector<PhaseNode> PhaseGraph::createUniqueNodes(const std::map<PhasePtr, Ph
 
     for (const auto& hardrel : parents) {
         size_t depth = 0;
-        std::set<PhasePtr> visited;
 
         PhasePtr child = hardrel.first;
-        PhasePtr parent = find(parents, hardrel.first, visited, &depth);
+        PhasePtr parent = find(parents, hardrel.first, &depth);
 
         std::cout << child->getName() << " -> " << parents[child]->getName() << " ; " <<depth << std::endl;
 
@@ -188,11 +192,8 @@ std::vector<PhaseNode> PhaseGraph::createUniqueNodes(const std::map<PhasePtr, Ph
 
     for (const PhaseEdge& edge : edges) {
         if (!edge.isHard) {
-            std::set<PhasePtr> visitedFrom;
-            std::set<PhasePtr> visitedTo;
-
-            PhaseNode& from = uniqs[indexes[find(parents, edge.from, visitedFrom)]];
-            PhaseNode& to = uniqs[indexes[find(parents, edge.to, visitedTo)]];
+            PhaseNode& from = uniqs[indexes[find(parents, edge.from)]];
+            PhaseNode& to = uniqs[indexes[find(parents, edge.to)]];
 
             from.edges.push_back(&to);
         }
