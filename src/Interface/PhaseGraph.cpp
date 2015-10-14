@@ -71,10 +71,16 @@ std::vector<PhaseEdge> createEdges(std::set<PhasePtr> phases) {
     std::map<std::string, PhasePtr> nameMap;
     std::vector<PhaseEdge> edges;
 
+    // Create a table which maps a phase name to its associated phase
     for (PhasePtr phase : phases) {
         nameMap[phase->getName()] = phase;
     }
 
+    /*
+     * Create the edges from the "rightAfter", "rightBefore", "after" and "before" elements.
+     * For the "right___" nodes, set "isHard" to true when constructing the edge.
+     * For the "rightBefore" and every "before" edges, simply reverse the direction of the edge.
+     */
     for (PhasePtr phase : phases) {
         if (PhasePtr rightAfter = phaseForName(nameMap, phase->runsRightAfter())) {
             edges.push_back(PhaseEdge(rightAfter, phase, true));
@@ -104,6 +110,7 @@ std::map<PhasePtr, PhasePtr> findStrongRelations(const std::vector<PhaseEdge>& e
 
     for (const PhaseEdge& edge : edges) {
         if (edge.isHard) {
+            // There can only be one hard edge per node, so raise an error if we find several
             if (!rels.insert(std::make_pair(edge.from, edge.to)).second) {
                 throw PhaseGraphResolutionError("Several hard dependencies were found for one node");
             }
@@ -114,6 +121,7 @@ std::map<PhasePtr, PhasePtr> findStrongRelations(const std::vector<PhaseEdge>& e
 }
 
 PhasePtr findHelper(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, std::set<PhasePtr>& visited, size_t* depth) {
+    // If this phase has already been visited during this find procedure, there is a cyclic dependency
     if (!visited.insert(node).second) {
         throw PhaseGraphResolutionError("A cyclic dependency was found in the phase graph");
     }
@@ -136,11 +144,19 @@ PhasePtr find(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, size_t
 std::vector<PhaseNode> createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rels, const std::vector<PhaseEdge>& edges) {
     std::map<PhasePtr, PhasePtr> parents;
 
+    /*
+     * Fill the "parents" table with trivial values to make sure
+     * all of the nodes will be taken into account.
+     */
     for (const PhaseEdge& edge : edges) {
         parents[edge.from] = edge.from;
         parents[edge.to] = edge.to;
     }
 
+    /*
+     * For the node which have hard links,
+     * set their parents to be the node they are linked to.
+     */
     for (const auto& rel : rels) {
         parents[rel.second] = rel.first;
     }
@@ -148,11 +164,28 @@ std::vector<PhaseNode> createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rel
     std::map<PhasePtr, size_t> indexes;
     std::vector<PhaseNode> uniqs;
 
-    for (const auto& hardrel : parents) {
+    /*
+     * For each relation, the index of the phase in the phase table of the PhaseNode
+     * is given by the depth level needed to retrieve the most outer parent of the phase.
+     *
+     * For example, in the graph: {1 -> 3, 3 -> 2, 2 -> 4, 5 ---> 6}, the first 4 nodes will live
+     * in the same node because they all have a common outer most parent which is 1. Moreover,
+     * the index of a node can be found be counting how much time it is needed to follow lookup
+     * in the parent table in order to find the most outer parent.
+     *
+     * In our example, the indexes will be:
+     *  - 1 goes to 0.
+     *  - 2 goes to 2.
+     *  - 3 goes to 1.
+     *  - 4 goes to 3.
+     *  - 5 goes to 0. // 5 has another most outer parent.
+     *  - 6 goes to 0. // 6 has another most outer parent (last edge is not hard).
+     */
+    for (const auto& rel : parents) {
         size_t depth = 0;
 
-        PhasePtr child = hardrel.first;
-        PhasePtr parent = find(parents, hardrel.first, &depth);
+        PhasePtr child = rel.first;
+        PhasePtr parent = find(parents, rel.first, &depth);
 
         auto itParent = indexes.find(parent);
 
@@ -169,6 +202,11 @@ std::vector<PhaseNode> createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rel
         phases[depth] = child;
     }
 
+    /*
+     * Finally, append the soft edges to the PhaseNodes.
+     * We must retrieve the outer most parents of the "from" and "to" phases,
+     * because the soft links are applied to all the nodes connected by hard links.
+     */
     for (const PhaseEdge& edge : edges) {
         if (!edge.isHard) {
             PhaseNode& from = uniqs[indexes[find(parents, edge.from)]];
