@@ -1,5 +1,7 @@
 #include "AbstractTestLogger.h"
 #include "FileSystemTestGenerator.h"
+#include "sfsl.h"
+#include "../src/Interface/PhaseGraph.h"
 
 using namespace sfsl;
 
@@ -51,7 +53,58 @@ private:
 
 };
 
+class PhaseTest : public sfsl::Phase {
+public:
+
+    PhaseTest(const std::string& name, const std::string& rightAfter, const std::string& rightBefore)
+        : Phase(name, ""), _rightAfter(rightAfter), _rightBefore(rightBefore) {
+
+    }
+
+    virtual ~PhaseTest() {
+
+    }
+
+    virtual const std::string runsRightAfter() const {
+        return _rightAfter;
+    }
+
+    virtual const std::string runsRightBefore() const {
+        return _rightBefore;
+    }
+
+    virtual const std::vector<std::string> runsAfter() const {
+        return {};
+    }
+
+    virtual const std::vector<std::string> runsBefore() const {
+        return {};
+    }
+
+    virtual void run() {
+        std::cout << "hello from " << getName() << std::endl;
+    }
+
+private:
+
+    const std::string _rightAfter;
+    const std::string _rightBefore;
+
+};
+
 int main() {
+
+    std::set<std::shared_ptr<Phase>> phases;
+
+    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase1", "", "")));
+    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase2", "Phase1", "")));
+    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase3", "", "Phase1")));
+    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase4", "Phase2", "")));
+
+    sortPhases(phases);
+
+    return 0;
+
     CoutLogger logger;
     test::FileSystemTestGenerator gen("sfsl");
     return gen.findAndGenerate()->run(logger);

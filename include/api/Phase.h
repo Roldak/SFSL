@@ -11,10 +11,11 @@
 
 #include <iostream>
 #include <vector>
+#include "SetVisibilities.h"
 
 namespace sfsl {
 
-class Phase {
+class SFSL_API_PUBLIC Phase {
 public:
     virtual ~Phase();
 
