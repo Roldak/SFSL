@@ -7,6 +7,7 @@
 //
 
 #include <map>
+#include <algorithm>
 #include "PhaseGraph.h"
 
 namespace sfsl {
@@ -14,11 +15,35 @@ namespace sfsl {
 typedef std::shared_ptr<Phase> PhasePtr;
 
 struct PhaseNode final {
-    PhaseNode() { }
+
+    enum MARK_TYPE { UNMARKED, TEMPORARY, PERMANENT };
+
+    PhaseNode() : mark(UNMARKED) { }
     ~PhaseNode() { }
+
+    bool isUnmarked() const {
+        return mark == UNMARKED;
+    }
+
+    bool isTemporarilyMarked() const {
+        return mark == TEMPORARY;
+    }
+
+    bool isPermanentlyMarked() const {
+        return mark == PERMANENT;
+    }
+
+    void markTemporarily() {
+        mark = TEMPORARY;
+    }
+
+    void markPermanently() {
+        mark = PERMANENT;
+    }
 
     std::vector<PhasePtr> phases;
     std::vector<PhaseNode*> edges;
+    MARK_TYPE mark;
 };
 
 struct PhaseEdge final {
@@ -48,6 +73,7 @@ private:
     std::vector<PhaseEdge> createEdges();
     std::map<PhasePtr, PhasePtr> findStrongRelations(const std::vector<PhaseEdge>& edges);
     std::vector<PhaseNode> createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rels, const std::vector<PhaseEdge>& edges);
+    std::vector<PhasePtr> topologicalSort(std::vector<PhaseNode>& nodes);
 
     std::set<PhasePtr> _phases;
     std::map<std::string, PhasePtr> _nameMap;
@@ -62,23 +88,11 @@ PhaseGraph::PhaseGraph(std::set<std::shared_ptr<Phase>>& phases) : _phases(phase
 std::vector<std::shared_ptr<Phase>> PhaseGraph::sort() {
     const std::vector<PhaseEdge>& edges(createEdges());
     const std::map<PhasePtr, PhasePtr>& rels(findStrongRelations(edges));
-    const std::vector<PhaseNode>& nodes(createUniqueNodes(rels, edges));
 
-    for (const PhaseNode& node : nodes) {
-        std::cout << &node << " { ";
-        for (const PhasePtr& phase : node.phases) {
-            std::cout << phase->getName() << " ";
-        }
-        std::cout << "} -> { ";
+    std::vector<PhaseNode> nodes(createUniqueNodes(rels, edges));
+    std::vector<PhasePtr> phases(topologicalSort(nodes));
 
-        for (const PhaseNode* afters : node.edges) {
-            std::cout << afters << " ";
-        }
-
-        std::cout << " }" << std::endl;
-    }
-
-    return {};
+    return phases;
 }
 
 PhasePtr PhaseGraph::phaseForName(const std::string& phaseName) {
@@ -195,17 +209,50 @@ std::vector<PhaseNode> PhaseGraph::createUniqueNodes(const std::map<PhasePtr, Ph
             PhaseNode& from = uniqs[indexes[find(parents, edge.from)]];
             PhaseNode& to = uniqs[indexes[find(parents, edge.to)]];
 
-            from.edges.push_back(&to);
+            to.edges.push_back(&from);
         }
     }
 
     return uniqs;
 }
 
+void topologicalSortDFSvisit(std::vector<PhasePtr>& ordered, PhaseNode* node) {
+    if (node->isTemporarilyMarked()) {
+        throw PhaseGraphResolutionError("A cyclic dependency was found");
+    }
+
+    if (node->isUnmarked()) {
+        node->markTemporarily();
+
+        for (PhaseNode* neighbor : node->edges) {
+            topologicalSortDFSvisit(ordered, neighbor);
+        }
+
+        node->markPermanently();
+
+        for (PhasePtr phase : node->phases) {
+            ordered.push_back(phase);
+        }
+    }
+}
+
+std::vector<PhasePtr> PhaseGraph::topologicalSort(std::vector<PhaseNode>& nodes) {
+    std::vector<PhasePtr> ordered;
+
+    for (PhaseNode& node : nodes) {
+        if (!node.isUnmarked()) {
+            continue;
+        }
+
+        topologicalSortDFSvisit(ordered, &node);
+    }
+
+    return ordered;
+}
+
 std::vector<PhasePtr> sortPhases(std::set<std::shared_ptr<Phase>>& phases) {
     PhaseGraph graph(phases);
-    graph.sort();
-    return {};
+    return graph.sort();
 }
 
 PhaseGraphResolutionError::PhaseGraphResolutionError(const std::string& err) : std::runtime_error(err) {

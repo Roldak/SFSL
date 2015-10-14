@@ -56,10 +56,13 @@ private:
 class PhaseTest : public sfsl::Phase {
 public:
 
-    PhaseTest(const std::string& name, const std::string& rightAfter, const std::string& rightBefore)
-        : Phase(name, ""), _rightAfter(rightAfter), _rightBefore(rightBefore) {
-
-    }
+    PhaseTest(const std::string& name,
+              const std::string& rightAfter, const std::string& rightBefore,
+              const std::vector<std::string>& afters = {}, const std::vector<std::string>& befores = {})
+        : Phase(name, ""),
+          _rightAfter(rightAfter), _rightBefore(rightBefore),
+          _afters(afters), _befores(befores)
+    { }
 
     virtual ~PhaseTest() {
 
@@ -74,11 +77,11 @@ public:
     }
 
     virtual const std::vector<std::string> runsAfter() const {
-        return {};
+        return _afters;
     }
 
     virtual const std::vector<std::string> runsBefore() const {
-        return {};
+        return _befores;
     }
 
     virtual void run() {
@@ -90,6 +93,8 @@ private:
     const std::string _rightAfter;
     const std::string _rightBefore;
 
+    const std::vector<std::string> _afters;
+    const std::vector<std::string> _befores;
 };
 
 int main() {
@@ -100,8 +105,16 @@ int main() {
     phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase2", "Phase1", "")));
     phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase3", "", "Phase1")));
     phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase4", "Phase2", "")));
+    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase5", "", "", {"Phase2"})));
+    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase6", "", "", {}, {"Phase5", "Phase4"})));
 
-    sortPhases(phases);
+    std::vector<std::shared_ptr<Phase>> sortedPhases(sortPhases(phases));
+
+    for (std::shared_ptr<Phase> phase : sortedPhases) {
+        std::cout << phase->getName() << " -> ";
+    }
+
+    std::cout << "END" << std::endl;
 
     return 0;
 
