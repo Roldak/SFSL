@@ -126,51 +126,51 @@ std::map<PhasePtr, PhasePtr> PhaseGraph::findStrongRelations(const std::vector<P
     return rels;
 }
 
-PhasePtr find(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node) {
+PhasePtr find(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, size_t* depth) {
     auto it = parents.find(node);
 
-    if (it != parents.end()) {
-        if (it->second == node) {
-            return node;
-        } else {
-            return find(parents, it->second);
-        }
-    } else {
-        parents[node] = node;
+    if (it->second == node) {
         return node;
+    } else {
+        (*depth)++;
+        return find(parents, it->second, depth);
     }
-}
-
-void mergeSets(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr first, const PhasePtr second) {
-    const PhasePtr firstParent = find(parents, first);
-    const PhasePtr secondParent = find(parents, second);
-    parents[secondParent] = firstParent;
 }
 
 std::vector<PhaseNode> PhaseGraph::createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rels) {
     std::map<PhasePtr, PhasePtr> parents;
 
     for (const auto& rel : rels) {
-        mergeSets(parents, rel.first, rel.second);
+        parents[rel.first] = rel.first;
+        parents[rel.second] = rel.second;
+    }
+
+    for (const auto& rel : rels) {
+        parents[rel.second] = rel.first;
     }
 
     std::map<PhasePtr, size_t> indexes;
     std::vector<PhaseNode> uniqs;
 
     for (const auto& rel : parents) {
+        size_t depth = 0;
         PhasePtr child = rel.first;
-        PhasePtr parent = find(parents, rel.first);
+        PhasePtr parent = find(parents, rel.first, &depth);
+
+        std::cout << child->getName() << " -> " << parents[child]->getName() << " ; " <<depth << std::endl;
 
         auto itParent = indexes.find(parent);
 
-        if (itParent != indexes.end()) {
-            uniqs[itParent->second].phases.push_back(child);
-        } else {
+        if (itParent == indexes.end()) {
             uniqs.push_back({});
-            uniqs.back().phases.push_back(child);
-
-            indexes[parent] = uniqs.size() - 1;
+            itParent = indexes.insert(std::make_pair(parent, uniqs.size() - 1)).first;
         }
+
+        std::vector<PhasePtr>& phases = uniqs[itParent->second].phases;
+        if (depth >= phases.size()) {
+            phases.resize(depth + 1);
+        }
+        phases[depth] = child;
     }
 
     return uniqs;
