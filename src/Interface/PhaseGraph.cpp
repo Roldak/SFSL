@@ -50,80 +50,47 @@ struct PhaseEdge final {
     PhaseEdge(PhasePtr from, PhasePtr to, bool isHard) : from(from), to(to), isHard(isHard) { }
     ~PhaseEdge() { }
 
-    bool operator<(const PhaseEdge& other) {
-        return from < other.from;
-    }
-
     PhasePtr from;
     PhasePtr to;
     bool isHard;
 };
 
-class PhaseGraph final {
-public:
-    PhaseGraph(std::set<std::shared_ptr<Phase>>& phases);
-    ~PhaseGraph() { }
-
-    std::vector<std::shared_ptr<Phase>> sort();
-
-private:
-
-    PhasePtr phaseForName(const std::string& phaseName);
-
-    std::vector<PhaseEdge> createEdges();
-    std::map<PhasePtr, PhasePtr> findStrongRelations(const std::vector<PhaseEdge>& edges);
-    std::vector<PhaseNode> createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rels, const std::vector<PhaseEdge>& edges);
-    std::vector<PhasePtr> topologicalSort(std::vector<PhaseNode>& nodes);
-
-    std::set<PhasePtr> _phases;
-    std::map<std::string, PhasePtr> _nameMap;
-};
-
-PhaseGraph::PhaseGraph(std::set<std::shared_ptr<Phase>>& phases) : _phases(phases) {
-    for (PhasePtr phase : _phases) {
-        _nameMap[phase->getName()] = phase;
-    }
-}
-
-std::vector<std::shared_ptr<Phase>> PhaseGraph::sort() {
-    const std::vector<PhaseEdge>& edges(createEdges());
-    const std::map<PhasePtr, PhasePtr>& rels(findStrongRelations(edges));
-
-    std::vector<PhaseNode> nodes(createUniqueNodes(rels, edges));
-    std::vector<PhasePtr> phases(topologicalSort(nodes));
-
-    return phases;
-}
-
-PhasePtr PhaseGraph::phaseForName(const std::string& phaseName) {
+PhasePtr phaseForName(const std::map<std::string, PhasePtr>& nameMap, const std::string& phaseName) {
     if (!phaseName.empty()) {
-        auto it = _nameMap.find(phaseName);
-        if (it != _nameMap.end()) {
+        auto it = nameMap.find(phaseName);
+        if (it != nameMap.end()) {
             return it->second;
+        } else {
+            throw PhaseGraphResolutionError("Could not find any phase called '" + phaseName + "'");
         }
     }
     return PhasePtr(nullptr);
 }
 
-std::vector<PhaseEdge> PhaseGraph::createEdges() {
+std::vector<PhaseEdge> createEdges(std::set<PhasePtr> phases) {
+    std::map<std::string, PhasePtr> nameMap;
     std::vector<PhaseEdge> edges;
 
-    for (PhasePtr phase : _phases) {
-        if (PhasePtr rightAfter = phaseForName(phase->runsRightAfter())) {
+    for (PhasePtr phase : phases) {
+        nameMap[phase->getName()] = phase;
+    }
+
+    for (PhasePtr phase : phases) {
+        if (PhasePtr rightAfter = phaseForName(nameMap, phase->runsRightAfter())) {
             edges.push_back(PhaseEdge(rightAfter, phase, true));
         }
-        if (PhasePtr rightBefore = phaseForName(phase->runsRightBefore())) {
+        if (PhasePtr rightBefore = phaseForName(nameMap, phase->runsRightBefore())) {
             edges.push_back(PhaseEdge(phase, rightBefore, true));
         }
 
         for (const std::string& name : phase->runsAfter()) {
-            if (PhasePtr after = phaseForName(name)) {
+            if (PhasePtr after = phaseForName(nameMap, name)) {
                 edges.push_back(PhaseEdge(after, phase, false));
             }
         }
 
         for (const std::string& name  : phase->runsBefore()) {
-            if (PhasePtr before = phaseForName(name)) {
+            if (PhasePtr before = phaseForName(nameMap, name)) {
                 edges.push_back(PhaseEdge(phase, before, false));
             }
         }
@@ -132,7 +99,7 @@ std::vector<PhaseEdge> PhaseGraph::createEdges() {
     return edges;
 }
 
-std::map<PhasePtr, PhasePtr> PhaseGraph::findStrongRelations(const std::vector<PhaseEdge>& edges) {
+std::map<PhasePtr, PhasePtr> findStrongRelations(const std::vector<PhaseEdge>& edges) {
     std::map<PhasePtr, PhasePtr> rels;
 
     for (const PhaseEdge& edge : edges) {
@@ -166,7 +133,7 @@ PhasePtr find(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, size_t
     return findHelper(parents, node, visited, depth);
 }
 
-std::vector<PhaseNode> PhaseGraph::createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rels, const std::vector<PhaseEdge>& edges) {
+std::vector<PhaseNode> createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rels, const std::vector<PhaseEdge>& edges) {
     std::map<PhasePtr, PhasePtr> parents;
 
     for (const PhaseEdge& edge : edges) {
@@ -186,8 +153,6 @@ std::vector<PhaseNode> PhaseGraph::createUniqueNodes(const std::map<PhasePtr, Ph
 
         PhasePtr child = hardrel.first;
         PhasePtr parent = find(parents, hardrel.first, &depth);
-
-        std::cout << child->getName() << " -> " << parents[child]->getName() << " ; " <<depth << std::endl;
 
         auto itParent = indexes.find(parent);
 
@@ -236,7 +201,7 @@ void topologicalSortDFSvisit(std::vector<PhasePtr>& ordered, PhaseNode* node) {
     }
 }
 
-std::vector<PhasePtr> PhaseGraph::topologicalSort(std::vector<PhaseNode>& nodes) {
+std::vector<PhasePtr> topologicalSort(std::vector<PhaseNode>& nodes) {
     std::vector<PhasePtr> ordered;
 
     for (PhaseNode& node : nodes) {
@@ -251,8 +216,13 @@ std::vector<PhasePtr> PhaseGraph::topologicalSort(std::vector<PhaseNode>& nodes)
 }
 
 std::vector<PhasePtr> sortPhases(std::set<std::shared_ptr<Phase>>& phases) {
-    PhaseGraph graph(phases);
-    return graph.sort();
+    const std::vector<PhaseEdge>& edges(createEdges(phases));
+    const std::map<PhasePtr, PhasePtr>& rels(findStrongRelations(edges));
+
+    std::vector<PhaseNode> nodes(createUniqueNodes(rels, edges));
+    std::vector<PhasePtr> sortedPhases(topologicalSort(nodes));
+
+    return sortedPhases;
 }
 
 PhaseGraphResolutionError::PhaseGraphResolutionError(const std::string& err) : std::runtime_error(err) {
