@@ -65,11 +65,17 @@ std::vector<std::shared_ptr<Phase>> PhaseGraph::sort() {
     const std::vector<PhaseNode>& nodes(createUniqueNodes(rels, edges));
 
     for (const PhaseNode& node : nodes) {
-        std::cout << "{ ";
+        std::cout << &node << " { ";
         for (const PhasePtr& phase : node.phases) {
             std::cout << phase->getName() << " ";
         }
-        std::cout << "}" << std::endl;
+        std::cout << "} -> { ";
+
+        for (const PhaseNode* afters : node.edges) {
+            std::cout << afters << " ";
+        }
+
+        std::cout << " }" << std::endl;
     }
 
     return {};
@@ -126,7 +132,7 @@ std::map<PhasePtr, PhasePtr> PhaseGraph::findStrongRelations(const std::vector<P
     return rels;
 }
 
-PhasePtr find(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, size_t* depth, std::set<PhasePtr>& visited) {
+PhasePtr find(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, std::set<PhasePtr>& visited, size_t* depth = nullptr) {
     if (!visited.insert(node).second) {
         throw PhaseGraphResolutionError("A cyclic dependency was found in the phase graph");
     }
@@ -136,17 +142,17 @@ PhasePtr find(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, size_t
     if (it->second == node) {
         return node;
     } else {
-        (*depth)++;
-        return find(parents, it->second, depth, visited);
+        if (depth) (*depth)++;
+        return find(parents, it->second, visited, depth);
     }
 }
 
 std::vector<PhaseNode> PhaseGraph::createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rels, const std::vector<PhaseEdge>& edges) {
     std::map<PhasePtr, PhasePtr> parents;
 
-    for (const auto& rel : rels) {
-        parents[rel.first] = rel.first;
-        parents[rel.second] = rel.second;
+    for (const PhaseEdge& edge : edges) {
+        parents[edge.from] = edge.from;
+        parents[edge.to] = edge.to;
     }
 
     for (const auto& rel : rels) {
@@ -156,12 +162,12 @@ std::vector<PhaseNode> PhaseGraph::createUniqueNodes(const std::map<PhasePtr, Ph
     std::map<PhasePtr, size_t> indexes;
     std::vector<PhaseNode> uniqs;
 
-    for (const auto& rel : parents) {
+    for (const auto& hardrel : parents) {
         size_t depth = 0;
         std::set<PhasePtr> visited;
 
-        PhasePtr child = rel.first;
-        PhasePtr parent = find(parents, rel.first, &depth, visited);
+        PhasePtr child = hardrel.first;
+        PhasePtr parent = find(parents, hardrel.first, visited, &depth);
 
         std::cout << child->getName() << " -> " << parents[child]->getName() << " ; " <<depth << std::endl;
 
@@ -176,12 +182,19 @@ std::vector<PhaseNode> PhaseGraph::createUniqueNodes(const std::map<PhasePtr, Ph
         if (depth >= phases.size()) {
             phases.resize(depth + 1);
         }
+
         phases[depth] = child;
     }
 
     for (const PhaseEdge& edge : edges) {
         if (!edge.isHard) {
-            //edge.from
+            std::set<PhasePtr> visitedFrom;
+            std::set<PhasePtr> visitedTo;
+
+            PhaseNode& from = uniqs[indexes[find(parents, edge.from, visitedFrom)]];
+            PhaseNode& to = uniqs[indexes[find(parents, edge.to, visitedTo)]];
+
+            from.edges.push_back(&to);
         }
     }
 
