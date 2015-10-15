@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 2.8)
 set(COMPILER_LIB_OUTPUT_NAME    "sfslc") # will become libsfslc.a
 set(USER_API_OUTPUT_NAME        "sfsl")
 set(COMPILER_EXE_OUTPUT_NAME    "sfslc")
-set(COMPILER_TESTS_OUTPUT_NAME   "sfsltests")
+set(COMPILER_TESTS_OUTPUT_NAME  "sfsltests")
 
 # TARGET OPTIONS
 

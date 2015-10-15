@@ -12,17 +12,24 @@
 #include <set>
 #include <memory>
 #include "Phase.h"
+#include "SetVisibilities.h"
 
 namespace sfsl {
 
-class Pipeline final {
+class SFSL_API_PUBLIC Pipeline final {
 public:
-    Pipeline();
     ~Pipeline();
 
     Pipeline& insert(std::shared_ptr<Phase> phase);
 
+    static Pipeline createDefault();
+
 private:
+    friend class Compiler;
+
+    Pipeline();
+
+    std::set<std::shared_ptr<Phase>> getPhases() const;
 
     std::set<std::shared_ptr<Phase>> _phases;
 };
