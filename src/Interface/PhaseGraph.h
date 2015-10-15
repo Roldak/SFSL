@@ -22,7 +22,7 @@ public:
     virtual ~PhaseGraphResolutionError();
 };
 
-__attribute__ ((dllexport)) std::vector<std::shared_ptr<Phase>> sortPhases(std::set<std::shared_ptr<Phase>>& phases);
+std::vector<std::shared_ptr<Phase>> sortPhases(std::set<std::shared_ptr<Phase>>& phases);
 
 }
 

@@ -85,8 +85,10 @@ public:
 
 class CodeGenPhase : public Phase {
 public:
-    CodeGenPhase() : Phase("CodeGen", "Emits sfsl bytecode from the abstract syntax tree") { }
-    virtual ~CodeGenPhase() { }
+    CodeGenPhase() : Phase("CodeGen", "Emits sfsl bytecode from the abstract syntax tree"), _out(nullptr) { }
+    virtual ~CodeGenPhase() {
+        if (_out) delete _out;
+    }
 
     virtual std::vector<std::string> runsAfter() const { return {"TypeChecking"}; }
 
@@ -94,15 +96,21 @@ public:
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
-        out::LinkedListOutput<bc::BCInstruction*> out(ctx);
+        _out = new out::LinkedListOutput<bc::BCInstruction*>(ctx);
         bc::UserDataAssignment uda(ctx);
-        bc::DefaultBytecodeGenerator gen(ctx, out);
+        bc::DefaultBytecodeGenerator gen(ctx, *_out);
 
         prog->onVisit(&uda);
         prog->onVisit(&gen);
 
+        pctx.output("out", _out);
+
         return ctx->reporter().getErrorCount() == 0;
     }
+
+private:
+
+    out::LinkedListOutput<bc::BCInstruction*>* _out;
 };
 
 // PIPELINE

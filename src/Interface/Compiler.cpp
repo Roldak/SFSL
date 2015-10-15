@@ -23,6 +23,8 @@
 
 #include "Compiler/Frontend/Symbols/Scope.h"
 
+#include "PhaseGraph.h"
+
 #define COMPILER_IMPL_NAME          NAME_OF_IMPL(Compiler)
 #define TYPE_IMPL_NAME              NAME_OF_IMPL(Type)
 #define MODULE_IMPL_NAME            NAME_OF_IMPL(Module)
@@ -43,7 +45,7 @@
 
 BEGIN_PRIVATE_DEF
 
-class COMPILER_IMPL_NAME {
+class COMPILER_IMPL_NAME final {
 public:
     COMPILER_IMPL_NAME(CompCtx_Ptr ctx) : ctx(ctx) {}
     ~COMPILER_IMPL_NAME() {}
@@ -51,7 +53,7 @@ public:
     CompCtx_Ptr ctx;
 };
 
-class TYPE_IMPL_NAME {
+class TYPE_IMPL_NAME final {
 public:
     TYPE_IMPL_NAME(ast::TypeExpression* type) : _type(type) { }
     ~TYPE_IMPL_NAME() { }
@@ -59,7 +61,7 @@ public:
     ast::TypeExpression* _type;
 };
 
-class MODULE_IMPL_NAME : public ModuleContainer {
+class MODULE_IMPL_NAME final : public ModuleContainer {
 public:
     MODULE_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name) : mngr(mngr), _name(name) { }
     virtual ~MODULE_IMPL_NAME() { }
@@ -92,7 +94,7 @@ public:
     std::vector<ast::DefineDecl*> _ddecls;
 };
 
-class PROGRAMBUILDER_IMPL_NAME : public ModuleContainer {
+class PROGRAMBUILDER_IMPL_NAME final : public ModuleContainer {
 public:
     PROGRAMBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, ast::Program* prog) : mngr(mngr), _prog(prog) { }
     virtual ~PROGRAMBUILDER_IMPL_NAME() { }
@@ -119,10 +121,10 @@ public:
     ast::Program* _prog;
 };
 
-class CLASSBUILDER_IMPL_NAME {
+class CLASSBUILDER_IMPL_NAME final {
 public:
     CLASSBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name) : _mngr(mngr), _name(name) { }
-    virtual ~CLASSBUILDER_IMPL_NAME() { }
+    ~CLASSBUILDER_IMPL_NAME() { }
 
     void addField(const std::string& fieldName, Type fieldType) {
         ast::Identifier* id = _mngr.New<ast::Identifier>(fieldName);
@@ -188,64 +190,34 @@ ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& sr
     }
 }
 
-std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
+std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder, const Pipeline& ppl) {
     if (!progBuilder) {
         return {};
     }
 
+    PhaseContext pctx;
     CompCtx_Ptr ctx = _impl->ctx;
     ast::Program* prog = progBuilder._impl->createUpdatedProgram();
+
+    pctx.output("prog", prog);
+    pctx.output("ctx", &ctx);
 
 /*
     ast::ASTPrinter printer(ctx, std::cout);
     prog->onVisit(&printer);
 */
     try {
+        std::set<std::shared_ptr<Phase>> phases(ppl.getPhases());
+        std::vector<std::shared_ptr<Phase>> sortedPhases(sortPhases(phases));
 
-        ast::ScopeGeneration scopeGen(ctx);
-        ast::TypeDependencyFixation typeDep(ctx);
-        ast::SymbolAssignation symAssign(ctx);
-
-        prog->onVisit(&scopeGen);
-        prog->onVisit(&typeDep);
-        prog->onVisit(&symAssign);
-
-        if (ctx->reporter().getErrorCount() != 0) {
-            return {};
+        for (std::shared_ptr<Phase> phase : sortedPhases) {
+            if (!phase->run(pctx)) {
+                return {};
+            }
         }
 
-        ast::KindChecking kindCheck(ctx);
-        prog->onVisit(&kindCheck);
-
-        if (ctx->reporter().getErrorCount() != 0) {
-            return {};
-        }
-
-        sym::SymbolResolver res(prog, ctx);
-        res.setPredefClassesPath("sfsl.lang");
-
-        ast::TopLevelTypeChecking topleveltypecheck(ctx, res);
-        ast::TypeChecking typeCheck(ctx, res);
-
-        prog->onVisit(&topleveltypecheck);
-        prog->onVisit(&typeCheck);
-
-        if (ctx->reporter().getErrorCount() != 0) {
-            return {};
-        }
-
-        out::LinkedListOutput<bc::BCInstruction*> out(ctx);
-        bc::UserDataAssignment uda(ctx);
-        bc::DefaultBytecodeGenerator gen(ctx, out);
-
-        prog->onVisit(&uda);
-        prog->onVisit(&gen);
-
-        if (ctx->reporter().getErrorCount() != 0) {
-            return {};
-        }
-
-        std::vector<bc::BCInstruction*> instrs(out.toVector());
+        out::LinkedListOutput<bc::BCInstruction*>* out = pctx.require<out::LinkedListOutput<bc::BCInstruction*>>("out");
+        std::vector<bc::BCInstruction*> instrs(out->toVector());
         std::vector<std::string> instrsStr;
 
         for (bc::BCInstruction* instr : instrs) {
@@ -254,6 +226,8 @@ std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder) {
 
         return instrsStr;
 
+    } catch (const PhaseGraphResolutionError& graphErr) {
+        throw CompileError(graphErr.what());
     } catch (common::CompilationFatalError err) {
         throw CompileError(err.what());
     }

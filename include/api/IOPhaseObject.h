@@ -25,7 +25,7 @@ namespace sfsl {
 
 class IOPhaseObject {
 public:
-    virtual ~IOPhaseObject();
+    virtual ~IOPhaseObject() { }
 
     virtual size_t getId() const = 0;
 };

@@ -28,7 +28,7 @@ public:
     ~Compiler();
 
     ProgramBuilder parse(const std::string& srcName, const std::string& srcContent);
-    std::vector<std::string> compile(ProgramBuilder progBuilder);
+    std::vector<std::string> compile(ProgramBuilder progBuilder, const Pipeline& ppl = Pipeline::createDefault());
 
     Type parseType(const std::string& str);
     Type createFunctionType(const std::vector<Type>& argTypes, Type retType);
