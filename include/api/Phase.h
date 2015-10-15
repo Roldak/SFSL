@@ -14,6 +14,11 @@
 #include "PhaseContext.h"
 #include "SetVisibilities.h"
 
+#define RIGHT_AFTER(x)  virtual std::string runsRightAfter()    const { return (x); }
+#define RIGHT_BEFORE(x) virtual std::string runsRightBefore()   const { return (x); }
+#define AFTER(x)        virtual std::string runsAfter()         const { return (x); }
+#define BEFORE(x)       virtual std::string runsBefore()        const { return (x); }
+
 namespace sfsl {
 
 class SFSL_API_PUBLIC Phase {

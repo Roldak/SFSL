@@ -23,6 +23,13 @@
 
 namespace sfsl {
 
+class IOPhaseObject {
+public:
+    virtual ~IOPhaseObject();
+
+    virtual size_t getId() const = 0;
+};
+
 namespace priv {
 
 // http://codereview.stackexchange.com/questions/44936/unique-type-id-in-c
@@ -37,14 +44,22 @@ size_t getIOPhaseObjectID() {
     return reinterpret_cast<size_t>(&IOPhaseObjectUnique<T>::id);
 }
 
-}
-
-class IOPhaseObject {
+template<typename T>
+class IOPhaseObjectWrapper : public IOPhaseObject {
+    IO_PHASE_OBJECT_HEADER
 public:
-    virtual ~IOPhaseObject();
 
-    virtual size_t getId() const = 0;
+    IOPhaseObjectWrapper(T* ptr) : _ptr(ptr) {}
+    virtual ~IOPhaseObjectWrapper() { }
+
+    T* get() const { return _ptr; }
+
+private:
+
+    T* _ptr;
 };
+
+}
 
 }
 

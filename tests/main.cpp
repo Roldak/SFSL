@@ -84,7 +84,7 @@ public:
         return _befores;
     }
 
-    virtual void run() {
+    virtual void run(PhaseContext& ctx) {
         std::cout << "hello from " << getName() << std::endl;
     }
 
@@ -102,11 +102,11 @@ int main() {
     std::set<std::shared_ptr<Phase>> phases;
 
     phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase1", "", "")));
-    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase2", "Phase1", "")));
-    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase3", "", "Phase1")));
+    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase3", "Phase1", "")));
+    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase2", "Phase3", "")));
     phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase4", "Phase2", "")));
-    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase5", "", "", {"Phase2"})));
-    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase6", "", "", {}, {"Phase5", "Phase4"})));
+    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase5", "", "", {}, {"Phase6"})));
+    phases.insert(std::shared_ptr<Phase>(new PhaseTest("Phase6", "", "")));
 
     std::vector<std::shared_ptr<Phase>> sortedPhases(sortPhases(phases));
 

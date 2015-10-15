@@ -15,12 +15,9 @@ PhaseContext::PhaseContext() {
 }
 
 PhaseContext::~PhaseContext() {
-
-}
-
-PhaseContext& PhaseContext::output(const std::string& name, IOPhaseObject* object) {
-    setIOPhaseObject(name, object);
-    return *this;
+    for (const auto& pair : _phaseObjects) {
+        delete pair.second;
+    }
 }
 
 IOPhaseObject* PhaseContext::findIOPhaseObject(const std::string& name) const {
@@ -32,7 +29,11 @@ IOPhaseObject* PhaseContext::findIOPhaseObject(const std::string& name) const {
 }
 
 void PhaseContext::setIOPhaseObject(const std::string& name, IOPhaseObject* obj) {
-    _phaseObjects[name] = obj;
+    IOPhaseObject*& old = _phaseObjects[name];
+    if (old) {
+        delete old;
+    }
+    old = obj;
 }
 
 }

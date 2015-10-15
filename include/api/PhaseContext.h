@@ -22,10 +22,11 @@ public:
     PhaseContext& operator=(const PhaseContext& other) = delete;
     ~PhaseContext();
 
-    template<typename T, typename std::enable_if<std::is_base_of<IOPhaseObject, T>::value>::type>
+    template<typename T>
     T* require(const std::string& name) const;
 
-    PhaseContext& output(const std::string& name, IOPhaseObject* object);
+    template<typename T>
+    PhaseContext& output(const std::string& name, T* object);
 
 private:
     friend class Compiler;
@@ -38,14 +39,21 @@ private:
     std::map<std::string, IOPhaseObject*> _phaseObjects;
 };
 
-template<typename T, typename std::enable_if<std::is_base_of<IOPhaseObject, T>::value>::type>
+template<typename T>
 T* PhaseContext::require(const std::string& name) const {
     if (IOPhaseObject* obj = findIOPhaseObject(name)) {
-        if (obj->getId() == priv::getIOPhaseObjectID<const T*>()) {
-            return obj;
+        if (obj->getId() == priv::getIOPhaseObjectID<const priv::IOPhaseObjectWrapper<T>*>()) {
+            return ((priv::IOPhaseObjectWrapper<T>*)obj)->get();
         }
     }
     return nullptr;
+}
+
+template<typename T>
+PhaseContext& PhaseContext::output(const std::string& name, T* object) {
+    priv::IOPhaseObjectWrapper<T>* wrapper = new priv::IOPhaseObjectWrapper<T>(object);
+    setIOPhaseObject(name, wrapper);
+    return *this;
 }
 
 }
