@@ -7,6 +7,7 @@
 //
 
 #include "api/PhaseContext.h"
+#include "api/Errors.h"
 
 namespace sfsl {
 
@@ -24,8 +25,9 @@ IOPhaseObject* PhaseContext::findIOPhaseObject(const std::string& name) const {
     auto it = _phaseObjects.find(name);
     if (it != _phaseObjects.end()) {
         return it->second;
+    } else {
+        throw CompileError("Could not find phase object named '" + name +"'");
     }
-    return nullptr;
 }
 
 void PhaseContext::setIOPhaseObject(const std::string& name, IOPhaseObject* obj) {

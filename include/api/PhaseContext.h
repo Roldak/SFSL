@@ -12,6 +12,7 @@
 #include <iostream>
 #include <map>
 #include "IOPhaseObject.h"
+#include "Errors.h"
 #include "SetVisibilities.h"
 
 namespace sfsl {
@@ -41,12 +42,12 @@ private:
 
 template<typename T>
 T* PhaseContext::require(const std::string& name) const {
-    if (IOPhaseObject* obj = findIOPhaseObject(name)) {
-        if (obj->getId() == priv::getIOPhaseObjectID<const priv::IOPhaseObjectWrapper<T>*>()) {
-            return ((priv::IOPhaseObjectWrapper<T>*)obj)->get();
-        }
+    IOPhaseObject* obj = findIOPhaseObject(name);
+    if (obj->getId() == priv::getIOPhaseObjectID<const priv::IOPhaseObjectWrapper<T>*>()) {
+        return ((priv::IOPhaseObjectWrapper<T>*)obj)->get();
+    } else {
+        throw CompileError("Phase object '" + name + "' does not match the required type.");
     }
-    return nullptr;
 }
 
 template<typename T>
