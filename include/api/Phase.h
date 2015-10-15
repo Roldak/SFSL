@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 #include "PhaseContext.h"
 #include "SetVisibilities.h"
 
@@ -30,8 +31,7 @@ public:
     const std::string& getName() const;
     const std::string& getDescr() const;
 
-    static const std::string NoPhase;
-    static const std::vector<std::string> None;
+    static std::shared_ptr<Phase> StopRightAfter(const std::string& phase);
 
 protected:
 

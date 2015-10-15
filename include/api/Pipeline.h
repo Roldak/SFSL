@@ -22,6 +22,7 @@ public:
 
     Pipeline& insert(std::shared_ptr<Phase> phase);
 
+    static Pipeline createEmpty();
     static Pipeline createDefault();
 
 private:

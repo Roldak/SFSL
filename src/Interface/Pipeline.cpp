@@ -132,6 +132,10 @@ Pipeline& Pipeline::insert(std::shared_ptr<Phase> phase) {
     return *this;
 }
 
+Pipeline Pipeline::createEmpty() {
+    return Pipeline();
+}
+
 Pipeline Pipeline::createDefault() {
     Pipeline ppl;
 
