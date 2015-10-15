@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <vector>
+#include "PhaseContext.h"
 #include "SetVisibilities.h"
 
 namespace sfsl {
@@ -24,7 +25,7 @@ public:
     virtual const std::vector<std::string> runsAfter() const;
     virtual const std::vector<std::string> runsBefore() const;
 
-    virtual void run() = 0;
+    virtual void run(PhaseContext& ctx) = 0;
 
     const std::string& getName() const;
     const std::string& getDescr() const;
