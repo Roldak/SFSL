@@ -43,6 +43,20 @@ private:
     size_t _errCount;
 };
 
+class SFSL_API_PUBLIC EmptyCollector : public AbstractOutputCollector {
+public:
+    EmptyCollector();
+    virtual ~EmptyCollector();
+
+    virtual void collect(PhaseContext& pctx);
+
+    size_t get() const;
+
+private:
+
+    size_t _errCount;
+};
+
 }
 
 #endif

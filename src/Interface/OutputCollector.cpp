@@ -72,4 +72,18 @@ size_t ErrorCountCollector::get() const {
     return _errCount;
 }
 
+// EMPTY COLLECTOR
+
+EmptyCollector::EmptyCollector() {
+
+}
+
+EmptyCollector::~EmptyCollector() {
+
+}
+
+void EmptyCollector::collect(PhaseContext&) {
+
+}
+
 }

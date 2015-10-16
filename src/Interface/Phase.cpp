@@ -35,14 +35,15 @@ private:
     std::ostream& _ostream;
 };
 
-class PhaseStopAfter : public Phase {
+class PhaseStop : public Phase {
 public:
-    PhaseStopAfter(const std::string& phase)
-        : Phase("_StopAfter_", "Phase that makes the compilation stop after phase " + phase), _phase(phase) { }
+    PhaseStop(bool after, const std::string& phase)
+        : Phase("_StopAfter_", "Phase that makes the compilation stop after phase " + phase), _phase(phase), _after(after) { }
 
-    virtual ~PhaseStopAfter() { }
+    virtual ~PhaseStop() { }
 
-    virtual std::string runsRightAfter() const { return _phase; }
+    virtual std::string runsRightAfter()    const { return _after ? _phase : ""; }
+    virtual std::string runsRightBefore()   const { return _after ? "" : _phase; }
 
     virtual bool run(PhaseContext& pctx) {
         return false;
@@ -51,6 +52,7 @@ public:
 private:
 
     std::string _phase;
+    bool _after;
 };
 
 Phase::Phase(const std::string& name, const std::string& descr) : _name(name), _descr(descr) {
@@ -89,8 +91,12 @@ std::shared_ptr<Phase> Phase::PrettyPrint(std::ostream& stream) {
     return std::shared_ptr<Phase>(new PhasePrettyPrint(stream));
 }
 
+std::shared_ptr<Phase> Phase::StopRightBefore(const std::string& phase) {
+    return std::shared_ptr<Phase>(new PhaseStop(false, phase));
+}
+
 std::shared_ptr<Phase> Phase::StopRightAfter(const std::string& phase) {
-    return std::shared_ptr<Phase>(new PhaseStopAfter(phase));
+    return std::shared_ptr<Phase>(new PhaseStop(true, phase));
 }
 
 }
