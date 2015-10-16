@@ -1,14 +1,3 @@
-module sfsl {
-	module lang {
-		type unit 	= class {}
-		type bool 	= class {}
-		type byte 	= class {}
-		type int 	= class {}
-		type real 	= class {}
-		type string = class {}
-	}
-}
-
 module Main {
 	using sfsl.lang
 	

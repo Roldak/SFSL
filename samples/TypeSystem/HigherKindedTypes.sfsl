@@ -1,14 +1,3 @@
-module sfsl {
-	module lang {
-		type unit = class {}
-		type bool = class {}
-		type byte = class {}
-		type int  = class {}
-		type real = class {}
-		type string = class {}
-	}
-}
-
 module progam {
 	type unit = sfsl.lang.unit
 	type bool = sfsl.lang.bool

@@ -44,13 +44,21 @@ int main(int argc, char** argv) {
     clock_t exec = clock();
 
     Compiler cmp(CompilerConfig(StandartReporter::CerrReporter));
+    Pipeline ppl = Pipeline::createDefault();
+
     ByteCodeCollector bcc;
     EmptyCollector emc;
     AbstractOutputCollector* col;
-    Pipeline ppl = Pipeline::createDefault();
 
     try {
         ProgramBuilder prog = cmp.parse(sourceFile, source);
+
+        Module slang = prog.openModule("sfsl").openModule("lang");
+        slang.typeDef("unit", cmp.classBuilder("unit").build());
+        slang.typeDef("bool", cmp.classBuilder("bool").build());
+        slang.typeDef("int", cmp.classBuilder("int").build());
+        slang.typeDef("real", cmp.classBuilder("real").build());
+        slang.typeDef("string", cmp.classBuilder("string").build());
 
         if (checkOnly) {
             col = &emc;
@@ -61,11 +69,13 @@ int main(int argc, char** argv) {
 
         cmp.compile(prog, *col, ppl);
 
-        for (const std::string& i : bcc.get()) {
-            std::cout << i << std::endl;
-        }
+        if (!checkOnly) {
+            for (const std::string& i : bcc.get()) {
+                std::cout << i << std::endl;
+            }
 
-        std::cout << "Compilation Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << std::endl << std::endl;
+            std::cout << "Compilation Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << std::endl << std::endl;
+        }
 
     } catch(const CompileError& ex) {
         std::cerr << ex.what() << std::endl;
