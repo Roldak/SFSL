@@ -20,7 +20,7 @@ namespace test {
 
 class CompilationTest : public AbstractTest {
 public:
-    CompilationTest(const std::string& name, const std::string& source, bool shouldCompile);
+    CompilationTest(const std::string& name, const std::string& source, bool shouldCompile, const std::string& lastPhase = "");
     virtual ~CompilationTest();
 
     virtual bool run(AbstractTestLogger& logger) override;
@@ -31,6 +31,9 @@ private:
 
     const std::string _source;
     bool _shouldCompile;
+
+    std::string _lastPhase;
+    Pipeline _ppl;
 };
 
 }

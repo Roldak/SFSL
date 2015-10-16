@@ -41,6 +41,8 @@ public:
     void addTest(AbstractTest* test);
     TestSuite* build() const;
 
+    const std::string& getName() const;
+
 private:
 
     std::string _name;

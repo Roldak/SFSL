@@ -94,10 +94,10 @@ void FileSystemTestGenerator::createTestsForType(TestSuiteBuilder& builder, File
 
             switch (type) {
             case MUST_COMPILE:
-                builder.addTest(new CompilationTest(testName, source, true));
+                builder.addTest(new CompilationTest(testName, source, true, builder.getName()));
                 break;
             case MUST_NOT_COMPILE:
-                builder.addTest(new CompilationTest(testName, source, false));
+                builder.addTest(new CompilationTest(testName, source, false, builder.getName()));
                 break;
             default:
                 break;

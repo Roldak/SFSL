@@ -59,6 +59,10 @@ TestSuite* TestSuiteBuilder::build() const {
     return new TestSuite(_name, _tests);
 }
 
+const std::string& TestSuiteBuilder::getName() const {
+    return _name;
+}
+
 }
 
 }

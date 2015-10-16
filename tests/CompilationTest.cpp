@@ -12,9 +12,9 @@ namespace sfsl {
 
 namespace test {
 
-CompilationTest::CompilationTest(const std::string& name, const std::string& source, bool shouldCompile)
-    : AbstractTest(name), _source(source), _shouldCompile(shouldCompile) {
-
+CompilationTest::CompilationTest(const std::string& name, const std::string& source, bool shouldCompile, const std::string& lastPhase)
+    : AbstractTest(name), _source(source), _shouldCompile(shouldCompile), _lastPhase(lastPhase), _ppl(Pipeline::createDefault()) {
+    _ppl.insert(Phase::StopRightAfter(lastPhase));
 }
 
 CompilationTest::~CompilationTest() {
@@ -29,7 +29,7 @@ bool CompilationTest::run(AbstractTestLogger& logger) {
         ProgramBuilder builder = cmp.parse(_name, _source);
         try {
             buildSTDModules(cmp, builder);
-            std::vector<std::string> res = cmp.compile(builder);
+            std::vector<std::string> res = cmp.compile(builder, _ppl);
             success = (!res.empty()) == _shouldCompile;
             logger.result(_name, success);
         } catch (const CompileError& err) {
