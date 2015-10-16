@@ -83,8 +83,8 @@ set(COMPILER_MAIN_FILE ./src/main.cpp)
 add_executable(${COMPILER_EXE_TARGET} ${COMPILER_MAIN_FILE})
 apply_target_properties(${COMPILER_EXE_TARGET} ${COMPILER_EXE_BUILD_TYPE} ${COMPILER_EXE_OUTPUT_NAME})
 
-target_include_directories(${COMPILER_EXE_TARGET} PRIVATE ./src/)
-target_link_libraries(${COMPILER_EXE_TARGET} ${COMPILER_LIB_TARGET})
+target_include_directories(${COMPILER_EXE_TARGET} PRIVATE ./include/)
+target_link_libraries(${COMPILER_EXE_TARGET} ${USER_API_TARGET})
 
 #####################################
 # COMPILER TESTS BUILD INSTRUCTIONS #
