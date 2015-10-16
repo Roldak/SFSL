@@ -8,6 +8,6 @@ module test {
 	
 	def t = {
 		x: B;
-		f(x)
+		f(x);
 	}
 }
