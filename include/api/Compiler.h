@@ -17,6 +17,7 @@
 #include "ClassBuilder.h"
 #include "Type.h"
 #include "Pipeline.h"
+#include "AbstractOutputCollector.h"
 
 DECL_PRIVATE_IMPL_FOR(Compiler)
 
@@ -28,7 +29,10 @@ public:
     ~Compiler();
 
     ProgramBuilder parse(const std::string& srcName, const std::string& srcContent);
-    std::vector<std::string> compile(ProgramBuilder progBuilder, const Pipeline& ppl = Pipeline::createDefault());
+
+    void compile(   ProgramBuilder progBuilder,
+                    AbstractOutputCollector& collector,
+                    const Pipeline& ppl = Pipeline::createDefault());
 
     Type parseType(const std::string& str);
     Type createFunctionType(const std::vector<Type>& argTypes, Type retType);

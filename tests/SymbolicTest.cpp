@@ -47,8 +47,9 @@ bool SymbolicTest::run(AbstractTestLogger& logger) {
         ProgramBuilder builder = cmp.parse(_name, _source);
         try {
             buildSTDModules(cmp, builder);
-            std::vector<std::string> res = cmp.compile(builder);
-            logger.result(_name, !res.empty());
+            ErrorCountCollector errcount;
+            cmp.compile(builder, errcount, _ppl);
+            logger.result(_name, (errcount.get() == 0));
             return true;
         } catch (const CompileError& err) {
             logger.result(_name, false, std::string("Fatal: ") + err.what());

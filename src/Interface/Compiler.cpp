@@ -190,9 +190,9 @@ ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& sr
     }
 }
 
-std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder, const Pipeline& ppl) {
+void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& collector, const Pipeline& ppl) {
     if (!progBuilder) {
-        return {};
+        return;
     }
 
     PhaseContext pctx;
@@ -208,19 +208,11 @@ std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder, const Pip
 
         for (std::shared_ptr<Phase> phase : sortedPhases) {
             if (!phase->run(pctx)) {
-                return {};
+                break;
             }
         }
 
-        out::LinkedListOutput<bc::BCInstruction*>* out = pctx.require<out::LinkedListOutput<bc::BCInstruction*>>("out");
-        std::vector<bc::BCInstruction*> instrs(out->toVector());
-        std::vector<std::string> instrsStr;
-
-        for (bc::BCInstruction* instr : instrs) {
-            instrsStr.push_back(instr->toStringDetailed());
-        }
-
-        return instrsStr;
+        collector.collect(pctx);
 
     } catch (const PhaseGraphResolutionError& graphErr) {
         throw CompileError(graphErr.what());

@@ -13,6 +13,7 @@
 #include "api/Compiler.h"
 #include "api/Module.h"
 #include "api/StandartReporter.h"
+#include "api/StandartOutputCollector.h"
 
 #include "api/UnsetVisibilities.h"
 

@@ -29,8 +29,9 @@ bool CompilationTest::run(AbstractTestLogger& logger) {
         ProgramBuilder builder = cmp.parse(_name, _source);
         try {
             buildSTDModules(cmp, builder);
-            std::vector<std::string> res = cmp.compile(builder, _ppl);
-            success = (!res.empty()) == _shouldCompile;
+            ErrorCountCollector errcount;
+            cmp.compile(builder, errcount, _ppl);
+            success = ((errcount.get() == 0) == _shouldCompile);
             logger.result(_name, success);
         } catch (const CompileError& err) {
             success = !_shouldCompile;
