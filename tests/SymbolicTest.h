@@ -30,6 +30,7 @@ private:
     static void buildSTDModules(Compiler& cmp, ProgramBuilder builder);
 
     const std::string _source;
+    Pipeline _ppl;
 };
 
 }

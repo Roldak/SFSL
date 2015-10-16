@@ -13,9 +13,27 @@ namespace sfsl {
 
 namespace test {
 
-SymbolicTest::SymbolicTest(const std::string& name, const std::string& source)
-    : AbstractTest(name), _source(source) {
+class SymbolAssertionsPhase : public Phase {
+public:
+    SymbolAssertionsPhase() : Phase("SymbolAssertions", "Checks symbol assertions for tests") { }
+    virtual ~SymbolAssertionsPhase() { }
 
+    virtual std::string runsRightAfter() const { return "NameAnalysis"; }
+
+    virtual bool run(PhaseContext& pctx) {
+        ast::Program* prog = pctx.require<ast::Program>("prog");
+        CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
+
+        SymbolAssertionsChecker sac(ctx);
+        prog->onVisit(&sac);
+
+        return ctx->reporter().getErrorCount() == 0;
+    }
+};
+
+SymbolicTest::SymbolicTest(const std::string& name, const std::string& source)
+    : AbstractTest(name), _source(source), _ppl(Pipeline::createDefault()) {
+    _ppl.insert(std::shared_ptr<Phase>(new SymbolAssertionsPhase()));
 }
 
 SymbolicTest::~SymbolicTest() {

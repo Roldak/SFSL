@@ -74,7 +74,15 @@ void SymbolAssertionsChecker::visit(ast::TypeSpecifier* tps) {
 }
 
 void SymbolAssertionsChecker::tryAddTestSymbol(sym::Symbol* s) {
-
+    if (s->getName().substr(0, 4) == "test") {
+        sym::Symbol*& old = _symbols[s->getName()];
+        if (old) {
+            _ctx->reporter().error(*s, "A test symbol named '" + s->getName() + "' already exists");
+            _ctx->reporter().info(*old, "here");
+        } else {
+            old = s;
+        }
+    }
 }
 
 }
