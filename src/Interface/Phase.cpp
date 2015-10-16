@@ -7,8 +7,33 @@
 //
 
 #include "api/Phase.h"
+#include "Compiler/Frontend/AST/Visitors/ASTPrinter.h"
 
 namespace sfsl {
+
+class PhasePrettyPrint : public Phase {
+public:
+    PhasePrettyPrint(std::ostream& ostream)
+        : Phase("PrettyPrint", "Prints the AST in a pretty way."), _ostream(ostream) { }
+
+    virtual ~PhasePrettyPrint() { }
+
+    virtual std::string runsRightBefore() const { return "NameAnalysis"; }
+
+    virtual bool run(PhaseContext& pctx) {
+        ast::Program* prog = pctx.require<ast::Program>("prog");
+        CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
+
+        ast::ASTPrinter printer(ctx, _ostream);
+        prog->onVisit(&printer);
+
+        return true;
+    }
+
+private:
+
+    std::ostream& _ostream;
+};
 
 class PhaseStopAfter : public Phase {
 public:
@@ -19,7 +44,7 @@ public:
 
     virtual std::string runsRightAfter() const { return _phase; }
 
-    virtual bool run(PhaseContext &pctx) {
+    virtual bool run(PhaseContext& pctx) {
         return false;
     }
 
@@ -58,6 +83,10 @@ const std::string& Phase::getName() const {
 
 const std::string& Phase::getDescr() const {
     return _descr;
+}
+
+std::shared_ptr<Phase> Phase::PrettyPrint(std::ostream& stream) {
+    return std::shared_ptr<Phase>(new PhasePrettyPrint(stream));
 }
 
 std::shared_ptr<Phase> Phase::StopRightAfter(const std::string& phase) {

@@ -31,6 +31,7 @@ public:
     const std::string& getName() const;
     const std::string& getDescr() const;
 
+    static std::shared_ptr<Phase> PrettyPrint(std::ostream& stream);
     static std::shared_ptr<Phase> StopRightAfter(const std::string& phase);
 
 protected:

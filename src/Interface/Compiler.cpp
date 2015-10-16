@@ -202,10 +202,6 @@ std::vector<std::string> Compiler::compile(ProgramBuilder progBuilder, const Pip
     pctx.output("prog", prog);
     pctx.output("ctx", &ctx);
 
-/*
-    ast::ASTPrinter printer(ctx, std::cout);
-    prog->onVisit(&printer);
-*/
     try {
         std::set<std::shared_ptr<Phase>> phases(ppl.getPhases());
         std::vector<std::shared_ptr<Phase>> sortedPhases(sortPhases(phases));
