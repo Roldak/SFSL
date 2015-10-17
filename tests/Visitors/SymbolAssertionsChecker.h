@@ -22,6 +22,8 @@ public:
     SymbolAssertionsChecker(CompCtx_Ptr& ctx);
     virtual ~SymbolAssertionsChecker();
 
+    virtual void visit(ast::Program* prog) override;
+
     virtual void visit(ast::ModuleDecl* module) override;
     virtual void visit(ast::TypeDecl* tdecl) override;
     virtual void visit(ast::DefineDecl* decl) override;
@@ -34,7 +36,10 @@ private:
     sym::Symbol*& findSymbolLocation(const std::string& name, size_t index);
     void tryAddTestSymbol(sym::Symbol* s);
 
+    void performTests();
+
     std::map<std::string, sym::Symbol*> _symbols;
+    std::vector<std::pair<ast::StringLitteral*, sym::Symbol*>> _tests;
 };
 
 }

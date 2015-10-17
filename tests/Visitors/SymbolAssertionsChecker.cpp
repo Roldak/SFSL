@@ -22,6 +22,11 @@ SymbolAssertionsChecker::~SymbolAssertionsChecker() {
 
 }
 
+void SymbolAssertionsChecker::visit(ast::Program* prog) {
+    ASTImplicitVisitor::visit(prog);
+    performTests();
+}
+
 void SymbolAssertionsChecker::visit(ast::ModuleDecl* module) {
     tryAddTestSymbol(module->getSymbol());
     ASTImplicitVisitor::visit(module);
@@ -53,15 +58,8 @@ void SymbolAssertionsChecker::visit(ast::FunctionCall* call) {
             }
 
             if (ast::isNodeOfType<ast::StringLitteral>(args[0], _ctx)) {
-                const std::string& symName = static_cast<ast::StringLitteral*>(args[0])->getValue();
                 if (sym::Symbol* s = ast::ASTSymbolExtractor::extractSymbol(args[1], _ctx)) {
-                    auto it = _symbols.find(symName);
-                    if (it == _symbols.end()) {
-                        _ctx->reporter().error(*(args[0]), "No symbol named " + symName + " were registed for testing");
-                    } else if (it->second != s) {
-                        _ctx->reporter().error(*call, "The two symbols do not match. Expected " +
-                                               it->second->getName() + ", found " + s->getName());
-                    }
+                    _tests.push_back(std::make_pair(static_cast<ast::StringLitteral*>(args[0]), s));
                 } else {
                     _ctx->reporter().error(*(args[1]), "No symbol was assigned");
                 }
@@ -91,6 +89,20 @@ sym::Symbol*& SymbolAssertionsChecker::findSymbolLocation(const std::string& nam
 void SymbolAssertionsChecker::tryAddTestSymbol(sym::Symbol* s) {
     if (s->getName().substr(0, 5) == "test_") {
         findSymbolLocation(s->getName(), 0) = s;
+    }
+}
+
+void SymbolAssertionsChecker::performTests() {
+    for (const std::pair<ast::StringLitteral*, sym::Symbol*>& test : _tests) {
+        const std::string& str(test.first->getValue());
+        auto it = _symbols.find(str);
+        if (it == _symbols.end()) {
+            _ctx->reporter().error(*(test.first), "No symbol named " + str + " were registed for testing");
+        } else if (it->second != test.second) {
+            common::Positionnable custom(test.first->getStartPosition(), test.second->getEndPosition(), test.first->getSourceName());
+            _ctx->reporter().error(custom, "The two symbols do not match. Expected " +
+                                   it->second->getName() + ", found " + test.second->getName());
+        }
     }
 }
 

@@ -1,0 +1,15 @@
+module test {
+	def test_x = 0 // test_x_0
+	
+	module inner {
+		using other
+		
+		def g() => {
+			assert_same_sym("test_x_1", test_x);
+		}
+	}
+}
+
+module other {
+	def test_x = 0 // test_x_1
+}
