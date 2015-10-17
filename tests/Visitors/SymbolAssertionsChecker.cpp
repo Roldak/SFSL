@@ -24,18 +24,22 @@ SymbolAssertionsChecker::~SymbolAssertionsChecker() {
 
 void SymbolAssertionsChecker::visit(ast::ModuleDecl* module) {
     tryAddTestSymbol(module->getSymbol());
+    ASTImplicitVisitor::visit(module);
 }
 
 void SymbolAssertionsChecker::visit(ast::TypeDecl* tdecl) {
     tryAddTestSymbol(tdecl->getSymbol());
+    ASTImplicitVisitor::visit(tdecl);
 }
 
 void SymbolAssertionsChecker::visit(ast::DefineDecl* decl) {
     tryAddTestSymbol(decl->getSymbol());
+    ASTImplicitVisitor::visit(decl);
 }
 
 void SymbolAssertionsChecker::visit(ast::KindSpecifier* ks) {
     tryAddTestSymbol(ks->getSpecified()->getSymbol());
+    ASTImplicitVisitor::visit(ks);
 }
 
 void SymbolAssertionsChecker::visit(ast::FunctionCall* call) {
@@ -73,17 +77,21 @@ void SymbolAssertionsChecker::visit(ast::FunctionCall* call) {
 
 void SymbolAssertionsChecker::visit(ast::TypeSpecifier* tps) {
     tryAddTestSymbol(tps->getSpecified()->getSymbol());
+    ASTImplicitVisitor::visit(tps);
+}
+
+sym::Symbol*& SymbolAssertionsChecker::findSymbolLocation(const std::string& name, size_t index) {
+    sym::Symbol*& loc = _symbols[name + "_" + utils::T_toString(index)];
+    if (loc) {
+        return findSymbolLocation(name, index + 1);
+    } else {
+        return loc;
+    }
 }
 
 void SymbolAssertionsChecker::tryAddTestSymbol(sym::Symbol* s) {
-    if (s->getName().substr(0, 4) == "test") {
-        sym::Symbol*& old = _symbols[s->getName()];
-        if (old && old != s) {
-            _ctx->reporter().error(*s, "A test symbol named '" + s->getName() + "' already exists");
-            _ctx->reporter().info(*old, "here");
-        } else {
-            old = s;
-        }
+    if (s->getName().substr(0, 5) == "test_") {
+        findSymbolLocation(s->getName(), 0) = s;
     }
 }
 

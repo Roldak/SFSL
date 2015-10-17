@@ -31,6 +31,7 @@ public:
 
 private:
 
+    sym::Symbol*& findSymbolLocation(const std::string& name, size_t index);
     void tryAddTestSymbol(sym::Symbol* s);
 
     std::map<std::string, sym::Symbol*> _symbols;

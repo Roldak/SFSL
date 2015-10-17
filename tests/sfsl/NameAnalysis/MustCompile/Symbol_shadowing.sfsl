@@ -1,0 +1,18 @@
+module test {
+	def test_x = 0 // test_x_0
+	
+	def f() => {
+		def test_x = 0; // test_x_1
+		{ { { { assert_same_sym("test_x_1", test_x); } } } }
+	}
+	
+	def g() => {
+		test_x := 0; // test_sym_2
+		{ { { { assert_same_sym("test_x_2", test_x); } } } }
+	}
+	
+	def h() => {
+		type test_x = class {}; // test_sym_3
+		{ { { { assert_same_sym("test_x_3", test_x); } } } }
+	}
+}
