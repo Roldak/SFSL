@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
             checkOnly = true;
             break;
         default:
-            std::cerr<<"unexpected program argument : " << option << std::endl;
+            std::cerr << "unexpected program argument : " << option << std::endl;
         }
     }
 

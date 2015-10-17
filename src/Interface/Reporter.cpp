@@ -23,19 +23,19 @@ StandartReporter::~StandartReporter() {
 }
 
 void StandartReporter::info(const std::string& sourceName, size_t start, size_t end, const std::string& message) {
-    _ostream << sourceName << ":" << start << ":" << end << ":info:" << message;
+    _ostream << sourceName << ":" << start << ":" << end << ":info:" << message << std::endl;
 }
 
 void StandartReporter::warning(const std::string& sourceName, size_t start, size_t end, const std::string& message) {
-    _ostream << sourceName << ":" << start << ":" << end << ":warn:" << message;
+    _ostream << sourceName << ":" << start << ":" << end << ":warn:" << message << std::endl;;
 }
 
 void StandartReporter::error(const std::string& sourceName, size_t start, size_t end, const std::string& message) {
-    _ostream << sourceName << ":" << start << ":" << end << ":error:" << message;
+    _ostream << sourceName << ":" << start << ":" << end << ":error:" << message << std::endl;;
 }
 
 void StandartReporter::fatal(const std::string& sourceName, size_t start, size_t end, const std::string& message) {
-    _ostream << sourceName << ":" << start << ":" << end << ":fatal:" << message;
+    _ostream << sourceName << ":" << start << ":" << end << ":fatal:" << message << std::endl;;
 }
 
 class EmptyReporterImpl : public AbstractReporter {
