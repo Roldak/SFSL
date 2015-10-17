@@ -1,0 +1,25 @@
+module test {
+	type R1 = class {}
+	type R2 = class {}
+	type R3 = class {}
+	type R4 = class {}
+	type R5 = class {}
+	
+	type A = class {}
+	type B = class : A {}
+	type C = class : B {}
+	type D = class : C {}
+	
+	def f(x: A, y: A) => {r: R1; r;}
+	def f(x: B, y: A) => {r: R2; r;}
+	def f(x: A, y: C) => {r: R3; r;}
+	def f(x: D, y: C) => {r: R4; r;}
+	def f(x: D, y: B) => {r: R5; r;}
+	
+	def t1: R3 = { x: A; y: D; f(x, y); }
+	def t2: R1 = { x: A; y: B; f(x, y); }
+	def t3: R3 = { x: C; y: C; f(x, y); }
+	def t4: R2 = { x: C; y: B; f(x, y); }
+	def t5: R4 = { x: D; y: D; f(x, y); }
+	def t6: R5 = { x: D; y: B; f(x, y); }
+}
