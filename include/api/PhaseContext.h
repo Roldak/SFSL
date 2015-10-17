@@ -43,8 +43,8 @@ private:
 template<typename T>
 T* PhaseContext::require(const std::string& name) const {
     IOPhaseObject* obj = findIOPhaseObject(name);
-    if (obj->getId() == priv::getIOPhaseObjectID<const priv::IOPhaseObjectWrapper<T>*>()) {
-        return ((priv::IOPhaseObjectWrapper<T>*)obj)->get();
+    if (priv::IOPhaseObjectWrapper<T>* ptr = dynamic_cast<priv::IOPhaseObjectWrapper<T>*>(obj)) {
+        return ptr->get();
     } else {
         throw CompileError("Phase object '" + name + "' does not match the required type.");
     }

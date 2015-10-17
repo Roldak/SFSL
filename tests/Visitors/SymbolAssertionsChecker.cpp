@@ -65,8 +65,10 @@ void SymbolAssertionsChecker::visit(ast::FunctionCall* call) {
             } else {
                 _ctx->reporter().fatal(*(args[0]), "Expected string litteral");
             }
+            return;
         }
     }
+    ASTImplicitVisitor::visit(call);
 }
 
 void SymbolAssertionsChecker::visit(ast::TypeSpecifier* tps) {
@@ -76,7 +78,7 @@ void SymbolAssertionsChecker::visit(ast::TypeSpecifier* tps) {
 void SymbolAssertionsChecker::tryAddTestSymbol(sym::Symbol* s) {
     if (s->getName().substr(0, 4) == "test") {
         sym::Symbol*& old = _symbols[s->getName()];
-        if (old) {
+        if (old && old != s) {
             _ctx->reporter().error(*s, "A test symbol named '" + s->getName() + "' already exists");
             _ctx->reporter().info(*old, "here");
         } else {

@@ -33,6 +33,7 @@ public:
 
 SymbolicTest::SymbolicTest(const std::string& name, const std::string& source)
     : AbstractTest(name), _source(source), _ppl(Pipeline::createDefault()) {
+    _ppl.insert(Phase::StopRightAfter("SymbolAssertions"));
     _ppl.insert(std::shared_ptr<Phase>(new SymbolAssertionsPhase()));
 }
 
@@ -41,7 +42,7 @@ SymbolicTest::~SymbolicTest() {
 }
 
 bool SymbolicTest::run(AbstractTestLogger& logger) {
-    Compiler cmp(CompilerConfig(StandartReporter::EmptyReporter, 2048));
+    Compiler cmp(CompilerConfig(StandartReporter::CerrReporter, 2048));
 
     try {
         ProgramBuilder builder = cmp.parse(_name, _source);

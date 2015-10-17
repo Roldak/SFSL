@@ -11,6 +11,7 @@
 
 #include "FileSystemTestGenerator.h"
 #include "CompilationTest.h"
+#include "SymbolicTest.h"
 
 namespace sfsl {
 
@@ -94,7 +95,11 @@ void FileSystemTestGenerator::createTestsForType(TestSuiteBuilder& builder, File
 
             switch (type) {
             case MUST_COMPILE:
-                builder.addTest(new CompilationTest(testName, source, true, builder.getName()));
+                if (builder.getName() == "NameAnalysis") {
+                    builder.addTest(new SymbolicTest(testName, source));
+                } else {
+                    builder.addTest(new CompilationTest(testName, source, true, builder.getName()));
+                }
                 break;
             case MUST_NOT_COMPILE:
                 builder.addTest(new CompilationTest(testName, source, false, builder.getName()));
