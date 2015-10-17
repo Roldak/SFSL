@@ -42,20 +42,23 @@ SymbolicTest::~SymbolicTest() {
 }
 
 bool SymbolicTest::run(AbstractTestLogger& logger) {
-    Compiler cmp(CompilerConfig(StandartReporter::CerrReporter, 2048));
+    Compiler cmp(CompilerConfig(StandartReporter::EmptyReporter, 2048));
 
     try {
         ProgramBuilder builder = cmp.parse(_name, _source);
-        try {
-            buildSTDModules(cmp, builder);
-            ErrorCountCollector errcount;
-            cmp.compile(builder, errcount, _ppl);
-            logger.result(_name, (errcount.get() == 0));
-            return true;
-        } catch (const CompileError& err) {
-            logger.result(_name, false, std::string("Fatal: ") + err.what());
+        if (!builder) {
+            logger.result(_name, false, std::string("Fatal: failed to parse the program"));
+        } else {
+            try {
+                buildSTDModules(cmp, builder);
+                ErrorCountCollector errcount;
+                cmp.compile(builder, errcount, _ppl);
+                logger.result(_name, (errcount.get() == 0));
+                return true;
+            } catch (const CompileError& err) {
+                logger.result(_name, false, std::string("Fatal: ") + err.what());
+            }
         }
-
     } catch (const CompileError& err) {
         logger.result(_name, false, std::string("Fatal: ") + err.what());
     }
