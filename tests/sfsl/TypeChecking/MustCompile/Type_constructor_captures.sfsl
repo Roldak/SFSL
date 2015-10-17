@@ -1,0 +1,41 @@
+module test {
+	using sfsl.lang
+	
+	type Box[T] => class {
+		x: T;
+	}
+	
+	type Pair[A, B] => class {
+		a: A;
+		b: B;
+	}
+	
+	type LongTypeConstructor[A, B, C, D, E] => class {
+	}
+	
+	type Of = [T: *] => [F: *->*] => F[T]
+	type Curry = [F: [*, *]->*] => [A] => [B] => F[A, B]
+	type Long = [A] => [B] => [C] => [D] => [E] => LongTypeConstructor[A, B, C, D, E]
+	
+	def t1: Box[real] = {
+		x: Of[real][Box];
+		x;
+	}
+	
+	def t2: Pair[int, int] = {
+		x: Curry[Pair][int][int];
+		x;
+	}
+	
+	def t3: LongTypeConstructor[unit, bool, int, real, string] = {
+		x: Long[unit][bool][int][real][string];
+		x;
+	}
+	
+	type PartialPair = Curry[Pair][int]
+	
+	def t4: Pair[int, real] = {
+		x: Of[real][PartialPair];
+		x;
+	}
+}

@@ -1,0 +1,62 @@
+module Main {
+	using sfsl.lang
+	
+	type Box[T] => class {
+		x: T;
+	}
+	
+	type C0 = [S: *->*] => [Z] => Z
+	
+	type Succ = [N: [*->*]->*->*] 
+			=> [S: *->*] => [Z] => S[N[S][Z]]
+	
+	type Plus = [A: [*->*]->*->*] => [B: [*->*]->*->*] 
+			=> [S: *->*] => [Z] => A[S][B[S][Z]]
+			
+	type Times = [A: [*->*]->*->*] => [B: [*->*]->*->*] 
+			=> [S: *->*] => [Z] => A[B[S]][Z]
+	
+	type C1 = Succ[C0]
+	type C2 = Succ[C1]
+	type C3 = Succ[C2]
+	
+	def t1: int = {
+		x: C0[Box][int];
+		x;
+	}
+	
+	def t2: Box[int] = {
+		x: C1[Box][int];
+		x;
+	}
+	
+	def t3: Box[Box[Box[int]]] = {
+		x: Succ[C2][Box][int];
+		x;
+	}
+	
+	def t4: Box[Box[Box[int]]] = {
+		x: Plus[C2][C1][Box][int];
+		x;
+	}
+	
+	def t5: Box[Box[Box[Box[Box[int]]]]] = {
+		x: Plus[C2][Succ[C2]][Box][int];
+		x;
+	}
+	
+	def t6: Box[Box[Box[Box[Box[Box[int]]]]]] = {
+		x: Times[C3][C2][Box][int];
+		x;
+	}
+	
+	def t7: Box[Box[Box[Box[Box[Box[int]]]]]] = {
+		x: Times[C2][Plus[C1][C2]][Box][int];
+		x;
+	}
+	
+	def t8: Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[Box[int]]]]]]]]]]]]]]]]]]]]]]]]]]] = {
+		x: Times[Succ[C2]][Succ[Plus[Times[C2][C3]][C2]]][Box][int];
+		x;
+	}
+}

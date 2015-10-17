@@ -81,8 +81,7 @@ void SymbolAssertionsChecker::visit(ast::TypeSpecifier* tps) {
 }
 
 sym::Symbol*& SymbolAssertionsChecker::findSymbolLocation(const std::string& name, size_t index) {
-    sym::Symbol*& loc = _symbols[name + "_" + utils::T_toString(index)];
-    if (loc) {
+    if (sym::Symbol*& loc = _symbols[name + "_" + utils::T_toString(index)]) {
         return findSymbolLocation(name, index + 1);
     } else {
         return loc;

@@ -1,0 +1,67 @@
+module Main {
+	using sfsl.lang
+	
+	type Box[T] => class {
+		x: T;
+	}
+	
+	type DoubleBox[T] => class {
+		x: T;
+		y: T;
+	}
+	
+	type True = [T: *->*] => [F: *->*] => T
+	type False = [T: *->*] => [F: *->*] => F
+	
+	type Not = [B: [*->*]->[*->*]->*->*] 
+			=> [T: *->*] => [F: *->*] => B[F][T]
+			
+	type And = [A: [*->*]->[*->*]->*->*] => [B: [*->*]->[*->*]->*->*]
+			=> [T: *->*] => [F: *->*] => A[B[T][F]][F]
+	
+	type Or = [A: [*->*]->[*->*]->*->*] => [B: [*->*]->[*->*]->*->*]
+			=> [T: *->*] => [F: *->*] => A[T][B[T][F]]
+			
+	type Or2 = [A: [*->*]->[*->*]->*->*] => [B: [*->*]->[*->*]->*->*]
+			=> Not[And[Not[A]][Not[B]]]
+	
+	def t1: Box[int] = {
+		x: True[Box][DoubleBox][int];
+		x;
+	}
+	
+	def t2: DoubleBox[int] = {
+		x: False[Box][DoubleBox][int];
+		x;
+	}
+	
+	def t3: DoubleBox[int] = {
+		x: Not[True][Box][DoubleBox][int];
+		x;
+	}
+	
+	def t4: DoubleBox[int] = {
+		x: And[True][False][Box][DoubleBox][int];
+		x;
+	}
+	
+	def t5: Box[int] = {
+		x: And[True][Not[Not[True]]][Box][DoubleBox][int];
+		x;
+	}
+	
+	def t6: Box[int] = {
+		x: Or[True][False][Box][DoubleBox][int];
+		x;
+	}
+	
+	def t7: Box[int] = {
+		x: Or2[True][False][Box][DoubleBox][int];
+		x;
+	}
+	
+	def t8: Box[int] = {
+		x: And[Or[And[True][Not[False]]][Not[Not[False]]]][Or2[And[True][True]][Not[True]]][Box][DoubleBox][int];
+		x;
+	}
+}
