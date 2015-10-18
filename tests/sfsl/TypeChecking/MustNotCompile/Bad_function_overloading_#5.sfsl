@@ -1,0 +1,20 @@
+module test {
+	using sfsl.lang
+	
+	type R1 = class {}
+	type R2 = class {}
+	type R3 = class {}
+	type R4 = class {}
+	
+	type A = class {}
+	type B = class : A {}
+	type C = class : B {}
+	type D = class : C {}
+	
+	def f(x: B, y: B) => {r: R2; r;}
+	def f(x: A, y: C) => {r: R3; r;}
+	def f(x: D, y: C) => {r: R4; r;}
+	def f(x: D, y: B) => {r: R5; r;}
+	
+	def t = { x: C; y: A; f(x, y); }
+}

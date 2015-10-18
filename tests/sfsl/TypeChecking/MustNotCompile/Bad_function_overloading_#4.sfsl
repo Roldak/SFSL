@@ -1,22 +1,19 @@
 module test {
+	using sfsl.lang
+	
 	type R1 = class {}
 	type R2 = class {}
 	type R3 = class {}
 	type R4 = class {}
-	type R5 = class {}
 	
 	type A = class {}
 	type B = class : A {}
 	type C = class : B {}
 	type D = class : C {}
 	
-	def f(x: A) => {x: R1; x;}
 	def f(x: B) => {x: R2; x;}
 	def f(x: C) => {x: R3; x;}
 	def f(x: D) => {x: R4; x;}
 	
-	def t1: R1 = { x: A; f(x); }
-	def t2: R2 = { x: B; f(x); }
-	def t3: R3 = { x: C; f(x); }
-	def t4: R4 = { x: D; f(x); }
+	def t = { x: A; f(x); }
 }
