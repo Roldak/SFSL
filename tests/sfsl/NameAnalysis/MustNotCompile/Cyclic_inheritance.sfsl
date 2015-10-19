@@ -1,0 +1,5 @@
+module test {
+	type A = class : B {}
+	type B = class : C {}
+	type C = class : A {}
+}
