@@ -373,37 +373,21 @@ void SymbolAssignation::visit(TypeDecl* tdecl) {
 }
 
 void SymbolAssignation::visit(ClassDecl* clss) {
-    if (TRY_INSERT(_visitedTypes, clss)) {
-        SAVE_SCOPE(clss)
+    SAVE_SCOPE(clss)
 
-        if (clss->getParent()) {
-            clss->getParent()->onVisit(this);
-            if (type::Type* parentType = ASTTypeCreator::createType(clss->getParent(), _ctx)) {
-                if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
-                    ClassDecl* parentClass = parent->getClass();
-                    parentClass->onVisit(this);
+    visitParent(clss);
 
-                    _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable());
-
-                    addSubtypeRelations(clss, parentClass);
-                }
-            }
-        }
-
-        updateSubtypeRelations(clss);
-
-        for (TypeDecl* tdecl : clss->getTypeDecls()) {
-            tdecl->onVisit(this);
-        }
-        for (TypeSpecifier* field : clss->getFields()) {
-            field->onVisit(this);
-        }
-        for (DefineDecl* def : clss->getDefs()) {
-            def->onVisit(this);
-        }
-
-        RESTORE_SCOPE
+    for (TypeDecl* tdecl : clss->getTypeDecls()) {
+        tdecl->onVisit(this);
     }
+    for (TypeSpecifier* field : clss->getFields()) {
+        field->onVisit(this);
+    }
+    for (DefineDecl* def : clss->getDefs()) {
+        def->onVisit(this);
+    }
+
+    RESTORE_SCOPE
 }
 
 void SymbolAssignation::visit(DefineDecl* def) {
@@ -469,6 +453,36 @@ void SymbolAssignation::visit(FunctionCreation* func) {
 void SymbolAssignation::visit(Identifier* id) {
     assignIdentifier(id);
     setVariableSymbolicUsed(id, true);
+}
+
+void SymbolAssignation::visitParent(ClassDecl* clss) {
+    if (_temporarilyVisitedTypes.find(clss) != _temporarilyVisitedTypes.end()) {
+        _ctx->reporter().error(*clss, "Class " + clss->getName() + " is part of an inheritance cycle");
+        return;
+    }
+
+    if (_visitedTypes.find(clss) == _visitedTypes.end()) { // if unmarked
+        auto it = _temporarilyVisitedTypes.insert(clss).first; // mark temporarily
+
+        if (clss->getParent()) {
+            clss->getParent()->onVisit(this);
+            if (type::Type* parentType = ASTTypeCreator::createType(clss->getParent(), _ctx)) {
+                if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
+                    ClassDecl* parentClass = parent->getClass();
+                    visitParent(parentClass);
+
+                    _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable());
+
+                    addSubtypeRelations(clss, parentClass);
+                }
+            }
+        }
+
+        updateSubtypeRelations(clss);
+
+        _temporarilyVisitedTypes.erase(it); // unmark temporarily
+        _visitedTypes.insert(clss); // mark permantently
+    }
 }
 
 template<typename T>

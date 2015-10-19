@@ -137,11 +137,14 @@ private:
     template<typename T>
     void assignFromStaticScope(T* mac, sym::Scoped* scoped, const std::string& typeName);
 
+    void visitParent(ClassDecl* clss);
+
     void addSubtypeRelations(ClassDecl* clss, ClassDecl* parent);
     void updateSubtypeRelations(ClassDecl* clss);
 
     void warnForUnusedVariableInCurrentScope();
 
+    std::set<TypeExpression*> _temporarilyVisitedTypes;
     std::set<TypeExpression*> _visitedTypes;
 };
 

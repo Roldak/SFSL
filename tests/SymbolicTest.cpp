@@ -54,7 +54,7 @@ bool SymbolicTest::run(AbstractTestLogger& logger) {
                 ErrorCountCollector errcount;
                 cmp.compile(builder, errcount, _ppl);
                 logger.result(_name, (errcount.get() == 0));
-                return true;
+                return (errcount.get() == 0);
             } catch (const CompileError& err) {
                 logger.result(_name, false, std::string("Fatal: ") + err.what());
             }
