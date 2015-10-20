@@ -21,8 +21,6 @@ public:
     ScopeIdentifer(CompCtx_Ptr& ctx, AbstractScopeReporter* rep);
     virtual ~ScopeIdentifer();
 
-    virtual void visit(ast::Program* prog) override;
-
     virtual void visit(ast::ModuleDecl* module) override;
     virtual void visit(ast::TypeDecl* tdecl) override;
     virtual void visit(ast::ClassDecl* clss) override;

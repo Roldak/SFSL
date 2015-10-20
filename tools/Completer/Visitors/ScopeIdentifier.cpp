@@ -21,12 +21,6 @@ ScopeIdentifer::~ScopeIdentifer() {
 
 }
 
-void ScopeIdentifer::visit(ast::Program* prog) {
-    saveAndReport(prog);
-
-    ASTImplicitVisitor::visit(prog);
-}
-
 void ScopeIdentifer::visit(ast::ModuleDecl* module) {
     saveAndReport(module);
 
