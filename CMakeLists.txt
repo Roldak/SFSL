@@ -11,6 +11,7 @@ set(COMPILER_LIB_OUTPUT_NAME    "sfslc") # will become libsfslc.a
 set(USER_API_OUTPUT_NAME        "sfsl")
 set(COMPILER_EXE_OUTPUT_NAME    "sfslc")
 set(COMPILER_TESTS_OUTPUT_NAME  "sfsltests")
+set(COMPLETER_OUTPUT_NAME       "sfslcompl")
 
 # TARGET OPTIONS
 
@@ -23,6 +24,7 @@ set(COMPILER_LIB_BUILD_TYPE     debug)
 set(USER_API_BUILD_TYPE         debug)
 set(COMPILER_EXE_BUILD_TYPE     debug)
 set(COMPILER_TESTS_BUILD_TYPE   debug)
+set(COMPLETER_BUILD_TYPE        debug)
 
 ###################################
 #       CMAKE DEFINITIONS         #
@@ -34,6 +36,7 @@ set(COMPILER_LIB_TARGET         libsfslc)
 set(USER_API_TARGET             sfsl)
 set(COMPILER_EXE_TARGET         sfslc)
 set(COMPILER_TESTS_TARGET       sfsltests)
+set(COMPLETER_TARGET            sfslcompl)
 
 function(apply_target_properties target build_type output_name)
     if(${build_type} STREQUAL debug)
@@ -100,6 +103,19 @@ apply_target_properties(${COMPILER_TESTS_TARGET} ${COMPILER_TESTS_BUILD_TYPE} ${
 target_include_directories(${COMPILER_TESTS_TARGET} PRIVATE ./src/)
 target_include_directories(${COMPILER_TESTS_TARGET} PRIVATE ./include/)
 target_link_libraries(${COMPILER_TESTS_TARGET} ${USER_API_TARGET})
+
+####################################
+#   COMPLETER BUILD INSTRUCTIONS   #
+####################################
+
+file(GLOB_RECURSE COMPLETER_SRC_LIST ./tools/Completer/*.cpp)
+
+add_executable(${COMPLETER_TARGET} ${COMPLETER_SRC_LIST})
+apply_target_properties(${COMPLETER_TARGET} ${COMPLETER_BUILD_TYPE} ${COMPLETER_OUTPUT_NAME})
+
+target_include_directories(${COMPLETER_TARGET} PRIVATE ./src/)
+target_include_directories(${COMPLETER_TARGET} PRIVATE ./include/)
+target_link_libraries(${COMPLETER_TARGET} ${USER_API_TARGET})
 
 ###################################
 #          MISCELLANEOUS          #

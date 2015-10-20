@@ -261,7 +261,7 @@ void TypeChecking::visit(TypeSpecifier* tps) {
         tped->setType(tpe);
         tps->setType(tpe);
     } else {
-        _ctx->reporter().error(*tps->getTypeNode(), "Expression is not a type");
+        _rep.error(*tps->getTypeNode(), "Expression is not a type");
     }
 }
 
@@ -434,6 +434,8 @@ void TypeChecking::visit(FunctionCall* call) {
         return;
     }
 
+    call->setType(retType);
+
     if (callArgTypes.size() != expectedArgTypes->size()) {
         _rep.error(*call->getArgsTuple(),
                    "Wrong number of argument. Found " + utils::T_toString(callArgTypes.size()) +
@@ -448,8 +450,6 @@ void TypeChecking::visit(FunctionCall* call) {
                        ", expected " + (*expectedArgTypes)[i]->apply(_ctx)->toString());
         }
     }
-
-    call->setType(retType);
 }
 
 void TypeChecking::visit(Identifier* ident) {
@@ -464,7 +464,7 @@ void TypeChecking::visit(Identifier* ident) {
 
 void TypeChecking::visit(This* ths) {
     if (!_currentThis) {
-        _ctx->reporter().error(*ths, "`this` is forbidden outside of a method scope");
+        _rep.error(*ths, "`this` is forbidden outside of a method scope");
     } else {
         ths->setType(ASTTypeCreator::createType(_currentThis, _ctx));
     }
