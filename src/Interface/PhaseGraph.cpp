@@ -67,7 +67,7 @@ PhasePtr phaseForName(const std::map<std::string, PhasePtr>& nameMap, const std:
     return PhasePtr(nullptr);
 }
 
-std::vector<PhaseEdge> createEdges(std::set<PhasePtr> phases) {
+std::vector<PhaseEdge> createEdges(const std::set<PhasePtr>& phases) {
     std::map<std::string, PhasePtr> nameMap;
     std::vector<PhaseEdge> edges;
 
@@ -141,7 +141,11 @@ PhasePtr find(std::map<PhasePtr, PhasePtr>& parents, const PhasePtr node, size_t
     return findHelper(parents, node, visited, depth);
 }
 
-std::vector<PhaseNode> createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rels, const std::vector<PhaseEdge>& edges) {
+std::vector<PhaseNode> createUniqueNodes(
+        const std::map<PhasePtr, PhasePtr>& rels,
+        const std::vector<PhaseEdge>& edges,
+        std::set<PhasePtr> phases) {
+
     std::map<PhasePtr, PhasePtr> parents;
 
     /*
@@ -203,7 +207,7 @@ std::vector<PhaseNode> createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rel
     }
 
     /*
-     * Finally, append the soft edges to the PhaseNodes.
+     * Next, append the soft edges to the PhaseNodes.
      * We must retrieve the outer most parents of the "from" and "to" phases,
      * because the soft links are applied to all the nodes connected by hard links.
      */
@@ -214,6 +218,22 @@ std::vector<PhaseNode> createUniqueNodes(const std::map<PhasePtr, PhasePtr>& rel
 
             to.edges.push_back(&from);
         }
+    }
+
+    /*
+     * Finally, add the phases that are not connected to anything.
+     * Since all the phases are contained in the "phases" set,
+     * simply remove the ones that have connections since they already
+     * have been added to "uniqs" from the algorithm above.
+     */
+    for (const PhaseEdge& edge : edges) {
+        phases.erase(edge.from);
+        phases.erase(edge.to);
+    }
+
+    for (PhasePtr ph : phases) {
+        uniqs.push_back({});
+        uniqs.back().phases.push_back(ph);
     }
 
     return uniqs;
@@ -257,7 +277,7 @@ std::vector<PhasePtr> sortPhases(std::set<std::shared_ptr<Phase>>& phases) {
     const std::vector<PhaseEdge>& edges(createEdges(phases));
     const std::map<PhasePtr, PhasePtr>& rels(findStrongRelations(edges));
 
-    std::vector<PhaseNode> nodes(createUniqueNodes(rels, edges));
+    std::vector<PhaseNode> nodes(createUniqueNodes(rels, edges, phases));
     std::vector<PhasePtr> sortedPhases(topologicalSort(nodes));
 
     return sortedPhases;
