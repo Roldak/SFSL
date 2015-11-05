@@ -78,15 +78,24 @@ private:
     ast::Expression* _exprToComplete;
 };
 
+enum CompletionType {T_DOT, T_PARENTHESIS};
+
+void outputPossibilities(type::Type* tp, CompletionType ct) {
+    if (ct == T_DOT) {
+
+    }
+}
+
 int main(int argc, char** argv) {
     // LOAD FILE
 
     char* sourceFile = NULL;
     char* outputFile = NULL;
+    CompletionType completionType = T_DOT;
     bool complete = false;
     int option;
 
-    while((option = getopt(argc, argv, "s:c:g")) != -1){
+    while((option = getopt(argc, argv, "s:c:g:t")) != -1){
         switch (option) {
         case 's':
             sourceFile = optarg;
@@ -96,6 +105,19 @@ int main(int argc, char** argv) {
             break;
         case 'g':
             outputFile = optarg;
+            break;
+        case 't':
+            switch(optarg[0]) {
+            case 'd':
+                completionType = T_DOT;
+                break;
+            case 'p':
+                completionType = T_PARENTHESIS;
+                break;
+            default:
+                break;
+            }
+
             break;
         default:
             std::cerr << "unexpected program argument : " << option << std::endl;
@@ -136,7 +158,7 @@ int main(int argc, char** argv) {
         std::shared_ptr<ScopeFinderPhase> completerPhase(std::shared_ptr<ScopeFinderPhase>(new ScopeFinderPhase("x")));
         Pipeline ppl = Pipeline::createDefault().insert(completerPhase);
         cmp.compile(prog, col, ppl);
-        std::cout << completerPhase->expressionToComplete()->type()->toString() << std::endl;
+        outputPossibilities(completerPhase->expressionToComplete()->type(), completionType);
     }
 
     return 0;
