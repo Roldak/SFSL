@@ -55,7 +55,6 @@ public:
         src::StringSource source(src::InputSourceName::make(ctx, "tmp"), _toComplete);
         lex::Lexer toCompleteLexer(ctx, source);
         ast::Parser toCompleteParser(ctx, toCompleteLexer);
-        ast::ASTPrinter printer(ctx, std::cout);
 
         _exprToComplete = toCompleteParser.parseSingleExpression();
 
@@ -63,8 +62,6 @@ public:
         exprs.push_back(_exprToComplete);
 
         *blk = ast::Block(exprs);
-
-        blk->onVisit(&printer);
 
         return true;
     }
@@ -82,9 +79,7 @@ private:
 class CtxCollector : public AbstractOutputCollector {
 public:
     CtxCollector() {}
-    virtual ~CtxCollector() {
-
-    }
+    virtual ~CtxCollector() {}
 
     virtual void collect(PhaseContext& pctx) override {
         _ctx = *pctx.require<CompCtx_Ptr>("ctx");
@@ -147,7 +142,7 @@ int main(int argc, char** argv) {
 
     char* sourceFile = NULL;
     char* outputFile = NULL;
-    Completer::CompletionType completionType = Completer:: T_DOT;
+    Completer::CompletionType completionType = Completer::T_DOT;
     bool complete = false;
     int option;
 
@@ -217,9 +212,7 @@ int main(int argc, char** argv) {
 
         cmp.compile(prog, col, ppl);
 
-        Completer completer(col.getCtx());
-
-        completer.outputPossibilities(scopeFinderPhase->expressionToComplete()->type(), completionType);
+        Completer(col.getCtx()).outputPossibilities(scopeFinderPhase->expressionToComplete()->type(), completionType);
     }
 
     return 0;
