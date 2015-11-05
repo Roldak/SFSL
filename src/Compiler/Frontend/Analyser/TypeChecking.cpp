@@ -179,8 +179,11 @@ void TypeChecking::visit(DefineDecl* decl) {
         RESTORE_MEMBER(_nextDef)
         RESTORE_MEMBER(_currentThis)
 
-        if (foundType && !type::getIf<type::ProperType>(foundType->applyTCCallsOnly(_ctx))) {
-            _rep.error(*decl->getValue(), "Right-hand side of definition must evaluate to a proper type. Found " + foundType->toString());
+        if (foundType) {
+            type::Type* appliedFT = foundType->applyTCCallsOnly(_ctx);
+            if (!type::getIf<type::ProperType>(appliedFT) && !type::getIf<type::MethodType>(appliedFT)) {
+                _rep.error(*decl->getValue(), "Right-hand side of definition must evaluate to a proper type. Found " + foundType->toString());
+            }
         }
 
         if (expectedType && foundType) {
