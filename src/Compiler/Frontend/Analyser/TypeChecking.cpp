@@ -299,8 +299,6 @@ void TypeChecking::visit(IfExpression* ifexpr) {
             _rep.error(*ifexpr, "The then-part and else-part have different types. Found " +
                        thenType->toString() + " and " + elseType->toString());
         }
-        std::cout << "LASLDASLKDADS" << std::endl;
-
     } else {
         if (!thenType->apply(_ctx)->isSubTypeOf(_res.Unit())) {
             _rep.error(*ifexpr->getThen(), "An if-expression without else-part must have its then-part evaluate to unit. Found " +

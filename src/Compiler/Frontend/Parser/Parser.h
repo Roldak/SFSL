@@ -47,6 +47,11 @@ public:
     ast::Program* parse();
 
     /**
+     * @brief Parses a single expression
+     */
+    ast::Expression* parseSingleExpression();
+
+    /**
      * @return Start parsing the given input assuming it is a type expression
      */
     ast::TypeExpression* parseType();

@@ -168,7 +168,7 @@ public:
 
 private:
 
-    const std::vector<Expression*> _stats;
+    std::vector<Expression*> _stats;
 
 };
 

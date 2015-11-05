@@ -27,6 +27,11 @@ Program* Parser::parse() {
     return parseProgram();
 }
 
+Expression* Parser::parseSingleExpression() {
+    _currentToken = _lex.getNext();
+    return parseExpression();
+}
+
 TypeExpression* Parser::parseType() {
     _currentToken = _lex.getNext();
     return parseTypeExpression();
