@@ -2,6 +2,7 @@
 #include "Compiler/Frontend/AST/Nodes/Program.h"
 #include "Compiler/Frontend/AST/Visitors/ASTPrinter.h"
 #include "Compiler/Frontend/Parser/Parser.h"
+#include "Compiler/Frontend/Symbols/Scope.h"
 #include "Visitors/ScopeIdentifier.h"
 #include "ScopeReporter.h"
 #include "sfsl.h"
@@ -42,7 +43,7 @@ public:
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
-        complete::ScopeFinder is(ctx, {1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        complete::ScopeFinder is(ctx, {1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0});
         prog->onVisit(&is);
 
         ast::Block* blk = is.getBlock();
@@ -78,20 +79,75 @@ private:
     ast::Expression* _exprToComplete;
 };
 
-enum CompletionType {T_DOT, T_PARENTHESIS};
-
-void outputPossibilities(type::Type* tp, CompletionType ct) {
-    if (ct == T_DOT) {
+class CtxCollector : public AbstractOutputCollector {
+public:
+    CtxCollector() {}
+    virtual ~CtxCollector() {
 
     }
-}
+
+    virtual void collect(PhaseContext& pctx) override {
+        _ctx = *pctx.require<CompCtx_Ptr>("ctx");
+    }
+
+    CompCtx_Ptr getCtx() {
+        return _ctx;
+    }
+
+private:
+
+    CompCtx_Ptr _ctx;
+};
+
+class Completer final {
+public:
+    enum CompletionType {T_DOT, T_PARENTHESIS};
+
+    Completer(CompCtx_Ptr ctx) : _ctx(ctx) {
+
+    }
+
+    ~Completer() { }
+
+    void outputPossibilities(type::Type* tp, CompletionType ct) {
+        if (ct == T_DOT) {
+            if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
+                ast::ClassDecl* clss = pt->getClass();
+                sym::Scope* clssScope = clss->getScope();
+
+                for (const std::pair<std::string, sym::SymbolData>& entry : clssScope->getAllSymbols()) {
+                    outputFromSymbolData(entry.second, tp->applyTCCallsOnly(_ctx)->getSubstitutionTable());
+                }
+            }
+        }
+    }
+
+private:
+
+    void outputFromSymbolData(const sym::SymbolData& data, const type::SubstitutionTable& table) {
+        switch (data.symbol->getSymbolType()) {
+        case sym::SYM_VAR: {
+            sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(data.symbol);
+            type::Type* varType = var->type();
+            varType = type::Type::findSubstitution(table, varType)->substitute(table, _ctx);
+            varType = type::Type::findSubstitution(data.env, varType)->substitute(data.env, _ctx);
+            std::cout << var->getName() << ":" << varType->apply(_ctx)->toString() << std::endl;
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    CompCtx_Ptr _ctx;
+};
 
 int main(int argc, char** argv) {
     // LOAD FILE
 
     char* sourceFile = NULL;
     char* outputFile = NULL;
-    CompletionType completionType = T_DOT;
+    Completer::CompletionType completionType = Completer:: T_DOT;
     bool complete = false;
     int option;
 
@@ -109,10 +165,10 @@ int main(int argc, char** argv) {
         case 't':
             switch(optarg[0]) {
             case 'd':
-                completionType = T_DOT;
+                completionType = Completer::T_DOT;
                 break;
             case 'p':
-                completionType = T_PARENTHESIS;
+                completionType = Completer::T_PARENTHESIS;
                 break;
             default:
                 break;
@@ -140,7 +196,6 @@ int main(int argc, char** argv) {
     }
 
     Compiler cmp(CompilerConfig(StandartReporter::EmptyReporter));
-    EmptyCollector col;
 
     ProgramBuilder prog = cmp.parse(sourceFile, source);
 
@@ -153,12 +208,18 @@ int main(int argc, char** argv) {
 
     if (!complete && prog && false) {
         Pipeline ppl = Pipeline::createEmpty().insert(std::shared_ptr<Phase>(new ScopeIdentiferPhase));
+        EmptyCollector col;
         cmp.compile(prog, col, ppl);
     } else {
-        std::shared_ptr<ScopeFinderPhase> completerPhase(std::shared_ptr<ScopeFinderPhase>(new ScopeFinderPhase("x")));
-        Pipeline ppl = Pipeline::createDefault().insert(completerPhase);
+        std::shared_ptr<ScopeFinderPhase> scopeFinderPhase(std::shared_ptr<ScopeFinderPhase>(new ScopeFinderPhase("x")));
+        Pipeline ppl = Pipeline::createDefault().insert(scopeFinderPhase).insert(Phase::StopRightAfter("TypeChecking"));
+        CtxCollector col;
+
         cmp.compile(prog, col, ppl);
-        outputPossibilities(completerPhase->expressionToComplete()->type(), completionType);
+
+        Completer completer(col.getCtx());
+
+        completer.outputPossibilities(scopeFinderPhase->expressionToComplete()->type(), completionType);
     }
 
     return 0;
