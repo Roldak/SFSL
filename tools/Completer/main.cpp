@@ -12,7 +12,8 @@ using namespace sfsl;
 
 class ScopeIdentiferPhase : public Phase {
 public:
-    ScopeIdentiferPhase() : Phase("ScopeIdentifier", "Assigns scopes unique ids") { }
+    ScopeIdentiferPhase()
+        : Phase("ScopeIdentifier", "Assigns scopes unique ids") { }
     virtual ~ScopeIdentiferPhase() { }
 
     virtual bool run(PhaseContext& pctx) {
@@ -20,6 +21,7 @@ public:
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
         complete::ScopeReporter id(ctx, complete::StandartScopeReporter::CoutReporter);
+
         prog->onVisit(&id);
 
         return true;
@@ -28,9 +30,9 @@ public:
 
 class ScopeFinderPhase : public Phase {
 public:
-    ScopeFinderPhase(const std::string& toComplete)
+    ScopeFinderPhase(const std::string& toComplete, const std::vector<size_t>& scopeId)
         :   Phase("ScopeFinderPhase", "Only keeps scope that are parents of the given scope"),
-            _toComplete(toComplete), _exprToComplete(nullptr) {
+            _toComplete(toComplete), _exprToComplete(nullptr), _scopeId(scopeId) {
     }
 
     virtual ~ScopeFinderPhase() { }
@@ -43,7 +45,7 @@ public:
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
-        complete::ScopeFinder is(ctx, {1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        complete::ScopeFinder is(ctx, _scopeId);
         prog->onVisit(&is);
 
         ast::Block* blk = is.getBlock();
@@ -74,6 +76,7 @@ private:
 
     std::string _toComplete;
     ast::Expression* _exprToComplete;
+    std::vector<size_t> _scopeId;
 };
 
 class CtxCollector : public AbstractOutputCollector {
@@ -120,42 +123,64 @@ public:
 private:
 
     void outputFromSymbolData(const sym::SymbolData& data, const type::SubstitutionTable& table) {
+        type::Type* symType = nullptr;
+
         switch (data.symbol->getSymbolType()) {
-        case sym::SYM_VAR: {
-            sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(data.symbol);
-            type::Type* varType = var->type();
-            varType = type::Type::findSubstitution(table, varType)->substitute(table, _ctx);
-            varType = type::Type::findSubstitution(data.env, varType)->substitute(data.env, _ctx);
-            std::cout << var->getName() << ":" << varType->apply(_ctx)->toString() << std::endl;
+        case sym::SYM_VAR:
+            symType = static_cast<sym::VariableSymbol*>(data.symbol)->type();
             break;
-        }
+        case sym::SYM_DEF:
+            symType = static_cast<sym::DefinitionSymbol*>(data.symbol)->type();
+            break;
         default:
             break;
         }
+
+        if (!symType) {
+            return;
+        }
+
+        symType = type::Type::findSubstitution(table, symType)->substitute(table, _ctx);
+        symType = type::Type::findSubstitution(data.env, symType)->substitute(data.env, _ctx);
+
+        std::cout << data.symbol->getName() << ":" << symType->apply(_ctx)->toString() << std::endl;
     }
 
     CompCtx_Ptr _ctx;
 };
 
+std::vector<size_t> scopeIdFromStr(const std::string& scope) {
+    std::vector<std::string> split;
+    std::vector<size_t> scopeId;
+
+    utils::split(split, scope, '.');
+
+    for (const std::string& str : split) {
+        scopeId.push_back(utils::String_toT<size_t>(str));
+    }
+    return scopeId;
+}
+
 int main(int argc, char** argv) {
     // LOAD FILE
 
     char* sourceFile = NULL;
-    char* outputFile = NULL;
+    char* scopeIdStr = NULL;
+    char* exprToComplete = NULL;
     Completer::CompletionType completionType = Completer::T_DOT;
-    bool complete = false;
+    bool generate = false;
     int option;
 
-    while((option = getopt(argc, argv, "s:c:g:t")) != -1){
+    while((option = getopt(argc, argv, "s:c:gt:")) != -1){
         switch (option) {
         case 's':
-            sourceFile = optarg;
+            scopeIdStr = optarg;
             break;
         case 'c':
-            complete = true;
+            exprToComplete = optarg;
             break;
         case 'g':
-            outputFile = optarg;
+            generate = true;
             break;
         case 't':
             switch(optarg[0]) {
@@ -175,13 +200,17 @@ int main(int argc, char** argv) {
         }
     }
 
-    if (!complete && !outputFile && false) {
-        std::cerr << "missing option -c or -g filename" << std::endl;
+    if (optind < argc) {
+        sourceFile = argv[optind++];
+    } else {
+        std::cerr << "missing source file" << std::endl;
         return 1;
     }
 
-    if (!sourceFile)
-        sourceFile = (char*)"Examples\\completion.sfsl";
+    if (!exprToComplete && !generate) {
+        std::cerr << "missing option -c <expression> or -g <filename>" << std::endl;
+        return 2;
+    }
 
     std::string source;
 
@@ -194,6 +223,10 @@ int main(int argc, char** argv) {
 
     ProgramBuilder prog = cmp.parse(sourceFile, source);
 
+    if (!prog) {
+        return 3;
+    }
+
     Module slang = prog.openModule("sfsl").openModule("lang");
     slang.typeDef("unit", cmp.classBuilder("unit").build());
     slang.typeDef("bool", cmp.classBuilder("bool").build());
@@ -201,12 +234,14 @@ int main(int argc, char** argv) {
     slang.typeDef("real", cmp.classBuilder("real").build());
     slang.typeDef("string", cmp.classBuilder("string").build());
 
-    if (!complete && prog && false) {
+    if (generate) {
         Pipeline ppl = Pipeline::createEmpty().insert(std::shared_ptr<Phase>(new ScopeIdentiferPhase));
         EmptyCollector col;
         cmp.compile(prog, col, ppl);
     } else {
-        std::shared_ptr<ScopeFinderPhase> scopeFinderPhase(std::shared_ptr<ScopeFinderPhase>(new ScopeFinderPhase("x")));
+        std::string expr = std::string(exprToComplete);
+        std::vector<size_t> scopeId = scopeIdFromStr(std::string(scopeIdStr));
+        std::shared_ptr<ScopeFinderPhase> scopeFinderPhase(std::shared_ptr<ScopeFinderPhase>(new ScopeFinderPhase(expr, scopeId)));
         Pipeline ppl = Pipeline::createDefault().insert(scopeFinderPhase).insert(Phase::StopRightAfter("TypeChecking"));
         CtxCollector col;
 
