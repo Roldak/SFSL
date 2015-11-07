@@ -373,9 +373,9 @@ void SymbolAssignation::visit(TypeDecl* tdecl) {
 }
 
 void SymbolAssignation::visit(ClassDecl* clss) {
-    SAVE_SCOPE(clss)
-
     visitParent(clss);
+
+    SAVE_SCOPE(clss)
 
     for (TypeDecl* tdecl : clss->getTypeDecls()) {
         tdecl->onVisit(this);
@@ -471,7 +471,11 @@ void SymbolAssignation::visitParent(ClassDecl* clss) {
                     ClassDecl* parentClass = parent->getClass();
                     visitParent(parentClass);
 
+                    SAVE_SCOPE(clss)
+
                     _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable());
+
+                    RESTORE_SCOPE
 
                     addSubtypeRelations(clss, parentClass);
                 }
