@@ -465,21 +465,23 @@ void SymbolAssignation::visitParent(ClassDecl* clss) {
         auto it = _temporarilyVisitedTypes.insert(clss).first; // mark temporarily
 
         if (clss->getParent()) {
+            SAVE_SCOPE(clss)
+
             clss->getParent()->onVisit(this);
             if (type::Type* parentType = ASTTypeCreator::createType(clss->getParent(), _ctx)) {
                 if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
                     ClassDecl* parentClass = parent->getClass();
                     visitParent(parentClass);
 
-                    SAVE_SCOPE(clss)
 
                     _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable());
 
-                    RESTORE_SCOPE
 
                     addSubtypeRelations(clss, parentClass);
                 }
             }
+
+            RESTORE_SCOPE
         }
 
         updateSubtypeRelations(clss);
