@@ -8,6 +8,9 @@
 #include "sfsl.h"
 #include "unistd.h"
 
+#define K_ATTRIBUTE_ID  ('a')
+#define K_METHOD_ID     ('m')
+
 using namespace sfsl;
 
 class ScopeIdentiferPhase : public Phase {
@@ -124,13 +127,16 @@ private:
 
     void outputFromSymbolData(const sym::SymbolData& data, const type::SubstitutionTable& table) {
         type::Type* symType = nullptr;
+        char kindOfSym;
 
         switch (data.symbol->getSymbolType()) {
         case sym::SYM_VAR:
             symType = static_cast<sym::VariableSymbol*>(data.symbol)->type();
+            kindOfSym = K_ATTRIBUTE_ID;
             break;
         case sym::SYM_DEF:
             symType = static_cast<sym::DefinitionSymbol*>(data.symbol)->type();
+            kindOfSym = K_METHOD_ID;
             break;
         default:
             break;
@@ -143,7 +149,7 @@ private:
         symType = type::Type::findSubstitution(data.env, symType)->substitute(data.env, _ctx);
         symType = type::Type::findSubstitution(table, symType)->substitute(table, _ctx);
 
-        std::cout << data.symbol->getName() << ":" << symType->apply(_ctx)->toString() << std::endl;
+        std::cout << kindOfSym << ":" << data.symbol->getName() << ":" << symType->apply(_ctx)->toString() << std::endl;
     }
 
     CompCtx_Ptr _ctx;
