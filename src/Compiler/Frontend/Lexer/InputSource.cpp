@@ -23,7 +23,7 @@ InputSource::~InputSource() {
 }
 
 size_t InputSource::getPosition() const {
-    return _position - 1;
+    return _position;
 }
 
 InputSourceName InputSource::getSourceName() const {
