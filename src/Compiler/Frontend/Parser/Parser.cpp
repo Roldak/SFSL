@@ -619,6 +619,7 @@ Block* Parser::parseBlock() {
     std::vector<Expression*> stats;
     std::vector<CanUseModules::ModulePath> usings;
 
+    size_t leftBracePos = _lastTokenEndPos - 1;
     SAVE_POS(startPos)
 
     while (!accept(tok::OPER_R_BRACE)) {
@@ -634,6 +635,7 @@ Block* Parser::parseBlock() {
     Block* block = _mngr.New<Block>(stats);
     block->setUsedModules(usings);
     block->setPos(startPos);
+    block->setStartPos(leftBracePos);
     block->setEndPos(_lastTokenEndPos);
 
     return block;
