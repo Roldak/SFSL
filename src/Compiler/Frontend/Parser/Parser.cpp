@@ -237,7 +237,7 @@ ClassDecl* Parser::parseClass() {
     std::vector<TypeSpecifier*> fields;
     std::vector<DefineDecl*> defs;
 
-    while (!accept(tok::OPER_R_BRACE)) {
+    while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
         bool isExtern = accept(tok::KW_EXTERN);
         SAVE_POS(externElemPos);
 
@@ -622,7 +622,7 @@ Block* Parser::parseBlock() {
     size_t leftBracePos = _lastTokenEndPos - 1;
     SAVE_POS(startPos)
 
-    while (!accept(tok::OPER_R_BRACE)) {
+    while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
         SAVE_POS(usingPos)
 
         if (accept(tok::KW_USING)) {
@@ -737,7 +737,7 @@ RETURN_TYPE* Parser::parseTuple(std::vector<ELEMENT_TYPE*>& exprs, const PARSING
             if (ELEMENT_TYPE* arg = f()){
                 exprs.push_back(arg);
             }
-        } while (accept(tok::OPER_COMMA));
+        } while (accept(tok::OPER_COMMA) && !accept(tok::TOK_EOF));
 
         expect(R_DELIM, "`" + tok::Operator::OperTypeToString(R_DELIM) + "`");
     }
