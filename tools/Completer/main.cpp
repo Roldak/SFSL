@@ -63,6 +63,10 @@ public:
 
         _exprToComplete = toCompleteParser.parseSingleExpression();
 
+        if (ctx->reporter().getErrorCount() > 0) {
+            return false;
+        }
+
         std::vector<ast::Expression*> exprs(blk->getStatements());
         exprs.push_back(_exprToComplete);
 
@@ -253,7 +257,9 @@ int main(int argc, char** argv) {
 
         cmp.compile(prog, col, ppl);
 
-        Completer(col.getCtx()).outputPossibilities(scopeFinderPhase->expressionToComplete()->type(), completionType);
+        if (ast::Expression* exprToComplete = scopeFinderPhase->expressionToComplete()) {
+            Completer(col.getCtx()).outputPossibilities(exprToComplete->type(), completionType);
+        }
     }
 
     return 0;
