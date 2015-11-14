@@ -71,7 +71,6 @@ public:
 
     virtual void visit(ExpressionStatement* exp) = 0;
 
-    virtual void visit(BinaryExpression* bin) = 0;
     virtual void visit(AssignmentExpression* aex) = 0;
     virtual void visit(TypeSpecifier* tps) = 0;
     virtual void visit(Block* block) = 0;

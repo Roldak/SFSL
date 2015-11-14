@@ -219,11 +219,6 @@ void TypeChecking::visit(ExpressionStatement* exp) {
     exp->setType(exp->getExpression()->type());
 }
 
-void TypeChecking::visit(BinaryExpression* bin) {
-    ASTImplicitVisitor::visit(bin);
-    bin->setType(bin->getLhs()->type()); // TODO : make it right
-}
-
 void TypeChecking::visit(AssignmentExpression* aex) {
     ASTImplicitVisitor::visit(aex);
 

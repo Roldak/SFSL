@@ -88,10 +88,6 @@ void ASTExplicitVisitor::visit(ExpressionStatement*) {
 
 }
 
-void ASTExplicitVisitor::visit(BinaryExpression*) {
-
-}
-
 void ASTExplicitVisitor::visit(AssignmentExpression*) {
 
 }

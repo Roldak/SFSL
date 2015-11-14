@@ -130,12 +130,6 @@ void ASTImplicitVisitor::visit(ExpressionStatement* exp) {
     exp->getExpression()->onVisit(this);
 }
 
-void ASTImplicitVisitor::visit(BinaryExpression* bin) {
-    bin->getLhs()->onVisit(this);
-    bin->getOperator()->onVisit(this);
-    bin->getRhs()->onVisit(this);
-}
-
 void ASTImplicitVisitor::visit(AssignmentExpression* aex) {
     aex->getLhs()->onVisit(this);
     aex->getRhs()->onVisit(this);

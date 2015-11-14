@@ -213,16 +213,6 @@ void ASTPrinter::visit(ExpressionStatement* exp) {
     _ostream << ";";
 }
 
-void ASTPrinter::visit(BinaryExpression* exp) {
-    _ostream << "(";
-    exp->getLhs()->onVisit(this);
-    _ostream << " ";
-    exp->getOperator()->onVisit(this);
-    _ostream << " ";
-    exp->getRhs()->onVisit(this);
-    _ostream << ")";
-}
-
 void ASTPrinter::visit(AssignmentExpression* aex) {
     _ostream << "(";
     aex->getLhs()->onVisit(this);
