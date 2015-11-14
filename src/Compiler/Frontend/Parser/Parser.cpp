@@ -340,7 +340,7 @@ Expression* Parser::parseBinary(Expression* left, int precedence) {
             } else {
 
                 accept();
-                Expression* right = parseBinary(parsePrimary(), newOpPrec);
+                Expression* right = parsePrimary();
 
                 while (isType(tok::TOK_OPER)) {
                     if (as<tok::Operator>()->getPrecedence() > newOpPrec) {
@@ -758,7 +758,10 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
         res = _mngr.New<AssignmentExpression>(left, right);
         break;
     default:
-        res = _mngr.New<BinaryExpression>(left, right, _mngr.New<Identifier>(oper->toString()));
+        Identifier* id = _mngr.New<Identifier>(oper->toString());
+        id->setPos(*oper);
+        res = _mngr.New<MemberAccess>(left, id);
+        res = _mngr.New<FunctionCall>(res, _mngr.New<Tuple>(std::vector<Expression*>{right}));
         break;
     }
 
