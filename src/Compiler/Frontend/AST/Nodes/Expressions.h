@@ -63,39 +63,6 @@ private:
 };
 
 /**
- * @brief Represents a binary expression, aka lhs oper rhs.
- */
-class BinaryExpression : public Expression {
-public:
-
-    BinaryExpression(Expression* lhs, Expression* rhs, Identifier* oper);
-    virtual ~BinaryExpression();
-
-    SFSL_AST_ON_VISIT_H
-
-    /**
-     * @return The left hand side of the binary expression
-     */
-    Expression* getLhs() const;
-
-    /**
-     * @return The right hand side of the binary expression
-     */
-    Expression* getRhs() const;
-
-    /**
-     * @return The operator of the binary expression
-     */
-    Identifier* getOperator() const;
-
-private:
-
-    Expression* _lhs;
-    Expression* _rhs;
-    Identifier* _oper;
-};
-
-/**
  * @brief Represents an assignement expression, aka lhs = rhs.
  */
 class AssignmentExpression : public Expression {

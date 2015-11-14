@@ -52,7 +52,6 @@ public:
 
     virtual void visit(ExpressionStatement* exp) override;
 
-    virtual void visit(BinaryExpression* bin) override;
     virtual void visit(AssignmentExpression* aex) override;
     virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(Block* block) override;

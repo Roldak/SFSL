@@ -190,10 +190,6 @@ void DefaultBytecodeGenerator::visit(ExpressionStatement* exp) {
     ASTImplicitVisitor::visit(exp);
 }
 
-void DefaultBytecodeGenerator::visit(BinaryExpression* bin) {
-    ASTImplicitVisitor::visit(bin);
-}
-
 void DefaultBytecodeGenerator::visit(AssignmentExpression* aex) {
     aex->getRhs()->onVisit(this);
     AssignmentBytecodeGenerator abg(_ctx, _out, _constantPoolCursor);

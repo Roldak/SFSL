@@ -414,11 +414,6 @@ void SymbolAssignation::visit(TypeIdentifier* id) {
     assignIdentifier(id);
 }
 
-void SymbolAssignation::visit(BinaryExpression* exp) {
-    exp->getLhs()->onVisit(this);
-    exp->getRhs()->onVisit(this);
-}
-
 void SymbolAssignation::visit(TypeSpecifier* tps) {
     tps->getTypeNode()->onVisit(this);
     setVariableSymbolicUsed(tps->getSpecified(), false);

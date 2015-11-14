@@ -37,31 +37,6 @@ Expression *ExpressionStatement::getExpression() const {
     return _expr;
 }
 
-// BINARY EXPRESSION
-
-BinaryExpression::BinaryExpression(Expression *lhs, Expression *rhs, Identifier *oper)
-    : _lhs(lhs), _rhs(rhs), _oper(oper) {
-
-}
-
-BinaryExpression::~BinaryExpression() {
-
-}
-
-SFSL_AST_ON_VISIT_CPP(BinaryExpression)
-
-Expression* BinaryExpression::getLhs() const {
-    return _lhs;
-}
-
-Expression* BinaryExpression::getRhs() const {
-    return _rhs;
-}
-
-Identifier* BinaryExpression::getOperator() const {
-    return _oper;
-}
-
 // ASSIGNMENT EXPRESSION
 
 AssignmentExpression::AssignmentExpression(Expression *lhs, Expression *rhs)

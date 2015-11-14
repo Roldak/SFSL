@@ -99,10 +99,6 @@ public:
         setIfSame<ExpressionStatement>();
     }
 
-    virtual void visit(BinaryExpression*) override {
-        setIfSame<BinaryExpression>();
-    }
-
     virtual void visit(AssignmentExpression*) override {
         setIfSame<AssignmentExpression>();
     }

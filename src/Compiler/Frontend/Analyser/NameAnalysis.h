@@ -119,7 +119,6 @@ public:
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
     virtual void visit(TypeIdentifier* tident) override;
 
-    virtual void visit(BinaryExpression* exp) override;
     virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(Block* block) override;
     virtual void visit(MemberAccess* mac) override;
