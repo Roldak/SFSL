@@ -759,9 +759,11 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
         break;
     default:
         Identifier* id = _mngr.New<Identifier>(oper->toString());
+        Tuple* args = _mngr.New<Tuple>(std::vector<Expression*>{right});
         id->setPos(*oper);
+        args->setPos(*right);
         res = _mngr.New<MemberAccess>(left, id);
-        res = _mngr.New<FunctionCall>(res, _mngr.New<Tuple>(std::vector<Expression*>{right}));
+        res = _mngr.New<FunctionCall>(res, args);
         break;
     }
 
