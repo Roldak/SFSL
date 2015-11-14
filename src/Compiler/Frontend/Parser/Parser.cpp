@@ -683,7 +683,8 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
                     _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
                     left, parseExpression(), retType);
     } else if (accept(tok::OPER_DOT)) {
-        res = _mngr.New<MemberAccess>(left, parseIdentifier("Expected attribute / method name"));
+        Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : parseIdentifier("Expected attribute / method name");
+        res = _mngr.New<MemberAccess>(left, id);
     } // no match is not an error
 
     if (res) {
