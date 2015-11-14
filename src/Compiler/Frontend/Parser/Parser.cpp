@@ -181,9 +181,8 @@ ModuleDecl* Parser::parseModule() {
     return modDecl;
 }
 
-DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern) {
-
-    Identifier* defName = parseIdentifier("Expected definition name");
+DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, Identifier* name) {
+    Identifier* defName = (name ? name : parseIdentifier("Expected definition name"));
 
     TypeExpression* typeSpecifier = nullptr;
     Expression* expr = nullptr;
@@ -244,9 +243,11 @@ ClassDecl* Parser::parseClass() {
         if (accept(tok::KW_TPE)) {
             tdecls.push_back(parseType(false));
         } else if (accept(tok::KW_DEF)) {
-            defs.push_back(parseDef(false, false, consumeExtern(isExtern)));
+            Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
+            defs.push_back(parseDef(false, false, consumeExtern(isExtern), id));
         } else if (accept(tok::KW_REDEF)) {
-            defs.push_back(parseDef(false, true, consumeExtern(isExtern)));
+            Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
+            defs.push_back(parseDef(false, true, consumeExtern(isExtern), id));
         } else {
             Identifier* fieldName = parseIdentifier("Expected field name | def");
             expect(tok::OPER_COLON, "`:`");
@@ -763,6 +764,37 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
     res->setPos(*left);
     res->setEndPos(_lastTokenEndPos);
     return res;
+}
+
+Identifier* Parser::parseOperatorsAsIdentifer() {
+    std::string name;
+    SAVE_POS(startPos)
+
+    tok::OPER_TYPE op = as<tok::Operator>()->getOpType();
+
+    if (accept(tok::OPER_L_PAREN)) {
+        expect(tok::OPER_R_PAREN, ")");
+        name = "()";
+    } else if (op == tok::OPER_PLUS   || op == tok::OPER_MINUS ||
+               op == tok::OPER_TIMES  || op == tok::OPER_DIV   ||
+               op == tok::OPER_MOD    || op == tok::OPER_POW   ||
+               op == tok::OPER_AND    || op == tok::OPER_OR    ||
+               op == tok::OPER_EQ_EQ  || op == tok::OPER_LT    ||
+               op == tok::OPER_GT     || op == tok::OPER_LE    ||
+               op == tok::OPER_GE) {
+        name = as<tok::Operator>()->toString();
+        accept();
+    } else {
+        _ctx->reporter().error(*_currentToken,
+                               "Expected operator "
+                               "; got " + _currentToken->toString());
+        accept();
+    }
+
+    Identifier* id = _mngr.New<Identifier>(name);
+    id->setPos(startPos);
+    id->setEndPos(_lastTokenEndPos);
+    return id;
 }
 
 }

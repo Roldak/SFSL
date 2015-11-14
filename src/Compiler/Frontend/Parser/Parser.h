@@ -89,7 +89,7 @@ private:
 
     ast::Program* parseProgram();
     ast::ModuleDecl* parseModule();
-    ast::DefineDecl* parseDef(bool asStatement, bool isRedef, bool isExtern);
+    ast::DefineDecl* parseDef(bool asStatement, bool isRedef, bool isExtern, ast::Identifier* name = nullptr);
     ast::ClassDecl* parseClass();
     ast::TypeDecl* parseType(bool asStatement);
 
@@ -127,6 +127,7 @@ private:
     RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE*>& exprs, const PARSING_FUNC& f);
 
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
+    ast::Identifier* parseOperatorsAsIdentifer();
 
     // Members
 
