@@ -1,9 +1,0 @@
-module test {
-	type A1 = class : B1 {}
-	type C1 = class {
-		def f() => {}
-	}
-	type B1 = class : C1 {
-		def g() => f()
-	}
-}
