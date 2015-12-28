@@ -73,7 +73,9 @@ std::vector<PhaseEdge> createEdges(const std::set<PhasePtr>& phases) {
 
     // Create a table which maps a phase name to its associated phase
     for (PhasePtr phase : phases) {
-        nameMap[phase->getName()] = phase;
+        if (!nameMap.insert(std::make_pair(phase->getName(), phase)).second) {
+            throw PhaseGraphResolutionError("At least two phases named " + phase->getName() + " were found");
+        }
     }
 
     /*
@@ -263,11 +265,9 @@ std::vector<PhasePtr> topologicalSort(std::vector<PhaseNode>& nodes) {
     std::vector<PhasePtr> ordered;
 
     for (PhaseNode& node : nodes) {
-        if (!node.isUnmarked()) {
-            continue;
+        if (node.isUnmarked()) {
+            topologicalSortDFSvisit(ordered, &node);
         }
-
-        topologicalSortDFSvisit(ordered, &node);
     }
 
     return ordered;

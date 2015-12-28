@@ -58,7 +58,7 @@ void CanUseModules::setUsedModules(const std::vector<CanUseModules::ModulePath>&
     _usedModules = usedModules;
 }
 
-const std::vector<CanUseModules::ModulePath>&CanUseModules::getUsedModules() const {
+const std::vector<CanUseModules::ModulePath>& CanUseModules::getUsedModules() const {
     return _usedModules;
 }
 
