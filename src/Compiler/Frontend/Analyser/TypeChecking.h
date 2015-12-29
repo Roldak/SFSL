@@ -104,7 +104,7 @@ private:
         ASTNode* node;
     };
 
-    FieldInfo tryGetFieldInfo(MemberAccess* dot, ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
+    FieldInfo tryGetFieldInfo(ASTNode* triggerer, ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
 
     type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
     type::ProperType* applySubsitutions(type::ProperType* inner, type::ProperType* obj);

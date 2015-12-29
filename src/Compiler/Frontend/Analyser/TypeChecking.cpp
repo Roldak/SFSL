@@ -425,6 +425,27 @@ void TypeChecking::visit(FunctionCall* call) {
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
         expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
         retType = mt->getRetType();
+    } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
+        ClassDecl* clss = pt->getClass();
+        const type::SubstitutionTable& subtable = pt->getSubstitutionTable();
+
+        FieldInfo field = tryGetFieldInfo(call->getCallee(), clss, "()", subtable);
+
+        if (field.isValid()) {
+            calleeT = field.t->applyTCCallsOnly(_ctx);
+
+            if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
+                expectedArgTypes = &static_cast<type::FunctionType*>(ft->apply(_ctx))->getArgTypes();
+                retType = ft->getRetType();
+            } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
+                expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
+                retType = mt->getRetType();
+            } else {
+                _rep.error(*call->getCallee(), "Member () of class " + clss->getName() + " is not a value");
+            }
+        } else {
+            _rep.error(*call->getCallee(), "Operator `()` was not redefined in class" + clss->getName());
+        }
     } else {
         _rep.error(*call, "Expression is not callable");
         return;
@@ -482,7 +503,7 @@ void TypeChecking::visit(StringLitteral* strlit) {
     strlit->setType(_res.String());
 }
 
-TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(MemberAccess* dot, ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
+TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ASTNode* triggerer, ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
     const auto& it = clss->getScope()->getAllSymbols().equal_range(id);
 
     if (it.first == it.second) {
@@ -491,7 +512,7 @@ TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(MemberAccess* dot, ClassDe
 
     auto b = utils::TakeSecondIterator<decltype(it.first)>(it.first);
     auto e = utils::TakeSecondIterator<decltype(it.second)>(it.second);
-    const AnySymbolicData data = resolveOverload(dot, b, e, subtable);
+    const AnySymbolicData data = resolveOverload(triggerer, b, e, subtable);
 
     if (data.symbol) {
         type::Type* t = tryGetTypeOfSymbol(data.symbol);
