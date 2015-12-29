@@ -107,6 +107,10 @@ private:
     FieldInfo tryGetFieldInfo(ASTNode* triggerer, ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable);
 
     type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
+
+    template<typename T>
+    void tryAssigningTypeToSymbolic(T* symbolic);
+
     type::ProperType* applySubsitutions(type::ProperType* inner, type::ProperType* obj);
     type::TypeConstructorType* applySubsitutions(type::TypeConstructorType* inner, type::ProperType* obj);
 

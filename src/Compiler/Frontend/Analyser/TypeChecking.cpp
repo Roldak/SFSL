@@ -332,14 +332,7 @@ void TypeChecking::visit(MemberAccess* dot) {
         }
     }
 
-    // TODO : Factor out this code since it's the same as the onVisit(Identifer*)
-    const AnySymbolicData data = resolveOverload(dot, dot->getSymbolDatas().cbegin(), dot->getSymbolDatas().cend(), {});
-    if (sym::Symbol* sym = data.symbol) {
-        dot->setSymbol(sym);
-        if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-            dot->setType(data.env ? type::Type::findSubstitution(*data.env, t)->substitute(*data.env, _ctx) : t);
-        }
-    }
+    tryAssigningTypeToSymbolic(dot);
 }
 
 void TypeChecking::visit(Tuple* tuple) {
@@ -476,13 +469,7 @@ void TypeChecking::visit(FunctionCall* call) {
 }
 
 void TypeChecking::visit(Identifier* ident) {
-    const AnySymbolicData data = resolveOverload(ident, ident->getSymbolDatas().cbegin(), ident->getSymbolDatas().cend(), {});
-    if (sym::Symbol* sym = data.symbol) {
-        ident->setSymbol(sym);
-        if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-            ident->setType(data.env ? type::Type::findSubstitution(*data.env, t)->substitute(*data.env, _ctx) : t);
-        }
-    }
+    tryAssigningTypeToSymbolic(ident);
 }
 
 void TypeChecking::visit(This* ths) {
@@ -547,6 +534,17 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
         return defsym->type();
     }
     return nullptr;
+}
+
+template<typename T>
+void TypeChecking::tryAssigningTypeToSymbolic(T* symbolic) {
+    const AnySymbolicData data = resolveOverload(symbolic, symbolic->getSymbolDatas().cbegin(), symbolic->getSymbolDatas().cend(), {});
+    if (sym::Symbol* sym = data.symbol) {
+        symbolic->setSymbol(sym);
+        if (type::Type* t = tryGetTypeOfSymbol(sym)) {
+            symbolic->setType(data.env ? type::Type::findSubstitution(*data.env, t)->substitute(*data.env, _ctx) : t);
+        }
+    }
 }
 
 sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* def) {
