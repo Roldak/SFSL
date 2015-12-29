@@ -82,11 +82,15 @@ public:
     VarUserData(size_t loc);
     virtual ~VarUserData();
 
+    void setIsAttribute(bool value);
+
     size_t getVarLoc() const;
+    bool isAttribute() const;
 
 private:
 
     size_t _loc;
+    bool _isAttriute;
 };
 
 class DefUserData : public common::MemoryManageable {

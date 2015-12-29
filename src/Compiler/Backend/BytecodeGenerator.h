@@ -46,6 +46,8 @@ protected:
     size_t getDefLoc(sym::DefinitionSymbol* def);
     size_t getVarLoc(sym::VariableSymbol* var);
 
+    bool isVariableAttribute(sym::VariableSymbol* var);
+
     std::shared_ptr<out::Cursor*> _constantPoolCursor;
 };
 

@@ -53,7 +53,9 @@ void UserDataAssignment::visit(ClassDecl* clss) {
 
         for (TypeSpecifier* tps : clss->getFields()) {
             tps->onVisit(this);
-            fields.push_back(static_cast<sym::VariableSymbol*>(tps->getSpecified()->getSymbol()));
+            sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(tps->getSpecified()->getSymbol());
+            var->getUserdata<VarUserData>()->setIsAttribute(true);
+            fields.push_back(var);
         }
 
         RESTORE_MEMBER(_currentVarCount)
@@ -182,7 +184,7 @@ size_t FuncUserData::getVarCount() const {
 
 // VARIABLE USER DATA
 
-VarUserData::VarUserData(size_t loc) : _loc(loc) {
+VarUserData::VarUserData(size_t loc) : _loc(loc), _isAttriute(false) {
 
 }
 
@@ -190,8 +192,16 @@ VarUserData::~VarUserData() {
 
 }
 
+void VarUserData::setIsAttribute(bool value) {
+    _isAttriute = value;
+}
+
 size_t VarUserData::getVarLoc() const {
     return _loc;
+}
+
+bool VarUserData::isAttribute() const {
+    return _isAttriute;
 }
 
 // DEFINITION USER DATA

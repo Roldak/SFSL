@@ -433,14 +433,18 @@ void TypeChecking::visit(FunctionCall* call) {
                 inst->setPos(*call->getCallee());
                 inst->onVisit(this);
 
+                _expectedInfo.node = inst;
+
                 if (!transformIntoCallToMember(call, inst, type::getIf<type::ProperType>(inst->type()), "new", expectedArgTypes, retType)) {
                     return;
                 }
             } else {
                 _rep.error(*call, "Instantiated type must be a class");
+                return;
             }
         } else {
             _rep.error(*call, "Symbol " + s->getName() + " does not refer to a type");
+            return;
         }
     } else {
         _rep.error(*call, "Expression is not callable");

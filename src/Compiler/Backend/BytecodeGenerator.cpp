@@ -90,6 +90,10 @@ size_t BytecodeGenerator::getVarLoc(sym::VariableSymbol* var) {
     return var->getUserdata<VarUserData>()->getVarLoc();
 }
 
+bool BytecodeGenerator::isVariableAttribute(sym::VariableSymbol* var) {
+    return var->getUserdata<VarUserData>()->isAttribute();
+}
+
 // DEFAULT BYTECODE GENERATOR
 
 DefaultBytecodeGenerator::DefaultBytecodeGenerator(CompCtx_Ptr& ctx, out::CodeGenOutput<BCInstruction*>& out)
@@ -261,7 +265,10 @@ void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
     if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
         pt->getClass()->onVisit(this);
 
-        // TODO: Generate code to instantiate the class
+        // TODO: Call the constructor of the class
+        size_t classLoc = pt->getClass()->getUserdata<ClassUserData>()->getClassLoc();
+        Emit<LoadConst>(*func, classLoc);
+        Emit<Instantiate>(*func);
     } else {
         Label* funcEnd = MakeLabel(*func, "mthd_end");
         Emit<MakeMethod>(*func, func->getUserdata<FuncUserData>()->getVarCount(), funcEnd);
@@ -304,7 +311,12 @@ void DefaultBytecodeGenerator::visit(Identifier* ident) {
     switch (ident->getSymbol()->getSymbolType()) {
     case sym::SYM_VAR: {
         sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(ident->getSymbol());
-        Emit<LoadStack>(*ident, getVarLoc(var));
+        if (isVariableAttribute(var)) {
+            Emit<LoadStack>(*ident, 0);
+            Emit<LoadField>(*ident, getVarLoc(var));
+        } else {
+            Emit<LoadStack>(*ident, getVarLoc(var));
+        }
         break;
     }
 
@@ -391,7 +403,12 @@ void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(IfExpression* 
 
 void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(Identifier* ident) {
     sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(ident->getSymbol());
-    Emit<StoreStack>(*ident, getVarLoc(var));
+    if (isVariableAttribute(var)) {
+        Emit<LoadStack>(*ident, 0);
+        Emit<StoreField>(*ident, getVarLoc(var));
+    } else {
+        Emit<StoreStack>(*ident, getVarLoc(var));
+    }
 }
 
 }
