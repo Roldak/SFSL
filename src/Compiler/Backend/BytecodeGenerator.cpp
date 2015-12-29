@@ -123,22 +123,24 @@ void DefaultBytecodeGenerator::visit(TypeDecl* tdecl) {
 }
 
 void DefaultBytecodeGenerator::visit(ClassDecl* clss){
-    for (DefineDecl* def : clss->getDefs()) {
-        def->onVisit(this);
+    if (TRY_INSERT(_visitedClasses, clss)) {
+        for (DefineDecl* def : clss->getDefs()) {
+            def->onVisit(this);
+        }
+
+        START_WRITING_TO_CONSTANT_POOL
+
+        ClassUserData* clssData = clss->getUserdata<ClassUserData>();
+
+        for (sym::DefinitionSymbol* def : clssData->getDefs()) {
+            Emit<LoadConst>(*clss, getDefLoc(def));
+        }
+
+        Emit<MakeClass>(*clss, clssData->getAttrCount(), clssData->getDefCount());
+        Emit<StoreConst>(*clss, getClassLoc(clss));
+
+        STOP_WRITING_TO_CONSTANT_POOL
     }
-
-    START_WRITING_TO_CONSTANT_POOL
-
-    ClassUserData* clssData = clss->getUserdata<ClassUserData>();
-
-    for (sym::DefinitionSymbol* def : clssData->getDefs()) {
-        Emit<LoadConst>(*clss, getDefLoc(def));
-    }
-
-    Emit<MakeClass>(*clss, clssData->getAttrCount(), clssData->getDefCount());
-    Emit<StoreConst>(*clss, getClassLoc(clss));
-
-    STOP_WRITING_TO_CONSTANT_POOL
 }
 
 void DefaultBytecodeGenerator::visit(DefineDecl* decl) {
@@ -256,13 +258,19 @@ void DefaultBytecodeGenerator::visit(Tuple* tuple) {
 }
 
 void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
-    Label* funcEnd = MakeLabel(*func, "func_end");
-    Emit<MakeFunction>(*func, func->getUserdata<FuncUserData>()->getVarCount(), funcEnd);
+    if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
+        pt->getClass()->onVisit(this);
 
-    func->getBody()->onVisit(this);
-    Emit<Return>(*func);
+        // TODO: Generate code to instantiate the class
+    } else {
+        Label* funcEnd = MakeLabel(*func, "func_end");
+        Emit<MakeFunction>(*func, func->getUserdata<FuncUserData>()->getVarCount(), funcEnd);
 
-    BindLabel(funcEnd);
+        func->getBody()->onVisit(this);
+        Emit<Return>(*func);
+
+        BindLabel(funcEnd);
+    }
 }
 
 void DefaultBytecodeGenerator::visit(FunctionCall* call) {

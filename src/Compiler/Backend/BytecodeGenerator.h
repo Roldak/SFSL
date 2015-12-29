@@ -109,6 +109,8 @@ private:
         virtual void visit(IfExpression* ifexpr) override;
         virtual void visit(Identifier* ident) override;
     };
+
+    std::set<ClassDecl*> _visitedClasses;
 };
 
 }

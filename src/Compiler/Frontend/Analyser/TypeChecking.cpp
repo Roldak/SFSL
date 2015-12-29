@@ -390,8 +390,6 @@ void TypeChecking::visit(FunctionCreation* func) {
     } else {
         func->setType(createFunctionType(func, argTypes, retType));
     }
-
-    _rep.info(*func->getArgs(), func->type()->apply(_ctx)->toString());
 }
 
 void TypeChecking::visit(FunctionCall* call) {
@@ -438,6 +436,14 @@ void TypeChecking::visit(FunctionCall* call) {
             } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
                 expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
                 retType = mt->getRetType();
+
+                MemberAccess* dot = _mngr.New<MemberAccess>(call->getCallee(), _mngr.New<Identifier>("()"));
+                dot->setSymbol(field.s);
+                dot->setType(field.t);
+
+                common::Positionnable callPos = *call;
+                *call = FunctionCall(dot, call->getArgsTuple());
+                call->setPos(callPos);
             } else {
                 _rep.error(*call->getCallee(), "Member `()` of class " + clss->getName() + " is not a value");
             }
@@ -583,19 +589,24 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
 }
 
 type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType) {
-    DefineDecl* funcDecl = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, func, false, false);
-    ClassDecl* funcClass = _mngr.New<ClassDecl>(func->getName(), nullptr,
+    FunctionCreation* meth = _mngr.New<FunctionCreation>("()", func->getArgs(), func->getBody(), func->getReturnType());
+    DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, false, false);
+    ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr,
                                                 std::vector<TypeDecl*>(),
                                                 std::vector<TypeSpecifier*>(),
                                                 std::vector<DefineDecl*>{funcDecl});
 
-    type::ProperType* pt = _mngr.New<type::ProperType>(funcClass);
+    type::ProperType* pt   = _mngr.New<type::ProperType>(funcClass);
+
+    meth->setPos(*func);
 
     sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", funcDecl, funcClass);
     funcDecl->setSymbol(funcSym);
+    funcDecl->setPos(*func);
 
-    sym::Scope* funcClassScope = _mngr.New<sym::Scope>(func->getScope()->getParent()->getParent(), true);
+    sym::Scope* funcClassScope = _mngr.New<sym::Scope>(func->getScope()->getParent(), true);
     funcClass->setScope(funcClassScope);
+    funcClass->setPos(*func);
 
     funcClassScope->addSymbol(funcSym);
 

@@ -106,6 +106,10 @@ void UserDataAssignment::visit(FunctionCreation* func) {
 
     ASTImplicitVisitor::visit(func);
 
+    if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
+        pt->getClass()->onVisit(this);
+    }
+
     func->setUserdata(_mngr.New<FuncUserData>(_currentVarCount));
 
     RESTORE_MEMBER(_currentVarCount)
