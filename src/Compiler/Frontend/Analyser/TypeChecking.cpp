@@ -11,6 +11,7 @@
 #include "TypeChecking.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
+#include "../AST/Visitors/ASTSymbolExtractor.h"
 #include "../AST/Visitors/ASTAssignmentChecker.h"
 #include "../Symbols/Scope.h"
 
@@ -440,7 +441,7 @@ void TypeChecking::visit(FunctionCall* call) {
                 dot->setSymbol(field.s);
                 dot->setType(field.t);
 
-                common::Positionnable callPos = *call;
+                common::Positionnable callPos(*call);
                 *call = FunctionCall(dot, call->getArgsTuple());
                 call->setPos(callPos);
             } else {
@@ -450,6 +451,11 @@ void TypeChecking::visit(FunctionCall* call) {
             _rep.error(*call->getCallee(), "Operator `()` was not overloaded in class " + clss->getName());
         }
     } else {
+        if (sym::Symbol* s = ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx)) {
+            if (s->getSymbolType() == sym::SYM_TPE) {
+
+            }
+        }
         _rep.error(*call, "Expression is not callable");
         return;
     }

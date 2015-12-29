@@ -19,7 +19,10 @@ namespace tok {
 /**
  * @brief Enumerates every possible Keyword
  */
-enum KW_TYPE { KW_MODULE, KW_USING, KW_DEF, KW_REDEF, KW_EXTERN, KW_TPE, KW_CLASS, KW_THIS, KW_IF, KW_ELSE, KW_WHILE, KW_FOR, KW_UNKNOWN };
+enum KW_TYPE {
+    KW_MODULE, KW_USING, KW_DEF, KW_REDEF, KW_EXTERN, KW_TPE, KW_CLASS,
+    KW_NEW, KW_THIS,
+    KW_IF, KW_ELSE, KW_WHILE, KW_FOR, KW_UNKNOWN };
 
 /**
  * @brief Represents a Keyword

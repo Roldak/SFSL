@@ -242,6 +242,10 @@ ClassDecl* Parser::parseClass() {
 
         if (accept(tok::KW_TPE)) {
             tdecls.push_back(parseType(false));
+        } else if (accept(tok::KW_NEW)) {
+            Identifier* id = _mngr.New<Identifier>("new");
+            id->setPos(externElemPos);
+            defs.push_back(parseDef(false, false, consumeExtern(isExtern), id));
         } else if (accept(tok::KW_DEF)) {
             Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
             defs.push_back(parseDef(false, false, consumeExtern(isExtern), id));
