@@ -299,6 +299,28 @@ private:
 };
 
 /**
+ * @brief Represents an instantiation of a type.
+ * This node is never created by the parser.
+ */
+class Instantiation : public Expression {
+public:
+
+    Instantiation(ClassDecl* instantiated);
+    virtual ~Instantiation();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The ClassDecl corresponding to the instantiated class
+     */
+    ClassDecl* getInstantiatedClass() const;
+
+private:
+
+    ClassDecl* _instantiated;
+};
+
+/**
  * @brief Represents an Identifier, which refers to a symbol.
  */
 class Identifier : public Expression, public sym::Symbolic<sym::Symbol> {

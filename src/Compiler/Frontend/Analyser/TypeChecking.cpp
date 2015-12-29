@@ -423,12 +423,22 @@ void TypeChecking::visit(FunctionCall* call) {
         retType = mt->getRetType();
     } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
         transformIntoCallToMember(call, call->getCallee(), pt, "()", expectedArgTypes, retType);
-    } else {
-        if (sym::Symbol* s = ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx)) {
-            if (s->getSymbolType() == sym::SYM_TPE) {
+    } else if (sym::Symbol* s = ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx)) {
+        if (s->getSymbolType() == sym::SYM_TPE) {
+            sym::TypeSymbol* tpsym = static_cast<sym::TypeSymbol*>(s);
+            if (isNodeOfType<ClassDecl>(tpsym->getTypeDecl()->getExpression(), _ctx)) {
+                Instantiation* inst = _mngr.New<Instantiation>(static_cast<ClassDecl*>(tpsym->getTypeDecl()->getExpression()));
+                inst->setPos(*call->getCallee());
+                inst->onVisit(this);
 
+                transformIntoCallToMember(call, inst, type::getIf<type::ProperType>(inst->type()), "new", expectedArgTypes, retType);
+            } else {
+                _rep.error(*call, "Instantiated type must be a class");
             }
+        } else {
+            _rep.error(*call, "Symbol " + s->getName() + " does not refer to a type");
         }
+    } else {
         _rep.error(*call, "Expression is not callable");
         return;
     }
@@ -451,6 +461,10 @@ void TypeChecking::visit(FunctionCall* call) {
                        ", expected " + (*expectedArgTypes)[i]->apply(_ctx)->toString());
         }
     }
+}
+
+void TypeChecking::visit(Instantiation* inst) {
+    inst->setType(_mngr.New<type::ProperType>(inst->getInstantiatedClass()));
 }
 
 void TypeChecking::visit(Identifier* ident) {

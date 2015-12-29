@@ -302,6 +302,10 @@ void ASTPrinter::visit(FunctionCall* call) {
     call->getArgsTuple()->onVisit(this);
 }
 
+void ASTPrinter::visit(Instantiation* inst) {
+    _ostream << inst->getInstantiatedClass()->getName();
+}
+
 void ASTPrinter::visit(Identifier* ident) {
     _ostream << ident->getValue();
 }

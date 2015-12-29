@@ -92,7 +92,7 @@ void ASTExplicitVisitor::visit(AssignmentExpression*) {
 
 }
 
-void ASTExplicitVisitor::visit(TypeSpecifier* tps) {
+void ASTExplicitVisitor::visit(TypeSpecifier*) {
 
 }
 
@@ -100,15 +100,15 @@ void ASTExplicitVisitor::visit(Block*) {
 
 }
 
-void ASTExplicitVisitor::visit(IfExpression* ifexpr) {
+void ASTExplicitVisitor::visit(IfExpression*) {
 
 }
 
-void ASTExplicitVisitor::visit(MemberAccess* dot) {
+void ASTExplicitVisitor::visit(MemberAccess*) {
 
 }
 
-void ASTExplicitVisitor::visit(Tuple* tuple) {
+void ASTExplicitVisitor::visit(Tuple*) {
 
 }
 
@@ -120,7 +120,11 @@ void ASTExplicitVisitor::visit(FunctionCall*) {
 
 }
 
-void ASTExplicitVisitor::visit(Identifier* id) {
+void ASTExplicitVisitor::visit(Instantiation*) {
+
+}
+
+void ASTExplicitVisitor::visit(Identifier*) {
 
 }
 

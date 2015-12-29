@@ -131,6 +131,10 @@ public:
         setIfSame<FunctionCall>();
     }
 
+    virtual void visit(Instantiation*) override {
+        setIfSame<Instantiation>();
+    }
+
     virtual void visit(Identifier*) override {
         setIfSame<Identifier>();
     }

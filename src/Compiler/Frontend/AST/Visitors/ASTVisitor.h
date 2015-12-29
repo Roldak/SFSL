@@ -79,6 +79,7 @@ public:
     virtual void visit(Tuple* tuple) = 0;
     virtual void visit(FunctionCreation* func) = 0;
     virtual void visit(FunctionCall* call) = 0;
+    virtual void visit(Instantiation* inst) = 0;
     virtual void visit(Identifier* ident) = 0;
     virtual void visit(This* ths) = 0;
     virtual void visit(BoolLitteral* boollit) = 0;

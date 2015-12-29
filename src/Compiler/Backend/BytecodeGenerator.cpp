@@ -294,6 +294,12 @@ void DefaultBytecodeGenerator::visit(FunctionCall* call) {
     }
 }
 
+void DefaultBytecodeGenerator::visit(Instantiation* inst) {
+    size_t classLoc = inst->getInstantiatedClass()->getUserdata<ClassUserData>()->getClassLoc();
+    Emit<LoadConst>(*inst, classLoc);
+    Emit<Instantiate>(*inst);
+}
+
 void DefaultBytecodeGenerator::visit(Identifier* ident) {
     switch (ident->getSymbol()->getSymbolType()) {
     case sym::SYM_VAR: {

@@ -209,6 +209,22 @@ Tuple* FunctionCall::getArgsTuple() const {
     return _args;
 }
 
+// INSTANTIATION
+
+Instantiation::Instantiation(ClassDecl* instantiated) : _instantiated(instantiated) {
+
+}
+
+Instantiation::~Instantiation() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(Instantiation)
+
+ClassDecl* Instantiation::getInstantiatedClass() const {
+    return _instantiated;
+}
+
 // IDENTIFIER
 
 Identifier::Identifier(const std::string& name) : _name(name) {

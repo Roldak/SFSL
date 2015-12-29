@@ -85,6 +85,20 @@ void LoadConst::appendTo(std::ostream &o) const {
     o << "load_cst" << ARG_SEP << _index;
 }
 
+// INSTANTIATE
+
+Instantiate::Instantiate() {
+
+}
+
+Instantiate::~Instantiate() {
+
+}
+
+void Instantiate::appendTo(std::ostream& o) const {
+    o << "inst_class";
+}
+
 // PUSH CONSTANT UNIT
 
 PushConstUnit::PushConstUnit() {
@@ -272,6 +286,8 @@ Jump::~Jump() {
 void Jump::appendTo(std::ostream &o) const {
     o << "jump" << ARG_SEP << _label->getName();
 }
+
+// VIRTUAL CALL
 
 VCall::VCall(size_t methodIndex, size_t argCount) : _methodIndex(methodIndex), _argCount(argCount) {
 

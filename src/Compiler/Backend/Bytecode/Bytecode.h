@@ -111,6 +111,14 @@ private:
     size_t _index;
 };
 
+class Instantiate : public BCInstruction {
+public:
+    Instantiate();
+    virtual ~Instantiate();
+
+    virtual void appendTo(std::ostream &o) const override;
+};
+
 class PushConstUnit : public BCInstruction {
 public:
     PushConstUnit();
