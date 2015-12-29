@@ -13,7 +13,7 @@ namespace sfsl {
 
 namespace common {
 
-Positionnable::Positionnable() {
+Positionnable::Positionnable() : _startPos(0), _endPos(0) {
 
 }
 
