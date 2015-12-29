@@ -229,6 +229,10 @@ void TypeChecking::visit(AssignmentExpression* aex) {
     type::Type* lhsT = aex->getLhs()->type();
     type::Type* rhsT = aex->getRhs()->type();
 
+    if (rhsT->apply(_ctx)->getTypeKind() == type::TYPE_NYD) {
+        _rep.error(*aex, "Right hand side does not have any type");
+    }
+
     if (type::TypeToBeInferred* tbi = type::getIf<type::TypeToBeInferred>(lhsT)) {
         tbi->assignInferredType(rhsT);
     } else if (!rhsT->apply(_ctx)->isSubTypeOf(lhsT->apply(_ctx))) {
