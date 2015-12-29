@@ -325,12 +325,12 @@ void TypeChecking::visit(MemberAccess* dot) {
                         || type::getIf<type::MethodType>(field.t->apply(_ctx))) {
                     dot->setType(field.t);
                 } else {
-                    _rep.error(*dot->getMember(), "Member " + dot->getMember()->getValue() +
-                               " of class " + clss->getName() + " is not a value");
+                    _rep.error(*dot->getMember(), "Member `" + dot->getMember()->getValue() +
+                               "` of class " + clss->getName() + " is not a value");
                 }
             } else {
-                _rep.error(*dot->getMember(), "No member named " + dot->getMember()->getValue() +
-                           " in class " + clss->getName());
+                _rep.error(*dot->getMember(), "No member named `" + dot->getMember()->getValue() +
+                           "` in class " + clss->getName());
             }
 
             return;
@@ -422,34 +422,7 @@ void TypeChecking::visit(FunctionCall* call) {
         expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
         retType = mt->getRetType();
     } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
-        ClassDecl* clss = pt->getClass();
-        const type::SubstitutionTable& subtable = pt->getSubstitutionTable();
-
-        FieldInfo field = tryGetFieldInfo(call->getCallee(), clss, "()", subtable);
-
-        if (field.isValid()) {
-            calleeT = field.t->applyTCCallsOnly(_ctx);
-
-            if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
-                expectedArgTypes = &static_cast<type::FunctionType*>(ft->apply(_ctx))->getArgTypes();
-                retType = ft->getRetType();
-            } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
-                expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
-                retType = mt->getRetType();
-
-                MemberAccess* dot = _mngr.New<MemberAccess>(call->getCallee(), _mngr.New<Identifier>("()"));
-                dot->setSymbol(field.s);
-                dot->setType(field.t);
-
-                common::Positionnable callPos(*call);
-                *call = FunctionCall(dot, call->getArgsTuple());
-                call->setPos(callPos);
-            } else {
-                _rep.error(*call->getCallee(), "Member `()` of class " + clss->getName() + " is not a value");
-            }
-        } else {
-            _rep.error(*call->getCallee(), "Operator `()` was not overloaded in class " + clss->getName());
-        }
+        transformIntoCallToMember(call, call->getCallee(), pt, "()", expectedArgTypes, retType);
     } else {
         if (sym::Symbol* s = ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx)) {
             if (s->getSymbolType() == sym::SYM_TPE) {
@@ -546,6 +519,38 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
         return defsym->type();
     }
     return nullptr;
+}
+
+void TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
+                                             const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType) {
+    ClassDecl* clss = pt->getClass();
+    const type::SubstitutionTable& subtable = pt->getSubstitutionTable();
+
+    FieldInfo field = tryGetFieldInfo(newCallee, clss, member, subtable);
+
+    if (field.isValid()) {
+        type::Type* calleeT = field.t->applyTCCallsOnly(_ctx);
+
+        if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
+            expectedArgTypes = &static_cast<type::FunctionType*>(ft->apply(_ctx))->getArgTypes();
+            retType = ft->getRetType();
+        } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
+            expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
+            retType = mt->getRetType();
+
+            MemberAccess* dot = _mngr.New<MemberAccess>(newCallee, _mngr.New<Identifier>(member));
+            dot->setSymbol(field.s);
+            dot->setType(field.t);
+
+            common::Positionnable callPos(*call);
+            *call = FunctionCall(dot, call->getArgsTuple());
+            call->setPos(callPos);
+        } else {
+            _rep.error(*newCallee, "Member `" + member + "` of class " + clss->getName() + " is not a value");
+        }
+    } else {
+        _rep.error(*newCallee, "No member named `" + member + "` in class " + clss->getName());
+    }
 }
 
 template<typename T>
