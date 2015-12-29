@@ -113,7 +113,7 @@ private:
         virtual void visit(Identifier* ident) override;
     };
 
-    std::set<ClassDecl*> _visitedClasses;
+    std::set<ASTNode*> _visitedNodes;
 };
 
 }

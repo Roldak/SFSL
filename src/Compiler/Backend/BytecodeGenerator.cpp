@@ -129,7 +129,7 @@ void DefaultBytecodeGenerator::visit(TypeDecl* tdecl) {
 }
 
 void DefaultBytecodeGenerator::visit(ClassDecl* clss){
-    if (TRY_INSERT(_visitedClasses, clss)) {
+    if (TRY_INSERT(_visitedNodes, clss)) {
         for (TypeDecl* tdecl : clss->getTypeDecls()) {
             tdecl->onVisit(this);
         }
@@ -158,12 +158,14 @@ void DefaultBytecodeGenerator::visit(DefineDecl* decl) {
         return;
     }
 
-    START_WRITING_TO_CONSTANT_POOL
+    if (TRY_INSERT(_visitedNodes, decl)) {
+        START_WRITING_TO_CONSTANT_POOL
 
-    decl->getValue()->onVisit(this);
-    Emit<StoreConst>(*decl, getDefLoc(decl->getSymbol()));
+        decl->getValue()->onVisit(this);
+        Emit<StoreConst>(*decl, getDefLoc(decl->getSymbol()));
 
-    STOP_WRITING_TO_CONSTANT_POOL
+        STOP_WRITING_TO_CONSTANT_POOL
+    }
 }
 
 void DefaultBytecodeGenerator::visit(ProperTypeKindSpecifier* ptks) {
@@ -339,6 +341,7 @@ void DefaultBytecodeGenerator::visit(Identifier* ident) {
 
     case sym::SYM_DEF: {
         sym::DefinitionSymbol* def = static_cast<sym::DefinitionSymbol*>(ident->getSymbol());
+        def->getDef()->onVisit(this);
         Emit<LoadConst>(*ident, getDefLoc(def));
         break;
     }
