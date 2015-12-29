@@ -112,6 +112,8 @@ private:
 
     sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);
 
+    type::ProperType* createFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType);
+
     template<typename SymbolIterator>
     AnySymbolicData resolveOverload(
             ASTNode* triggerer, const SymbolIterator& begin, const SymbolIterator& end, const type::SubstitutionTable& subtable);

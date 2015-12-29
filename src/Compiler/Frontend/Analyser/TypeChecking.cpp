@@ -388,7 +388,7 @@ void TypeChecking::visit(FunctionCreation* func) {
             _rep.fatal(*func, "Unknown type of `this`");
         }
     } else {
-        func->setType(_mngr.New<type::FunctionType>(argTypes, retType, nullptr));
+        func->setType(createFunctionType(func, argTypes, retType));
     }
 
     _rep.info(*func->getArgs(), func->type()->apply(_ctx)->toString());
@@ -580,6 +580,29 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
                def->getName() + " (which has type " + def->type()->toString() + ")");
 
     return nullptr;
+}
+
+type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType) {
+    DefineDecl* funcDecl = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, func, false, false);
+    ClassDecl* funcClass = _mngr.New<ClassDecl>(func->getName(), nullptr,
+                                                std::vector<TypeDecl*>(),
+                                                std::vector<TypeSpecifier*>(),
+                                                std::vector<DefineDecl*>{funcDecl});
+
+    type::ProperType* pt = _mngr.New<type::ProperType>(funcClass);
+
+    sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", funcDecl, funcClass);
+    funcDecl->setSymbol(funcSym);
+
+    sym::Scope* funcClassScope = _mngr.New<sym::Scope>(func->getScope()->getParent()->getParent(), true);
+    funcClass->setScope(funcClassScope);
+
+    funcClassScope->addSymbol(funcSym);
+
+    funcDecl->onVisit(this);
+
+    //return _mngr.New<type::FunctionType>(argTypes, retType, nullptr);
+    return pt;
 }
 
 class OverloadedDefSymbolCandidate final {
