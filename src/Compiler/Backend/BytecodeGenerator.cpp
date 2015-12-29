@@ -263,8 +263,8 @@ void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
 
         // TODO: Generate code to instantiate the class
     } else {
-        Label* funcEnd = MakeLabel(*func, "func_end");
-        Emit<MakeFunction>(*func, func->getUserdata<FuncUserData>()->getVarCount(), funcEnd);
+        Label* funcEnd = MakeLabel(*func, "mthd_end");
+        Emit<MakeMethod>(*func, func->getUserdata<FuncUserData>()->getVarCount(), funcEnd);
 
         func->getBody()->onVisit(this);
         Emit<Return>(*func);

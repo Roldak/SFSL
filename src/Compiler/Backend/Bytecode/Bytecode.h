@@ -74,10 +74,10 @@ private:
     size_t _defCount;
 };
 
-class MakeFunction : public BCInstruction {
+class MakeMethod : public BCInstruction {
 public:
-    MakeFunction(size_t varCount, Label* end);
-    virtual ~MakeFunction();
+    MakeMethod(size_t varCount, Label* end);
+    virtual ~MakeMethod();
 
     virtual void appendTo(std::ostream& o) const override;
 

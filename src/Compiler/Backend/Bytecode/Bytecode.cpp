@@ -45,16 +45,16 @@ void MakeClass::appendTo(std::ostream& o) const {
 // MAKE FUNCTION
 
 
-MakeFunction::MakeFunction(size_t varCount, Label* end) : _varCount(varCount), _end(end) {
+MakeMethod::MakeMethod(size_t varCount, Label* end) : _varCount(varCount), _end(end) {
 
 }
 
-MakeFunction::~MakeFunction() {
+MakeMethod::~MakeMethod() {
 
 }
 
-void MakeFunction::appendTo(std::ostream& o) const {
-    o << "mk_fn" << ARG_SEP << _varCount << ARG_SEP << _end->getName();
+void MakeMethod::appendTo(std::ostream& o) const {
+    o << "mk_mthd" << ARG_SEP << _varCount << ARG_SEP << _end->getName();
 }
 
 // STORE CONSTANT
