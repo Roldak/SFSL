@@ -282,9 +282,16 @@ void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
 
 void DefaultBytecodeGenerator::visit(FunctionCall* call) {
     if (call->getCallee()->type()->getTypeKind() == type::TYPE_METHOD) {
+        bool isCallToConstructor = false;
+
         if (isNodeOfType<MemberAccess>(call->getCallee(), _ctx)) {
             MemberAccess* dot = static_cast<MemberAccess*>(call->getCallee());
             dot->getAccessed()->onVisit(this);
+
+            if (isNodeOfType<Instantiation>(dot->getAccessed(), _ctx)) {
+                isCallToConstructor = true;
+                Emit<Dup>(*dot->getAccessed());
+            }
         }
         else if (isNodeOfType<Identifier>(call->getCallee(), _ctx)) { // implicit this
             Emit<LoadStack>(*call->getCallee(), 0);
@@ -298,6 +305,10 @@ void DefaultBytecodeGenerator::visit(FunctionCall* call) {
         }
 
         Emit<VCall>(*call, virtualLoc, call->getArgs().size());
+
+        if (isCallToConstructor) {
+            Emit<Pop>(*call);
+        }
     }
 }
 

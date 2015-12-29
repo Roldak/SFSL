@@ -226,6 +226,20 @@ void Pop::appendTo(std::ostream& o) const {
     o << "pop";
 }
 
+// DUPLICATE
+
+Dup::Dup() {
+
+}
+
+Dup::~Dup() {
+
+}
+
+void Dup::appendTo(std::ostream& o) const {
+    o << "dup";
+}
+
 // RETURN
 
 Return::Return() {

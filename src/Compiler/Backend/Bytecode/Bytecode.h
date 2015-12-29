@@ -219,6 +219,14 @@ public:
     virtual void appendTo(std::ostream &o) const override;
 };
 
+class Dup : public BCInstruction {
+public:
+    Dup();
+    virtual ~Dup();
+
+    virtual void appendTo(std::ostream &o) const override;
+};
+
 class Return : public BCInstruction {
 public:
     Return();

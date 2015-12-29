@@ -438,6 +438,8 @@ void TypeChecking::visit(FunctionCall* call) {
                 if (!transformIntoCallToMember(call, inst, type::getIf<type::ProperType>(inst->type()), "new", expectedArgTypes, retType)) {
                     return;
                 }
+
+                retType = inst->type(); // force constructor to return type of its `this`
             } else {
                 _rep.error(*call, "Instantiated type must be a class");
                 return;
