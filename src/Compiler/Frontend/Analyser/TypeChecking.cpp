@@ -348,6 +348,11 @@ void TypeChecking::visit(Tuple* tuple) {
 }
 
 void TypeChecking::visit(FunctionCreation* func) {
+    if (func != _nextDef || !_currentThis) {
+        func->setType(createFunctionType(func));
+        return;
+    }
+
     ASTImplicitVisitor::visit(func);
 
     Expression* expr = func->getArgs();
@@ -378,14 +383,11 @@ void TypeChecking::visit(FunctionCreation* func) {
         argTypes[i] = args[i]->type();
     }
 
-    if (func == _nextDef && _currentThis) {
-        if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
-            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), argTypes, retType));
-        } else {
-            _rep.fatal(*func, "Unknown type of `this`");
-        }
+
+    if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
+        func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), argTypes, retType));
     } else {
-        func->setType(createFunctionType(func, argTypes, retType));
+        _rep.fatal(*func, "Unknown type of `this`");
     }
 }
 
@@ -590,7 +592,7 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
     return nullptr;
 }
 
-type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType) {
+type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func) {
     FunctionCreation* meth = _mngr.New<FunctionCreation>("()", func->getArgs(), func->getBody(), func->getReturnType());
     DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, false, false);
     ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr,

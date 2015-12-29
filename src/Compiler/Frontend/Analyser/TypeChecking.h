@@ -116,7 +116,7 @@ private:
 
     sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);
 
-    type::ProperType* createFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType);
+    type::ProperType* createFunctionType(FunctionCreation* func);
 
     template<typename SymbolIterator>
     AnySymbolicData resolveOverload(
