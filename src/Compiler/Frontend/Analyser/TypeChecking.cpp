@@ -412,8 +412,6 @@ void TypeChecking::visit(FunctionCall* call) {
 
     call->getCallee()->onVisit(this);
 
-    RESTORE_MEMBER(_expectedInfo)
-
     type::Type* calleeT = call->getCallee()->type()->applyTCCallsOnly(_ctx);
 
     const std::vector<type::Type*>* expectedArgTypes = nullptr;
@@ -441,10 +439,10 @@ void TypeChecking::visit(FunctionCall* call) {
                 expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
                 retType = mt->getRetType();
             } else {
-                _rep.error(*call->getCallee(), "Member () of class " + clss->getName() + " is not a value");
+                _rep.error(*call->getCallee(), "Member `()` of class " + clss->getName() + " is not a value");
             }
         } else {
-            _rep.error(*call->getCallee(), "Operator `()` was not redefined in class" + clss->getName());
+            _rep.error(*call->getCallee(), "Operator `()` was not overloaded in class " + clss->getName());
         }
     } else {
         _rep.error(*call, "Expression is not callable");
@@ -452,6 +450,8 @@ void TypeChecking::visit(FunctionCall* call) {
     }
 
     call->setType(retType);
+
+    RESTORE_MEMBER(_expectedInfo)
 
     if (callArgTypes.size() != expectedArgTypes->size()) {
         _rep.error(*call->getArgsTuple(),
