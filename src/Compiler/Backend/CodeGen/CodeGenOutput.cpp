@@ -22,6 +22,10 @@ Cursor::~Cursor() {
 
 }
 
+bool Cursor::equivalent(Cursor*) const {
+    return false;
+}
+
 }
 
 }

@@ -24,6 +24,9 @@ namespace out {
  * relative to a location in the output code
  */
 class Cursor : public common::MemoryManageable {
+public:
+    virtual bool equivalent(Cursor* other) const;
+
 protected:
     Cursor();
     virtual ~Cursor();
@@ -83,6 +86,14 @@ protected:
 
         LinkedListOutputCursor(Node* node) : pos(node) {}
         virtual ~LinkedListOutputCursor() {}
+
+        virtual bool equivalent(Cursor* other) const override {
+            if (LinkedListOutputCursor* voc = dynamic_cast<LinkedListOutputCursor*>(other)) {
+                return pos == voc->pos;
+            } else {
+                return false;
+            }
+        }
 
         Node* pos;
     };

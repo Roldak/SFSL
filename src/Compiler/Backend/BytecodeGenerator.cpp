@@ -12,15 +12,17 @@
 
 #define START_WRITING_TO_CONSTANT_POOL \
     out::Cursor* __old = Here(); \
-    Seek(*_constantPoolCursor);
+    Seek(*_constantPoolCursor); \
+    bool __oldAlreadyCP = __old->equivalent(*_constantPoolCursor);
 
 #define RESTART_WRITING_TO_CONSTANT_POOL \
     __old = Here(); \
-    Seek(*_constantPoolCursor);
+    Seek(*_constantPoolCursor); \
+    __oldAlreadyCP = __old->equivalent(*_constantPoolCursor);
 
 #define STOP_WRITING_TO_CONSTANT_POOL \
     *_constantPoolCursor = Here(); \
-    Seek(__old);
+    if (!__oldAlreadyCP) { Seek(__old); }
 
 namespace sfsl {
 
@@ -128,6 +130,10 @@ void DefaultBytecodeGenerator::visit(TypeDecl* tdecl) {
 
 void DefaultBytecodeGenerator::visit(ClassDecl* clss){
     if (TRY_INSERT(_visitedClasses, clss)) {
+        for (TypeDecl* tdecl : clss->getTypeDecls()) {
+            tdecl->onVisit(this);
+        }
+
         for (DefineDecl* def : clss->getDefs()) {
             def->onVisit(this);
         }
@@ -265,7 +271,7 @@ void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
     if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
         pt->getClass()->onVisit(this);
 
-        // TODO: Call the constructor of the class
+        // TODO: Call the constructor of the function's class
         size_t classLoc = pt->getClass()->getUserdata<ClassUserData>()->getClassLoc();
         Emit<LoadConst>(*func, classLoc);
         Emit<Instantiate>(*func);
