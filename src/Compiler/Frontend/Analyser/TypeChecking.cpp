@@ -422,7 +422,9 @@ void TypeChecking::visit(FunctionCall* call) {
         expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
         retType = mt->getRetType();
     } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
-        transformIntoCallToMember(call, call->getCallee(), pt, "()", expectedArgTypes, retType);
+        if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", expectedArgTypes, retType)) {
+            return;
+        }
     } else if (sym::Symbol* s = ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx)) {
         if (s->getSymbolType() == sym::SYM_TPE) {
             sym::TypeSymbol* tpsym = static_cast<sym::TypeSymbol*>(s);
@@ -431,7 +433,9 @@ void TypeChecking::visit(FunctionCall* call) {
                 inst->setPos(*call->getCallee());
                 inst->onVisit(this);
 
-                transformIntoCallToMember(call, inst, type::getIf<type::ProperType>(inst->type()), "new", expectedArgTypes, retType);
+                if (!transformIntoCallToMember(call, inst, type::getIf<type::ProperType>(inst->type()), "new", expectedArgTypes, retType)) {
+                    return;
+                }
             } else {
                 _rep.error(*call, "Instantiated type must be a class");
             }
@@ -535,7 +539,7 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
     return nullptr;
 }
 
-void TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
+bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
                                              const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType) {
     ClassDecl* clss = pt->getClass();
     const type::SubstitutionTable& subtable = pt->getSubstitutionTable();
@@ -559,12 +563,16 @@ void TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* new
             common::Positionnable callPos(*call);
             *call = FunctionCall(dot, call->getArgsTuple());
             call->setPos(callPos);
+
+            return true;
         } else {
             _rep.error(*newCallee, "Member `" + member + "` of class " + clss->getName() + " is not a value");
         }
     } else {
         _rep.error(*newCallee, "No member named `" + member + "` in class " + clss->getName());
     }
+
+    return false;
 }
 
 template<typename T>

@@ -112,7 +112,7 @@ private:
     template<typename T>
     void tryAssigningTypeToSymbolic(T* symbolic);
 
-    void transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
+    bool transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
                                    const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType);
 
     type::ProperType* applySubsitutions(type::ProperType* inner, type::ProperType* obj);
