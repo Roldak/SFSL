@@ -76,6 +76,18 @@ void KindChecking::visit(DefineDecl* decl) {
 }
 
 void KindChecking::visit(FunctionTypeDecl* ftdecl) {
+    ASTImplicitVisitor::visit(ftdecl);
+
+    for (TypeExpression* texpr : ftdecl->getArgTypes()) {
+        if (texpr->kind()->getKindGenre() != kind::KIND_PROPER) {
+            _rep.error(*texpr, "Kind mismatch. Expected proper type, found " + texpr->kind()->toString());
+        }
+    }
+
+    if (ftdecl->getRetType()->kind()->getKindGenre() != kind::KIND_PROPER) {
+        _rep.error(*ftdecl->getRetType(), "Kind mismatch. Expected proper type, found " + ftdecl->getRetType()->kind()->toString());
+    }
+
     ftdecl->setKind(kind::ProperKind::create());
 }
 
@@ -83,7 +95,11 @@ void KindChecking::visit(TypeMemberAccess* tdot) {
     tdot->getAccessed()->onVisit(this);
 
     if (sym::Symbol* s = tdot->getSymbol()) {
-        tdot->setKind(tryGetKindOfSymbol(s));
+        if (kind::Kind* k = tryGetKindOfSymbol(s)) {
+            tdot->setKind(k);
+        } else {
+            _rep.error(*tdot, "Symbol " + s->getName() + " does not have any kind");
+        }
     } else if (type::Type* t = ASTTypeCreator::createType(tdot->getAccessed(), _ctx)) {
         if (type::ProperType* pt = type::getIf<type::ProperType>(t->applyTCCallsOnly(_ctx))) {
             pt->getClass()->getScope()->assignSymbolic(*tdot, tdot->getMember()->getValue()); // update member access symbolic for potential later use
@@ -154,7 +170,11 @@ void KindChecking::visit(TypeConstructorCall* tcall) {
 
 void KindChecking::visit(TypeIdentifier* tident) {
     if (sym::Symbol* s = tident->getSymbol()) {
-        tident->setKind(tryGetKindOfSymbol(s));
+        if (kind::Kind* k = tryGetKindOfSymbol(s)) {
+            tident->setKind(k);
+        } else {
+            _rep.error(*tident, "Symbol " + s->getName() + " does not have any kind");
+        }
     }
 }
 
