@@ -80,7 +80,7 @@ public:
 
     void externDef(const std::string& defName, Type defType) {
         ast::Identifier* nameId = mngr.New<ast::Identifier>(defName);
-        _ddecls.push_back(mngr.New<ast::DefineDecl>(nameId, defType._impl->_type, nullptr, false, true));
+        _ddecls.push_back(mngr.New<ast::DefineDecl>(nameId, defType._impl->_type, nullptr, false, true, false));
     }
 
     void typeDef(const std::string& name, Type type) {
@@ -135,7 +135,7 @@ public:
     Type build() const {
         ast::ClassDecl* clss = _mngr.New<ast::ClassDecl>(_name, nullptr,
                                          std::vector<ast::TypeDecl*>(),
-                                         _fields, _defs);
+                                         _fields, _defs, false);
 
         return Type(NEW_TYPE_IMPL(clss));
     }

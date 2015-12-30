@@ -49,8 +49,8 @@ Identifier *ModuleDecl::getName() const {
 
 // DEFINE DECLARATION
 
-DefineDecl::DefineDecl(Identifier* name, TypeExpression* typeSpecifier, Expression* value, bool isRedef, bool isExtern)
-    : _name(name), _typeSpecifier(typeSpecifier), _value(value), _isRedef(isRedef), _isExtern(isExtern) {
+DefineDecl::DefineDecl(Identifier* name, TypeExpression* typeSpecifier, Expression* value, bool isRedef, bool isExtern, bool isAbstract)
+    : _name(name), _typeSpecifier(typeSpecifier), _value(value), _isRedef(isRedef), _isExtern(isExtern), _isAbstract(isAbstract) {
 
 }
 
@@ -78,6 +78,10 @@ bool DefineDecl::isRedef() const {
 
 bool DefineDecl::isExtern() const {
     return _isExtern;
+}
+
+bool DefineDecl::isAbstract() const {
+    return _isAbstract;
 }
 
 

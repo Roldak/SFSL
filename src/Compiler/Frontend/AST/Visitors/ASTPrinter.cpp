@@ -113,7 +113,10 @@ void ASTPrinter::visit(ClassDecl* clss) {
 void ASTPrinter::visit(DefineDecl* decl) {
     if (decl->isExtern()) {
         _ostream << "extern ";
+    } else if (decl->isAbstract()) {
+        _ostream << "abstract ";
     }
+
     _ostream << "def ";
 
     decl->getName()->onVisit(this);

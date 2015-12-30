@@ -55,7 +55,8 @@ public:
             TypeExpression* parent,
             const std::vector<TypeDecl*>& tdecls,
             const std::vector<TypeSpecifier*>& fields,
-            const std::vector<DefineDecl*>& defs);
+            const std::vector<DefineDecl*>& defs,
+            bool isAbstract);
 
     virtual ~ClassDecl();
 
@@ -86,6 +87,11 @@ public:
      */
     const std::vector<DefineDecl*>& getDefs() const;
 
+    /**
+     * @return True if the class is marked with the `abstract` flag
+     */
+    bool isAbstract() const;
+
     typedef type::CanSubtype<ClassDecl> CanSubtypeClasses;
 
 private:
@@ -96,6 +102,8 @@ private:
     std::vector<TypeDecl*> _tdecls;
     std::vector<TypeSpecifier*> _fields;
     std::vector<DefineDecl*> _defs;
+
+    bool _isAbstract;
 };
 
 /**

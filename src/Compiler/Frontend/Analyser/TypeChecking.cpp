@@ -426,7 +426,14 @@ void TypeChecking::visit(FunctionCall* call) {
         if (s->getSymbolType() == sym::SYM_TPE) {
             sym::TypeSymbol* tpsym = static_cast<sym::TypeSymbol*>(s);
             if (isNodeOfType<ClassDecl>(tpsym->getTypeDecl()->getExpression(), _ctx)) {
-                Instantiation* inst = _mngr.New<Instantiation>(static_cast<ClassDecl*>(tpsym->getTypeDecl()->getExpression()));
+                ClassDecl* theClass = static_cast<ClassDecl*>(tpsym->getTypeDecl()->getExpression());
+
+                if (theClass->isAbstract()) {
+                    _rep.error(*call, "Cannot instantiate abstract class " + theClass->getName());
+                    return;
+                }
+
+                Instantiation* inst = _mngr.New<Instantiation>(theClass);
                 inst->setPos(*call->getCallee());
                 inst->onVisit(this);
 
@@ -630,11 +637,9 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
 
 type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func) {
     FunctionCreation* meth = _mngr.New<FunctionCreation>("()", func->getArgs(), func->getBody(), func->getReturnType());
-    DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, false, false);
-    ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr,
-                                                std::vector<TypeDecl*>(),
-                                                std::vector<TypeSpecifier*>(),
-                                                std::vector<DefineDecl*>{funcDecl});
+    DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, false, false, false);
+    ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr, std::vector<TypeDecl*>(),
+                                                  std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
 
     //type::ProperType* pt   = _mngr.New<type::ProperType>(funcClass);
 

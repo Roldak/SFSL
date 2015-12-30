@@ -39,6 +39,7 @@ std::string Keyword::KeywordTypeToString(KW_TYPE type) {
     case KW_DEF:        return "def";
     case KW_REDEF:      return "redef";
     case KW_EXTERN:     return "extern";
+    case KW_ABSTRACT:   return "abstract";
     case KW_TPE:        return "type";
     case KW_CLASS:      return "class";
     case KW_NEW:        return "new";
@@ -58,6 +59,7 @@ std::unordered_map<std::string, KW_TYPE> createKeywordsMap() {
     map["def"] = KW_DEF;
     map["redef"] = KW_REDEF;
     map["extern"] = KW_EXTERN;
+    map["abstract"] = KW_ABSTRACT;
     map["type"] = KW_TPE;
     map["class"] = KW_CLASS;
     map["new"] = KW_NEW;

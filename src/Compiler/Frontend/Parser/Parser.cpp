@@ -117,9 +117,9 @@ TypeIdentifier* Parser::parseTypeIdentifier(const std::string& errMsg) {
     return parseIdentifierHelper<TypeIdentifier>(errMsg);
 }
 
-bool consumeExtern(bool& externVal) {
-    bool tmp = externVal;
-    externVal = false;
+bool consumeBool(bool& val) {
+    bool tmp = val;
+    val = false;
     return tmp;
 }
 
@@ -160,7 +160,7 @@ ModuleDecl* Parser::parseModule() {
         } else if (accept(tok::KW_TPE)) {
             types.push_back(parseType(false));
         } else if (accept(tok::KW_DEF)) {
-            decls.push_back(parseDef(false, false, consumeExtern(isExtern)));
+            decls.push_back(parseDef(false, false, consumeBool(isExtern), false));
         } else if (accept(tok::KW_USING)) {
             usings.push_back(parseUsing(keywordPos, false));
         } else {
@@ -181,13 +181,13 @@ ModuleDecl* Parser::parseModule() {
     return modDecl;
 }
 
-DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, Identifier* name) {
+DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, bool isAbstract, Identifier* name) {
     Identifier* defName = (name ? name : parseIdentifier("Expected definition name"));
 
     TypeExpression* typeSpecifier = nullptr;
     Expression* expr = nullptr;
 
-    if (isExtern) {
+    if (isExtern || isAbstract) {
         // Case: extern def f: int->int
         expect(tok::OPER_COLON, "`:`");
         typeSpecifier = parseTypeExpression();
@@ -209,13 +209,13 @@ DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, Iden
         expect(tok::OPER_SEMICOLON, "`;`");
     }
 
-    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, typeSpecifier, expr, isRedef, isExtern);
+    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, typeSpecifier, expr, isRedef, isExtern, isAbstract);
     defDecl->setPos(*defName);
     defDecl->setEndPos(_lastTokenEndPos);
     return defDecl;
 }
 
-ClassDecl* Parser::parseClass() {
+ClassDecl* Parser::parseClass(bool isAbstractClass) {
     SAVE_POS(startPos)
 
     std::string className = _currentTypeName.empty() ? AnonymousClassName : _currentTypeName;
@@ -238,20 +238,29 @@ ClassDecl* Parser::parseClass() {
 
     while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
         bool isExtern = accept(tok::KW_EXTERN);
+        bool isAbstract = accept(tok::KW_ABSTRACT);
+
         SAVE_POS(externElemPos);
+
+        if (isExtern && isAbstract) {
+            _ctx->reporter().error(externElemPos, "`extern` and `abstract` flags are exclusive");
+        }
+        if (isAbstract && !isAbstractClass) {
+            _ctx->reporter().error(externElemPos, "Non abstract class cannot have any abstract member");
+        }
 
         if (accept(tok::KW_TPE)) {
             tdecls.push_back(parseType(false));
         } else if (accept(tok::KW_NEW)) {
             Identifier* id = _mngr.New<Identifier>("new");
             id->setPos(externElemPos);
-            defs.push_back(parseDef(false, false, consumeExtern(isExtern), id));
+            defs.push_back(parseDef(false, false, consumeBool(isExtern), false, id));
         } else if (accept(tok::KW_DEF)) {
             Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
-            defs.push_back(parseDef(false, false, consumeExtern(isExtern), id));
+            defs.push_back(parseDef(false, false, consumeBool(isExtern), consumeBool(isAbstract), id));
         } else if (accept(tok::KW_REDEF)) {
             Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
-            defs.push_back(parseDef(false, true, consumeExtern(isExtern), id));
+            defs.push_back(parseDef(false, true, consumeBool(isExtern), consumeBool(isAbstract), id));
         } else {
             Identifier* fieldName = parseIdentifier("Expected field name | def");
             expect(tok::OPER_COLON, "`:`");
@@ -268,9 +277,12 @@ ClassDecl* Parser::parseClass() {
         if (isExtern) {
             _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared extern");
         }
+        if (isAbstract) {
+            _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared abstract");
+        }
     }
 
-    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, parent, tdecls, fields, defs);
+    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, parent, tdecls, fields, defs, isAbstractClass);
     classDecl->setPos(startPos);
     classDecl->setEndPos(_lastTokenEndPos);
     return classDecl;
@@ -305,12 +317,14 @@ Expression* Parser::parseStatement() {
         accept();
 
         switch (kw) {
-        case tok::KW_DEF:   return parseDef(true, false, false);
+        case tok::KW_DEF:   return parseDef(true, false, false, false);
         case tok::KW_IF:    return parseIf(true);
         case tok::KW_TPE:   return parseType(true);
 
         case tok::KW_REDEF:
-            _ctx->reporter().error(startPos, "`redef` keyword can only be used inside a class scope");
+        case tok::KW_ABSTRACT:
+            _ctx->reporter().error(startPos, "`" + tok::Keyword::KeywordTypeToString(kw) +
+                                   "` keyword can only be used inside a class scope");
             return nullptr;
         default:
             _ctx->reporter().error(startPos, "Unexpected keyword `" + tok::Keyword::KeywordTypeToString(kw) + "`");
@@ -534,8 +548,11 @@ TypeExpression* Parser::parseTypePrimary() {
         break;
 
     case tok::TOK_KW:
-        if (accept(tok::KW_CLASS)) {
-            return parseClass();
+        if (accept(tok::KW_ABSTRACT)) {
+            expect(tok::KW_CLASS, "`class`");
+            return parseClass(true);
+        } if (accept(tok::KW_CLASS)) {
+            return parseClass(false);
         } else {
             _ctx->reporter().error(*_currentToken, "Unexpected keyword `" + _currentToken->toString() + "`");
             accept();

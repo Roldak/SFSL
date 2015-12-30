@@ -84,7 +84,7 @@ private:
 class DefineDecl : public Expression, public sym::Symbolic<sym::DefinitionSymbol> {
 public:
 
-    DefineDecl(Identifier* name, TypeExpression* tp, Expression* value, bool isRedef, bool isExtern);
+    DefineDecl(Identifier* name, TypeExpression* tp, Expression* value, bool isRedef, bool isExtern, bool isAbstract);
     virtual ~DefineDecl();
 
     SFSL_AST_ON_VISIT_H
@@ -114,6 +114,11 @@ public:
      */
     bool isExtern() const;
 
+    /**
+     * @return True if the definition is marked with the `abstract` flag
+     */
+    bool isAbstract() const;
+
 private:
 
     Identifier* _name;
@@ -122,6 +127,7 @@ private:
 
     bool _isRedef;
     bool _isExtern;
+    bool _isAbstract;
 
 };
 
