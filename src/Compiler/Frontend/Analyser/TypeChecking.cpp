@@ -415,10 +415,7 @@ void TypeChecking::visit(FunctionCall* call) {
     const std::vector<type::Type*>* expectedArgTypes = nullptr;
     type::Type* retType = nullptr;
 
-    if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
-        expectedArgTypes = &static_cast<type::FunctionType*>(ft->apply(_ctx))->getArgTypes();
-        retType = ft->getRetType();
-    } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
+    if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
         expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
         retType = mt->getRetType();
     } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
@@ -639,7 +636,7 @@ type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func) {
                                                 std::vector<TypeSpecifier*>(),
                                                 std::vector<DefineDecl*>{funcDecl});
 
-    type::ProperType* pt   = _mngr.New<type::ProperType>(funcClass);
+    //type::ProperType* pt   = _mngr.New<type::ProperType>(funcClass);
 
     meth->setPos(*func);
 
@@ -655,8 +652,15 @@ type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func) {
 
     funcDecl->onVisit(this);
 
+    if (type::MethodType* mt = type::getIf<type::MethodType>(meth->type())) {
+        return _mngr.New<type::FunctionType>(mt->getArgTypes(), mt->getRetType(), funcClass);
+    } else {
+        _rep.fatal(*func, "Should have been a method type");
+        return nullptr;
+    }
+
     //return _mngr.New<type::FunctionType>(argTypes, retType, nullptr);
-    return pt;
+    //return pt;
 }
 
 class OverloadedDefSymbolCandidate final {
