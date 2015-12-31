@@ -15,6 +15,7 @@
 #include "CompilerConfig.h"
 #include "ProgramBuilder.h"
 #include "ClassBuilder.h"
+#include "TypeConstructorBuilder.h"
 #include "Type.h"
 #include "Pipeline.h"
 #include "AbstractOutputCollector.h"
@@ -38,6 +39,7 @@ public:
     Type createFunctionType(const std::vector<Type>& argTypes, Type retType);
 
     ClassBuilder classBuilder(const std::string& className);
+    TypeConstructorBuilder typeConstructorBuilder(const std::string& typeConstructorName);
 
 private:
     PRIVATE_IMPL_PTR(Compiler) _impl;

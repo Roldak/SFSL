@@ -30,18 +30,21 @@
 #define MODULE_IMPL_NAME            NAME_OF_IMPL(Module)
 #define PROGRAMBUILDER_IMPL_NAME    NAME_OF_IMPL(ProgramBuilder)
 #define CLASSBUILDER_IMPL_NAME      NAME_OF_IMPL(ClassBuilder)
+#define TCBUILDER_IMPL_NAME         NAME_OF_IMPL(TypeConstructorBuilder)
 
 #define COMPILER_IMPL_PTR           PRIVATE_IMPL_PTR(Compiler)
 #define TYPE_IMPL_PTR               PRIVATE_IMPL_PTR(Type)
 #define MODULE_IMPL_PTR             PRIVATE_IMPL_PTR(Module)
 #define PROGRAMBUILDER_IMPL_PTR     PRIVATE_IMPL_PTR(ProgramBuilder)
 #define CLASSBUILDER_IMPL_PTR       PRIVATE_IMPL_PTR(ClassBuilder)
+#define TCBUILDER_IMPL_PTR          PRIVATE_IMPL_PTR(TypeConstructorBuilder)
 
 #define NEW_COMPILER_IMPL           NEW_PRIV_IMPL(Compiler)
 #define NEW_TYPE_IMPL               NEW_PRIV_IMPL(Type)
 #define NEW_MODULE_IMPL             NEW_PRIV_IMPL(Module)
 #define NEW_PROGRAMBUILDER_IMPL     NEW_PRIV_IMPL(ProgramBuilder)
 #define NEW_CLASSBUILDER_IMPL       NEW_PRIV_IMPL(ClassBuilder)
+#define NEW_TCBUILDER_IMPL          NEW_PRIV_IMPL(TypeConstructorBuilder)
 
 BEGIN_PRIVATE_DEF
 
@@ -163,6 +166,41 @@ private:
     std::vector<ast::DefineDecl*> _defs;
 };
 
+class TCBUILDER_IMPL_NAME final {
+public:
+    TCBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name)
+        : _mngr(mngr), _name(name) { }
+
+    ~TCBUILDER_IMPL_NAME() { }
+
+    void setArgs(const std::vector<Type>& args) {
+        _args.clear();
+        for (Type arg : args) {
+            _args.push_back(arg._impl->_type);
+        }
+    }
+
+    void setRetExpr(Type ret) {
+        _ret = ret._impl->_type;
+    }
+
+    Type build() const {
+        ast::TypeTuple* tt = _mngr.New<ast::TypeTuple>(_args);
+        ast::TypeConstructorCreation* tc = _mngr.New<ast::TypeConstructorCreation>(_name, tt, _ret);
+
+        return Type(NEW_TYPE_IMPL(tc));
+    }
+
+private:
+
+    common::AbstractMemoryManager& _mngr;
+
+    std::string _name;
+
+    std::vector<ast::TypeExpression*> _args;
+    ast::TypeExpression* _ret;
+};
+
 END_PRIVATE_DEF
 
 namespace sfsl {
@@ -257,6 +295,10 @@ ClassBuilder Compiler::classBuilder(const std::string& className) {
     return ClassBuilder(NEW_CLASSBUILDER_IMPL(_impl->ctx->memoryManager(), className));
 }
 
+TypeConstructorBuilder Compiler::typeConstructorBuilder(const std::string& typeConstructorName) {
+    return TypeConstructorBuilder(NEW_TCBUILDER_IMPL(_impl->ctx->memoryManager(), typeConstructorName));
+}
+
 // PROGRAM BUILDER
 
 ProgramBuilder::ProgramBuilder(PROGRAMBUILDER_IMPL_PTR impl) : _impl(impl) {
@@ -309,6 +351,30 @@ ClassBuilder& ClassBuilder::addAbstractDef(const std::string& defName, Type defT
 }
 
 Type ClassBuilder::build() const {
+    return _impl->build();
+}
+
+// TYPE CONSTRUCTOR BUILDER
+
+TypeConstructorBuilder::TypeConstructorBuilder(TCBUILDER_IMPL_PTR impl) : _impl(impl) {
+
+}
+
+TypeConstructorBuilder::~TypeConstructorBuilder() {
+
+}
+
+TypeConstructorBuilder& TypeConstructorBuilder::setArgs(const std::vector<Type>& args) {
+    _impl->setArgs(args);
+    return *this;
+}
+
+TypeConstructorBuilder& TypeConstructorBuilder::setReturn(Type retExpr) {
+    _impl->setRetExpr(retExpr);
+    return *this;
+}
+
+Type TypeConstructorBuilder::build() const {
     return _impl->build();
 }
 
