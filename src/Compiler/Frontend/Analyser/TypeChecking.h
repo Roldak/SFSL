@@ -66,6 +66,7 @@ public:
     virtual void visit(Program* prog) override;
 
     virtual void visit(TypeDecl* tdecl) override;
+    virtual void visit(ClassDecl* clss) override;
     virtual void visit(DefineDecl* decl) override;
 
     virtual void visit(ExpressionStatement* exp) override;

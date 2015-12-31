@@ -151,6 +151,32 @@ void TypeChecking::visit(TypeDecl* tdecl) {
     ASTImplicitVisitor::visit(tdecl);
 }
 
+void TypeChecking::visit(ClassDecl* clss) {
+    ASTImplicitVisitor::visit(clss);
+
+    if (clss->isAbstract()) {
+        return;
+    }
+
+    int abstractOverRedef = 0;
+
+    for (const std::pair<std::string, sym::SymbolData>& pair : clss->getScope()->getAllSymbols()) {
+        if (pair.second.symbol->getSymbolType() == sym::SYM_DEF) {
+            sym::DefinitionSymbol* defsym = static_cast<sym::DefinitionSymbol*>(pair.second.symbol);
+
+            if (defsym->getDef()->isAbstract()) {
+                ++abstractOverRedef;
+            } else if (defsym->getDef()->isRedef()) {
+                --abstractOverRedef;
+            }
+        }
+    }
+
+    if (abstractOverRedef != 0) {
+        _rep.error(*clss, "Non abstract class must redefine every one of its abstract members");
+    }
+}
+
 void TypeChecking::visit(DefineDecl* decl) {
     decl->setType(_res.Unit());
 
