@@ -172,7 +172,7 @@ void TypeChecking::visit(ClassDecl* clss) {
         }
     }
 
-    if (abstractOverRedef != 0) {
+    if (abstractOverRedef > 0) {
         _rep.error(*clss, "Non abstract class must redefine every one of its abstract members");
     }
 }
