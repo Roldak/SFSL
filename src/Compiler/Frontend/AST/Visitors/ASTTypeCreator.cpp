@@ -65,7 +65,7 @@ void ASTTypeCreator::visit(TypeConstructorCall* tcall) {
         }
     }
 
-    _created = _mngr.New<type::ConstructorApplyType>(ctr, args, *tcall, buildSubstitutionTableFromTypeParametrizable(tcall));
+    _created = _mngr.New<type::ConstructorApplyType>(ctr, args, buildSubstitutionTableFromTypeParametrizable(tcall));
 }
 
 void ASTTypeCreator::visit(TypeMemberAccess* mac) {
