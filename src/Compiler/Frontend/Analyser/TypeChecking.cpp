@@ -667,8 +667,6 @@ type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func) {
     ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr, std::vector<TypeDecl*>(),
                                                   std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
 
-    //type::ProperType* pt   = _mngr.New<type::ProperType>(funcClass);
-
     meth->setPos(*func);
 
     sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", funcDecl, funcClass);
@@ -689,9 +687,6 @@ type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func) {
         _rep.fatal(*func, "Should have been a method type");
         return nullptr;
     }
-
-    //return _mngr.New<type::FunctionType>(argTypes, retType, nullptr);
-    //return pt;
 }
 
 class OverloadedDefSymbolCandidate final {

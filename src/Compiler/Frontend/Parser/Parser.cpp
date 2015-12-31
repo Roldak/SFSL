@@ -245,9 +245,6 @@ ClassDecl* Parser::parseClass(bool isAbstractClass) {
         if (isExtern && isAbstract) {
             _ctx->reporter().error(externElemPos, "`extern` and `abstract` flags are exclusive");
         }
-        if (isAbstract && !isAbstractClass) {
-            _ctx->reporter().error(externElemPos, "Non abstract class cannot have any abstract member");
-        }
 
         if (accept(tok::KW_TPE)) {
             tdecls.push_back(parseType(false));
