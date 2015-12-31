@@ -468,9 +468,7 @@ void SymbolAssignation::visitParent(ClassDecl* clss) {
                     ClassDecl* parentClass = parent->getClass();
                     visitParent(parentClass);
 
-
                     _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable());
-
 
                     addSubtypeRelations(clss, parentClass);
                 }

@@ -117,11 +117,12 @@ public:
     void outputPossibilities(type::Type* tp, CompletionType ct) {
         if (ct == T_DOT) {
             if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
-                ast::ClassDecl* clss = pt->getClass();
-                sym::Scope* clssScope = clss->getScope();
+                if (ast::ClassDecl* clss = pt->getClass()) {
+                    sym::Scope* clssScope = clss->getScope();
 
-                for (const std::pair<std::string, sym::SymbolData>& entry : clssScope->getAllSymbols()) {
-                    outputFromSymbolData(entry.second, tp->applyTCCallsOnly(_ctx)->getSubstitutionTable());
+                    for (const std::pair<std::string, sym::SymbolData>& entry : clssScope->getAllSymbols()) {
+                        outputFromSymbolData(entry.second, tp->applyTCCallsOnly(_ctx)->getSubstitutionTable());
+                    }
                 }
             }
         }
