@@ -123,8 +123,14 @@ public:
 
 class CLASSBUILDER_IMPL_NAME final {
 public:
-    CLASSBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name) : _mngr(mngr), _name(name) { }
+    CLASSBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name)
+        : _mngr(mngr), _name(name), _isAbstract(false) { }
+
     ~CLASSBUILDER_IMPL_NAME() { }
+
+    void setAbstract(bool value) {
+        _isAbstract = value;
+    }
 
     void addField(const std::string& fieldName, Type fieldType) {
         ast::Identifier* id = _mngr.New<ast::Identifier>(fieldName);
@@ -132,10 +138,16 @@ public:
         _fields.push_back(_mngr.New<ast::TypeSpecifier>(id, tpe));
     }
 
+    void addDef(const std::string& defName, Type defType, bool isRedef, bool isExtern, bool isAbstract) {
+        ast::Identifier* id = _mngr.New<ast::Identifier>(defName);
+        ast::TypeExpression* tpe = defType._impl->_type;
+        _defs.push_back(_mngr.New<ast::DefineDecl>(id, tpe, nullptr, isRedef, isExtern, isAbstract));
+    }
+
     Type build() const {
         ast::ClassDecl* clss = _mngr.New<ast::ClassDecl>(_name, nullptr,
                                          std::vector<ast::TypeDecl*>(),
-                                         _fields, _defs, false);
+                                         _fields, _defs, _isAbstract);
 
         return Type(NEW_TYPE_IMPL(clss));
     }
@@ -145,6 +157,8 @@ private:
     common::AbstractMemoryManager& _mngr;
 
     std::string _name;
+    bool _isAbstract;
+
     std::vector<ast::TypeSpecifier*> _fields;
     std::vector<ast::DefineDecl*> _defs;
 };
@@ -274,8 +288,23 @@ ClassBuilder::~ClassBuilder() {
 
 }
 
+ClassBuilder& ClassBuilder::setAbstract(bool value) {
+    _impl->setAbstract(value);
+    return *this;
+}
+
 ClassBuilder& ClassBuilder::addField(const std::string& fieldName, Type fieldType) {
     _impl->addField(fieldName, fieldType);
+    return *this;
+}
+
+ClassBuilder& ClassBuilder::addExternDef(const std::string& defName, Type defType, bool isRedef) {
+    _impl->addDef(defName, defType, isRedef, true, false);
+    return *this;
+}
+
+ClassBuilder& ClassBuilder::addAbstractDef(const std::string& defName, Type defType) {
+    _impl->addDef(defName, defType, false, false, true);
     return *this;
 }
 

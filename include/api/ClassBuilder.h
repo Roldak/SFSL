@@ -23,7 +23,10 @@ public:
 
     ~ClassBuilder();
 
+    ClassBuilder& setAbstract(bool value);
     ClassBuilder& addField(const std::string& fieldName, Type fieldType);
+    ClassBuilder& addExternDef(const std::string& defName, Type defType, bool isRedef);
+    ClassBuilder& addAbstractDef(const std::string& defName, Type defType);
 
     Type build() const;
 
