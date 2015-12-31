@@ -15,6 +15,8 @@
 #define INT_CLASS_NAME  "int"
 #define REAL_CLASS_NAME "real"
 #define STRING_CLASS_NAME "string"
+#define FUNC_CLASS_NAME "Func"
+#define NUMBER_OF_FUNC_TYPES 1
 
 #include <iostream>
 #include "../AST/Nodes/Program.h"
@@ -78,6 +80,11 @@ public:
      */
     type::Type* String() const;
 
+    /**
+     * @return The FuncX type, where X corresponds to the nbArgs argument passed
+     */
+    type::Type* Func(size_t nbArgs) const;
+
 private:
 
     type::Type* createTypeFromSymbol(Symbol* sym);
@@ -90,6 +97,7 @@ private:
     type::Type* _intType;
     type::Type* _realType;
     type::Type* _stringType;
+    type::Type* _funcTypes[NUMBER_OF_FUNC_TYPES];
 };
 
 }

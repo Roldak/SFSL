@@ -58,6 +58,10 @@ void SymbolResolver::setPredefClassesPath(const std::string& fullPathName) {
     _intType    = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + INT_CLASS_NAME));
     _realType   = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + REAL_CLASS_NAME));
     _stringType = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + STRING_CLASS_NAME));
+
+    for (size_t i = 0; i < NUMBER_OF_FUNC_TYPES; ++i) {
+        _funcTypes[i] = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + FUNC_CLASS_NAME + utils::T_toString(i)));
+    }
 }
 
 type::Type* SymbolResolver::Unit() const {
@@ -95,11 +99,23 @@ type::Type* SymbolResolver::String() const {
     return _stringType;
 }
 
+type::Type* SymbolResolver::Func(size_t nbArgs) const {
+    if (nbArgs >= NUMBER_OF_FUNC_TYPES) {
+        throw common::CompilationFatalError("Func" + utils::T_toString(nbArgs) + " does not exists");
+    }
+
+    if (!_funcTypes[nbArgs]) {
+        throw common::CompilationFatalError("Func" + utils::T_toString(nbArgs) + " type was not set");
+    }
+    return _funcTypes[nbArgs];
+}
+
 type::Type* SymbolResolver::createTypeFromSymbol(Symbol* sym) {
     if (sym) {
         if (sym->getSymbolType() == SYM_TPE) {
-            return _ctx->memoryManager().New<type::ProperType>(
-                        ast::getClassDeclFromTypeSymbol(static_cast<sym::TypeSymbol*>(sym), _ctx));
+            return ast::ASTTypeCreator::createType(static_cast<sym::TypeSymbol*>(sym)->getTypeDecl()->getExpression(), _ctx);
+            /*return _ctx->memoryManager().New<type::ProperType>(
+                        ast::getClassDeclFromTypeSymbol(static_cast<sym::TypeSymbol*>(sym), _ctx));*/
         }
     }
     throw common::CompilationFatalError("Cannot create type : " +
