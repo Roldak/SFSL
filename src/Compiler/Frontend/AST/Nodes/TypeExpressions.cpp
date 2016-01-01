@@ -67,8 +67,8 @@ bool ClassDecl::isAbstract() const {
 
 // FUNCTION TYPE DECLARATION
 
-FunctionTypeDecl::FunctionTypeDecl(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType)
-    : _argTypes(argTypes), _retType(retType) {
+FunctionTypeDecl::FunctionTypeDecl(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType, TypeExpression* classEquivalent)
+    : _argTypes(argTypes), _retType(retType), _classEquivalent(classEquivalent) {
 
 }
 
@@ -84,6 +84,22 @@ const std::vector<TypeExpression*>& FunctionTypeDecl::getArgTypes() const {
 
 TypeExpression* FunctionTypeDecl::getRetType() const {
     return _retType;
+}
+
+TypeExpression* FunctionTypeDecl::getClassEquivalent() const {
+    return _classEquivalent;
+}
+
+TypeExpression* FunctionTypeDecl::make(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType,
+                                       const std::string& TCName, CompCtx_Ptr ctx) {
+    std::vector<TypeExpression*> args = argTypes;
+    args.push_back(retType);
+
+    TypeTuple* argsTuple = ctx->memoryManager().New<TypeTuple>(args);
+    TypeIdentifier* callee = ctx->memoryManager().New<TypeIdentifier>(TCName);
+    TypeConstructorCall* classEq = ctx->memoryManager().New<TypeConstructorCall>(callee, argsTuple);
+
+    return ctx->memoryManager().New<FunctionTypeDecl>(argTypes, retType, classEq);
 }
 
 // TYPE MEMBER ACCESS

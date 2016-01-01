@@ -263,8 +263,8 @@ void TypeChecking::visit(AssignmentExpression* aex) {
     if (type::TypeToBeInferred* tbi = type::getIf<type::TypeToBeInferred>(lhsT)) {
         tbi->assignInferredType(rhsT);
     } else if (!rhsT->apply(_ctx)->isSubTypeOf(lhsT->apply(_ctx))) {
-        _rep.error(*aex, "Assigning incompatible type. Found " +
-                   rhsT->toString() + ", expected " + lhsT->toString());
+        _rep.error(*aex, "Assigning incompatible type. Expected " +
+                   lhsT->toString() + ", found " + rhsT->toString());
     }
 
     aex->setType(rhsT);

@@ -470,170 +470,6 @@ TypeSpecifier* Parser::parseTypeSpecifier(Identifier* id) {
     return spec;
 }
 
-TypeExpression* Parser::parseTypeExpression(bool allowTypeConstructor) {
-    return parseTypeBinary(parseTypePrimary(), 0, allowTypeConstructor);
-}
-
-TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence, bool allowTypeConstructor) {
-    while (isType(tok::TOK_OPER)) {
-        tok::Operator* op = as<tok::Operator>();
-        int newOpPrec = op->getPrecedence();
-
-        if (newOpPrec >= precedence && op->getOpType() != tok::OPER_EQ) {
-
-            TypeExpression* expr;
-
-            switch (op->getOpType()) {
-            case tok::OPER_L_BRACKET:
-                accept();
-                expr = _mngr.New<TypeConstructorCall>(left, parseTypeTuple());
-                break;
-            case tok::OPER_FAT_ARROW:
-                if (!allowTypeConstructor) {
-                    return left;
-                }
-
-                accept();
-                expr = _mngr.New<TypeConstructorCreation>(
-                            _currentTypeName.empty() ? AnonymousTypeConstructorName : _currentTypeName,
-                            left, parseTypeExpression());
-                break;
-            case tok::OPER_DOT:
-                accept();
-                expr = _mngr.New<TypeMemberAccess>(left, parseTypeIdentifier("Expected member name"));
-                break;
-            default:
-                accept();
-                _ctx->reporter().error(*op, "Unexpected operator `" + op->toString() + "`");
-                continue;
-            }
-
-            expr->setPos(*left);
-            expr->setEndPos(_lastTokenEndPos);
-
-            left = expr;
-
-        } else {
-            break;
-        }
-    }
-
-    return left;
-}
-
-TypeExpression* Parser::parseTypePrimary() {
-    SAVE_POS(startPos)
-    std::vector<TypeExpression*> exprs;
-
-    switch (_currentToken->getTokenType()) {
-    case tok::TOK_ID:
-        exprs.push_back(parseTypeIdentifier());
-        if (accept(tok::OPER_COLON)) {
-            exprs[0] = parseKindSpecifier(static_cast<TypeIdentifier*>(exprs[0]));
-        }
-        break;
-
-    case tok::TOK_OPER:
-        if (accept(tok::OPER_L_BRACKET)) {
-            exprs.push_back(parseTypeTuple());
-        } else if (accept(tok::OPER_L_PAREN)) {
-            parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(exprs, [&](){return parseTypeExpression();});
-        } else {
-            _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
-            accept();
-        }
-        break;
-
-    case tok::TOK_KW:
-        if (accept(tok::KW_ABSTRACT)) {
-            expect(tok::KW_CLASS, "`class`");
-            return parseClass(true);
-        } if (accept(tok::KW_CLASS)) {
-            return parseClass(false);
-        } else {
-            _ctx->reporter().error(*_currentToken, "Unexpected keyword `" + _currentToken->toString() + "`");
-            accept();
-        }
-        break;
-
-    default:
-        _ctx->reporter().error(*_currentToken,
-                               "Expected identifier | type tuple | class "
-                               "; got " + _currentToken->toString());
-        accept();
-    }
-
-    bool arrowNecessary = false;
-    TypeExpression* toRet = nullptr;
-
-    if (exprs.size() != 1) {
-        arrowNecessary = true; // while waiting for tuples
-    } else {
-        toRet = exprs[0];
-    }
-
-    if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
-        toRet = _mngr.New<FunctionTypeDecl>(exprs, parseTypeExpression());
-    }
-
-    if (toRet) {
-        toRet->setPos(startPos);
-        toRet->setEndPos(_lastTokenEndPos);
-    }
-
-    return toRet;
-}
-
-KindSpecifier* Parser::parseKindSpecifier(TypeIdentifier* id) {
-    KindSpecifyingExpression* expr = parseKindSpecifyingExpression();
-    KindSpecifier* spec = _mngr.New<KindSpecifier>(id, expr);
-    spec->setPos(*id);
-    spec->setEndPos(_lastTokenEndPos);
-    return spec;
-}
-
-KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
-    KindSpecifyingExpression* toRet = nullptr;
-    std::vector<KindSpecifyingExpression*> exprs;
-    bool arrowNecessary = false;
-
-    SAVE_POS(startPos)
-
-    switch (_currentToken->getTokenType()) {
-    case tok::TOK_OPER:
-        if (accept(tok::OPER_TIMES)) {
-            toRet = _mngr.New<ProperTypeKindSpecifier>();
-            exprs.push_back(toRet);
-        } else if (accept(tok::OPER_L_BRACKET)) {
-            parseTuple<TypeConstructorKindSpecifier, tok::OPER_R_BRACKET, KindSpecifyingExpression>(
-                        exprs, [&](){return parseKindSpecifyingExpression();});
-
-            arrowNecessary = true;
-        }
-        else {
-            _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
-            accept();
-            break;
-        }
-
-        if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
-            toRet = _mngr.New<TypeConstructorKindSpecifier>(exprs, parseKindSpecifyingExpression());
-        }
-
-        toRet->setPos(startPos);
-        toRet->setEndPos(_lastTokenEndPos);
-        break;
-
-    default:
-        _ctx->reporter().error(*_currentToken,
-                               "Expected identifier | type tuple | class "
-                               "; got " + _currentToken->toString());
-        accept();
-    }
-
-    return toRet;
-}
-
 Block* Parser::parseBlock() {
     std::vector<Expression*> stats;
     std::vector<CanUseModules::ModulePath> usings;
@@ -718,9 +554,186 @@ Tuple* Parser::parseTuple() {
     return parseTuple<Tuple, tok::OPER_R_PAREN, Expression>(exprs, [&](){return parseExpression();});
 }
 
+TypeExpression* Parser::parseTypeExpression(bool allowTypeConstructor) {
+    return parseTypeBinary(parseTypePrimary(), 0, allowTypeConstructor);
+}
+
+TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence, bool allowTypeConstructor) {
+    while (isType(tok::TOK_OPER)) {
+        tok::Operator* op = as<tok::Operator>();
+        int newOpPrec = op->getPrecedence();
+
+        if (newOpPrec >= precedence && op->getOpType() != tok::OPER_EQ) {
+
+            TypeExpression* expr;
+
+            switch (op->getOpType()) {
+            case tok::OPER_L_BRACKET:
+                accept();
+                expr = _mngr.New<TypeConstructorCall>(left, parseTypeTuple());
+                break;
+            case tok::OPER_FAT_ARROW:
+                if (!allowTypeConstructor) {
+                    return left;
+                }
+
+                accept();
+                expr = _mngr.New<TypeConstructorCreation>(
+                            _currentTypeName.empty() ? AnonymousTypeConstructorName : _currentTypeName,
+                            left, parseTypeExpression());
+                break;
+            case tok::OPER_DOT:
+                accept();
+                expr = _mngr.New<TypeMemberAccess>(left, parseTypeIdentifier("Expected member name"));
+                break;
+            default:
+                accept();
+                _ctx->reporter().error(*op, "Unexpected operator `" + op->toString() + "`");
+                continue;
+            }
+
+            expr->setPos(*left);
+            expr->setEndPos(_lastTokenEndPos);
+
+            left = expr;
+
+        } else {
+            break;
+        }
+    }
+
+    return left;
+}
+
+TypeExpression* Parser::createFunctionTypeDecl(const std::vector<TypeExpression*>& args, TypeExpression* ret) {
+    /*std::vector<TypeExpression*> exprs(args);
+    exprs.push_back(ret);
+
+    TypeIdentifier* callee = _mngr.New<TypeIdentifier>("Func" + utils::T_toString(args.size()));
+    TypeTuple* argstuple = _mngr.New<TypeTuple>(exprs);
+
+    //return _mngr.New<FunctionTypeDecl>(exprs, parseTypeExpression());
+    return _mngr.New<TypeConstructorCall>(callee, argstuple);*/
+    std::string TCName = "Func" + utils::T_toString(args.size());
+    return FunctionTypeDecl::make(args, ret, TCName, _ctx);
+}
+
 TypeTuple* Parser::parseTypeTuple() {
     std::vector<TypeExpression*> exprs;
     return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression>(exprs, [&](){return parseTypeExpression();});
+}
+
+TypeExpression* Parser::parseTypePrimary() {
+    SAVE_POS(startPos)
+    std::vector<TypeExpression*> exprs;
+
+    switch (_currentToken->getTokenType()) {
+    case tok::TOK_ID:
+        exprs.push_back(parseTypeIdentifier());
+        if (accept(tok::OPER_COLON)) {
+            exprs[0] = parseKindSpecifier(static_cast<TypeIdentifier*>(exprs[0]));
+        }
+        break;
+
+    case tok::TOK_OPER:
+        if (accept(tok::OPER_L_BRACKET)) {
+            exprs.push_back(parseTypeTuple());
+        } else if (accept(tok::OPER_L_PAREN)) {
+            parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(exprs, [&](){return parseTypeExpression();});
+        } else {
+            _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
+            accept();
+        }
+        break;
+
+    case tok::TOK_KW:
+        if (accept(tok::KW_ABSTRACT)) {
+            expect(tok::KW_CLASS, "`class`");
+            return parseClass(true);
+        } if (accept(tok::KW_CLASS)) {
+            return parseClass(false);
+        } else {
+            _ctx->reporter().error(*_currentToken, "Unexpected keyword `" + _currentToken->toString() + "`");
+            accept();
+        }
+        break;
+
+    default:
+        _ctx->reporter().error(*_currentToken,
+                               "Expected identifier | type tuple | class "
+                               "; got " + _currentToken->toString());
+        accept();
+    }
+
+    bool arrowNecessary = false;
+    TypeExpression* toRet = nullptr;
+
+    if (exprs.size() != 1) {
+        arrowNecessary = true; // while waiting for tuples
+    } else {
+        toRet = exprs[0];
+    }
+
+    if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
+        toRet = createFunctionTypeDecl(exprs, parseTypeExpression());
+    }
+
+    if (toRet) {
+        toRet->setPos(startPos);
+        toRet->setEndPos(_lastTokenEndPos);
+    }
+
+    return toRet;
+}
+
+KindSpecifier* Parser::parseKindSpecifier(TypeIdentifier* id) {
+    KindSpecifyingExpression* expr = parseKindSpecifyingExpression();
+    KindSpecifier* spec = _mngr.New<KindSpecifier>(id, expr);
+    spec->setPos(*id);
+    spec->setEndPos(_lastTokenEndPos);
+    return spec;
+}
+
+KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
+    KindSpecifyingExpression* toRet = nullptr;
+    std::vector<KindSpecifyingExpression*> exprs;
+    bool arrowNecessary = false;
+
+    SAVE_POS(startPos)
+
+    switch (_currentToken->getTokenType()) {
+    case tok::TOK_OPER:
+        if (accept(tok::OPER_TIMES)) {
+            toRet = _mngr.New<ProperTypeKindSpecifier>();
+            exprs.push_back(toRet);
+        } else if (accept(tok::OPER_L_BRACKET)) {
+            parseTuple<TypeConstructorKindSpecifier, tok::OPER_R_BRACKET, KindSpecifyingExpression>(
+                        exprs, [&](){return parseKindSpecifyingExpression();});
+
+            arrowNecessary = true;
+        }
+        else {
+            _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
+            accept();
+            break;
+        }
+
+        if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
+            toRet = _mngr.New<TypeConstructorKindSpecifier>(exprs, parseKindSpecifyingExpression());
+        }
+
+        toRet->setPos(startPos);
+        toRet->setEndPos(_lastTokenEndPos);
+        break;
+
+    default:
+        _ctx->reporter().error(*_currentToken,
+                               "Expected identifier | type tuple | class "
+                               "; got " + _currentToken->toString());
+        accept();
+    }
+
+    return toRet;
 }
 
 CanUseModules::ModulePath Parser::parseUsing(const common::Positionnable& usingpos, bool asStatement) {

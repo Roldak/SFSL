@@ -90,6 +90,7 @@ void ASTImplicitVisitor::visit(FunctionTypeDecl* ftdecl) {
         arg->onVisit(this);
     }
     ftdecl->getRetType()->onVisit(this);
+    ftdecl->getClassEquivalent()->onVisit(this);
 }
 
 void ASTImplicitVisitor::visit(TypeMemberAccess* tdot) {

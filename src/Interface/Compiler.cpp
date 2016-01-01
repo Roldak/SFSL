@@ -288,7 +288,8 @@ Type Compiler::createFunctionType(const std::vector<Type>& argTypes, Type retTyp
 
     std::transform(argTypes.begin(), argTypes.end(), argTypeExprs.begin(), [](Type t) { return t._impl->_type;});
 
-    return Type(NEW_TYPE_IMPL(_impl->ctx->memoryManager().New<ast::FunctionTypeDecl>(argTypeExprs, retTypeExpr)));
+    std::string TCName = "Func" + argTypes.size();
+    return Type(NEW_TYPE_IMPL(ast::FunctionTypeDecl::make(argTypeExprs, retTypeExpr, TCName, _impl->ctx)));
 }
 
 ClassBuilder Compiler::classBuilder(const std::string& className) {

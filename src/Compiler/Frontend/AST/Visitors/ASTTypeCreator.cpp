@@ -43,7 +43,17 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
         argTypes[i] = createType(argTypeExprs[i], _ctx);
     }
 
-    _created = _mngr.New<type::FunctionType>(argTypes, retType, nullptr);
+    ClassDecl* functionClass = nullptr;
+    type::SubstitutionTable table;
+
+    if (type::ProperType* pt = type::getIf<type::ProperType>(createType(ftdecl->getClassEquivalent(), _ctx)->applyTCCallsOnly(_ctx))) {
+        functionClass = pt->getClass();
+        table = pt->getSubstitutionTable();
+    } else {
+        _ctx->reporter().fatal(*ftdecl, "Could not create type of this function's class equivalent");
+    }
+
+    _created = _mngr.New<type::FunctionType>(argTypes, retType, functionClass, table);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {

@@ -104,24 +104,29 @@ private:
     ast::Expression* parsePrimary();
     ast::TypeSpecifier* parseTypeSpecifier(ast::Identifier* id);
 
-    ast::TypeExpression* parseTypeExpression(bool allowTypeConstructor = true);
-    ast::TypeExpression* parseTypeBinary(ast::TypeExpression* left, int precedence, bool allowTypeConstructor);
-    ast::TypeExpression* parseTypePrimary();
-    ast::KindSpecifier* parseKindSpecifier(ast::TypeIdentifier* id);
-
-    ast::KindSpecifyingExpression* parseKindSpecifyingExpression();
-
     ast::Block* parseBlock();
     ast::IfExpression* parseIf(bool asStatement);
     ast::This* parseThis(const common::Positionnable& pos);
 
     ast::Expression* parseSpecialBinaryContinuity(ast::Expression* left);
     ast::Tuple* parseTuple();
+
+        // type expression
+
+    ast::TypeExpression* parseTypeExpression(bool allowTypeConstructor = true);
+    ast::TypeExpression* parseTypeBinary(ast::TypeExpression* left, int precedence, bool allowTypeConstructor);
+    ast::TypeExpression* parseTypePrimary();
+    ast::TypeExpression* createFunctionTypeDecl(const std::vector<TypeExpression*>& args, TypeExpression* ret);
     ast::TypeTuple* parseTypeTuple();
 
-    ast::CanUseModules::ModulePath parseUsing(const common::Positionnable& usingpos, bool asStatement);
+        // kind expression
+
+    ast::KindSpecifier* parseKindSpecifier(ast::TypeIdentifier* id);
+    ast::KindSpecifyingExpression* parseKindSpecifyingExpression();
 
         // others
+
+    ast::CanUseModules::ModulePath parseUsing(const common::Positionnable& usingpos, bool asStatement);
 
     template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
     RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE*>& exprs, const PARSING_FUNC& f);
