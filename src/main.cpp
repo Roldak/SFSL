@@ -88,17 +88,13 @@ int main(int argc, char** argv) {
         slang.typeDef("int", cmp.classBuilder("int").build());
         slang.typeDef("real", cmp.classBuilder("real").build());
         slang.typeDef("string", cmp.classBuilder("string").build());
-/*
-        Type R = cmp.parseType("R");
-        Type Func0Class = cmp.classBuilder("Func0").setAbstract(true).addAbstractDef("()", cmp.parseType("()->R")).build();
-        slang.typeDef("Func0", cmp.typeConstructorBuilder("Func0").setArgs({R}).setReturn(Func0Class).build());
-*/
 
         createFunctionClass(cmp, slang, 0);
         createFunctionClass(cmp, slang, 1);
         createFunctionClass(cmp, slang, 2);
         createFunctionClass(cmp, slang, 3);
         createFunctionClass(cmp, slang, 4);
+        createFunctionClass(cmp, slang, 5);
 
         if (checkOnly) {
             col = &emc;

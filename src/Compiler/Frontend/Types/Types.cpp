@@ -162,8 +162,8 @@ bool ProperType::isSubTypeOf(const Type* other) const {
         if (_class->CanSubtypeClasses::extends(objother->_class)) {
             const SubstitutionTable& osub = objother->getSubstitutionTable();
 
-            std::cout << toString() << " : " << debugSubstitutionTableToString(getSubstitutionTable()) << std::endl;
-            std::cout << other->toString() << " : " << debugSubstitutionTableToString(other->getSubstitutionTable()) << std::endl;
+            //std::cout << toString() << " : " << debugSubstitutionTableToString(getSubstitutionTable()) << std::endl;
+            //std::cout << other->toString() << " : " << debugSubstitutionTableToString(other->getSubstitutionTable()) << std::endl;
 
             for (const auto& pair : _subTable) {
                 const auto& subpair = osub.find(pair.first);

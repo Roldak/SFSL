@@ -16,7 +16,7 @@
 #define REAL_CLASS_NAME "real"
 #define STRING_CLASS_NAME "string"
 #define FUNC_CLASS_NAME "Func"
-#define NUMBER_OF_FUNC_TYPES 4
+#define NUMBER_OF_FUNC_TYPES 6
 
 #include <iostream>
 #include "../AST/Nodes/Program.h"
