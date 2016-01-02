@@ -14,7 +14,7 @@
 
 namespace sfsl {
 
-namespace sym {
+namespace common {
 
 class PrimitiveNamer {
 public:

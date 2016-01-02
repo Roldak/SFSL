@@ -48,6 +48,9 @@ function(apply_target_properties target build_type output_name)
     endif()
 endfunction()
 
+file(GLOB_RECURSE COMMON_SRC_LIST ./src/Common/*.cpp)
+file(GLOB_RECURSE COMMON_HEADERS_LIST ./src/Common/*.h)
+
 ###################################
 # COMPILER LIB BUILD INSTRUCTIONS #
 ###################################
@@ -55,7 +58,7 @@ endfunction()
 file(GLOB_RECURSE COMPILER_SRC_LIST ./src/Compiler/*.cpp)
 file(GLOB_RECURSE UTILS_SRC_LIST ./src/Utils/*.cpp)
 
-add_library(${COMPILER_LIB_TARGET} ${COMPILER_LIB_TYPE} ${COMPILER_SRC_LIST} ${UTILS_SRC_LIST})
+add_library(${COMPILER_LIB_TARGET} ${COMPILER_LIB_TYPE} ${COMPILER_SRC_LIST} ${UTILS_SRC_LIST} ${COMMON_SRC_LIST})
 apply_target_properties(${COMPILER_LIB_TARGET} ${COMPILER_LIB_BUILD_TYPE} ${COMPILER_LIB_OUTPUT_NAME})
 
 target_include_directories(${COMPILER_LIB_TARGET} PRIVATE ./src/)
@@ -69,7 +72,7 @@ set(API_MAIN_FILE ./src/apimain.cpp)
 file(GLOB_RECURSE API_SRC_LIST      ./src/Interface/*.cpp)
 file(GLOB_RECURSE API_HEADERS_LIST  ./include/*.h)
 
-add_library(${USER_API_TARGET} ${USER_API_LIB_TYPE} ${API_SRC_LIST} ${API_HEADERS_LIST})
+add_library(${USER_API_TARGET} ${USER_API_LIB_TYPE} ${API_SRC_LIST} ${API_HEADERS_LIST} ${COMMON_SRC_LIST})
 apply_target_properties(${USER_API_TARGET} ${USER_API_BUILD_TYPE} ${USER_API_OUTPUT_NAME})
 
 target_include_directories(${USER_API_TARGET} PRIVATE ./src/)

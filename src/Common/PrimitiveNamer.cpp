@@ -11,7 +11,7 @@
 
 namespace sfsl {
 
-namespace sym {
+namespace common {
 
 PrimitiveNamer::~PrimitiveNamer() {
 

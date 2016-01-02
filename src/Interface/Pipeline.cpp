@@ -70,8 +70,8 @@ public:
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
-        sym::SymbolResolver res(prog, ctx);
-        res.setPredefClassesPath("sfsl.lang");
+        common::CommonPathPrimitiveNamer namer("sfsl.lang", '.', "unit", "bool", "int", "real", "string", "Func");
+        sym::SymbolResolver res(prog, namer, ctx);
 
         ast::TopLevelTypeChecking topleveltypecheck(ctx, res);
         ast::TypeChecking typeCheck(ctx, res);

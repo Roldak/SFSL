@@ -662,6 +662,8 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
 }
 
 type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func) {
+    // TODO: Have funcClass inherit the right FuncX type so that the method is generated at the right virtual location
+
     FunctionCreation* meth = _mngr.New<FunctionCreation>("()", func->getArgs(), func->getBody(), func->getReturnType());
     DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, false, false, false);
     ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr, std::vector<TypeDecl*>(),
