@@ -1,5 +1,5 @@
 //
-//  PrimitiveNamer.h
+//  PrimitiveNamer.h (duplicate of src/Common/PrimitiveNamer.h
 //  SFSL
 //
 //  Created by Romain Beguet on 02.01.16.
@@ -11,12 +11,13 @@
 
 #include <iostream>
 #include <vector>
+#include "SetVisibilities.h"
 
 namespace sfsl {
 
 namespace common {
 
-class PrimitiveNamer {
+class SFSL_API_PUBLIC PrimitiveNamer {
 public:
 
     typedef std::vector<std::string> Path;

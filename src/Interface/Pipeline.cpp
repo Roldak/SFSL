@@ -69,9 +69,9 @@ public:
     virtual bool run(PhaseContext& pctx) {
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
+        common::PrimitiveNamer* namer = pctx.require<common::PrimitiveNamer>("namer");
 
-        common::CommonPathPrimitiveNamer namer("sfsl.lang", '.', "unit", "bool", "int", "real", "string", "Func");
-        sym::SymbolResolver res(prog, namer, ctx);
+        sym::SymbolResolver res(prog, *namer, ctx);
 
         ast::TopLevelTypeChecking topleveltypecheck(ctx, res);
         ast::TypeChecking typeCheck(ctx, res);

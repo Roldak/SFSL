@@ -8,6 +8,7 @@
 
 #include "api/Compiler.h"
 #include "api/Errors.h"
+#include "api/StandartPrimitiveNamer.h"
 
 #include "ModuleContainer.h"
 #include "ReporterAdapter.h"
@@ -50,10 +51,13 @@ BEGIN_PRIVATE_DEF
 
 class COMPILER_IMPL_NAME final {
 public:
-    COMPILER_IMPL_NAME(CompCtx_Ptr ctx) : ctx(ctx) {}
-    ~COMPILER_IMPL_NAME() {}
+    COMPILER_IMPL_NAME(CompCtx_Ptr ctx, common::PrimitiveNamer* namer)
+        : ctx(ctx), namer(namer) {}
+
+    ~COMPILER_IMPL_NAME() { }
 
     CompCtx_Ptr ctx;
+    common::PrimitiveNamer* namer;
 };
 
 class TYPE_IMPL_NAME final {
@@ -209,6 +213,7 @@ namespace sfsl {
 
 Compiler::Compiler(const CompilerConfig& config) {
     CompCtx_Ptr ctx;
+    common::PrimitiveNamer* namer;
 
     if (config.getReporter() == nullptr) {
         ctx = common::CompilationContext::DefaultCompilationContext(config.getChunkSize());
@@ -217,8 +222,13 @@ Compiler::Compiler(const CompilerConfig& config) {
         ctx = common::CompilationContext::CustomReporterCompilationContext(config.getChunkSize(), std::move(rep));
     }
 
-    _impl = NEW_COMPILER_IMPL(ctx);
+    if (config.getPrimitiveNamer() == nullptr) {
+        namer = StandartPrimitiveNamer::DefaultPrimitiveNamer;
+    } else {
+        namer = config.getPrimitiveNamer();
+    }
 
+    _impl = NEW_COMPILER_IMPL(ctx, namer);
 }
 
 Compiler::~Compiler() {
@@ -250,9 +260,11 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
     PhaseContext pctx;
     CompCtx_Ptr ctx = _impl->ctx;
     ast::Program* prog = progBuilder._impl->createUpdatedProgram();
+    common::PrimitiveNamer* namer = _impl->namer;
 
-    pctx.output("prog", prog);
     pctx.output("ctx", &ctx);
+    pctx.output("prog", prog);
+    pctx.output("namer", namer);
 
     try {
         std::set<std::shared_ptr<Phase>> phases(ppl.getPhases());

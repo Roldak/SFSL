@@ -10,14 +10,16 @@
 #define __SFSL__API_CompilerConfig__
 
 #include <iostream>
+#include <memory>
 #include "SetVisibilities.h"
 #include "AbstractReporter.h"
+#include "PrimitiveNamer.h"
 
 namespace sfsl {
 
 class SFSL_API_PUBLIC CompilerConfig final {
 public:
-    CompilerConfig(AbstractReporter* rep = nullptr, size_t chunkSize = 2048);
+    CompilerConfig(AbstractReporter* rep = nullptr, common::PrimitiveNamer* namer = nullptr, size_t chunkSize = 2048);
     ~CompilerConfig();
 
     void setChunkSize(size_t chunkSize);
@@ -26,9 +28,13 @@ public:
     void setReporter(AbstractReporter* rep);
     AbstractReporter* getReporter() const;
 
+    void setPrimitiveNamer(common::PrimitiveNamer* namer);
+    common::PrimitiveNamer* getPrimitiveNamer() const;
+
 private:
 
     AbstractReporter* _rep;
+    common::PrimitiveNamer* _namer;
     size_t _chunkSize;
 };
 

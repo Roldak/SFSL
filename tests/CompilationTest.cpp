@@ -25,7 +25,7 @@ CompilationTest::~CompilationTest() {
 bool CompilationTest::run(AbstractTestLogger& logger) {
     bool success;
 
-    Compiler cmp(CompilerConfig(StandartReporter::EmptyReporter, 2048));
+    Compiler cmp(CompilerConfig(StandartReporter::EmptyReporter, StandartPrimitiveNamer::DefaultPrimitiveNamer, 2048));
     try {
         ProgramBuilder builder = cmp.parse(_name, _source);
         if (!builder) {
