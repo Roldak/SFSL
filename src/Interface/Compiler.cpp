@@ -51,13 +51,13 @@ BEGIN_PRIVATE_DEF
 
 class COMPILER_IMPL_NAME final {
 public:
-    COMPILER_IMPL_NAME(CompCtx_Ptr ctx, common::PrimitiveNamer* namer)
+    COMPILER_IMPL_NAME(CompCtx_Ptr ctx, common::AbstractPrimitiveNamer* namer)
         : ctx(ctx), namer(namer) {}
 
     ~COMPILER_IMPL_NAME() { }
 
     CompCtx_Ptr ctx;
-    common::PrimitiveNamer* namer;
+    common::AbstractPrimitiveNamer* namer;
 };
 
 class TYPE_IMPL_NAME final {
@@ -213,7 +213,7 @@ namespace sfsl {
 
 Compiler::Compiler(const CompilerConfig& config) {
     CompCtx_Ptr ctx;
-    common::PrimitiveNamer* namer;
+    common::AbstractPrimitiveNamer* namer;
 
     if (config.getReporter() == nullptr) {
         ctx = common::CompilationContext::DefaultCompilationContext(config.getChunkSize());
@@ -239,7 +239,7 @@ ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& sr
     try {
         src::StringSource source(src::InputSourceName::make(_impl->ctx, srcName), srcContent);
         lex::Lexer lexer(_impl->ctx, source);
-        ast::Parser parser(_impl->ctx, lexer);
+        ast::Parser parser(_impl->ctx, lexer, _impl->namer);
         ast::Program* program = parser.parse();
 
         if (_impl->ctx->reporter().getErrorCount() == 0) {
@@ -260,7 +260,7 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
     PhaseContext pctx;
     CompCtx_Ptr ctx = _impl->ctx;
     ast::Program* prog = progBuilder._impl->createUpdatedProgram();
-    common::PrimitiveNamer* namer = _impl->namer;
+    common::AbstractPrimitiveNamer* namer = _impl->namer;
 
     pctx.output("ctx", &ctx);
     pctx.output("prog", prog);
@@ -288,7 +288,7 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
 Type Compiler::parseType(const std::string& str) {
     src::StringSource source(src::InputSourceName::make(_impl->ctx, "type"), str);
     lex::Lexer lexer(_impl->ctx, source);
-    ast::Parser parser(_impl->ctx, lexer);
+    ast::Parser parser(_impl->ctx, lexer, _impl->namer);
     ast::TypeExpression* tpe = parser.parseType();
 
     return Type(NEW_TYPE_IMPL(_impl->ctx->reporter().getErrorCount() == 0 ? tpe : nullptr));

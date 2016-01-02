@@ -11,7 +11,8 @@
 
 namespace sfsl {
 
-StandartPrimitiveNamer* const StandartPrimitiveNamer::DefaultPrimitiveNamer = nullptr;
+StandartPrimitiveNamer* const StandartPrimitiveNamer::DefaultPrimitiveNamer =
+        new StandartPrimitiveNamer("sfsl.lang", '.', "unit", "bool", "int", "real", "string", "Func");
 
 StandartPrimitiveNamer::StandartPrimitiveNamer(const std::string& commonPath, char delimiter,
                                                    const std::string& unitTypeName, const std::string& boolTypeName,
@@ -30,27 +31,27 @@ StandartPrimitiveNamer::~StandartPrimitiveNamer() {
 
 }
 
-common::PrimitiveNamer::Path StandartPrimitiveNamer::Unit() const {
+common::AbstractPrimitiveNamer::Path StandartPrimitiveNamer::Unit() const {
     return _unitTypePath;
 }
 
-common::PrimitiveNamer::Path StandartPrimitiveNamer::Bool() const {
+common::AbstractPrimitiveNamer::Path StandartPrimitiveNamer::Bool() const {
     return _boolTypePath;
 }
 
-common::PrimitiveNamer::Path StandartPrimitiveNamer::Int() const {
+common::AbstractPrimitiveNamer::Path StandartPrimitiveNamer::Int() const {
     return _intTypePath;
 }
 
-common::PrimitiveNamer::Path StandartPrimitiveNamer::Real() const {
+common::AbstractPrimitiveNamer::Path StandartPrimitiveNamer::Real() const {
     return _realTypePath;
 }
 
-common::PrimitiveNamer::Path StandartPrimitiveNamer::String() const {
+common::AbstractPrimitiveNamer::Path StandartPrimitiveNamer::String() const {
     return _stringTypePath;
 }
 
-common::PrimitiveNamer::Path StandartPrimitiveNamer::Func(size_t nbArgs) const {
+common::AbstractPrimitiveNamer::Path StandartPrimitiveNamer::Func(size_t nbArgs) const {
     Path tmp = _funcTypePath;
     tmp.back() += utils::T_toString(nbArgs);
     return tmp;

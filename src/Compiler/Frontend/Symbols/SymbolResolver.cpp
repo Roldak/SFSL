@@ -7,6 +7,7 @@
 //
 
 #include "SymbolResolver.h"
+#include "../../../Common/AbstractPrimitiveNamer.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "Scope.h"
 
@@ -14,17 +15,17 @@ namespace sfsl {
 
 namespace sym {
 
-SymbolResolver::SymbolResolver(const ast::Program* prog, const common::PrimitiveNamer& namer, const CompCtx_Ptr &ctx)
+SymbolResolver::SymbolResolver(const ast::Program* prog, const common::AbstractPrimitiveNamer* namer, const CompCtx_Ptr& ctx)
     : _scope(prog->getScope()), _ctx(ctx) {
 
-    _unitType   = createTypeFromSymbol(getSymbol(namer.Unit()));
-    _boolType   = createTypeFromSymbol(getSymbol(namer.Bool()));
-    _intType    = createTypeFromSymbol(getSymbol(namer.Int()));
-    _realType   = createTypeFromSymbol(getSymbol(namer.Real()));
-    _stringType = createTypeFromSymbol(getSymbol(namer.String()));
+    _unitType   = createTypeFromSymbol(getSymbol(namer->Unit()));
+    _boolType   = createTypeFromSymbol(getSymbol(namer->Bool()));
+    _intType    = createTypeFromSymbol(getSymbol(namer->Int()));
+    _realType   = createTypeFromSymbol(getSymbol(namer->Real()));
+    _stringType = createTypeFromSymbol(getSymbol(namer->String()));
 
     for (size_t i = 0; i < NUMBER_OF_FUNC_TYPES; ++i) {
-        _funcTypes[i] = createTypeFromSymbol(getSymbol(namer.Func(i)));
+        _funcTypes[i] = createTypeFromSymbol(getSymbol(namer->Func(i)));
     }
 }
 

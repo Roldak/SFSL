@@ -13,7 +13,7 @@
 
 #include <iostream>
 #include "../AST/Nodes/Program.h"
-#include "../../../Common/PrimitiveNamer.h"
+#include "../../../Common/AbstractPrimitiveNamer.h"
 
 namespace sfsl {
 
@@ -31,7 +31,7 @@ public:
      * @param prog The ast::Program for which to create the symbol resolver.
      * @param ctx The #sfsl::common::CompilationContext
      */
-    SymbolResolver(const ast::Program* prog, const common::PrimitiveNamer& namer, const CompCtx_Ptr& ctx);
+    SymbolResolver(const ast::Program* prog, const common::AbstractPrimitiveNamer* namer, const CompCtx_Ptr& ctx);
 
     ~SymbolResolver();
 

@@ -1,27 +1,28 @@
 //
-//  PrimitiveNamer.h
+//  AbstractPrimitiveNamer.h (duplicate of src/Common/AbstractPrimitiveNamer.h
 //  SFSL
 //
 //  Created by Romain Beguet on 02.01.16.
 //  Copyright (c) 2016 Romain Beguet. All rights reserved.
 //
 
-#ifndef __SFSL__PrimitiveNamer__
-#define __SFSL__PrimitiveNamer__
+#ifndef __SFSL__AbstractPrimitiveNamer__
+#define __SFSL__AbstractPrimitiveNamer__
 
 #include <iostream>
 #include <vector>
+#include "SetVisibilities.h"
 
 namespace sfsl {
 
 namespace common {
 
-class PrimitiveNamer {
+class SFSL_API_PUBLIC AbstractPrimitiveNamer {
 public:
 
     typedef std::vector<std::string> Path;
 
-    virtual ~PrimitiveNamer();
+    virtual ~AbstractPrimitiveNamer();
 
     virtual Path Unit() const = 0;
     virtual Path Bool() const = 0;

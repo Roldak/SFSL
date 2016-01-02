@@ -17,8 +17,8 @@ namespace sfsl {
 
 using namespace ast;
 
-Parser::Parser(CompCtx_Ptr& ctx, lex::Lexer &lexer)
-    : _ctx(ctx), _mngr(ctx->memoryManager()), _lex(lexer), _lastTokenEndPos(0), _currentToken(nullptr) {
+Parser::Parser(CompCtx_Ptr& ctx, lex::Lexer& lexer, const common::AbstractPrimitiveNamer* namer)
+    : _ctx(ctx), _mngr(ctx->memoryManager()), _lex(lexer), _namer(namer), _lastTokenEndPos(0), _currentToken(nullptr) {
 
 }
 

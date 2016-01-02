@@ -47,6 +47,7 @@ public:
     virtual bool run(PhaseContext& pctx) {
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
+        common::AbstractPrimitiveNamer* namer = pctx.require<common::AbstractPrimitiveNamer>("namer");
 
         complete::ScopeFinder is(ctx, _scopeId);
         prog->onVisit(&is);
@@ -59,7 +60,7 @@ public:
 
         src::StringSource source(src::InputSourceName::make(ctx, "tmp"), _toComplete);
         lex::Lexer toCompleteLexer(ctx, source);
-        ast::Parser toCompleteParser(ctx, toCompleteLexer);
+        ast::Parser toCompleteParser(ctx, toCompleteLexer, namer);
 
         _exprToComplete = toCompleteParser.parseSingleExpression();
 

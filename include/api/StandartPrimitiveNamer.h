@@ -10,11 +10,11 @@
 #define __SFSL__API_StandartPrimitiveNamer__
 
 #include <iostream>
-#include "PrimitiveNamer.h"
+#include "AbstractPrimitiveNamer.h"
 
 namespace sfsl {
 
-class SFSL_API_PUBLIC StandartPrimitiveNamer : public common::PrimitiveNamer {
+class SFSL_API_PUBLIC StandartPrimitiveNamer : public common::AbstractPrimitiveNamer {
 public:
 
     StandartPrimitiveNamer(const std::string& commonPath, char delimiter,

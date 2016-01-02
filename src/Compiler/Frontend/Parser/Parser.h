@@ -17,7 +17,9 @@
 #include "../Lexer/Tokens/Keyword.h"
 #include "../Lexer/Tokens/Operators.h"
 #include "../Lexer/Tokens/Identifier.h"
+
 #include "../../Common/CompilationContext.h"
+#include "../../../Common/AbstractPrimitiveNamer.h"
 
 #include "../AST/Nodes/Program.h"
 #include "../AST/Nodes/Expressions.h"
@@ -39,7 +41,7 @@ public:
      * @param ctx The compilation context used throughout the parsing to report errors and allocate memory
      * @param lexer The lexer from which to fetch the tokens during the parsing
      */
-    Parser(CompCtx_Ptr& ctx, lex::Lexer& lexer);
+    Parser(CompCtx_Ptr& ctx, lex::Lexer& lexer, const common::AbstractPrimitiveNamer* namer);
 
     /**
      * @brief Start the parsing process
@@ -139,6 +141,7 @@ private:
     CompCtx_Ptr _ctx;
     common::AbstractMemoryManager& _mngr;
     lex::Lexer& _lex;
+    const common::AbstractPrimitiveNamer* _namer;
 
     size_t _lastTokenEndPos;
     tok::Token* _currentToken;
