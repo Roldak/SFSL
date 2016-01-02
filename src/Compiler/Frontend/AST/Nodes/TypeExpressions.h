@@ -137,7 +137,7 @@ public:
      * @return an instance of FunctionTypeDecl from the given arguments
      */
     static TypeExpression* make(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType,
-                                const std::string& TCName, CompCtx_Ptr ctx);
+                                const std::vector<std::string>& TCPath, CompCtx_Ptr ctx);
 
 private:
 

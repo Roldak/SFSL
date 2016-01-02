@@ -90,13 +90,25 @@ TypeExpression* FunctionTypeDecl::getClassEquivalent() const {
     return _classEquivalent;
 }
 
+TypeExpression* makeCallee(std::vector<std::string> path, CompCtx_Ptr ctx) {
+    if (path.size() == 0) {
+        return nullptr;
+    } else if (path.size() == 1) {
+        return ctx->memoryManager().New<TypeIdentifier>(path.back());
+    } else {
+        std::string id = path.back();
+        path.pop_back();
+        return ctx->memoryManager().New<TypeMemberAccess>(makeCallee(path, ctx), ctx->memoryManager().New<TypeIdentifier>(id));
+    }
+}
+
 TypeExpression* FunctionTypeDecl::make(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType,
-                                       const std::string& TCName, CompCtx_Ptr ctx) {
+                                       const std::vector<std::string>& TCPath, CompCtx_Ptr ctx) {
     std::vector<TypeExpression*> args = argTypes;
     args.push_back(retType);
 
     TypeTuple* argsTuple = ctx->memoryManager().New<TypeTuple>(args);
-    TypeIdentifier* callee = ctx->memoryManager().New<TypeIdentifier>(TCName);
+    TypeExpression* callee = makeCallee(TCPath, ctx);
     TypeConstructorCall* classEq = ctx->memoryManager().New<TypeConstructorCall>(callee, argsTuple);
 
     return ctx->memoryManager().New<FunctionTypeDecl>(argTypes, retType, classEq);

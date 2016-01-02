@@ -606,8 +606,7 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence, bo
 }
 
 TypeExpression* Parser::createFunctionTypeDecl(const std::vector<TypeExpression*>& args, TypeExpression* ret) {
-    std::string TCName = "Func" + utils::T_toString(args.size());
-    return FunctionTypeDecl::make(args, ret, TCName, _ctx);
+    return FunctionTypeDecl::make(args, ret, _namer->Func(args.size()), _ctx);
 }
 
 TypeTuple* Parser::parseTypeTuple() {
