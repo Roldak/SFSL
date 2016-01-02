@@ -57,6 +57,8 @@ private:
     std::set<TypeDecl*> _visitedTypeDefs;
     std::set<TypeExpression*> _deferredExpressions;
     bool _mustDefer;
+
+    bool _insideMemberAccess;
 };
 
 }
