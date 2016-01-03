@@ -460,7 +460,7 @@ void SymbolAssignation::visit(FunctionCall* call) {
 
             if (call->getTypeArgsTuple()) {
                 expr = _mngr.New<TypeConstructorCall>(expr, call->getTypeArgsTuple());
-                common::Positionnable pos = *expr;
+                common::Positionnable pos = *call->getCallee();
                 pos.setEndPos(call->getTypeArgsTuple()->getEndPosition());
                 expr->setPos(pos);
             }
