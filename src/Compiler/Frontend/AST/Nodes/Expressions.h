@@ -316,19 +316,19 @@ private:
 class Instantiation : public Expression {
 public:
 
-    Instantiation(ClassDecl* instantiated);
+    Instantiation(TypeExpression* instantiated);
     virtual ~Instantiation();
 
     SFSL_AST_ON_VISIT_H
 
     /**
-     * @return The ClassDecl corresponding to the instantiated class
+     * @return The TypeExpression corresponding to the instantiated type
      */
-    ClassDecl* getInstantiatedClass() const;
+    TypeExpression* getInstantiatedExpression() const;
 
 private:
 
-    ClassDecl* _instantiated;
+    TypeExpression* _instantiated;
 };
 
 /**

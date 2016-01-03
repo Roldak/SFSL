@@ -789,7 +789,7 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
         id->setPos(*oper);
         args->setPos(*right);
         res = _mngr.New<MemberAccess>(left, id);
-        res = _mngr.New<FunctionCall>(res, args);
+        res = _mngr.New<FunctionCall>(res, nullptr, args);
         break;
     }
 

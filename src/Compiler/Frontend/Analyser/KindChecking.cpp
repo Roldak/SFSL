@@ -10,6 +10,7 @@
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTKindCreator.h"
+#include "../AST/Visitors/ASTSymbolExtractor.h"
 
 #include "../Symbols/Scope.h"
 
@@ -198,6 +199,14 @@ void KindChecking::visit(TypeSpecifier* ts) {
 
     if (ts->getTypeNode()->kind()->getKindGenre() != kind::KIND_PROPER) {
         _rep.error(*ts, "Variable cannot have type " + ts->getTypeNode()->kind()->toString() + " which is not a proper type.");
+    }
+}
+
+void KindChecking::visit(Instantiation* inst) {
+    ASTImplicitVisitor::visit(inst);
+
+    if (inst->getInstantiatedExpression()->kind()->getKindGenre() != kind::KIND_PROPER) {
+        _rep.error(*inst, "Can only instantiate proper types. Found " + inst->getInstantiatedExpression()->kind()->toString());
     }
 }
 

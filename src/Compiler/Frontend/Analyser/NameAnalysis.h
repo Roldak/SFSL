@@ -123,6 +123,7 @@ public:
     virtual void visit(Block* block) override;
     virtual void visit(MemberAccess* mac) override;
     virtual void visit(FunctionCreation* func) override;
+    virtual void visit(FunctionCall* call) override;
     virtual void visit(Identifier* id) override;
 
 private:

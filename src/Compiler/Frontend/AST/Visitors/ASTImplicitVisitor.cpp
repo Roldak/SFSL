@@ -185,8 +185,8 @@ void ASTImplicitVisitor::visit(FunctionCall* call) {
     call->getArgsTuple()->onVisit(this);
 }
 
-void ASTImplicitVisitor::visit(Instantiation*) {
-
+void ASTImplicitVisitor::visit(Instantiation* inst) {
+    inst->getInstantiatedExpression()->onVisit(this);
 }
 
 void ASTImplicitVisitor::visit(Identifier*) {

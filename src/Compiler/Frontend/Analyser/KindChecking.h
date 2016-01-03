@@ -45,6 +45,7 @@ public:
     virtual void visit(KindSpecifier* ks) override;
 
     virtual void visit(TypeSpecifier* ts) override;
+    virtual void visit(Instantiation* inst) override;
 
 private:
 

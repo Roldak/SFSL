@@ -219,7 +219,7 @@ const std::vector<Expression*>& FunctionCall::getArgs() const {
 
 // INSTANTIATION
 
-Instantiation::Instantiation(ClassDecl* instantiated) : _instantiated(instantiated) {
+Instantiation::Instantiation(TypeExpression* instantiated) : _instantiated(instantiated) {
 
 }
 
@@ -229,7 +229,7 @@ Instantiation::~Instantiation() {
 
 SFSL_AST_ON_VISIT_CPP(Instantiation)
 
-ClassDecl* Instantiation::getInstantiatedClass() const {
+TypeExpression* Instantiation::getInstantiatedExpression() const {
     return _instantiated;
 }
 

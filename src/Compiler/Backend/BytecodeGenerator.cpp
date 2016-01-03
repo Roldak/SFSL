@@ -325,9 +325,12 @@ void DefaultBytecodeGenerator::visit(FunctionCall* call) {
 }
 
 void DefaultBytecodeGenerator::visit(Instantiation* inst) {
-    size_t classLoc = inst->getInstantiatedClass()->getUserdata<ClassUserData>()->getClassLoc();
-    Emit<LoadConst>(*inst, classLoc);
-    Emit<Instantiate>(*inst);
+    if (type::ProperType* pt = type::getIf<type::ProperType>(inst->type()->apply(_ctx))) {
+        ClassDecl* clss = pt->getClass();
+        size_t classLoc = clss->getUserdata<ClassUserData>()->getClassLoc();
+        Emit<LoadConst>(*inst, classLoc);
+        Emit<Instantiate>(*inst);
+    }
 }
 
 void DefaultBytecodeGenerator::visit(Identifier* ident) {

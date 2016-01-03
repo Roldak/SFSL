@@ -445,6 +445,34 @@ void SymbolAssignation::visit(FunctionCreation* func) {
     RESTORE_SCOPE
 }
 
+void SymbolAssignation::visit(FunctionCall* call) {
+    ASTImplicitVisitor::visit(call);
+
+    if (sym::Symbol* s = ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx)) {
+        if (s->getSymbolType() == sym::SYM_TPE) {
+            sym::TypeSymbol* tpsym = static_cast<sym::TypeSymbol*>(s);
+
+            TypeIdentifier* tid = _mngr.New<TypeIdentifier>(tpsym->getName());
+            tid->setPos(*call->getCallee());
+            tid->setSymbol(tpsym);
+
+            TypeExpression* expr = tid;
+
+            if (call->getTypeArgsTuple()) {
+                expr = _mngr.New<TypeConstructorCall>(expr, call->getTypeArgsTuple());
+                common::Positionnable pos = *expr;
+                pos.setEndPos(call->getTypeArgsTuple()->getEndPosition());
+                expr->setPos(pos);
+            }
+
+            Instantiation* inst = _mngr.New<Instantiation>(expr);
+            inst->setPos(*call->getCallee());
+
+            *call = FunctionCall(inst, nullptr, call->getArgsTuple());
+        }
+    }
+}
+
 void SymbolAssignation::visit(Identifier* id) {
     assignIdentifier(id);
     setVariableSymbolicUsed(id, true);

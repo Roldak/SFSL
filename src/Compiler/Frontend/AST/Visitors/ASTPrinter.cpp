@@ -309,7 +309,7 @@ void ASTPrinter::visit(FunctionCall* call) {
 }
 
 void ASTPrinter::visit(Instantiation* inst) {
-    _ostream << inst->getInstantiatedClass()->getName();
+    inst->getInstantiatedExpression()->onVisit(this);
 }
 
 void ASTPrinter::visit(Identifier* ident) {

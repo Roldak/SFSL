@@ -440,41 +440,20 @@ void TypeChecking::visit(FunctionCall* call) {
     const std::vector<type::Type*>* expectedArgTypes = nullptr;
     type::Type* retType = nullptr;
 
-    if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
+    if (isNodeOfType<Instantiation>(call->getCallee(), _ctx)) {
+        Instantiation* inst = static_cast<Instantiation*>(call->getCallee());
+        _expectedInfo.node = inst;
+
+        if (!transformIntoCallToMember(call, inst, type::getIf<type::ProperType>(calleeT), "new", expectedArgTypes, retType)) {
+            return;
+        }
+
+        retType = inst->type(); // force constructor to return type of its `this`
+    } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
         expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
         retType = mt->getRetType();
     } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
         if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", expectedArgTypes, retType)) {
-            return;
-        }
-    } else if (sym::Symbol* s = ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx)) {
-        if (s->getSymbolType() == sym::SYM_TPE) {
-            sym::TypeSymbol* tpsym = static_cast<sym::TypeSymbol*>(s);
-            if (isNodeOfType<ClassDecl>(tpsym->getTypeDecl()->getExpression(), _ctx)) {
-                ClassDecl* theClass = static_cast<ClassDecl*>(tpsym->getTypeDecl()->getExpression());
-
-                if (theClass->isAbstract()) {
-                    _rep.error(*call, "Cannot instantiate abstract class " + theClass->getName());
-                    return;
-                }
-
-                Instantiation* inst = _mngr.New<Instantiation>(theClass);
-                inst->setPos(*call->getCallee());
-                inst->onVisit(this);
-
-                _expectedInfo.node = inst;
-
-                if (!transformIntoCallToMember(call, inst, type::getIf<type::ProperType>(inst->type()), "new", expectedArgTypes, retType)) {
-                    return;
-                }
-
-                retType = inst->type(); // force constructor to return type of its `this`
-            } else {
-                _rep.error(*call, "Instantiated type must be a class");
-                return;
-            }
-        } else {
-            _rep.error(*call, "Symbol " + s->getName() + " does not refer to a type");
             return;
         }
     } else {
@@ -503,7 +482,16 @@ void TypeChecking::visit(FunctionCall* call) {
 }
 
 void TypeChecking::visit(Instantiation* inst) {
-    inst->setType(_mngr.New<type::ProperType>(inst->getInstantiatedClass()));
+    type::Type* instType = ASTTypeCreator::createType(inst->getInstantiatedExpression(), _ctx);
+    if (type::ProperType* pt = type::getIf<type::ProperType>(instType->applyTCCallsOnly(_ctx))) {
+        if (pt->getClass()->isAbstract()) {
+            _rep.error(*inst, "Cannot instantiate abstract class " + pt->getClass()->getName());
+        } else {
+            inst->setType(pt);
+        }
+    } else {
+        _rep.error(*inst, "Only classes can be instantiated. Found " + instType->toString());
+    }
 }
 
 void TypeChecking::visit(Identifier* ident) {
@@ -596,7 +584,7 @@ bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* new
             dot->setType(field.t);
 
             common::Positionnable callPos(*call);
-            *call = FunctionCall(dot, call->getArgsTuple());
+            *call = FunctionCall(dot, call->getTypeArgsTuple(), call->getArgsTuple());
             call->setPos(callPos);
 
             return true;
