@@ -525,7 +525,11 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     Expression* res = nullptr;
 
     if (accept(tok::OPER_L_PAREN)) {
-        res = _mngr.New<FunctionCall>(left, parseTuple());
+        res = _mngr.New<FunctionCall>(left, nullptr, parseTuple());
+    } else if (accept(tok::OPER_L_BRACKET)) {
+        TypeTuple* typeArgs = parseTypeTuple();
+        expect(tok::OPER_L_PAREN, "`(`");
+        res = _mngr.New<FunctionCall>(left, typeArgs, parseTuple());
     } else if (accept(tok::OPER_FAT_ARROW)) {
         res = _mngr.New<FunctionCreation>(
                     _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,

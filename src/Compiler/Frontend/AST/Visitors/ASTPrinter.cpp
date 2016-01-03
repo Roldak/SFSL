@@ -302,6 +302,9 @@ void ASTPrinter::visit(FunctionCreation* func) {
 
 void ASTPrinter::visit(FunctionCall* call) {
     call->getCallee()->onVisit(this);
+    if (call->getTypeArgsTuple()) {
+        call->getTypeArgsTuple()->onVisit(this);
+    }
     call->getArgsTuple()->onVisit(this);
 }
 

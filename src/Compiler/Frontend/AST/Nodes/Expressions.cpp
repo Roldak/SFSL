@@ -186,8 +186,8 @@ TypeExpression*FunctionCreation::getReturnType() const {
 
 // FUNCTION CALL
 
-FunctionCall::FunctionCall(Expression* callee, Tuple* args)
-    : _callee(callee), _args(args) {
+FunctionCall::FunctionCall(Expression* callee, TypeTuple* typeArgs, Tuple* args)
+    : _callee(callee), _typeArgs(typeArgs), _args(args) {
 
 }
 
@@ -201,12 +201,20 @@ Expression* FunctionCall::getCallee() const {
     return _callee;
 }
 
-const std::vector<Expression*>& FunctionCall::getArgs() const {
-    return _args->getExpressions();
+TypeTuple* FunctionCall::getTypeArgsTuple() const {
+    return _typeArgs;
 }
 
 Tuple* FunctionCall::getArgsTuple() const {
     return _args;
+}
+
+const std::vector<TypeExpression*>& FunctionCall::getTypeArgs() const {
+    return _typeArgs->getExpressions();
+}
+
+const std::vector<Expression*>& FunctionCall::getArgs() const {
+    return _args->getExpressions();
 }
 
 // INSTANTIATION

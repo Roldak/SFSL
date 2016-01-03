@@ -410,7 +410,6 @@ void TypeChecking::visit(FunctionCreation* func) {
         argTypes[i] = args[i]->type();
     }
 
-
     if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
         func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), argTypes, retType));
     } else {

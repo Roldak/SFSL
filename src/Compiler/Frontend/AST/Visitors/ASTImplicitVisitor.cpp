@@ -179,6 +179,9 @@ void ASTImplicitVisitor::visit(FunctionCreation* func) {
 
 void ASTImplicitVisitor::visit(FunctionCall* call) {
     call->getCallee()->onVisit(this);
+    if (call->getTypeArgsTuple()) {
+        call->getTypeArgsTuple()->onVisit(this);
+    }
     call->getArgsTuple()->onVisit(this);
 }
 
