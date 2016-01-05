@@ -845,7 +845,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         bool matches = true;
 
         for (size_t a = 0; a < expectedArgCount; ++a) {
-            if (!((*_expectedInfo.args)[a]->isSubTypeOf(candidate.arg(a)))) {
+            if (!((*_expectedInfo.args)[a]->apply(_ctx)->isSubTypeOf(candidate.arg(a)))) {
                 matches = false;
                 break;
             }
