@@ -1,0 +1,9 @@
+module test {
+	using sfsl.lang
+
+	type Test = abstract class {
+		new() => {}
+	}
+	
+	def t: Test = Test()
+}

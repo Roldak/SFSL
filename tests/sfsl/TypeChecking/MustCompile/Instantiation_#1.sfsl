@@ -1,0 +1,21 @@
+module test {
+	using sfsl.lang
+
+	type Box[T] => class {
+		new(a: T) => {
+			x = a;
+		}
+		x: T;
+	}
+
+	type Test = class {
+		new() => {}
+		def f() => 2
+	}
+	
+	def t1: Test = Test()
+	def t2: int = Test().f()
+	def t3: Box[int] = Box[int](2)
+	def t4: Box[real] = Box[real](4.5)
+	def t5: int = Box[int](2).x
+}

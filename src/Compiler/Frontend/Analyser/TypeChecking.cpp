@@ -459,7 +459,12 @@ void TypeChecking::visit(FunctionCall* call) {
         Instantiation* inst = static_cast<Instantiation*>(call->getCallee());
         _expectedInfo.node = inst;
 
-        if (!transformIntoCallToMember(call, inst, type::getIf<type::ProperType>(calleeT), "new", expectedArgTypes, retType)) {
+        if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
+            if (!transformIntoCallToMember(call, inst, pt, "new", expectedArgTypes, retType)) {
+                return;
+            }
+        } else {
+            // an error should already have been reported by the typechecking of the Instantiation node
             return;
         }
 
@@ -694,10 +699,9 @@ void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<
     funcClass->setPos(*func);
 
     if (type::ProperType* parentPT = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
-        //funcSym->setOverridenSymbol(parentPT->getClass()->getScope()->getSymbol<sym::DefinitionSymbol>("()", false));
         funcClassScope->copySymbolsFrom(parentPT->getClass()->getScope(), parentPT->getSubstitutionTable());
     } else {
-        _rep.fatal(*funcDecl, "Could not find the definition of `()` in " + parentName);
+        _rep.fatal(*funcDecl, "Could not create type " + parentName);
     }
 
     _redefs.push_back(funcDecl);

@@ -1,0 +1,13 @@
+module test {
+	using sfsl.lang
+
+	type Test = class {
+		new() => {}
+		new(a: int, b: real) => {}
+		new(a: real, b: int) => {}
+	}
+	
+	def t1: Test = Test()
+	def t2: Test = Test(1, 2.4)
+	def t3: Test = Test(2.4, 1)
+}
