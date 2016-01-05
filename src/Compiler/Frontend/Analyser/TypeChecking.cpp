@@ -125,7 +125,7 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
 // TYPE CHECKING
 
 TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : TypeChecker(ctx, res), _currentThis(nullptr), _nextDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr} {
+    : TypeChecker(ctx, res), _currentThis(nullptr), _nextDef(nullptr), _triggeringDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr} {
 
 }
 
@@ -183,6 +183,7 @@ void TypeChecking::visit(DefineDecl* decl) {
     if (TRY_INSERT(_visitedDefs, decl)) {
         SAVE_MEMBER_AND_SET(_currentThis, decl->getSymbol()->getOwner())
         SAVE_MEMBER_AND_SET(_nextDef, decl->getValue())
+        SAVE_MEMBER_AND_SET(_triggeringDef, decl->getSymbol());
 
         type::Type* expectedType = nullptr;
         type::Type* foundType = nullptr;
@@ -203,6 +204,7 @@ void TypeChecking::visit(DefineDecl* decl) {
             foundType = value->type();
         }
 
+        RESTORE_MEMBER(_triggeringDef)
         RESTORE_MEMBER(_nextDef)
         RESTORE_MEMBER(_currentThis)
 
@@ -375,12 +377,7 @@ void TypeChecking::visit(Tuple* tuple) {
 }
 
 void TypeChecking::visit(FunctionCreation* func) {
-    if (func != _nextDef || !_currentThis) {
-        func->setType(createFunctionType(func));
-        return;
-    }
-
-    ASTImplicitVisitor::visit(func);
+    func->getArgs()->onVisit(this);
 
     Expression* expr = func->getArgs();
     std::vector<Expression*> args;
@@ -392,28 +389,46 @@ void TypeChecking::visit(FunctionCreation* func) {
     }
 
     std::vector<type::Type*> argTypes(args.size());
-    type::Type* retType = func->getBody()->type();
+    type::Type* retType = nullptr;
 
-    if (TypeExpression* retTypeExpr = func->getReturnType()) {
-        if (type::Type* type = ASTTypeCreator::createType(retTypeExpr, _ctx)) {
-            if (!retType->apply(_ctx)->isSubTypeOf(type->apply(_ctx))) {
-                _rep.error(*func->getBody(),
-                           "Return type mismatch. Expected " + type->apply(_ctx)->toString() + ", found " + retType->apply(_ctx)->toString());
-            }
-            retType = type;
-        } else {
-            _rep.error(*retTypeExpr, "Invalid return type");
-        }
-    }
-
+    // TODO: What if there are no type annotations with the parameters
     for (size_t i = 0; i < args.size(); ++i) {
         argTypes[i] = args[i]->type();
     }
 
-    if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
-        func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), argTypes, retType));
+    if (TypeExpression* retTypeExpr = func->getReturnType()) {
+        func->getReturnType()->onVisit(this);
+        if (type::Type* type = ASTTypeCreator::createType(retTypeExpr, _ctx)) {
+            retType = type;
+        } else {
+            _rep.error(*retTypeExpr, "Invalid return type");
+        }
     } else {
-        _rep.fatal(*func, "Unknown type of `this`");
+        _triggeringDef->setType(type::Type::NotYetDefined()); // in case of recursive call
+        func->getBody()->onVisit(this);
+        retType = func->getBody()->type();
+    }
+
+    if (func == _nextDef && _currentThis) {
+        // func is a method
+
+        if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
+            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), argTypes, retType));
+        } else {
+            _rep.fatal(*func, "Unknown type of `this`");
+        }
+    } else {
+        // func is a free function
+        assignFunctionType(func, argTypes, retType);
+    }
+
+    if (func->getReturnType()) {
+        _triggeringDef->setType(func->type());
+        func->getBody()->onVisit(this);
+        if (!retType->apply(_ctx)->isSubTypeOf(func->getBody()->type()->apply(_ctx))) {
+            _rep.error(*func->getBody(),
+                       "Return type mismatch. Expected " + func->getBody()->type()->apply(_ctx)->toString() + ", found " + retType->apply(_ctx)->toString());
+        }
     }
 }
 
@@ -648,14 +663,26 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
     return nullptr;
 }
 
-type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func) {
+void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType) {
     // TODO: Have funcClass inherit the right FuncX type so that the method is generated at the right virtual location
 
+    std::vector<type::Type*> parentTypeArgs = argTypes;
+    parentTypeArgs.push_back(retType);
+
+    std::string parentName = "Func" + utils::T_toString(argTypes.size());
+    type::Type* parentType = _mngr.New<type::ConstructorApplyType>(_res.Func(argTypes.size()), parentTypeArgs);
+    sym::TypeSymbol* parentSymbol = _mngr.New<sym::TypeSymbol>(parentName, nullptr);
+    TypeIdentifier* parentExpr = _mngr.New<TypeIdentifier>(parentName);
+
+    parentExpr->setSymbol(parentSymbol);
+    parentSymbol->setType(parentType);
+
     FunctionCreation* meth = _mngr.New<FunctionCreation>("()", func->getArgs(), func->getBody(), func->getReturnType());
-    DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, false, false, false);
-    ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr, std::vector<TypeDecl*>(),
+    DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, true, false, false);
+    ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), parentExpr, std::vector<TypeDecl*>(),
                                                   std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
 
+    meth->setType(_mngr.New<type::MethodType>(funcClass, argTypes, retType));
     meth->setPos(*func);
 
     sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", funcDecl, funcClass);
@@ -666,16 +693,19 @@ type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func) {
     funcClass->setScope(funcClassScope);
     funcClass->setPos(*func);
 
+    if (type::ProperType* parentPT = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
+        //funcSym->setOverridenSymbol(parentPT->getClass()->getScope()->getSymbol<sym::DefinitionSymbol>("()", false));
+        funcClassScope->copySymbolsFrom(parentPT->getClass()->getScope(), parentPT->getSubstitutionTable());
+    } else {
+        _rep.fatal(*funcDecl, "Could not find the definition of `()` in " + parentName);
+    }
+
+    _redefs.push_back(funcDecl);
+
     funcClassScope->addSymbol(funcSym);
 
-    funcDecl->onVisit(this);
-
-    if (type::MethodType* mt = type::getIf<type::MethodType>(meth->type())) {
-        return _mngr.New<type::FunctionType>(mt->getArgTypes(), mt->getRetType(), funcClass);
-    } else {
-        _rep.fatal(*func, "Should have been a method type");
-        return nullptr;
-    }
+    func->setType(_mngr.New<type::FunctionType>(argTypes, retType, funcClass));
+    funcSym->setType(meth->type());
 }
 
 class OverloadedDefSymbolCandidate final {

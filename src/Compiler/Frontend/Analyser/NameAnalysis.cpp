@@ -468,7 +468,9 @@ void SymbolAssignation::visit(FunctionCall* call) {
             Instantiation* inst = _mngr.New<Instantiation>(expr);
             inst->setPos(*call->getCallee());
 
+            common::Positionnable callPos = *call;
             *call = FunctionCall(inst, nullptr, call->getArgsTuple());
+            call->setPos(callPos);
         }
     }
 }
