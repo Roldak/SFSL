@@ -423,7 +423,16 @@ Expression* Parser::parsePrimary() {
             }
         }
         else if (accept(tok::OPER_L_BRACKET)) {
-            return parseTypeTuple();
+            TypeTuple* typeArgs = parseTypeTuple();
+            expect(tok::OPER_L_PAREN, "`(`");
+            Tuple* args = parseTuple();
+            TypeExpression* retType = nullptr;
+            if (accept(tok::OPER_THIN_ARROW)) {
+                retType = parseTypeExpression(false);
+            }
+            expect(tok::OPER_FAT_ARROW, "`=>`");
+            return _mngr.New<FunctionCreation>(_currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
+                                               typeArgs, args, parseExpression(), retType);
         }
         else if (accept(tok::OPER_L_BRACE)) {
             return parseBlock();
@@ -533,13 +542,13 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     } else if (accept(tok::OPER_FAT_ARROW)) {
         res = _mngr.New<FunctionCreation>(
                     _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
-                    left, parseExpression());
+                    nullptr, left, parseExpression());
     } else if (accept(tok::OPER_THIN_ARROW)) {
         TypeExpression* retType = parseTypeExpression(false);
         expect(tok::OPER_FAT_ARROW, "`=>`");
         res = _mngr.New<FunctionCreation>(
                     _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
-                    left, parseExpression(), retType);
+                    nullptr, left, parseExpression(), retType);
     } else if (accept(tok::OPER_DOT)) {
         Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : parseIdentifier("Expected attribute / method name");
         res = _mngr.New<MemberAccess>(left, id);

@@ -233,7 +233,7 @@ class FunctionCreation :
         public type::TypeParametrizable {
 public:
 
-    FunctionCreation(const std::string& name, Expression* args, Expression* body, TypeExpression* retType = nullptr);
+    FunctionCreation(const std::string& name, TypeTuple* typeArgs, Expression* args, Expression* body, TypeExpression* retType = nullptr);
     virtual ~FunctionCreation();
 
     SFSL_AST_ON_VISIT_H
@@ -242,6 +242,11 @@ public:
      * @return The name of the function
      */
     const std::string& getName() const;
+
+    /**
+     * @return The tuple of type arguments
+     */
+    TypeTuple* getTypeArgs() const;
 
     /**
      * @return The tuple of arguments
@@ -261,6 +266,7 @@ public:
 private:
 
     std::string _name;
+    TypeTuple* _typeArgs;
     Expression* _args;
     Expression* _body;
     TypeExpression* _retType;

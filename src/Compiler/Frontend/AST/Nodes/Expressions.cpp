@@ -157,8 +157,8 @@ const std::vector<Expression*>& Tuple::getExpressions() {
 
 // FUNCTION CREATION
 
-FunctionCreation::FunctionCreation(const std::string& name, Expression *args, Expression* body, TypeExpression* retType)
-    : _name(name), _args(args), _body(body), _retType(retType) {
+FunctionCreation::FunctionCreation(const std::string& name, TypeTuple* typeArgs, Expression *args, Expression* body, TypeExpression* retType)
+    : _name(name), _typeArgs(typeArgs), _args(args), _body(body), _retType(retType) {
 
 }
 
@@ -170,6 +170,10 @@ SFSL_AST_ON_VISIT_CPP(FunctionCreation)
 
 const std::string& FunctionCreation::getName() const {
     return _name;
+}
+
+TypeTuple* FunctionCreation::getTypeArgs() const {
+    return _typeArgs;
 }
 
 Expression* FunctionCreation::getArgs() const {

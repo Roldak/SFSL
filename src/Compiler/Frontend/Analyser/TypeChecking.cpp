@@ -680,7 +680,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<
     parentExpr->setSymbol(parentSymbol);
     parentSymbol->setType(parentType);
 
-    FunctionCreation* meth = _mngr.New<FunctionCreation>("()", func->getArgs(), func->getBody(), func->getReturnType());
+    FunctionCreation* meth = _mngr.New<FunctionCreation>("()", func->getTypeArgs(), func->getArgs(), func->getBody(), func->getReturnType());
     DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, true, false, false);
     ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), parentExpr, std::vector<TypeDecl*>(),
                                                   std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
