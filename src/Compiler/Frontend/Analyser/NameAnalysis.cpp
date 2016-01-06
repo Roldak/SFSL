@@ -294,24 +294,7 @@ void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
         args.push_back(expr);
     }
 
-    for (TypeExpression* expr : args) {
-        TypeIdentifier* id;
-
-        if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `T`
-            id = static_cast<TypeIdentifier*>(expr);
-        } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: kind`
-            id = static_cast<KindSpecifier*>(expr)->getSpecified();
-        } else {
-            return; // Error already reported in scope generation
-                    //  => compiler will stop before type dependency is even used
-        }
-
-        if (id->getSymbol()->getSymbolType() == sym::SYM_TPE) {
-            _parameters.push_back(static_cast<sym::TypeSymbol*>(id->getSymbol()));
-        } else {
-            _ctx->reporter().fatal(*expr, "Is supposed to be a TypeSymbol");
-        }
-    }
+    size_t pushed = pushTypeParameters(args);
 
     tc->getBody()->onVisit(this);
 
@@ -319,13 +302,24 @@ void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
     debugDumpDependencies(tc);
 #endif
 
-    _parameters.resize(_parameters.size() - args.size());
+    _parameters.resize(_parameters.size() - pushed);
 }
 
 void TypeDependencyFixation::visit(FunctionCreation* func) {
     func->setDependencies(_parameters);
 
-    ASTImplicitVisitor::visit(func);
+    if (func->getTypeArgs()) {
+        func->getTypeArgs()->onVisit(this);
+        pushTypeParameters(func->getTypeArgs()->getExpressions());
+    }
+
+    func->getArgs()->onVisit(this);
+
+    if (TypeExpression* retType = func->getReturnType()) {
+        retType->onVisit(this);
+    }
+
+    func->getBody()->onVisit(this);
 
 #ifdef DEBUG_DEPENDENCIES
     debugDumpDependencies(func);
@@ -336,6 +330,30 @@ void TypeDependencyFixation::visit(TypeConstructorCall* tcall) {
     tcall->setDependencies(_parameters);
 
     ASTImplicitVisitor::visit(tcall);
+}
+
+size_t TypeDependencyFixation::pushTypeParameters(const std::vector<TypeExpression*>& typeParams) {
+    size_t pushed = 0;
+    for (TypeExpression* typeParam : typeParams) {
+        TypeIdentifier* id;
+
+        if (isNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
+            id = static_cast<TypeIdentifier*>(typeParam);
+        } else if(isNodeOfType<KindSpecifier>(typeParam, _ctx)) { // arg of the form `x: kind`
+            id = static_cast<KindSpecifier*>(typeParam)->getSpecified();
+        } else {
+            break; // Error already reported in scope generation
+                    //  => compiler will stop before type dependency is even used
+        }
+
+        if (id->getSymbol()->getSymbolType() == sym::SYM_TPE) {
+            _parameters.push_back(static_cast<sym::TypeSymbol*>(id->getSymbol()));
+            ++pushed;
+        } else {
+            _ctx->reporter().fatal(*typeParam, "Is supposed to be a TypeSymbol");
+        }
+    }
+    return pushed;
 }
 
 template<typename T>
