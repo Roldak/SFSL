@@ -168,6 +168,9 @@ void ASTImplicitVisitor::visit(Tuple* tuple) {
 }
 
 void ASTImplicitVisitor::visit(FunctionCreation* func) {
+    if (func->getTypeArgs()) {
+        func->getTypeArgs()->onVisit(this);
+    }
     func->getArgs()->onVisit(this);
 
     if (TypeExpression* retType = func->getReturnType()) {

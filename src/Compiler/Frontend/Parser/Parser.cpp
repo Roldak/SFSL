@@ -423,16 +423,23 @@ Expression* Parser::parsePrimary() {
             }
         }
         else if (accept(tok::OPER_L_BRACKET)) {
+            SAVE_POS(pos)
+
             TypeTuple* typeArgs = parseTypeTuple();
+
             expect(tok::OPER_L_PAREN, "`(`");
             Tuple* args = parseTuple();
+
             TypeExpression* retType = nullptr;
             if (accept(tok::OPER_THIN_ARROW)) {
                 retType = parseTypeExpression(false);
             }
+
             expect(tok::OPER_FAT_ARROW, "`=>`");
-            return _mngr.New<FunctionCreation>(_currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
+            toRet = _mngr.New<FunctionCreation>(_currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
                                                typeArgs, args, parseExpression(), retType);
+            toRet->setPos(pos);
+            toRet->setEndPos(_lastTokenEndPos);
         }
         else if (accept(tok::OPER_L_BRACE)) {
             return parseBlock();

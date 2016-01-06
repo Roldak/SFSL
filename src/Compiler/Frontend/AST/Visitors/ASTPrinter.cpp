@@ -287,6 +287,9 @@ void ASTPrinter::visit(Tuple* tuple) {
 }
 
 void ASTPrinter::visit(FunctionCreation* func) {
+    if (func->getTypeArgs()) {
+        func->getTypeArgs()->onVisit(this);
+    }
     _ostream << "(";
     func->getArgs()->onVisit(this);
 

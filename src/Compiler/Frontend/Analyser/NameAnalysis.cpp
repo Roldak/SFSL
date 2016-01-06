@@ -163,18 +163,7 @@ void ScopeGeneration::visit(TypeConstructorCreation* tc) {
         args.push_back(expr);
     }
 
-    for (TypeExpression* expr : args) {
-        if (isNodeOfType<TypeIdentifier>(expr, _ctx)) { // arg of the form `T`
-            createProperType(static_cast<TypeIdentifier*>(expr),
-                             ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
-                                 _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(expr)->getValue(), _ctx));
-        } else if(isNodeOfType<KindSpecifier>(expr, _ctx)) { // arg of the form `x: kind`
-            // The type var is already going to be created by the KindSpecifier Node
-            expr->onVisit(this);
-        } else {
-            _ctx->reporter().error(*expr, "Type argument should be an identifier");
-        }
-    }
+    generateTypeParametersSymbols(args);
 
     tc->getBody()->onVisit(this);
 
@@ -198,6 +187,10 @@ void ScopeGeneration::visit(Block* block) {
 
 void ScopeGeneration::visit(FunctionCreation* func) {
     pushScope(func);
+
+    if (func->getTypeArgs()) {
+        generateTypeParametersSymbols(func->getTypeArgs()->getExpressions());
+    }
 
     Expression* expr = func->getArgs();
     std::vector<Expression*> args;
@@ -251,6 +244,21 @@ void ScopeGeneration::pushScope(sym::Scoped* scoped, bool isDefScope) {
 
 void ScopeGeneration::popScope() {
     _curScope = _curScope->getParent();
+}
+
+void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams) {
+    for (TypeExpression* typeParam : typeParams) {
+        if (isNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
+            createProperType(static_cast<TypeIdentifier*>(typeParam),
+                             ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
+                                 _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(typeParam)->getValue(), _ctx));
+        } else if(isNodeOfType<KindSpecifier>(typeParam, _ctx)) { // arg of the form `x: kind`
+            // The type var is already going to be created by the KindSpecifier Node
+            typeParam->onVisit(this);
+        } else {
+            _ctx->reporter().error(*typeParam, "Type argument should be an identifier");
+        }
+    }
 }
 
 // TYPE DEPENDENCY FIXATION
