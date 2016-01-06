@@ -27,8 +27,6 @@ public:
 
 private:
 
-    static void buildSTDModules(Compiler& cmp, ProgramBuilder builder);
-
     const std::string _source;
     bool _shouldCompile;
 

@@ -105,6 +105,8 @@ IfExpression::~IfExpression() {
 
 }
 
+SFSL_AST_ON_VISIT_CPP(IfExpression)
+
 Expression *IfExpression::getCondition() const {
     return _cond;
 }
@@ -116,8 +118,6 @@ Expression* IfExpression::getThen() const {
 Expression* IfExpression::getElse() const {
     return _else;
 }
-
-SFSL_AST_ON_VISIT_CPP(IfExpression)
 
 // MEMBER ACCESS
 
@@ -186,8 +186,8 @@ TypeExpression*FunctionCreation::getReturnType() const {
 
 // FUNCTION CALL
 
-FunctionCall::FunctionCall(Expression* callee, Tuple* args)
-    : _callee(callee), _args(args) {
+FunctionCall::FunctionCall(Expression* callee, TypeTuple* typeArgs, Tuple* args)
+    : _callee(callee), _typeArgs(typeArgs), _args(args) {
 
 }
 
@@ -201,17 +201,25 @@ Expression* FunctionCall::getCallee() const {
     return _callee;
 }
 
-const std::vector<Expression*>& FunctionCall::getArgs() const {
-    return _args->getExpressions();
+TypeTuple* FunctionCall::getTypeArgsTuple() const {
+    return _typeArgs;
 }
 
 Tuple* FunctionCall::getArgsTuple() const {
     return _args;
 }
 
+const std::vector<TypeExpression*>& FunctionCall::getTypeArgs() const {
+    return _typeArgs->getExpressions();
+}
+
+const std::vector<Expression*>& FunctionCall::getArgs() const {
+    return _args->getExpressions();
+}
+
 // INSTANTIATION
 
-Instantiation::Instantiation(ClassDecl* instantiated) : _instantiated(instantiated) {
+Instantiation::Instantiation(TypeExpression* instantiated) : _instantiated(instantiated) {
 
 }
 
@@ -221,7 +229,7 @@ Instantiation::~Instantiation() {
 
 SFSL_AST_ON_VISIT_CPP(Instantiation)
 
-ClassDecl* Instantiation::getInstantiatedClass() const {
+TypeExpression* Instantiation::getInstantiatedExpression() const {
     return _instantiated;
 }
 
@@ -235,11 +243,11 @@ Identifier::~Identifier() {
 
 }
 
+SFSL_AST_ON_VISIT_CPP(Identifier)
+
 const std::string& Identifier::getValue() const {
     return _name;
 }
-
-SFSL_AST_ON_VISIT_CPP(Identifier)
 
 // THIS
 
@@ -263,11 +271,11 @@ BoolLitteral::~BoolLitteral() {
 
 }
 
+SFSL_AST_ON_VISIT_CPP(BoolLitteral)
+
 sfsl_bool_t BoolLitteral::getValue() const {
     return _value;
 }
-
-SFSL_AST_ON_VISIT_CPP(BoolLitteral)
 
 // INT LITTERAL
 
@@ -295,11 +303,11 @@ RealLitteral::~RealLitteral() {
 
 }
 
+SFSL_AST_ON_VISIT_CPP(RealLitteral)
+
 sfsl_real_t RealLitteral::getValue() const {
     return _value;
 }
-
-SFSL_AST_ON_VISIT_CPP(RealLitteral)
 
 // STRING LITTERAL
 

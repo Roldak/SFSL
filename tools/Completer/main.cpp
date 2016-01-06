@@ -47,6 +47,7 @@ public:
     virtual bool run(PhaseContext& pctx) {
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
+        common::AbstractPrimitiveNamer* namer = pctx.require<common::AbstractPrimitiveNamer>("namer");
 
         complete::ScopeFinder is(ctx, _scopeId);
         prog->onVisit(&is);
@@ -59,7 +60,7 @@ public:
 
         src::StringSource source(src::InputSourceName::make(ctx, "tmp"), _toComplete);
         lex::Lexer toCompleteLexer(ctx, source);
-        ast::Parser toCompleteParser(ctx, toCompleteLexer);
+        ast::Parser toCompleteParser(ctx, toCompleteLexer, namer);
 
         _exprToComplete = toCompleteParser.parseSingleExpression();
 
@@ -117,11 +118,12 @@ public:
     void outputPossibilities(type::Type* tp, CompletionType ct) {
         if (ct == T_DOT) {
             if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
-                ast::ClassDecl* clss = pt->getClass();
-                sym::Scope* clssScope = clss->getScope();
+                if (ast::ClassDecl* clss = pt->getClass()) {
+                    sym::Scope* clssScope = clss->getScope();
 
-                for (const std::pair<std::string, sym::SymbolData>& entry : clssScope->getAllSymbols()) {
-                    outputFromSymbolData(entry.second, tp->applyTCCallsOnly(_ctx)->getSubstitutionTable());
+                    for (const std::pair<std::string, sym::SymbolData>& entry : clssScope->getAllSymbols()) {
+                        outputFromSymbolData(entry.second, tp->applyTCCallsOnly(_ctx)->getSubstitutionTable());
+                    }
                 }
             }
         }
@@ -169,6 +171,52 @@ std::vector<size_t> scopeIdFromStr(const std::string& scope) {
         scopeId.push_back(utils::String_toT<size_t>(str));
     }
     return scopeId;
+}
+
+
+void createFunctionClass(Compiler cmp, Module dest, size_t nbArg) {
+    std::string name = "Func";
+    name += std::to_string(nbArg);
+
+    std::vector<Type> TCargs;
+    std::string abstractDefTypeStr = "(";
+    if (nbArg > 0) {
+        for (size_t i = 0; i < nbArg - 1; ++i) {
+            std::string argName = "A";
+            argName += std::to_string(i);
+
+            abstractDefTypeStr += argName + ", ";
+            TCargs.push_back(cmp.parseType(argName));
+        }
+        abstractDefTypeStr += std::string("A") + std::to_string(nbArg - 1) + ")->R";
+        TCargs.push_back(cmp.parseType(std::string("A") + std::to_string(nbArg - 1)));
+    } else {
+        abstractDefTypeStr += ")->R";
+    }
+
+    TCargs.push_back(cmp.parseType("R"));
+
+    Type abstractDefType = cmp.parseType(abstractDefTypeStr);
+    Type funcClass = cmp.classBuilder(name).setAbstract(true).addAbstractDef("()", abstractDefType).build();
+    Type funcTC = cmp.typeConstructorBuilder(name).setArgs(TCargs).setReturn(funcClass).build();
+
+    dest.typeDef(name, funcTC);
+}
+
+void buildSTDModules(Compiler& cmp, ProgramBuilder builder) {
+    Module slang = builder.openModule("sfsl").openModule("lang");
+    slang.typeDef("unit", cmp.classBuilder("unit").build());
+    slang.typeDef("bool", cmp.classBuilder("bool").build());
+    slang.typeDef("int", cmp.classBuilder("int").build());
+    slang.typeDef("real", cmp.classBuilder("real").build());
+    slang.typeDef("string", cmp.classBuilder("string").build());
+
+    createFunctionClass(cmp, slang, 0);
+    createFunctionClass(cmp, slang, 1);
+    createFunctionClass(cmp, slang, 2);
+    createFunctionClass(cmp, slang, 3);
+    createFunctionClass(cmp, slang, 4);
+    createFunctionClass(cmp, slang, 5);
 }
 
 int main(int argc, char** argv) {
@@ -237,12 +285,7 @@ int main(int argc, char** argv) {
         return 3;
     }
 
-    Module slang = prog.openModule("sfsl").openModule("lang");
-    slang.typeDef("unit", cmp.classBuilder("unit").build());
-    slang.typeDef("bool", cmp.classBuilder("bool").build());
-    slang.typeDef("int", cmp.classBuilder("int").build());
-    slang.typeDef("real", cmp.classBuilder("real").build());
-    slang.typeDef("string", cmp.classBuilder("string").build());
+    buildSTDModules(cmp, prog);
 
     if (generate) {
         Pipeline ppl = Pipeline::createEmpty().insert(std::shared_ptr<Phase>(new ScopeIdentiferPhase));

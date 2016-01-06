@@ -10,7 +10,8 @@
 
 namespace sfsl {
 
-CompilerConfig::CompilerConfig(AbstractReporter* rep, size_t chunkSize) : _rep(rep), _chunkSize(chunkSize) {
+CompilerConfig::CompilerConfig(AbstractReporter* rep, common::AbstractPrimitiveNamer* namer, size_t chunkSize)
+    : _rep(rep), _namer(namer), _chunkSize(chunkSize) {
 
 }
 
@@ -32,6 +33,14 @@ void CompilerConfig::setReporter(AbstractReporter* rep) {
 
 AbstractReporter* CompilerConfig::getReporter() const {
     return _rep;
+}
+
+void CompilerConfig::setPrimitiveNamer(common::AbstractPrimitiveNamer* namer) {
+    _namer = namer;
+}
+
+common::AbstractPrimitiveNamer* CompilerConfig::getPrimitiveNamer() const {
+    return _namer;
 }
 
 }

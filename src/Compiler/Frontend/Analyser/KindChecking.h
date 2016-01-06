@@ -45,6 +45,7 @@ public:
     virtual void visit(KindSpecifier* ks) override;
 
     virtual void visit(TypeSpecifier* ts) override;
+    virtual void visit(Instantiation* inst) override;
 
 private:
 
@@ -57,6 +58,8 @@ private:
     std::set<TypeDecl*> _visitedTypeDefs;
     std::set<TypeExpression*> _deferredExpressions;
     bool _mustDefer;
+
+    bool _insideMemberAccess;
 };
 
 }

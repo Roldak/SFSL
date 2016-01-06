@@ -55,7 +55,8 @@ public:
             TypeExpression* parent,
             const std::vector<TypeDecl*>& tdecls,
             const std::vector<TypeSpecifier*>& fields,
-            const std::vector<DefineDecl*>& defs);
+            const std::vector<DefineDecl*>& defs,
+            bool isAbstract);
 
     virtual ~ClassDecl();
 
@@ -86,6 +87,11 @@ public:
      */
     const std::vector<DefineDecl*>& getDefs() const;
 
+    /**
+     * @return True if the class is marked with the `abstract` flag
+     */
+    bool isAbstract() const;
+
     typedef type::CanSubtype<ClassDecl> CanSubtypeClasses;
 
 private:
@@ -96,6 +102,8 @@ private:
     std::vector<TypeDecl*> _tdecls;
     std::vector<TypeSpecifier*> _fields;
     std::vector<DefineDecl*> _defs;
+
+    bool _isAbstract;
 };
 
 /**
@@ -104,7 +112,7 @@ private:
 class FunctionTypeDecl : public TypeExpression {
 public:
 
-    FunctionTypeDecl(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType);
+    FunctionTypeDecl(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType, TypeExpression* classEquivalent);
     virtual ~FunctionTypeDecl();
 
     SFSL_AST_ON_VISIT_H
@@ -119,10 +127,24 @@ public:
      */
     TypeExpression* getRetType() const;
 
+    /**
+     * @return The TypeExpression equivalent to this node (e.g. Func1[int, int])
+     */
+    TypeExpression* getClassEquivalent() const;
+
+    /**
+     * @brief Constructors a FunctionTypeDecl with the given arguments. (will create the classEquivalent itself)
+     * @return an instance of FunctionTypeDecl from the given arguments
+     */
+    static TypeExpression* make(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType,
+                                const std::vector<std::string>& TCPath, CompCtx_Ptr ctx);
+
 private:
 
     std::vector<TypeExpression*> _argTypes;
     TypeExpression* _retType;
+
+    TypeExpression* _classEquivalent;
 };
 
 /**

@@ -80,9 +80,9 @@ void UserDataAssignment::visit(ClassDecl* clss) {
             defs[virtualLoc] = defsym;
         }
 
-        size_t clssLoc = _currentConstCount++;
+        size_t clssLoc = clss->isAbstract() ? _currentConstCount : _currentConstCount++;
 
-        clss->setUserdata(_mngr.New<ClassUserData>(clssLoc, fields, defs));
+        clss->setUserdata(_mngr.New<ClassUserData>(clssLoc, fields, defs, clss->isAbstract()));
     }
 }
 
@@ -91,7 +91,7 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     sym::DefinitionSymbol* def = decl->getSymbol();
 
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
-        def->setUserdata(_mngr.New<VirtualDefUserData>(_currentConstCount++));
+        def->setUserdata(_mngr.New<VirtualDefUserData>(decl->isAbstract() ? _currentConstCount : _currentConstCount++));
     } else {
         def->setUserdata(_mngr.New<DefUserData>(_currentConstCount++));
     }
@@ -119,8 +119,8 @@ void UserDataAssignment::visit(FunctionCreation* func) {
 
 // CLASS USER DATA
 
-ClassUserData::ClassUserData(size_t loc, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs)
-    : _loc(loc), _fields(fields), _defs(defs) {
+ClassUserData::ClassUserData(size_t loc, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract)
+    : _loc(loc), _fields(fields), _defs(defs), _isAbstract(isAbstract) {
 
 }
 
@@ -166,6 +166,10 @@ bool ClassUserData::indexOf(sym::DefinitionSymbol* def, size_t* index) const {
         }
     }
     return false;
+}
+
+bool ClassUserData::isAbstract() const {
+    return _isAbstract;
 }
 
 // FUNCTION USER DATA

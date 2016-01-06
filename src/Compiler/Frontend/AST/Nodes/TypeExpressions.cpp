@@ -27,9 +27,10 @@ ClassDecl::ClassDecl(const std::string& name,
                      TypeExpression* parent,
                      const std::vector<TypeDecl*>& tdecls,
                      const std::vector<TypeSpecifier*>& fields,
-                     const std::vector<DefineDecl*>& defs)
+                     const std::vector<DefineDecl*>& defs,
+                     bool isAbstract)
 
-    : _name(name), _parent(parent), _tdecls(tdecls), _fields(fields), _defs(defs)
+    : _name(name), _parent(parent), _tdecls(tdecls), _fields(fields), _defs(defs), _isAbstract(isAbstract)
 {
 
 }
@@ -60,10 +61,14 @@ const std::vector<DefineDecl*>& ClassDecl::getDefs() const{
     return _defs;
 }
 
+bool ClassDecl::isAbstract() const {
+    return _isAbstract;
+}
+
 // FUNCTION TYPE DECLARATION
 
-FunctionTypeDecl::FunctionTypeDecl(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType)
-    : _argTypes(argTypes), _retType(retType) {
+FunctionTypeDecl::FunctionTypeDecl(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType, TypeExpression* classEquivalent)
+    : _argTypes(argTypes), _retType(retType), _classEquivalent(classEquivalent) {
 
 }
 
@@ -79,6 +84,34 @@ const std::vector<TypeExpression*>& FunctionTypeDecl::getArgTypes() const {
 
 TypeExpression* FunctionTypeDecl::getRetType() const {
     return _retType;
+}
+
+TypeExpression* FunctionTypeDecl::getClassEquivalent() const {
+    return _classEquivalent;
+}
+
+TypeExpression* makeCallee(std::vector<std::string> path, CompCtx_Ptr ctx) {
+    if (path.size() == 0) {
+        return nullptr;
+    } else if (path.size() == 1) {
+        return ctx->memoryManager().New<TypeIdentifier>(path.back());
+    } else {
+        std::string id = path.back();
+        path.pop_back();
+        return ctx->memoryManager().New<TypeMemberAccess>(makeCallee(path, ctx), ctx->memoryManager().New<TypeIdentifier>(id));
+    }
+}
+
+TypeExpression* FunctionTypeDecl::make(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType,
+                                       const std::vector<std::string>& TCPath, CompCtx_Ptr ctx) {
+    std::vector<TypeExpression*> args = argTypes;
+    args.push_back(retType);
+
+    TypeTuple* argsTuple = ctx->memoryManager().New<TypeTuple>(args);
+    TypeExpression* callee = makeCallee(TCPath, ctx);
+    TypeConstructorCall* classEq = ctx->memoryManager().New<TypeConstructorCall>(callee, argsTuple);
+
+    return ctx->memoryManager().New<FunctionTypeDecl>(argTypes, retType, classEq);
 }
 
 // TYPE MEMBER ACCESS

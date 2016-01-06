@@ -15,6 +15,7 @@
 DECL_PRIVATE_IMPL_FOR(Module)
 DECL_PRIVATE_IMPL_FOR(Type)
 DECL_PRIVATE_IMPL_FOR(ClassBuilder)
+DECL_PRIVATE_IMPL_FOR(TypeConstructorBuilder)
 
 namespace sfsl {
 
@@ -28,6 +29,7 @@ private:
     friend class Compiler;
     friend class PRIVATE_IMPL(Module);
     friend class PRIVATE_IMPL(ClassBuilder);
+    friend class PRIVATE_IMPL(TypeConstructorBuilder);
 
     Type(PRIVATE_IMPL_PTR(Type) impl);
 

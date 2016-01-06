@@ -7,6 +7,7 @@
 //
 
 #include "SymbolResolver.h"
+#include "../../../Common/AbstractPrimitiveNamer.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "Scope.h"
 
@@ -14,27 +15,34 @@ namespace sfsl {
 
 namespace sym {
 
-SymbolResolver::SymbolResolver(const ast::Program* prog, const CompCtx_Ptr &ctx)
+SymbolResolver::SymbolResolver(const ast::Program* prog, const common::AbstractPrimitiveNamer* namer, const CompCtx_Ptr& ctx)
     : _scope(prog->getScope()), _ctx(ctx) {
 
+    _unitType   = createTypeFromSymbol(getSymbol(namer->Unit()));
+    _boolType   = createTypeFromSymbol(getSymbol(namer->Bool()));
+    _intType    = createTypeFromSymbol(getSymbol(namer->Int()));
+    _realType   = createTypeFromSymbol(getSymbol(namer->Real()));
+    _stringType = createTypeFromSymbol(getSymbol(namer->String()));
+
+    for (size_t i = 0; i < NUMBER_OF_FUNC_TYPES; ++i) {
+        _funcTypes[i] = createTypeFromSymbol(getSymbol(namer->Func(i)));
+    }
 }
 
 SymbolResolver::~SymbolResolver() {
 
 }
 
-Symbol* SymbolResolver::getSymbol(const std::string& fullPathName) const {
-    std::vector<std::string> parts;
-    size_t i = 0, e = utils::split(parts, fullPathName, NAMESPACE_DELIMITER);
+Symbol* SymbolResolver::getSymbol(const std::vector<std::string>& fullPath) const {
     Scope* scope = _scope;
     Symbol* lastSym = nullptr;
 
-    for (; i < e; ++i) {
+    for (const std::string& part : fullPath) {
         if (!scope) {
             return nullptr;
         }
 
-        if ((lastSym = scope->getSymbol<sym::Symbol>(parts[i], false))) {
+        if ((lastSym = scope->getSymbol<sym::Symbol>(part, false))) {
             Scoped* scoped;
 
             switch (lastSym->getSymbolType()) {
@@ -50,14 +58,6 @@ Symbol* SymbolResolver::getSymbol(const std::string& fullPathName) const {
     }
 
     return lastSym;
-}
-
-void SymbolResolver::setPredefClassesPath(const std::string& fullPathName) {
-    _unitType   = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + UNIT_CLASS_NAME));
-    _boolType   = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + BOOL_CLASS_NAME));
-    _intType    = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + INT_CLASS_NAME));
-    _realType   = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + REAL_CLASS_NAME));
-    _stringType = createTypeFromSymbol(getSymbol(fullPathName + NAMESPACE_DELIMITER + STRING_CLASS_NAME));
 }
 
 type::Type* SymbolResolver::Unit() const {
@@ -95,11 +95,23 @@ type::Type* SymbolResolver::String() const {
     return _stringType;
 }
 
+type::Type* SymbolResolver::Func(size_t nbArgs) const {
+    if (nbArgs >= NUMBER_OF_FUNC_TYPES) {
+        throw common::CompilationFatalError("Func" + utils::T_toString(nbArgs) + " does not exists");
+    }
+
+    if (!_funcTypes[nbArgs]) {
+        throw common::CompilationFatalError("Func" + utils::T_toString(nbArgs) + " type was not set");
+    }
+    return _funcTypes[nbArgs];
+}
+
 type::Type* SymbolResolver::createTypeFromSymbol(Symbol* sym) {
     if (sym) {
         if (sym->getSymbolType() == SYM_TPE) {
-            return _ctx->memoryManager().New<type::ProperType>(
-                        ast::getClassDeclFromTypeSymbol(static_cast<sym::TypeSymbol*>(sym), _ctx));
+            return ast::ASTTypeCreator::createType(static_cast<sym::TypeSymbol*>(sym)->getTypeDecl()->getExpression(), _ctx);
+            /*return _ctx->memoryManager().New<type::ProperType>(
+                        ast::getClassDeclFromTypeSymbol(static_cast<sym::TypeSymbol*>(sym), _ctx));*/
         }
     }
     throw common::CompilationFatalError("Cannot create type : " +

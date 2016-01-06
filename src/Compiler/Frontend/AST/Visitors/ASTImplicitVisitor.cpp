@@ -90,6 +90,7 @@ void ASTImplicitVisitor::visit(FunctionTypeDecl* ftdecl) {
         arg->onVisit(this);
     }
     ftdecl->getRetType()->onVisit(this);
+    ftdecl->getClassEquivalent()->onVisit(this);
 }
 
 void ASTImplicitVisitor::visit(TypeMemberAccess* tdot) {
@@ -178,11 +179,14 @@ void ASTImplicitVisitor::visit(FunctionCreation* func) {
 
 void ASTImplicitVisitor::visit(FunctionCall* call) {
     call->getCallee()->onVisit(this);
+    if (call->getTypeArgsTuple()) {
+        call->getTypeArgsTuple()->onVisit(this);
+    }
     call->getArgsTuple()->onVisit(this);
 }
 
-void ASTImplicitVisitor::visit(Instantiation*) {
-
+void ASTImplicitVisitor::visit(Instantiation* inst) {
+    inst->getInstantiatedExpression()->onVisit(this);
 }
 
 void ASTImplicitVisitor::visit(Identifier*) {

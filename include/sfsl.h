@@ -14,6 +14,7 @@
 #include "api/Module.h"
 #include "api/StandartReporter.h"
 #include "api/StandartOutputCollector.h"
+#include "api/StandartPrimitiveNamer.h"
 
 #include "api/UnsetVisibilities.h"
 

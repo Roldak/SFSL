@@ -17,7 +17,9 @@
 #include "../Lexer/Tokens/Keyword.h"
 #include "../Lexer/Tokens/Operators.h"
 #include "../Lexer/Tokens/Identifier.h"
+
 #include "../../Common/CompilationContext.h"
+#include "../../../Common/AbstractPrimitiveNamer.h"
 
 #include "../AST/Nodes/Program.h"
 #include "../AST/Nodes/Expressions.h"
@@ -39,7 +41,7 @@ public:
      * @param ctx The compilation context used throughout the parsing to report errors and allocate memory
      * @param lexer The lexer from which to fetch the tokens during the parsing
      */
-    Parser(CompCtx_Ptr& ctx, lex::Lexer& lexer);
+    Parser(CompCtx_Ptr& ctx, lex::Lexer& lexer, const common::AbstractPrimitiveNamer* namer);
 
     /**
      * @brief Start the parsing process
@@ -89,8 +91,8 @@ private:
 
     ast::Program* parseProgram();
     ast::ModuleDecl* parseModule();
-    ast::DefineDecl* parseDef(bool asStatement, bool isRedef, bool isExtern, ast::Identifier* name = nullptr);
-    ast::ClassDecl* parseClass();
+    ast::DefineDecl* parseDef(bool asStatement, bool isRedef, bool isExtern, bool isAbstract, ast::Identifier* name = nullptr);
+    ast::ClassDecl* parseClass(bool isAbstractClass);
     ast::TypeDecl* parseType(bool asStatement);
 
         // statements
@@ -104,24 +106,29 @@ private:
     ast::Expression* parsePrimary();
     ast::TypeSpecifier* parseTypeSpecifier(ast::Identifier* id);
 
-    ast::TypeExpression* parseTypeExpression(bool allowTypeConstructor = true);
-    ast::TypeExpression* parseTypeBinary(ast::TypeExpression* left, int precedence, bool allowTypeConstructor);
-    ast::TypeExpression* parseTypePrimary();
-    ast::KindSpecifier* parseKindSpecifier(ast::TypeIdentifier* id);
-
-    ast::KindSpecifyingExpression* parseKindSpecifyingExpression();
-
     ast::Block* parseBlock();
     ast::IfExpression* parseIf(bool asStatement);
     ast::This* parseThis(const common::Positionnable& pos);
 
     ast::Expression* parseSpecialBinaryContinuity(ast::Expression* left);
     ast::Tuple* parseTuple();
+
+        // type expression
+
+    ast::TypeExpression* parseTypeExpression(bool allowTypeConstructor = true);
+    ast::TypeExpression* parseTypeBinary(ast::TypeExpression* left, int precedence, bool allowTypeConstructor);
+    ast::TypeExpression* parseTypePrimary();
+    ast::TypeExpression* createFunctionTypeDecl(const std::vector<TypeExpression*>& args, TypeExpression* ret);
     ast::TypeTuple* parseTypeTuple();
 
-    ast::CanUseModules::ModulePath parseUsing(const common::Positionnable& usingpos, bool asStatement);
+        // kind expression
+
+    ast::KindSpecifier* parseKindSpecifier(ast::TypeIdentifier* id);
+    ast::KindSpecifyingExpression* parseKindSpecifyingExpression();
 
         // others
+
+    ast::CanUseModules::ModulePath parseUsing(const common::Positionnable& usingpos, bool asStatement);
 
     template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
     RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE*>& exprs, const PARSING_FUNC& f);
@@ -134,6 +141,7 @@ private:
     CompCtx_Ptr _ctx;
     common::AbstractMemoryManager& _mngr;
     lex::Lexer& _lex;
+    const common::AbstractPrimitiveNamer* _namer;
 
     size_t _lastTokenEndPos;
     tok::Token* _currentToken;

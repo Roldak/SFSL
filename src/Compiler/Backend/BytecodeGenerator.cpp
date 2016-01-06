@@ -128,7 +128,7 @@ void DefaultBytecodeGenerator::visit(TypeDecl* tdecl) {
     ASTImplicitVisitor::visit(tdecl);
 }
 
-void DefaultBytecodeGenerator::visit(ClassDecl* clss){
+void DefaultBytecodeGenerator::visit(ClassDecl* clss) {
     if (TRY_INSERT(_visitedNodes, clss)) {
         for (TypeDecl* tdecl : clss->getTypeDecls()) {
             tdecl->onVisit(this);
@@ -138,9 +138,13 @@ void DefaultBytecodeGenerator::visit(ClassDecl* clss){
             def->onVisit(this);
         }
 
-        START_WRITING_TO_CONSTANT_POOL
-
         ClassUserData* clssData = clss->getUserdata<ClassUserData>();
+
+        if (clssData->isAbstract()) {
+            return;
+        }
+
+        START_WRITING_TO_CONSTANT_POOL
 
         for (sym::DefinitionSymbol* def : clssData->getDefs()) {
             Emit<LoadConst>(*clss, getDefLoc(def));
@@ -154,7 +158,7 @@ void DefaultBytecodeGenerator::visit(ClassDecl* clss){
 }
 
 void DefaultBytecodeGenerator::visit(DefineDecl* decl) {
-    if (decl->isExtern()) {
+    if (decl->isExtern() || decl->isAbstract()) {
         return;
     }
 
@@ -321,9 +325,12 @@ void DefaultBytecodeGenerator::visit(FunctionCall* call) {
 }
 
 void DefaultBytecodeGenerator::visit(Instantiation* inst) {
-    size_t classLoc = inst->getInstantiatedClass()->getUserdata<ClassUserData>()->getClassLoc();
-    Emit<LoadConst>(*inst, classLoc);
-    Emit<Instantiate>(*inst);
+    if (type::ProperType* pt = type::getIf<type::ProperType>(inst->type()->apply(_ctx))) {
+        ClassDecl* clss = pt->getClass();
+        size_t classLoc = clss->getUserdata<ClassUserData>()->getClassLoc();
+        Emit<LoadConst>(*inst, classLoc);
+        Emit<Instantiate>(*inst);
+    }
 }
 
 void DefaultBytecodeGenerator::visit(Identifier* ident) {

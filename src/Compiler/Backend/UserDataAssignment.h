@@ -45,7 +45,7 @@ private:
 
 class ClassUserData final : public common::MemoryManageable {
 public:
-    ClassUserData(size_t loc, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs);
+    ClassUserData(size_t loc, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract);
     virtual ~ClassUserData();
 
     size_t getClassLoc() const;
@@ -58,11 +58,14 @@ public:
     bool indexOf(sym::VariableSymbol* field, size_t* index) const;
     bool indexOf(sym::DefinitionSymbol* def, size_t* index) const;
 
+    bool isAbstract() const;
+
 private:
 
     size_t _loc;
     std::vector<sym::VariableSymbol*> _fields;
     std::vector<sym::DefinitionSymbol*> _defs;
+    bool _isAbstract;
 };
 
 class FuncUserData final : public common::MemoryManageable {

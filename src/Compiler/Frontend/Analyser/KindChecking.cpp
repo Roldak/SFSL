@@ -10,6 +10,7 @@
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTKindCreator.h"
+#include "../AST/Visitors/ASTSymbolExtractor.h"
 
 #include "../Symbols/Scope.h"
 
@@ -20,7 +21,7 @@ namespace ast {
 // TYPE CHECK
 
 KindChecking::KindChecking(CompCtx_Ptr& ctx)
-    : ASTImplicitVisitor(ctx), _rep(ctx->reporter()), _mustDefer(true) {
+    : ASTImplicitVisitor(ctx), _rep(ctx->reporter()), _mustDefer(true), _insideMemberAccess(false) {
 
 }
 
@@ -92,12 +93,16 @@ void KindChecking::visit(FunctionTypeDecl* ftdecl) {
 }
 
 void KindChecking::visit(TypeMemberAccess* tdot) {
+    SAVE_MEMBER_AND_SET(_insideMemberAccess, true)
+
     tdot->getAccessed()->onVisit(this);
+
+    RESTORE_MEMBER(_insideMemberAccess)
 
     if (sym::Symbol* s = tdot->getSymbol()) {
         if (kind::Kind* k = tryGetKindOfSymbol(s)) {
             tdot->setKind(k);
-        } else {
+        } else if (!_insideMemberAccess) {
             _rep.error(*tdot, "Symbol " + s->getName() + " does not have any kind");
         }
     } else if (type::Type* t = ASTTypeCreator::createType(tdot->getAccessed(), _ctx)) {
@@ -172,7 +177,7 @@ void KindChecking::visit(TypeIdentifier* tident) {
     if (sym::Symbol* s = tident->getSymbol()) {
         if (kind::Kind* k = tryGetKindOfSymbol(s)) {
             tident->setKind(k);
-        } else {
+        } else if (!_insideMemberAccess) {
             _rep.error(*tident, "Symbol " + s->getName() + " does not have any kind");
         }
     }
@@ -194,6 +199,14 @@ void KindChecking::visit(TypeSpecifier* ts) {
 
     if (ts->getTypeNode()->kind()->getKindGenre() != kind::KIND_PROPER) {
         _rep.error(*ts, "Variable cannot have type " + ts->getTypeNode()->kind()->toString() + " which is not a proper type.");
+    }
+}
+
+void KindChecking::visit(Instantiation* inst) {
+    ASTImplicitVisitor::visit(inst);
+
+    if (inst->getInstantiatedExpression()->kind()->getKindGenre() != kind::KIND_PROPER) {
+        _rep.error(*inst, "Can only instantiate proper types. Found " + inst->getInstantiatedExpression()->kind()->toString());
     }
 }
 

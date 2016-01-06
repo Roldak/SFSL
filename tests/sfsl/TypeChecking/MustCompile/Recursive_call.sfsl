@@ -1,0 +1,9 @@
+module test {
+	using sfsl.lang
+	
+	def f(n: int)->int => f(n)
+	
+	type Test = class {
+		def f(n: int)->int => f(n)
+	}
+}

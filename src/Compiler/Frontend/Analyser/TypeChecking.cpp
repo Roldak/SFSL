@@ -125,7 +125,7 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
 // TYPE CHECKING
 
 TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : TypeChecker(ctx, res), _currentThis(nullptr), _nextDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr} {
+    : TypeChecker(ctx, res), _currentThis(nullptr), _nextDef(nullptr), _triggeringDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr} {
 
 }
 
@@ -151,12 +151,39 @@ void TypeChecking::visit(TypeDecl* tdecl) {
     ASTImplicitVisitor::visit(tdecl);
 }
 
+void TypeChecking::visit(ClassDecl* clss) {
+    ASTImplicitVisitor::visit(clss);
+
+    if (clss->isAbstract()) {
+        return;
+    }
+
+    int abstractOverRedef = 0;
+
+    for (const std::pair<std::string, sym::SymbolData>& pair : clss->getScope()->getAllSymbols()) {
+        if (pair.second.symbol->getSymbolType() == sym::SYM_DEF) {
+            sym::DefinitionSymbol* defsym = static_cast<sym::DefinitionSymbol*>(pair.second.symbol);
+
+            if (defsym->getDef()->isAbstract()) {
+                ++abstractOverRedef;
+            } else if (defsym->getDef()->isRedef()) {
+                --abstractOverRedef;
+            }
+        }
+    }
+
+    if (abstractOverRedef > 0) {
+        _rep.error(*clss, "Non abstract class must redefine every one of its abstract members");
+    }
+}
+
 void TypeChecking::visit(DefineDecl* decl) {
     decl->setType(_res.Unit());
 
     if (TRY_INSERT(_visitedDefs, decl)) {
         SAVE_MEMBER_AND_SET(_currentThis, decl->getSymbol()->getOwner())
         SAVE_MEMBER_AND_SET(_nextDef, decl->getValue())
+        SAVE_MEMBER_AND_SET(_triggeringDef, decl->getSymbol());
 
         type::Type* expectedType = nullptr;
         type::Type* foundType = nullptr;
@@ -177,6 +204,7 @@ void TypeChecking::visit(DefineDecl* decl) {
             foundType = value->type();
         }
 
+        RESTORE_MEMBER(_triggeringDef)
         RESTORE_MEMBER(_nextDef)
         RESTORE_MEMBER(_currentThis)
 
@@ -237,8 +265,8 @@ void TypeChecking::visit(AssignmentExpression* aex) {
     if (type::TypeToBeInferred* tbi = type::getIf<type::TypeToBeInferred>(lhsT)) {
         tbi->assignInferredType(rhsT);
     } else if (!rhsT->apply(_ctx)->isSubTypeOf(lhsT->apply(_ctx))) {
-        _rep.error(*aex, "Assigning incompatible type. Found " +
-                   rhsT->toString() + ", expected " + lhsT->toString());
+        _rep.error(*aex, "Assigning incompatible type. Expected " +
+                   lhsT->toString() + ", found " + rhsT->toString());
     }
 
     aex->setType(rhsT);
@@ -349,12 +377,7 @@ void TypeChecking::visit(Tuple* tuple) {
 }
 
 void TypeChecking::visit(FunctionCreation* func) {
-    if (func != _nextDef || !_currentThis) {
-        func->setType(createFunctionType(func));
-        return;
-    }
-
-    ASTImplicitVisitor::visit(func);
+    func->getArgs()->onVisit(this);
 
     Expression* expr = func->getArgs();
     std::vector<Expression*> args;
@@ -366,29 +389,46 @@ void TypeChecking::visit(FunctionCreation* func) {
     }
 
     std::vector<type::Type*> argTypes(args.size());
-    type::Type* retType = func->getBody()->type();
+    type::Type* retType = nullptr;
 
-    if (TypeExpression* retTypeExpr = func->getReturnType()) {
-        if (type::Type* type = ASTTypeCreator::createType(retTypeExpr, _ctx)) {
-            if (!retType->apply(_ctx)->isSubTypeOf(type->apply(_ctx))) {
-                _rep.error(*func->getBody(),
-                           "Return type mismatch. Expected " + type->apply(_ctx)->toString() + ", found " + retType->apply(_ctx)->toString());
-            }
-            retType = type;
-        } else {
-            _rep.error(*retTypeExpr, "Invalid return type");
-        }
-    }
-
+    // TODO: What if there are no type annotations with the parameters
     for (size_t i = 0; i < args.size(); ++i) {
         argTypes[i] = args[i]->type();
     }
 
-
-    if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
-        func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), argTypes, retType));
+    if (TypeExpression* retTypeExpr = func->getReturnType()) {
+        func->getReturnType()->onVisit(this);
+        if (type::Type* type = ASTTypeCreator::createType(retTypeExpr, _ctx)) {
+            retType = type;
+        } else {
+            _rep.error(*retTypeExpr, "Invalid return type");
+        }
     } else {
-        _rep.fatal(*func, "Unknown type of `this`");
+        _triggeringDef->setType(type::Type::NotYetDefined()); // in case of recursive call
+        func->getBody()->onVisit(this);
+        retType = func->getBody()->type();
+    }
+
+    if (func == _nextDef && _currentThis) {
+        // func is a method
+
+        if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
+            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), argTypes, retType));
+        } else {
+            _rep.fatal(*func, "Unknown type of `this`");
+        }
+    } else {
+        // func is a free function
+        assignFunctionType(func, argTypes, retType);
+    }
+
+    if (func->getReturnType()) {
+        _triggeringDef->setType(func->type());
+        func->getBody()->onVisit(this);
+        if (!retType->apply(_ctx)->isSubTypeOf(func->getBody()->type()->apply(_ctx))) {
+            _rep.error(*func->getBody(),
+                       "Return type mismatch. Expected " + func->getBody()->type()->apply(_ctx)->toString() + ", found " + retType->apply(_ctx)->toString());
+        }
     }
 }
 
@@ -415,37 +455,25 @@ void TypeChecking::visit(FunctionCall* call) {
     const std::vector<type::Type*>* expectedArgTypes = nullptr;
     type::Type* retType = nullptr;
 
-    if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
-        expectedArgTypes = &static_cast<type::FunctionType*>(ft->apply(_ctx))->getArgTypes();
-        retType = ft->getRetType();
+    if (isNodeOfType<Instantiation>(call->getCallee(), _ctx)) {
+        Instantiation* inst = static_cast<Instantiation*>(call->getCallee());
+        _expectedInfo.node = inst;
+
+        if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
+            if (!transformIntoCallToMember(call, inst, pt, "new", expectedArgTypes, retType)) {
+                return;
+            }
+        } else {
+            // an error should already have been reported by the typechecking of the Instantiation node
+            return;
+        }
+
+        retType = inst->type(); // force constructor to return type of its `this`
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
         expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
         retType = mt->getRetType();
     } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
         if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", expectedArgTypes, retType)) {
-            return;
-        }
-    } else if (sym::Symbol* s = ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx)) {
-        if (s->getSymbolType() == sym::SYM_TPE) {
-            sym::TypeSymbol* tpsym = static_cast<sym::TypeSymbol*>(s);
-            if (isNodeOfType<ClassDecl>(tpsym->getTypeDecl()->getExpression(), _ctx)) {
-                Instantiation* inst = _mngr.New<Instantiation>(static_cast<ClassDecl*>(tpsym->getTypeDecl()->getExpression()));
-                inst->setPos(*call->getCallee());
-                inst->onVisit(this);
-
-                _expectedInfo.node = inst;
-
-                if (!transformIntoCallToMember(call, inst, type::getIf<type::ProperType>(inst->type()), "new", expectedArgTypes, retType)) {
-                    return;
-                }
-
-                retType = inst->type(); // force constructor to return type of its `this`
-            } else {
-                _rep.error(*call, "Instantiated type must be a class");
-                return;
-            }
-        } else {
-            _rep.error(*call, "Symbol " + s->getName() + " does not refer to a type");
             return;
         }
     } else {
@@ -474,7 +502,16 @@ void TypeChecking::visit(FunctionCall* call) {
 }
 
 void TypeChecking::visit(Instantiation* inst) {
-    inst->setType(_mngr.New<type::ProperType>(inst->getInstantiatedClass()));
+    type::Type* instType = ASTTypeCreator::createType(inst->getInstantiatedExpression(), _ctx);
+    if (type::ProperType* pt = type::getIf<type::ProperType>(instType->applyTCCallsOnly(_ctx))) {
+        if (pt->getClass()->isAbstract()) {
+            _rep.error(*inst, "Cannot instantiate abstract class " + pt->getClass()->getName());
+        } else {
+            inst->setType(pt);
+        }
+    } else {
+        _rep.error(*inst, "Only classes can be instantiated. Found " + instType->toString());
+    }
 }
 
 void TypeChecking::visit(Identifier* ident) {
@@ -567,7 +604,7 @@ bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* new
             dot->setType(field.t);
 
             common::Positionnable callPos(*call);
-            *call = FunctionCall(dot, call->getArgsTuple());
+            *call = FunctionCall(dot, call->getTypeArgsTuple(), call->getArgsTuple());
             call->setPos(callPos);
 
             return true;
@@ -631,16 +668,24 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
     return nullptr;
 }
 
-type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func) {
+void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType) {
+    std::vector<type::Type*> parentTypeArgs = argTypes;
+    parentTypeArgs.push_back(retType);
+
+    std::string parentName = "Func" + utils::T_toString(argTypes.size());
+    type::Type* parentType = _mngr.New<type::ConstructorApplyType>(_res.Func(argTypes.size()), parentTypeArgs);
+    sym::TypeSymbol* parentSymbol = _mngr.New<sym::TypeSymbol>(parentName, nullptr);
+    TypeIdentifier* parentExpr = _mngr.New<TypeIdentifier>(parentName);
+
+    parentExpr->setSymbol(parentSymbol);
+    parentSymbol->setType(parentType);
+
     FunctionCreation* meth = _mngr.New<FunctionCreation>("()", func->getArgs(), func->getBody(), func->getReturnType());
-    DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, false, false);
-    ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr,
-                                                std::vector<TypeDecl*>(),
-                                                std::vector<TypeSpecifier*>(),
-                                                std::vector<DefineDecl*>{funcDecl});
+    DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, true, false, false);
+    ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), parentExpr, std::vector<TypeDecl*>(),
+                                                  std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
 
-    type::ProperType* pt   = _mngr.New<type::ProperType>(funcClass);
-
+    meth->setType(_mngr.New<type::MethodType>(funcClass, argTypes, retType));
     meth->setPos(*func);
 
     sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", funcDecl, funcClass);
@@ -651,12 +696,18 @@ type::ProperType* TypeChecking::createFunctionType(FunctionCreation* func) {
     funcClass->setScope(funcClassScope);
     funcClass->setPos(*func);
 
+    if (type::ProperType* parentPT = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
+        funcClassScope->copySymbolsFrom(parentPT->getClass()->getScope(), parentPT->getSubstitutionTable());
+    } else {
+        _rep.fatal(*funcDecl, "Could not create type " + parentName);
+    }
+
+    _redefs.push_back(funcDecl);
+
     funcClassScope->addSymbol(funcSym);
 
-    funcDecl->onVisit(this);
-
-    //return _mngr.New<type::FunctionType>(argTypes, retType, nullptr);
-    return pt;
+    func->setType(_mngr.New<type::FunctionType>(argTypes, retType, funcClass));
+    funcSym->setType(meth->type());
 }
 
 class OverloadedDefSymbolCandidate final {
@@ -796,7 +847,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         bool matches = true;
 
         for (size_t a = 0; a < expectedArgCount; ++a) {
-            if (!((*_expectedInfo.args)[a]->isSubTypeOf(candidate.arg(a)))) {
+            if (!((*_expectedInfo.args)[a]->apply(_ctx)->isSubTypeOf(candidate.arg(a)))) {
                 matches = false;
                 break;
             }

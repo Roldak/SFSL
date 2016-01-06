@@ -25,6 +25,7 @@ namespace ast {
 
 class Identifier;
 class TypeExpression;
+class TypeTuple;
 
 /**
  * @brief A superclass that represents an expression.
@@ -271,7 +272,7 @@ private:
 class FunctionCall : public Expression {
 public:
 
-    FunctionCall(Expression* callee, Tuple* args);
+    FunctionCall(Expression* callee, TypeTuple* typeArgs, Tuple* args);
     virtual ~FunctionCall();
 
     SFSL_AST_ON_VISIT_H
@@ -282,9 +283,19 @@ public:
     Expression* getCallee() const;
 
     /**
+     * @return The sequence of type arguments which are applied to the callee
+     */
+    TypeTuple* getTypeArgsTuple() const;
+
+    /**
      * @return The sequence of arguments which are applied to the callee
      */
     Tuple* getArgsTuple() const;
+
+    /**
+     * @return The type arguments by extracting them directly from the tuple
+     */
+    const std::vector<TypeExpression*>& getTypeArgs() const;
 
     /**
      * @return The arguments by extracting them directly from the tuple
@@ -294,8 +305,8 @@ public:
 private:
 
     Expression* _callee;
+    TypeTuple* _typeArgs;
     Tuple* _args;
-
 };
 
 /**
@@ -305,19 +316,19 @@ private:
 class Instantiation : public Expression {
 public:
 
-    Instantiation(ClassDecl* instantiated);
+    Instantiation(TypeExpression* instantiated);
     virtual ~Instantiation();
 
     SFSL_AST_ON_VISIT_H
 
     /**
-     * @return The ClassDecl corresponding to the instantiated class
+     * @return The TypeExpression corresponding to the instantiated type
      */
-    ClassDecl* getInstantiatedClass() const;
+    TypeExpression* getInstantiatedExpression() const;
 
 private:
 
-    ClassDecl* _instantiated;
+    TypeExpression* _instantiated;
 };
 
 /**

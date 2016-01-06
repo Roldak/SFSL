@@ -167,7 +167,7 @@ private:
 
 class ConstructorApplyType : public Type {
 public:
-    ConstructorApplyType(Type* callee, const std::vector<Type*>& args, const common::Positionnable& pos, const SubstitutionTable& substitutionTable = {});
+    ConstructorApplyType(Type* callee, const std::vector<Type*>& args, const SubstitutionTable& substitutionTable = {});
 
     virtual ~ConstructorApplyType();
 
@@ -183,7 +183,6 @@ private:
 
     Type* _callee;
     const std::vector<Type*> _args;
-    const common::Positionnable _pos;
 };
 
 /**

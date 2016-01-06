@@ -106,7 +106,7 @@ Type* Type::NotYetDefined() {
 
 std::string Type::debugSubstitutionTableToString(const SubstitutionTable& table) {
     return std::accumulate(table.begin(), table.end(), std::string("{"), [](const std::string& str, const std::pair<Type*, Type*>& pair) {
-        return str + pair.first->toString() + " => " + pair.second->toString();
+        return str + pair.first->toString() + " => " + pair.second->toString() + " ; ";
     }) + "}";
 }
 
@@ -394,9 +394,8 @@ ast::TypeConstructorCreation* TypeConstructorType::getTypeConstructor() const {
 // CONSTRUCTOR APPLY TYPE
 
 ConstructorApplyType::ConstructorApplyType(Type* callee, const std::vector<Type*>& args,
-                                           const common::Positionnable& pos,
                                            const SubstitutionTable& substitutionTable)
-    : Type(substitutionTable), _callee(callee), _args(args), _pos(pos) {
+    : Type(substitutionTable), _callee(callee), _args(args) {
 
 }
 
@@ -436,7 +435,7 @@ Type* ConstructorApplyType::substitute(const SubstitutionTable& table, CompCtx_P
         substitued[i] = findSubstitution(table, _args[i])->substitute(table, ctx);
     }
 
-    return ctx->memoryManager().New<ConstructorApplyType>(findSubstitution(table, _callee)->substitute(table, ctx), substitued, _pos, copy);
+    return ctx->memoryManager().New<ConstructorApplyType>(findSubstitution(table, _callee)->substitute(table, ctx), substitued, copy);
 }
 
 Type* ConstructorApplyType::apply(CompCtx_Ptr& ctx) const {

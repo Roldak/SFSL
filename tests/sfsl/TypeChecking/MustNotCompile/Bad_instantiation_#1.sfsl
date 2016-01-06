@@ -1,0 +1,8 @@
+module test {
+	using sfsl.lang
+
+	type Test = class {
+	}
+	
+	def t: Test = Test()
+}

@@ -113,7 +113,10 @@ void ASTPrinter::visit(ClassDecl* clss) {
 void ASTPrinter::visit(DefineDecl* decl) {
     if (decl->isExtern()) {
         _ostream << "extern ";
+    } else if (decl->isAbstract()) {
+        _ostream << "abstract ";
     }
+
     _ostream << "def ";
 
     decl->getName()->onVisit(this);
@@ -299,11 +302,14 @@ void ASTPrinter::visit(FunctionCreation* func) {
 
 void ASTPrinter::visit(FunctionCall* call) {
     call->getCallee()->onVisit(this);
+    if (call->getTypeArgsTuple()) {
+        call->getTypeArgsTuple()->onVisit(this);
+    }
     call->getArgsTuple()->onVisit(this);
 }
 
 void ASTPrinter::visit(Instantiation* inst) {
-    _ostream << inst->getInstantiatedClass()->getName();
+    inst->getInstantiatedExpression()->onVisit(this);
 }
 
 void ASTPrinter::visit(Identifier* ident) {

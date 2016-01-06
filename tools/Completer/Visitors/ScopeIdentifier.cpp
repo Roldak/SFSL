@@ -130,7 +130,7 @@ void ScopeFinder::visit(ast::DefineDecl* decl) {
         if (_curScopePath.size() == _scopePath.size()) {
             _block = _mngr.New<ast::Block>(std::vector<ast::Expression*>{decl->getValue()});
             *decl = ast::DefineDecl(decl->getName(), decl->getTypeSpecifier(), _block,
-                                    decl->isRedef(), decl->isExtern());
+                                    decl->isRedef(), decl->isExtern(), decl->isAbstract());
         } else {
             ASTImplicitVisitor::visit(decl);
         }

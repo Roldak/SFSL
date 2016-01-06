@@ -8,6 +8,7 @@
 
 #include "SymbolicTest.h"
 #include "Visitors/SymbolAssertionsChecker.h"
+#include "TestUtils.h"
 
 namespace sfsl {
 
@@ -42,7 +43,7 @@ SymbolicTest::~SymbolicTest() {
 }
 
 bool SymbolicTest::run(AbstractTestLogger& logger) {
-    Compiler cmp(CompilerConfig(StandartReporter::EmptyReporter, 2048));
+    Compiler cmp(CompilerConfig(StandartReporter::CerrReporter, StandartPrimitiveNamer::DefaultPrimitiveNamer, 2048));
 
     try {
         ProgramBuilder builder = cmp.parse(_name, _source);
@@ -51,6 +52,8 @@ bool SymbolicTest::run(AbstractTestLogger& logger) {
         } else {
             try {
                 buildSTDModules(cmp, builder);
+                builder.openModule("test").externDef(ASSERT_SAME_SYM, cmp.parseType("(sfsl.lang.string, sfsl.lang.unit)->sfsl.lang.unit"));
+
                 ErrorCountCollector errcount;
                 cmp.compile(builder, errcount, _ppl);
                 logger.result(_name, (errcount.get() == 0));
@@ -64,17 +67,6 @@ bool SymbolicTest::run(AbstractTestLogger& logger) {
     }
 
     return false;
-}
-
-void SymbolicTest::buildSTDModules(Compiler& cmp, ProgramBuilder builder) {
-    Module slang = builder.openModule("sfsl").openModule("lang");
-    slang.typeDef("unit", cmp.classBuilder("unit").build());
-    slang.typeDef("bool", cmp.classBuilder("bool").build());
-    slang.typeDef("int", cmp.classBuilder("int").build());
-    slang.typeDef("real", cmp.classBuilder("real").build());
-    slang.typeDef("string", cmp.classBuilder("string").build());
-
-    builder.openModule("test").externDef(ASSERT_SAME_SYM, cmp.parseType("(sfsl.lang.string, sfsl.lang.unit)->sfsl.lang.unit"));
 }
 
 }

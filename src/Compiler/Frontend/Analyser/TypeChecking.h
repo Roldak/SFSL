@@ -66,6 +66,7 @@ public:
     virtual void visit(Program* prog) override;
 
     virtual void visit(TypeDecl* tdecl) override;
+    virtual void visit(ClassDecl* clss) override;
     virtual void visit(DefineDecl* decl) override;
 
     virtual void visit(ExpressionStatement* exp) override;
@@ -120,7 +121,7 @@ private:
 
     sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);
 
-    type::ProperType* createFunctionType(FunctionCreation* func);
+    void assignFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType);
 
     template<typename SymbolIterator>
     AnySymbolicData resolveOverload(
@@ -128,6 +129,7 @@ private:
 
     TypeExpression* _currentThis;
     Expression* _nextDef;
+    sym::DefinitionSymbol* _triggeringDef;
 
     ExpectedInfo _expectedInfo;
 

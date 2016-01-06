@@ -17,8 +17,8 @@ namespace sfsl {
 
 using namespace ast;
 
-Parser::Parser(CompCtx_Ptr& ctx, lex::Lexer &lexer)
-    : _ctx(ctx), _mngr(ctx->memoryManager()), _lex(lexer), _lastTokenEndPos(0), _currentToken(nullptr) {
+Parser::Parser(CompCtx_Ptr& ctx, lex::Lexer& lexer, const common::AbstractPrimitiveNamer* namer)
+    : _ctx(ctx), _mngr(ctx->memoryManager()), _lex(lexer), _namer(namer), _lastTokenEndPos(0), _currentToken(nullptr) {
 
 }
 
@@ -117,9 +117,9 @@ TypeIdentifier* Parser::parseTypeIdentifier(const std::string& errMsg) {
     return parseIdentifierHelper<TypeIdentifier>(errMsg);
 }
 
-bool consumeExtern(bool& externVal) {
-    bool tmp = externVal;
-    externVal = false;
+bool consumeBool(bool& val) {
+    bool tmp = val;
+    val = false;
     return tmp;
 }
 
@@ -160,7 +160,7 @@ ModuleDecl* Parser::parseModule() {
         } else if (accept(tok::KW_TPE)) {
             types.push_back(parseType(false));
         } else if (accept(tok::KW_DEF)) {
-            decls.push_back(parseDef(false, false, consumeExtern(isExtern)));
+            decls.push_back(parseDef(false, false, consumeBool(isExtern), false));
         } else if (accept(tok::KW_USING)) {
             usings.push_back(parseUsing(keywordPos, false));
         } else {
@@ -181,13 +181,13 @@ ModuleDecl* Parser::parseModule() {
     return modDecl;
 }
 
-DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, Identifier* name) {
+DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, bool isAbstract, Identifier* name) {
     Identifier* defName = (name ? name : parseIdentifier("Expected definition name"));
 
     TypeExpression* typeSpecifier = nullptr;
     Expression* expr = nullptr;
 
-    if (isExtern) {
+    if (isExtern || isAbstract) {
         // Case: extern def f: int->int
         expect(tok::OPER_COLON, "`:`");
         typeSpecifier = parseTypeExpression();
@@ -209,13 +209,13 @@ DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, Iden
         expect(tok::OPER_SEMICOLON, "`;`");
     }
 
-    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, typeSpecifier, expr, isRedef, isExtern);
+    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, typeSpecifier, expr, isRedef, isExtern, isAbstract);
     defDecl->setPos(*defName);
     defDecl->setEndPos(_lastTokenEndPos);
     return defDecl;
 }
 
-ClassDecl* Parser::parseClass() {
+ClassDecl* Parser::parseClass(bool isAbstractClass) {
     SAVE_POS(startPos)
 
     std::string className = _currentTypeName.empty() ? AnonymousClassName : _currentTypeName;
@@ -238,20 +238,26 @@ ClassDecl* Parser::parseClass() {
 
     while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
         bool isExtern = accept(tok::KW_EXTERN);
+        bool isAbstract = accept(tok::KW_ABSTRACT);
+
         SAVE_POS(externElemPos);
+
+        if (isExtern && isAbstract) {
+            _ctx->reporter().error(externElemPos, "`extern` and `abstract` flags are exclusive");
+        }
 
         if (accept(tok::KW_TPE)) {
             tdecls.push_back(parseType(false));
         } else if (accept(tok::KW_NEW)) {
             Identifier* id = _mngr.New<Identifier>("new");
             id->setPos(externElemPos);
-            defs.push_back(parseDef(false, false, consumeExtern(isExtern), id));
+            defs.push_back(parseDef(false, false, consumeBool(isExtern), false, id));
         } else if (accept(tok::KW_DEF)) {
             Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
-            defs.push_back(parseDef(false, false, consumeExtern(isExtern), id));
+            defs.push_back(parseDef(false, false, consumeBool(isExtern), consumeBool(isAbstract), id));
         } else if (accept(tok::KW_REDEF)) {
             Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
-            defs.push_back(parseDef(false, true, consumeExtern(isExtern), id));
+            defs.push_back(parseDef(false, true, consumeBool(isExtern), consumeBool(isAbstract), id));
         } else {
             Identifier* fieldName = parseIdentifier("Expected field name | def");
             expect(tok::OPER_COLON, "`:`");
@@ -268,9 +274,12 @@ ClassDecl* Parser::parseClass() {
         if (isExtern) {
             _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared extern");
         }
+        if (isAbstract) {
+            _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared abstract");
+        }
     }
 
-    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, parent, tdecls, fields, defs);
+    ClassDecl* classDecl = _mngr.New<ClassDecl>(className, parent, tdecls, fields, defs, isAbstractClass);
     classDecl->setPos(startPos);
     classDecl->setEndPos(_lastTokenEndPos);
     return classDecl;
@@ -305,12 +314,14 @@ Expression* Parser::parseStatement() {
         accept();
 
         switch (kw) {
-        case tok::KW_DEF:   return parseDef(true, false, false);
+        case tok::KW_DEF:   return parseDef(true, false, false, false);
         case tok::KW_IF:    return parseIf(true);
         case tok::KW_TPE:   return parseType(true);
 
         case tok::KW_REDEF:
-            _ctx->reporter().error(startPos, "`redef` keyword can only be used inside a class scope");
+        case tok::KW_ABSTRACT:
+            _ctx->reporter().error(startPos, "`" + tok::Keyword::KeywordTypeToString(kw) +
+                                   "` keyword can only be used inside a class scope");
             return nullptr;
         default:
             _ctx->reporter().error(startPos, "Unexpected keyword `" + tok::Keyword::KeywordTypeToString(kw) + "`");
@@ -459,6 +470,94 @@ TypeSpecifier* Parser::parseTypeSpecifier(Identifier* id) {
     return spec;
 }
 
+Block* Parser::parseBlock() {
+    std::vector<Expression*> stats;
+    std::vector<CanUseModules::ModulePath> usings;
+
+    size_t leftBracePos = _lastTokenEndPos - 1;
+    SAVE_POS(startPos)
+
+    while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
+        SAVE_POS(usingPos)
+
+        if (accept(tok::KW_USING)) {
+            usings.push_back(parseUsing(usingPos, true));
+        } else {
+            stats.push_back(parseStatement());
+        }
+    }
+
+    Block* block = _mngr.New<Block>(stats);
+    block->setUsedModules(usings);
+    block->setPos(startPos);
+    block->setStartPos(leftBracePos);
+    block->setEndPos(_lastTokenEndPos);
+
+    return block;
+}
+
+IfExpression* Parser::parseIf(bool asStatement) {
+    SAVE_POS(startPos)
+
+    Expression* cond = parseExpression();
+
+    Expression* then = asStatement ? parseStatement() : parseExpression();
+    Expression* els = nullptr;
+
+    if (accept(tok::KW_ELSE)) {
+         els = asStatement ? parseStatement() : parseExpression();
+    }
+
+    IfExpression* ifexpr = _mngr.New<IfExpression>(cond, then, els);
+    ifexpr->setPos(startPos);
+    ifexpr->setEndPos(_lastTokenEndPos);
+
+    return ifexpr;
+}
+
+This* Parser::parseThis(const common::Positionnable& pos) {
+    This* ths = _mngr.New<This>();
+    ths->setPos(pos);
+    return ths;
+}
+
+Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
+    Expression* res = nullptr;
+
+    if (accept(tok::OPER_L_PAREN)) {
+        res = _mngr.New<FunctionCall>(left, nullptr, parseTuple());
+    } else if (accept(tok::OPER_L_BRACKET)) {
+        TypeTuple* typeArgs = parseTypeTuple();
+        expect(tok::OPER_L_PAREN, "`(`");
+        res = _mngr.New<FunctionCall>(left, typeArgs, parseTuple());
+    } else if (accept(tok::OPER_FAT_ARROW)) {
+        res = _mngr.New<FunctionCreation>(
+                    _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
+                    left, parseExpression());
+    } else if (accept(tok::OPER_THIN_ARROW)) {
+        TypeExpression* retType = parseTypeExpression(false);
+        expect(tok::OPER_FAT_ARROW, "`=>`");
+        res = _mngr.New<FunctionCreation>(
+                    _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
+                    left, parseExpression(), retType);
+    } else if (accept(tok::OPER_DOT)) {
+        Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : parseIdentifier("Expected attribute / method name");
+        res = _mngr.New<MemberAccess>(left, id);
+    } // no match is not an error
+
+    if (res) {
+        res->setPos(*left);
+        res->setEndPos(_lastTokenEndPos);
+    }
+
+    return res;
+}
+
+Tuple* Parser::parseTuple() {
+    std::vector<Expression*> exprs;
+    return parseTuple<Tuple, tok::OPER_R_PAREN, Expression>(exprs, [&](){return parseExpression();});
+}
+
 TypeExpression* Parser::parseTypeExpression(bool allowTypeConstructor) {
     return parseTypeBinary(parseTypePrimary(), 0, allowTypeConstructor);
 }
@@ -510,6 +609,15 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence, bo
     return left;
 }
 
+TypeExpression* Parser::createFunctionTypeDecl(const std::vector<TypeExpression*>& args, TypeExpression* ret) {
+    return FunctionTypeDecl::make(args, ret, _namer->Func(args.size()), _ctx);
+}
+
+TypeTuple* Parser::parseTypeTuple() {
+    std::vector<TypeExpression*> exprs;
+    return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression>(exprs, [&](){return parseTypeExpression();});
+}
+
 TypeExpression* Parser::parseTypePrimary() {
     SAVE_POS(startPos)
     std::vector<TypeExpression*> exprs;
@@ -534,8 +642,11 @@ TypeExpression* Parser::parseTypePrimary() {
         break;
 
     case tok::TOK_KW:
-        if (accept(tok::KW_CLASS)) {
-            return parseClass();
+        if (accept(tok::KW_ABSTRACT)) {
+            expect(tok::KW_CLASS, "`class`");
+            return parseClass(true);
+        } if (accept(tok::KW_CLASS)) {
+            return parseClass(false);
         } else {
             _ctx->reporter().error(*_currentToken, "Unexpected keyword `" + _currentToken->toString() + "`");
             accept();
@@ -559,7 +670,7 @@ TypeExpression* Parser::parseTypePrimary() {
     }
 
     if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
-        toRet = _mngr.New<FunctionTypeDecl>(exprs, parseTypeExpression());
+        toRet = createFunctionTypeDecl(exprs, parseTypeExpression());
     }
 
     if (toRet) {
@@ -620,95 +731,6 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
     return toRet;
 }
 
-Block* Parser::parseBlock() {
-    std::vector<Expression*> stats;
-    std::vector<CanUseModules::ModulePath> usings;
-
-    size_t leftBracePos = _lastTokenEndPos - 1;
-    SAVE_POS(startPos)
-
-    while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
-        SAVE_POS(usingPos)
-
-        if (accept(tok::KW_USING)) {
-            usings.push_back(parseUsing(usingPos, true));
-        } else {
-            stats.push_back(parseStatement());
-        }
-    }
-
-    Block* block = _mngr.New<Block>(stats);
-    block->setUsedModules(usings);
-    block->setPos(startPos);
-    block->setStartPos(leftBracePos);
-    block->setEndPos(_lastTokenEndPos);
-
-    return block;
-}
-
-IfExpression* Parser::parseIf(bool asStatement) {
-    SAVE_POS(startPos)
-
-    Expression* cond = parseExpression();
-
-    Expression* then = asStatement ? parseStatement() : parseExpression();
-    Expression* els = nullptr;
-
-    if (accept(tok::KW_ELSE)) {
-         els = asStatement ? parseStatement() : parseExpression();
-    }
-
-    IfExpression* ifexpr = _mngr.New<IfExpression>(cond, then, els);
-    ifexpr->setPos(startPos);
-    ifexpr->setEndPos(_lastTokenEndPos);
-
-    return ifexpr;
-}
-
-This* Parser::parseThis(const common::Positionnable& pos) {
-    This* ths = _mngr.New<This>();
-    ths->setPos(pos);
-    return ths;
-}
-
-Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
-    Expression* res = nullptr;
-
-    if (accept(tok::OPER_L_PAREN)) {
-        res = _mngr.New<FunctionCall>(left, parseTuple());
-    } else if (accept(tok::OPER_FAT_ARROW)) {
-        res = _mngr.New<FunctionCreation>(
-                    _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
-                    left, parseExpression());
-    } else if (accept(tok::OPER_THIN_ARROW)) {
-        TypeExpression* retType = parseTypeExpression(false);
-        expect(tok::OPER_FAT_ARROW, "`=>`");
-        res = _mngr.New<FunctionCreation>(
-                    _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
-                    left, parseExpression(), retType);
-    } else if (accept(tok::OPER_DOT)) {
-        Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : parseIdentifier("Expected attribute / method name");
-        res = _mngr.New<MemberAccess>(left, id);
-    } // no match is not an error
-
-    if (res) {
-        res->setPos(*left);
-        res->setEndPos(_lastTokenEndPos);
-    }
-
-    return res;
-}
-
-Tuple* Parser::parseTuple() {
-    std::vector<Expression*> exprs;
-    return parseTuple<Tuple, tok::OPER_R_PAREN, Expression>(exprs, [&](){return parseExpression();});
-}
-
-TypeTuple* Parser::parseTypeTuple() {
-    std::vector<TypeExpression*> exprs;
-    return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression>(exprs, [&](){return parseTypeExpression();});
-}
-
 CanUseModules::ModulePath Parser::parseUsing(const common::Positionnable& usingpos, bool asStatement) {
     CanUseModules::ModulePath mpath;
 
@@ -767,7 +789,7 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
         id->setPos(*oper);
         args->setPos(*right);
         res = _mngr.New<MemberAccess>(left, id);
-        res = _mngr.New<FunctionCall>(res, args);
+        res = _mngr.New<FunctionCall>(res, nullptr, args);
         break;
     }
 

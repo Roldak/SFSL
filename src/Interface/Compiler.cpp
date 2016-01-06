@@ -8,6 +8,7 @@
 
 #include "api/Compiler.h"
 #include "api/Errors.h"
+#include "api/StandartPrimitiveNamer.h"
 
 #include "ModuleContainer.h"
 #include "ReporterAdapter.h"
@@ -30,27 +31,33 @@
 #define MODULE_IMPL_NAME            NAME_OF_IMPL(Module)
 #define PROGRAMBUILDER_IMPL_NAME    NAME_OF_IMPL(ProgramBuilder)
 #define CLASSBUILDER_IMPL_NAME      NAME_OF_IMPL(ClassBuilder)
+#define TCBUILDER_IMPL_NAME         NAME_OF_IMPL(TypeConstructorBuilder)
 
 #define COMPILER_IMPL_PTR           PRIVATE_IMPL_PTR(Compiler)
 #define TYPE_IMPL_PTR               PRIVATE_IMPL_PTR(Type)
 #define MODULE_IMPL_PTR             PRIVATE_IMPL_PTR(Module)
 #define PROGRAMBUILDER_IMPL_PTR     PRIVATE_IMPL_PTR(ProgramBuilder)
 #define CLASSBUILDER_IMPL_PTR       PRIVATE_IMPL_PTR(ClassBuilder)
+#define TCBUILDER_IMPL_PTR          PRIVATE_IMPL_PTR(TypeConstructorBuilder)
 
 #define NEW_COMPILER_IMPL           NEW_PRIV_IMPL(Compiler)
 #define NEW_TYPE_IMPL               NEW_PRIV_IMPL(Type)
 #define NEW_MODULE_IMPL             NEW_PRIV_IMPL(Module)
 #define NEW_PROGRAMBUILDER_IMPL     NEW_PRIV_IMPL(ProgramBuilder)
 #define NEW_CLASSBUILDER_IMPL       NEW_PRIV_IMPL(ClassBuilder)
+#define NEW_TCBUILDER_IMPL          NEW_PRIV_IMPL(TypeConstructorBuilder)
 
 BEGIN_PRIVATE_DEF
 
 class COMPILER_IMPL_NAME final {
 public:
-    COMPILER_IMPL_NAME(CompCtx_Ptr ctx) : ctx(ctx) {}
-    ~COMPILER_IMPL_NAME() {}
+    COMPILER_IMPL_NAME(CompCtx_Ptr ctx, common::AbstractPrimitiveNamer* namer)
+        : ctx(ctx), namer(namer) {}
+
+    ~COMPILER_IMPL_NAME() { }
 
     CompCtx_Ptr ctx;
+    common::AbstractPrimitiveNamer* namer;
 };
 
 class TYPE_IMPL_NAME final {
@@ -80,7 +87,7 @@ public:
 
     void externDef(const std::string& defName, Type defType) {
         ast::Identifier* nameId = mngr.New<ast::Identifier>(defName);
-        _ddecls.push_back(mngr.New<ast::DefineDecl>(nameId, defType._impl->_type, nullptr, false, true));
+        _ddecls.push_back(mngr.New<ast::DefineDecl>(nameId, defType._impl->_type, nullptr, false, true, false));
     }
 
     void typeDef(const std::string& name, Type type) {
@@ -123,8 +130,14 @@ public:
 
 class CLASSBUILDER_IMPL_NAME final {
 public:
-    CLASSBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name) : _mngr(mngr), _name(name) { }
+    CLASSBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name)
+        : _mngr(mngr), _name(name), _isAbstract(false) { }
+
     ~CLASSBUILDER_IMPL_NAME() { }
+
+    void setAbstract(bool value) {
+        _isAbstract = value;
+    }
 
     void addField(const std::string& fieldName, Type fieldType) {
         ast::Identifier* id = _mngr.New<ast::Identifier>(fieldName);
@@ -132,10 +145,16 @@ public:
         _fields.push_back(_mngr.New<ast::TypeSpecifier>(id, tpe));
     }
 
+    void addDef(const std::string& defName, Type defType, bool isRedef, bool isExtern, bool isAbstract) {
+        ast::Identifier* id = _mngr.New<ast::Identifier>(defName);
+        ast::TypeExpression* tpe = defType._impl->_type;
+        _defs.push_back(_mngr.New<ast::DefineDecl>(id, tpe, nullptr, isRedef, isExtern, isAbstract));
+    }
+
     Type build() const {
         ast::ClassDecl* clss = _mngr.New<ast::ClassDecl>(_name, nullptr,
                                          std::vector<ast::TypeDecl*>(),
-                                         _fields, _defs);
+                                         _fields, _defs, _isAbstract);
 
         return Type(NEW_TYPE_IMPL(clss));
     }
@@ -145,8 +164,45 @@ private:
     common::AbstractMemoryManager& _mngr;
 
     std::string _name;
+    bool _isAbstract;
+
     std::vector<ast::TypeSpecifier*> _fields;
     std::vector<ast::DefineDecl*> _defs;
+};
+
+class TCBUILDER_IMPL_NAME final {
+public:
+    TCBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name)
+        : _mngr(mngr), _name(name) { }
+
+    ~TCBUILDER_IMPL_NAME() { }
+
+    void setArgs(const std::vector<Type>& args) {
+        _args.clear();
+        for (Type arg : args) {
+            _args.push_back(arg._impl->_type);
+        }
+    }
+
+    void setRetExpr(Type ret) {
+        _ret = ret._impl->_type;
+    }
+
+    Type build() const {
+        ast::TypeTuple* tt = _mngr.New<ast::TypeTuple>(_args);
+        ast::TypeConstructorCreation* tc = _mngr.New<ast::TypeConstructorCreation>(_name, tt, _ret);
+
+        return Type(NEW_TYPE_IMPL(tc));
+    }
+
+private:
+
+    common::AbstractMemoryManager& _mngr;
+
+    std::string _name;
+
+    std::vector<ast::TypeExpression*> _args;
+    ast::TypeExpression* _ret;
 };
 
 END_PRIVATE_DEF
@@ -157,6 +213,7 @@ namespace sfsl {
 
 Compiler::Compiler(const CompilerConfig& config) {
     CompCtx_Ptr ctx;
+    common::AbstractPrimitiveNamer* namer;
 
     if (config.getReporter() == nullptr) {
         ctx = common::CompilationContext::DefaultCompilationContext(config.getChunkSize());
@@ -165,8 +222,13 @@ Compiler::Compiler(const CompilerConfig& config) {
         ctx = common::CompilationContext::CustomReporterCompilationContext(config.getChunkSize(), std::move(rep));
     }
 
-    _impl = NEW_COMPILER_IMPL(ctx);
+    if (config.getPrimitiveNamer() == nullptr) {
+        namer = StandartPrimitiveNamer::DefaultPrimitiveNamer;
+    } else {
+        namer = config.getPrimitiveNamer();
+    }
 
+    _impl = NEW_COMPILER_IMPL(ctx, namer);
 }
 
 Compiler::~Compiler() {
@@ -177,7 +239,7 @@ ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& sr
     try {
         src::StringSource source(src::InputSourceName::make(_impl->ctx, srcName), srcContent);
         lex::Lexer lexer(_impl->ctx, source);
-        ast::Parser parser(_impl->ctx, lexer);
+        ast::Parser parser(_impl->ctx, lexer, _impl->namer);
         ast::Program* program = parser.parse();
 
         if (_impl->ctx->reporter().getErrorCount() == 0) {
@@ -198,9 +260,11 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
     PhaseContext pctx;
     CompCtx_Ptr ctx = _impl->ctx;
     ast::Program* prog = progBuilder._impl->createUpdatedProgram();
+    common::AbstractPrimitiveNamer* namer = _impl->namer;
 
-    pctx.output("prog", prog);
     pctx.output("ctx", &ctx);
+    pctx.output("prog", prog);
+    pctx.output("namer", namer);
 
     try {
         std::set<std::shared_ptr<Phase>> phases(ppl.getPhases());
@@ -224,7 +288,7 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
 Type Compiler::parseType(const std::string& str) {
     src::StringSource source(src::InputSourceName::make(_impl->ctx, "type"), str);
     lex::Lexer lexer(_impl->ctx, source);
-    ast::Parser parser(_impl->ctx, lexer);
+    ast::Parser parser(_impl->ctx, lexer, _impl->namer);
     ast::TypeExpression* tpe = parser.parseType();
 
     return Type(NEW_TYPE_IMPL(_impl->ctx->reporter().getErrorCount() == 0 ? tpe : nullptr));
@@ -236,11 +300,15 @@ Type Compiler::createFunctionType(const std::vector<Type>& argTypes, Type retTyp
 
     std::transform(argTypes.begin(), argTypes.end(), argTypeExprs.begin(), [](Type t) { return t._impl->_type;});
 
-    return Type(NEW_TYPE_IMPL(_impl->ctx->memoryManager().New<ast::FunctionTypeDecl>(argTypeExprs, retTypeExpr)));
+    return Type(NEW_TYPE_IMPL(ast::FunctionTypeDecl::make(argTypeExprs, retTypeExpr, _impl->namer->Func(argTypes.size()), _impl->ctx)));
 }
 
 ClassBuilder Compiler::classBuilder(const std::string& className) {
     return ClassBuilder(NEW_CLASSBUILDER_IMPL(_impl->ctx->memoryManager(), className));
+}
+
+TypeConstructorBuilder Compiler::typeConstructorBuilder(const std::string& typeConstructorName) {
+    return TypeConstructorBuilder(NEW_TCBUILDER_IMPL(_impl->ctx->memoryManager(), typeConstructorName));
 }
 
 // PROGRAM BUILDER
@@ -274,12 +342,51 @@ ClassBuilder::~ClassBuilder() {
 
 }
 
+ClassBuilder& ClassBuilder::setAbstract(bool value) {
+    _impl->setAbstract(value);
+    return *this;
+}
+
 ClassBuilder& ClassBuilder::addField(const std::string& fieldName, Type fieldType) {
     _impl->addField(fieldName, fieldType);
     return *this;
 }
 
+ClassBuilder& ClassBuilder::addExternDef(const std::string& defName, Type defType, bool isRedef) {
+    _impl->addDef(defName, defType, isRedef, true, false);
+    return *this;
+}
+
+ClassBuilder& ClassBuilder::addAbstractDef(const std::string& defName, Type defType) {
+    _impl->addDef(defName, defType, false, false, true);
+    return *this;
+}
+
 Type ClassBuilder::build() const {
+    return _impl->build();
+}
+
+// TYPE CONSTRUCTOR BUILDER
+
+TypeConstructorBuilder::TypeConstructorBuilder(TCBUILDER_IMPL_PTR impl) : _impl(impl) {
+
+}
+
+TypeConstructorBuilder::~TypeConstructorBuilder() {
+
+}
+
+TypeConstructorBuilder& TypeConstructorBuilder::setArgs(const std::vector<Type>& args) {
+    _impl->setArgs(args);
+    return *this;
+}
+
+TypeConstructorBuilder& TypeConstructorBuilder::setReturn(Type retExpr) {
+    _impl->setRetExpr(retExpr);
+    return *this;
+}
+
+Type TypeConstructorBuilder::build() const {
     return _impl->build();
 }
 

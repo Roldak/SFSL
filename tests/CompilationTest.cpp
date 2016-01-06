@@ -7,6 +7,7 @@
 //
 
 #include "CompilationTest.h"
+#include "TestUtils.h"
 
 namespace sfsl {
 
@@ -24,7 +25,7 @@ CompilationTest::~CompilationTest() {
 bool CompilationTest::run(AbstractTestLogger& logger) {
     bool success;
 
-    Compiler cmp(CompilerConfig(StandartReporter::EmptyReporter, 2048));
+    Compiler cmp(CompilerConfig(StandartReporter::EmptyReporter, StandartPrimitiveNamer::DefaultPrimitiveNamer, 2048));
     try {
         ProgramBuilder builder = cmp.parse(_name, _source);
         if (!builder) {
@@ -48,15 +49,6 @@ bool CompilationTest::run(AbstractTestLogger& logger) {
     }
 
     return success;
-}
-
-void CompilationTest::buildSTDModules(Compiler& cmp, ProgramBuilder builder) {
-    Module slang = builder.openModule("sfsl").openModule("lang");
-    slang.typeDef("unit", cmp.classBuilder("unit").build());
-    slang.typeDef("bool", cmp.classBuilder("bool").build());
-    slang.typeDef("int", cmp.classBuilder("int").build());
-    slang.typeDef("real", cmp.classBuilder("real").build());
-    slang.typeDef("string", cmp.classBuilder("string").build());
 }
 
 }
