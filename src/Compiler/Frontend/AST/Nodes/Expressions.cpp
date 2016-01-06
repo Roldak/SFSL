@@ -105,6 +105,8 @@ IfExpression::~IfExpression() {
 
 }
 
+SFSL_AST_ON_VISIT_CPP(IfExpression)
+
 Expression *IfExpression::getCondition() const {
     return _cond;
 }
@@ -116,8 +118,6 @@ Expression* IfExpression::getThen() const {
 Expression* IfExpression::getElse() const {
     return _else;
 }
-
-SFSL_AST_ON_VISIT_CPP(IfExpression)
 
 // MEMBER ACCESS
 
@@ -243,11 +243,11 @@ Identifier::~Identifier() {
 
 }
 
+SFSL_AST_ON_VISIT_CPP(Identifier)
+
 const std::string& Identifier::getValue() const {
     return _name;
 }
-
-SFSL_AST_ON_VISIT_CPP(Identifier)
 
 // THIS
 
@@ -271,11 +271,11 @@ BoolLitteral::~BoolLitteral() {
 
 }
 
+SFSL_AST_ON_VISIT_CPP(BoolLitteral)
+
 sfsl_bool_t BoolLitteral::getValue() const {
     return _value;
 }
-
-SFSL_AST_ON_VISIT_CPP(BoolLitteral)
 
 // INT LITTERAL
 
@@ -303,11 +303,11 @@ RealLitteral::~RealLitteral() {
 
 }
 
+SFSL_AST_ON_VISIT_CPP(RealLitteral)
+
 sfsl_real_t RealLitteral::getValue() const {
     return _value;
 }
-
-SFSL_AST_ON_VISIT_CPP(RealLitteral)
 
 // STRING LITTERAL
 

@@ -669,8 +669,6 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
 }
 
 void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType) {
-    // TODO: Have funcClass inherit the right FuncX type so that the method is generated at the right virtual location
-
     std::vector<type::Type*> parentTypeArgs = argTypes;
     parentTypeArgs.push_back(retType);
 
