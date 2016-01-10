@@ -196,12 +196,11 @@ DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, bool
         typeSpecifier = parseTypeExpression();
         expect(tok::OPER_EQ, "`=`");
         expr = parseExpression();
-    } else if (!(isType(tok::TOK_OPER) && as<tok::Operator>()->getOpType() == tok::OPER_L_PAREN)) {
-        // Case: def f = (x: int) => 2 * x
-        expect(tok::OPER_EQ, "`=`");
+    } else if (isType(tok::TOK_OPER) && (as<tok::Operator>()->getOpType() == tok::OPER_L_PAREN ||
+                                         as<tok::Operator>()->getOpType() == tok::OPER_L_BRACKET)) {
         expr = parseExpression();
     } else {
-        // Case: def f(x: int) => 2 * x
+        expect(tok::OPER_EQ, "`=`");
         expr = parseExpression();
     }
 
