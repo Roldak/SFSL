@@ -1,0 +1,19 @@
+module test {
+	using sfsl.lang
+	
+	type A[T] => class {}
+	type B[T] => class : A[T] {}
+	
+	def f1(x: A[int]) => x
+	def f2(x: A[A[int]]) => {
+		r: B[int];
+		r;
+	}
+	
+	def t1: (A[int])->A[int] = f1
+	def t2: (B[int])->A[int] = f1
+	
+	def t3: (A[A[int]])->A[int] = f2
+	def t4: (A[A[int]])->B[int] = f2
+	def t5: (A[B[int]])->A[int] = f2
+}

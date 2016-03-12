@@ -425,9 +425,9 @@ void TypeChecking::visit(FunctionCreation* func) {
     if (func->getReturnType()) {
         _triggeringDef->setType(func->type());
         func->getBody()->onVisit(this);
-        if (!retType->apply(_ctx)->isSubTypeOf(func->getBody()->type()->apply(_ctx))) {
+        if (!func->getBody()->type()->apply(_ctx)->isSubTypeOf(retType->apply(_ctx))) {
             _rep.error(*func->getBody(),
-                       "Return type mismatch. Expected " + func->getBody()->type()->apply(_ctx)->toString() + ", found " + retType->apply(_ctx)->toString());
+                       "Return type mismatch. Expected " + retType->apply(_ctx)->toString() + ", found " + func->getBody()->type()->apply(_ctx)->toString());
         }
     }
 }

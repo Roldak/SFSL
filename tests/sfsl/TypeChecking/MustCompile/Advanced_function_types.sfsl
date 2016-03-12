@@ -1,0 +1,21 @@
+module test {
+	using sfsl.lang
+	
+	type A[T] => class {}
+	
+	def t1 = {
+		basic: ()->A[int] = () => {x: A[int];};
+		one_arg: (A[int])->A[int] = (x: A[int]) => x;
+		multi_arg: (A[int], A[int])->A[int] = (x: A[int], y: A[int]) => y;
+		func_ret: (A[int])->(A[int])->A[int] = (x: A[int]) => one_arg;
+		func_arg: ((A[int])->A[int])->A[int] = (x: (A[int])->A[int]) => {y: A[int];};
+	}
+	
+	def t2 = {
+		basic: ()->A[int] = ()->A[int] => {x: A[int];};
+		one_arg: (A[int])->A[int] = (x: A[int])->A[int] => x;
+		multi_arg: (A[int], A[int])->A[int] = (x: A[int], y: A[int])->A[int] => y;
+		func_ret: (A[int])->(A[int])->A[int] = (x: A[int])->((A[int])->A[int]) => one_arg;
+		func_arg: ((A[int])->A[int])->A[int] = (x: (A[int])->A[int])->A[int] => {y: A[int];};
+	}
+}
