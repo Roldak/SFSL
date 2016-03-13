@@ -51,6 +51,9 @@ private:
 
     void visitDeferredExpressions();
 
+    template<typename T>
+    void trySetKindOfSymbolic(T* symbolic);
+
     kind::Kind* tryGetKindOfSymbol(sym::Symbol* sym);
 
     common::AbstractReporter& _rep;

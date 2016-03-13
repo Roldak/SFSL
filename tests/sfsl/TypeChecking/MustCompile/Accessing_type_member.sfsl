@@ -1,0 +1,47 @@
+module test {
+	using sfsl.lang
+	
+	type A = class {
+		type B = class {
+			x: int;
+		}
+	}
+	
+	type B[T] => class {
+		type C = class {
+			x: T;
+		}
+	}
+	
+	type C = class {
+		type D[T] => class {
+			x: T;
+		}
+	}
+	
+	type D[T] => class {
+		type E[K] => class {
+			x: K;
+		}
+	}
+	
+	def t1: int = {
+		x: A.B;
+		x.x;
+	}
+	
+	def t2: int = {
+		x: B[int].C;
+		x.x;
+	}
+	
+	def t3: int = {
+		x: C.D[int];
+		x.x;
+	}
+	
+	def t4: int = {
+		x: D[real].E[int];
+		x.x;
+	}
+}

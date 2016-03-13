@@ -99,16 +99,16 @@ void KindChecking::visit(TypeMemberAccess* tdot) {
 
     RESTORE_MEMBER(_insideMemberAccess)
 
-    if (sym::Symbol* s = tdot->getSymbol()) {
-        if (kind::Kind* k = tryGetKindOfSymbol(s)) {
-            tdot->setKind(k);
-        } else if (!_insideMemberAccess) {
-            _rep.error(*tdot, "Symbol " + s->getName() + " does not have any kind");
-        }
+    if (tdot->getSymbol()) {
+        trySetKindOfSymbolic(tdot);
     } else if (type::Type* t = ASTTypeCreator::createType(tdot->getAccessed(), _ctx)) {
+        // TODO: change this when other constructs allow having type members
         if (type::ProperType* pt = type::getIf<type::ProperType>(t->applyTCCallsOnly(_ctx))) {
-            pt->getClass()->getScope()->assignSymbolic(*tdot, tdot->getMember()->getValue()); // update member access symbolic for potential later use
-            tdot->setKind(kind::ProperKind::create());
+            if (pt->getClass()->getScope()->assignSymbolic(*tdot, tdot->getMember()->getValue())) { // update member access symbolic for potential later use
+                trySetKindOfSymbolic(tdot);
+            } else {
+                _rep.error(*tdot->getMember(), "No member named " + tdot->getMember()->getValue() + " in class " + pt->getClass()->getName());
+            }
         } else {
             _rep.error(*tdot->getAccessed(), "Type " + t->toString() + " cannot have any members");
         }
@@ -174,13 +174,7 @@ void KindChecking::visit(TypeConstructorCall* tcall) {
 }
 
 void KindChecking::visit(TypeIdentifier* tident) {
-    if (sym::Symbol* s = tident->getSymbol()) {
-        if (kind::Kind* k = tryGetKindOfSymbol(s)) {
-            tident->setKind(k);
-        } else if (!_insideMemberAccess) {
-            _rep.error(*tident, "Symbol " + s->getName() + " does not have any kind");
-        }
-    }
+    trySetKindOfSymbolic(tident);
 }
 
 void KindChecking::visit(TypeToBeInferred* tbi) {
@@ -218,6 +212,22 @@ void KindChecking::visitDeferredExpressions() {
         for (TypeExpression* expr : copy) {
             _mustDefer = false;
             expr->onVisit(this);
+        }
+    }
+}
+
+template<typename T>
+void KindChecking::trySetKindOfSymbolic(T* symbolic) {
+    if (symbolic->getSymbolCount() != 1) {
+        _rep.error(*symbolic, "Symbolic refers to several type symbols");
+        return;
+    }
+
+    if (sym::Symbol* s = symbolic->getSymbol()) {
+        if (kind::Kind* k = tryGetKindOfSymbol(s)) {
+            symbolic->setKind(k);
+        } else if (!_insideMemberAccess) {
+            _rep.error(*symbolic, "Symbol " + s->getName() + " does not have any kind");
         }
     }
 }

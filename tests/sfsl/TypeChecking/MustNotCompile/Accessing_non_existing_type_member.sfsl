@@ -1,0 +1,16 @@
+module test {
+	using sfsl.lang
+	
+	type A = class {
+		type B = class {
+			x: int;
+		}
+		type C[T] => class {
+			y: T;
+		}
+	}
+	
+	def test = {
+		x: A.X;
+	}
+}
