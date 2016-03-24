@@ -219,7 +219,7 @@ void KindChecking::visitDeferredExpressions() {
 template<typename T>
 void KindChecking::trySetKindOfSymbolic(T* symbolic) {
     if (symbolic->getSymbolCount() != 1) {
-        _rep.error(*symbolic, "Symbolic refers to several type symbols");
+        _rep.error(*symbolic, "Symbolic refers to zero or several type symbols at the same time");
         return;
     }
 

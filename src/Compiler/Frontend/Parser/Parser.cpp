@@ -574,7 +574,7 @@ Tuple* Parser::parseTuple() {
 }
 
 TypeExpression* Parser::parseTypeExpression(bool allowTypeConstructor) {
-    return parseTypeBinary(parseTypePrimary(), 0, allowTypeConstructor);
+    return parseTypeBinary(parseTypePrimary(allowTypeConstructor), 0, allowTypeConstructor);
 }
 
 TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence, bool allowTypeConstructor) {
@@ -633,7 +633,7 @@ TypeTuple* Parser::parseTypeTuple() {
     return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression>(exprs, [&](){return parseTypeExpression();});
 }
 
-TypeExpression* Parser::parseTypePrimary() {
+TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
     SAVE_POS(startPos)
     std::vector<TypeExpression*> exprs;
 
@@ -685,7 +685,7 @@ TypeExpression* Parser::parseTypePrimary() {
     }
 
     if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
-        toRet = createFunctionTypeDecl(exprs, parseTypeExpression());
+        toRet = createFunctionTypeDecl(exprs, parseTypeExpression(allowTypeConstructor));
     }
 
     if (toRet) {

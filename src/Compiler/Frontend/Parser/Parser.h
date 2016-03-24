@@ -117,7 +117,7 @@ private:
 
     ast::TypeExpression* parseTypeExpression(bool allowTypeConstructor = true);
     ast::TypeExpression* parseTypeBinary(ast::TypeExpression* left, int precedence, bool allowTypeConstructor);
-    ast::TypeExpression* parseTypePrimary();
+    ast::TypeExpression* parseTypePrimary(bool allowTypeConstructor = true);
     ast::TypeExpression* createFunctionTypeDecl(const std::vector<TypeExpression*>& args, TypeExpression* ret);
     ast::TypeTuple* parseTypeTuple();
 
