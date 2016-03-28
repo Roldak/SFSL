@@ -100,6 +100,10 @@ void ASTTypeCreator::visit(TypeIdentifier* ident) {
     createTypeFromSymbolic(ident, *ident);
 }
 
+void ASTTypeCreator::visit(Identifier* ident) {
+    createTypeFromSymbolic(ident, *ident);
+}
+
 type::Type* ASTTypeCreator::getCreatedType() const {
     return _created;
 }

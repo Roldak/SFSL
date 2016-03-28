@@ -1,0 +1,13 @@
+module test {
+	using sfsl.lang
+
+	type Outter = class {
+		type Inner = class {
+			new() => {}
+		}
+		new() => {}
+	}
+	
+	def t1: Outter = Outter()
+	def t2: Outter.Inner = Outter.Inner()
+}

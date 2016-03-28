@@ -141,6 +141,9 @@ private:
     template<typename T>
     void assignFromStaticScope(T* mac, sym::Scoped* scoped, const std::string& typeName);
 
+    template<typename T>
+    void assignFromTypeScope(T* mac, type::Type* t);
+
     void visitParent(ClassDecl* clss);
 
     void addSubtypeRelations(ClassDecl* clss, ClassDecl* parent);

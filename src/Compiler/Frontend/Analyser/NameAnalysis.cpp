@@ -252,7 +252,7 @@ void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpres
             createProperType(static_cast<TypeIdentifier*>(typeParam),
                              ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
                                  _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(typeParam)->getValue(), _ctx));
-        } else if(isNodeOfType<KindSpecifier>(typeParam, _ctx)) { // arg of the form `x: kind`
+        } else if(isNodeOfType<KindSpecifier>(typeParam, _ctx)) { // arg of the form `T: kind`
             // The type var is already going to be created by the KindSpecifier Node
             typeParam->onVisit(this);
         } else {
@@ -554,7 +554,12 @@ void SymbolAssignation::assignMemberAccess(T* mac) {
     if (sym::Symbol* sym = ASTSymbolExtractor::extractSymbol(mac->getAccessed(), _ctx)) {
         if (sym->getSymbolType() == sym::SYM_MODULE) {
             assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName());
+            return;
         }
+    }
+
+    if (type::Type* t = ASTTypeCreator::createType(mac->getAccessed(), _ctx)) {
+        assignFromTypeScope(mac, t);
     }
 }
 
@@ -567,6 +572,18 @@ void SymbolAssignation::assignFromStaticScope(T* mac, sym::Scoped* scoped, const
         _ctx->reporter().error(
                     *(mac->getMember()),
                     std::string("No member named '") + id + "' in " + typeName);
+    }
+}
+
+template<typename T>
+void SymbolAssignation::assignFromTypeScope(T* mac, type::Type* t) {
+    // TODO: change this when other constructs allow having type members
+    if (type::ProperType* pt = type::getIf<type::ProperType>(t->applyTCCallsOnly(_ctx))) {
+        if (!pt->getClass()->getScope()->assignSymbolic(*mac, mac->getMember()->getValue())) { // update member access symbolic for potential later use
+            _ctx->reporter().error(*mac->getMember(), "No member named " + mac->getMember()->getValue() + " in class " + pt->getClass()->getName());
+        }
+    } else {
+        _ctx->reporter().error(*mac->getAccessed(), "Type " + t->toString() + " cannot have any members");
     }
 }
 

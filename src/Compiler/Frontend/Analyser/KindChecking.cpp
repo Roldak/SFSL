@@ -101,17 +101,6 @@ void KindChecking::visit(TypeMemberAccess* tdot) {
 
     if (tdot->getSymbol()) {
         trySetKindOfSymbolic(tdot);
-    } else if (type::Type* t = ASTTypeCreator::createType(tdot->getAccessed(), _ctx)) {
-        // TODO: change this when other constructs allow having type members
-        if (type::ProperType* pt = type::getIf<type::ProperType>(t->applyTCCallsOnly(_ctx))) {
-            if (pt->getClass()->getScope()->assignSymbolic(*tdot, tdot->getMember()->getValue())) { // update member access symbolic for potential later use
-                trySetKindOfSymbolic(tdot);
-            } else {
-                _rep.error(*tdot->getMember(), "No member named " + tdot->getMember()->getValue() + " in class " + pt->getClass()->getName());
-            }
-        } else {
-            _rep.error(*tdot->getAccessed(), "Type " + t->toString() + " cannot have any members");
-        }
     }
 }
 
