@@ -195,7 +195,7 @@ Expression* FieldAssignmentExpression::getAccessed() const {
     return _accessed;
 }
 
-size_t* FieldAssignmentExpression::getFieldId() const {
+size_t FieldAssignmentExpression::getFieldId() const {
     return _fieldId;
 }
 
@@ -263,7 +263,7 @@ size_t VarIdentifier::getLocalId() const {
 // VAR ASSIGNMENT EXPRESSION
 
 VarAssignmentExpression::VarAssignmentExpression(size_t localId, Expression* value)
-    : _localId(localId), _rhs(rhs) {
+    : _localId(localId), _value(value) {
 
 }
 

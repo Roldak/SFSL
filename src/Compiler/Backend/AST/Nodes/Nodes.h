@@ -216,7 +216,7 @@ public:
     /**
      * @return The member part (the right side)
      */
-    size_t* getFieldId() const;
+    size_t getFieldId() const;
 
     /**
      * @return The right hand side of the member assignment
@@ -225,8 +225,8 @@ public:
 
 private:
 
-    DefIdentifier* _accessed;
-    size_t* _fieldId;
+    Expression* _accessed;
+    size_t _fieldId;
     Expression* _value;
 };
 
