@@ -7,11 +7,11 @@
 //
 
 #include "UserDataAssignment.h"
-#include "../Frontend/AST/Visitors/ASTTypeCreator.h"
+#include "../../Frontend/AST/Visitors/ASTTypeCreator.h"
 
 namespace sfsl {
 
-namespace bc {
+namespace ast {
 
 // ASSIGN USER DATAS
 

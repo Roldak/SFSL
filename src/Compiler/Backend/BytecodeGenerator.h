@@ -12,7 +12,7 @@
 #include <iostream>
 #include "CodeGen/CodeGenerator.h"
 #include "Bytecode/Bytecode.h"
-#include "UserDataAssignment.h"
+#include "AST2BAST/UserDataAssignment.h"
 
 namespace sfsl {
 

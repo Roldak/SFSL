@@ -11,13 +11,11 @@
 
 #include <iostream>
 #include <set>
-#include "../Frontend/AST/Visitors/ASTImplicitVisitor.h"
+#include "../../Frontend/AST/Visitors/ASTImplicitVisitor.h"
 
 namespace sfsl {
 
-namespace bc {
-
-using namespace ast;
+namespace ast {
 
 /**
  * @brief

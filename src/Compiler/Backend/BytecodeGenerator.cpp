@@ -66,10 +66,6 @@ void BytecodeGenerator::BindLabel(Label* label) {
     Emit(label);
 }
 
-size_t BytecodeGenerator::getClassLoc(ClassDecl* clss) {
-    return clss->getUserdata<ClassUserData>()->getClassLoc();
-}
-
 template<typename T, typename... Args>
 T* BytecodeGenerator::Emit(const common::Positionnable& pos, Args... args) {
     T* instr = _mngr.New<T>(std::forward<Args>(args)...);
@@ -82,6 +78,10 @@ template<typename T>
 T* BytecodeGenerator::Emit(T* instr) {
     _out << instr;
     return instr;
+}
+
+size_t BytecodeGenerator::getClassLoc(ClassDecl* clss) {
+    return clss->getUserdata<ClassUserData>()->getClassLoc();
 }
 
 size_t BytecodeGenerator::getDefLoc(sym::DefinitionSymbol* def) {
