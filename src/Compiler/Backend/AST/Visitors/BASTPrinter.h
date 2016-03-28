@@ -1,13 +1,13 @@
 //
-//  BASTImplicitVisitor.h
+//  BASTPrinter.h
 //  SFSL
 //
-//  Created by Romain Beguet on 28.03.16.
+//  Created by Romain Beguet on on 28.03.16.
 //  Copyright (c) 2016 Romain Beguet. All rights reserved.
 //
 
-#ifndef __SFSL__BASTImplicitVisitor__
-#define __SFSL__BASTImplicitVisitor__
+#ifndef __SFSL__BASTPrinter__
+#define __SFSL__BASTPrinter__
 
 #include "BASTVisitor.h"
 
@@ -15,19 +15,12 @@ namespace sfsl {
 
 namespace bast {
 
-/**
- * @brief An abstract class representing a visitor of BASTNodes.
- */
-class BASTImplicitVisitor : public BASTVisitor {
+class BASTPrinter : public BASTVisitor {
 public:
 
-    /**
-     * @brief Creates a BASTImplicitVisitor
-     * @param ctx the compilation context that will be used throughout the visits
-     */
-    BASTImplicitVisitor(CompCtx_Ptr& ctx);
+    BASTPrinter(CompCtx_Ptr& ctx, std::ostream& ostream);
 
-    virtual ~BASTImplicitVisitor();
+    virtual ~BASTPrinter();
 
     virtual void visit(BASTNode* node) override;
     virtual void visit(Program* prog) override;
@@ -48,7 +41,12 @@ public:
     virtual void visit(RealLitteral* reallit) override;
     virtual void visit(StringLitteral* strlit) override;
 
-protected:
+private:
+    void printIndents();
+
+    size_t _indentCount;
+
+    std::ostream& _ostream;
 };
 
 }
