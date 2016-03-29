@@ -32,7 +32,7 @@ void UserDataAssignment::visit(TypeDecl* tdecl) {
     ASTImplicitVisitor::visit(tdecl);
     sym::TypeSymbol* tsym = tdecl->getSymbol();
 
-    tsym->setUserdata(_mngr.New<DefUserData>(tsym->getAbsoluteName()));
+    tsym->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(tsym)));
 }
 
 void UserDataAssignment::visit(ClassDecl* clss) {
@@ -96,9 +96,9 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     sym::DefinitionSymbol* def = decl->getSymbol();
 
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
-        def->setUserdata(_mngr.New<VirtualDefUserData>(def->getAbsoluteName()));
+        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromSymbol(def)));
     } else {
-        def->setUserdata(_mngr.New<DefUserData>(def->getAbsoluteName()));
+        def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def)));
     }
 }
 
@@ -126,6 +126,15 @@ void UserDataAssignment::visit(FunctionCreation* func) {
 
 std::string UserDataAssignment::freshName(const std::string& prefix) {
     return prefix + "$" + std::to_string(_freshId++);
+}
+
+std::string UserDataAssignment::nameFromSymbol(sym::Symbol* s) {
+    const std::string& name = s->getAbsoluteName();
+    if (name == "") {
+        return freshName(name);
+    } else {
+        return name;
+    }
 }
 
 // DEFINITION USER DATA

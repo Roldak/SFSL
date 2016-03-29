@@ -72,6 +72,7 @@ private:
 
     const std::string& getDefId(ast::ClassDecl* clss);
     const std::string& getDefId(sym::DefinitionSymbol* def);
+    const std::string& getDefId(sym::TypeSymbol* tpe);
     size_t getVarLoc(sym::VariableSymbol* var);
 
     bool isVariableAttribute(sym::VariableSymbol* var);

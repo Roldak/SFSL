@@ -48,7 +48,7 @@ void AST2BAST::visit(ast::ModuleDecl* module) {
 }
 
 void AST2BAST::visit(ast::TypeDecl* tdecl) {
-    _defs.push_back(make<GlobalDef>(tdecl->getSymbol()->getAbsoluteName(), transform(tdecl->getExpression())));
+    _defs.push_back(make<GlobalDef>(getDefId(tdecl->getSymbol()), transform(tdecl->getExpression())));
 }
 
 void AST2BAST::visit(ast::ClassDecl* clss) {
@@ -70,7 +70,7 @@ void AST2BAST::visit(ast::ClassDecl* clss) {
         std::vector<DefIdentifier*> methods;
 
         for (sym::DefinitionSymbol* def : classUD->getDefs()) {
-            methods.push_back(make<DefIdentifier>(def->getUserdata<ast::DefUserData>()->getDefId()));
+            methods.push_back(make<DefIdentifier>(getDefId(def)));
         }
 
         _defs.push_back(make<ClassDef>(classUD->getDefId(), classUD->getAttrCount(), methods));
@@ -84,7 +84,7 @@ void AST2BAST::visit(ast::DefineDecl* decl) {
         return;
     }
 
-    _defs.push_back(make<GlobalDef>(decl->getSymbol()->getAbsoluteName(), transform(decl->getValue())));
+    _defs.push_back(make<GlobalDef>(getDefId(decl->getSymbol()), transform(decl->getValue())));
 }
 
 void AST2BAST::visit(ast::ProperTypeKindSpecifier* ptks) {
@@ -210,7 +210,7 @@ void AST2BAST::visit(ast::FunctionCall* call) {
 }
 
 void AST2BAST::visit(ast::Instantiation* inst) {
-    std::string name = freshName(freshName("inst"));
+    std::string name = freshName("inst");
     _defs.push_back(make<GlobalDef>(name, transform(inst->getInstantiatedExpression())));
     make<Instantiation>(make<DefIdentifier>(name));
 }
@@ -262,8 +262,11 @@ void AST2BAST::visitSymbolic(T* symbolic) {
         }
 
         case sym::SYM_DEF:
+            make<DefIdentifier>(getDefId(static_cast<sym::DefinitionSymbol*>(symbolic->getSymbol())));
+            break;
+
         case sym::SYM_TPE: {
-            make<DefIdentifier>(symbolic->getSymbol()->getAbsoluteName());
+            make<DefIdentifier>(getDefId(static_cast<sym::TypeSymbol*>(symbolic->getSymbol())));
             break;
         }
 
@@ -278,7 +281,13 @@ const std::string& AST2BAST::getDefId(ast::ClassDecl* clss) {
 }
 
 const std::string& AST2BAST::getDefId(sym::DefinitionSymbol* def) {
-    return def->getUserdata<ast::DefUserData>()->getDefId();
+    ast::DefUserData* defUD = def->getUserdata<ast::DefUserData>();
+    return defUD ? defUD->getDefId() : def->getAbsoluteName();
+}
+
+const std::string& AST2BAST::getDefId(sym::TypeSymbol* tpe) {
+    ast::DefUserData* defUD = tpe->getUserdata<ast::DefUserData>();
+    return defUD ? defUD->getDefId() : tpe->getAbsoluteName();
 }
 
 size_t AST2BAST::getVarLoc(sym::VariableSymbol* var) {
