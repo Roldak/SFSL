@@ -364,11 +364,14 @@ BASTSimplifier::~BASTSimplifier() {
 }
 
 void BASTSimplifier::visit(Program* prog) {
-    Analyser agg(_ctx);
-    prog->onVisit(&agg);
+    Analyser als(_ctx);
+    prog->onVisit(&als);
 
-    HiddenToAnyRenamer htar(_ctx, agg.getHiddenToAnyMappings());
+    HiddenToAnyRenamer htar(_ctx, als.getHiddenToAnyMappings());
     prog->onVisit(&htar);
+
+    VisibleToHiddenRenamer vthr(_ctx, als.getVisibleToHiddenMappings());
+    prog->onVisit(&vthr);
 }
 
 // ANALYSER
@@ -397,16 +400,6 @@ void BASTSimplifier::Analyser::visit(Program* prog) {
     for (auto& pair : _hiddenToAnyNameMappings) {
         pair.second = findSubstitution(pair.second);
     }
-
-    std::cout << "VISIBLE TO HIDDEN {" << std::endl;
-    for (const auto& pair : _visibleToHiddenNameMappings) {
-        std::cout << "\t" << pair.first << " REFERS " << pair.second << std::endl;
-    }
-    std::cout << "}" << std::endl << "HIDDEN TO ANY {" << std::endl;
-    for (const auto& pair : _hiddenToAnyNameMappings) {
-        std::cout << "\t" << pair.first << " REFERS " << pair.second << std::endl;
-    }
-    std::cout << "}" << std::endl;
 }
 
 void BASTSimplifier::Analyser::visit(GlobalDef* global) {
@@ -415,7 +408,7 @@ void BASTSimplifier::Analyser::visit(GlobalDef* global) {
     if (_name) {
         if (_processingVisibleNames) {
             if (isHiddenName(*_name)) {
-                _visibleToHiddenNameMappings[global->getName()] = *_name;
+                _visibleToHiddenNameMappings[*_name] = global->getName();
             }
         } else {
             _hiddenToAnyNameMappings[global->getName()] = *_name;
@@ -429,6 +422,10 @@ void BASTSimplifier::Analyser::visit(DefIdentifier* defid) {
 
 const std::map<std::string, std::string>& BASTSimplifier::Analyser::getHiddenToAnyMappings() const {
     return _hiddenToAnyNameMappings;
+}
+
+const std::map<std::string, std::string>& BASTSimplifier::Analyser::getVisibleToHiddenMappings() const {
+    return _visibleToHiddenNameMappings;
 }
 
 bool BASTSimplifier::Analyser::isHiddenName(const std::string& name) const {
@@ -488,6 +485,80 @@ void BASTSimplifier::HiddenToAnyRenamer::visit(DefIdentifier* defid) {
     }
 }
 
+// VISIBLE TO HIDDEN RENAMER
+
+BASTSimplifier::VisibleToHiddenRenamer::VisibleToHiddenRenamer(CompCtx_Ptr& ctx, const std::map<std::string, std::string>& map)
+    : BASTImplicitVisitor(ctx), _map(map) {
+
+}
+
+BASTSimplifier::VisibleToHiddenRenamer::~VisibleToHiddenRenamer() {
+
+}
+
+void BASTSimplifier::VisibleToHiddenRenamer::visit(Program* prog) {
+    BASTImplicitVisitor::visit(prog);
+
+    std::vector<Definition*> newVisibleDefinitions;
+    std::vector<Definition*> newHiddenDefinitions;
+
+    for (Definition* visible : prog->getVisibleDefinitions()) {
+        _nextExpr = nullptr;
+        _toDelete = false;
+        visible->onVisit(this);
+
+        if (!_toDelete) {
+            newVisibleDefinitions.push_back(visible);
+        }
+    }
+    for (Definition* hidden : prog->getHiddenDefinitions()) {
+        hidden->onVisit(this);
+        auto it = _map.find(hidden->getName());
+        if (it == _map.end()) {
+            newVisibleDefinitions.push_back(hidden);
+        } else {
+            newHiddenDefinitions.push_back(hidden);
+        }
+    }
+
+    *prog = Program(newVisibleDefinitions, newHiddenDefinitions);
+}
+
+void BASTSimplifier::VisibleToHiddenRenamer::visit(MethodDef* meth) {
+    auto it = _map.find(meth->getName());
+    if (it != _map.end()) {
+        *meth = MethodDef(it->second, meth->getVarCount(), meth->getMethodBody());
+    }
+    BASTImplicitVisitor::visit(meth);
+}
+
+void BASTSimplifier::VisibleToHiddenRenamer::visit(ClassDef* clss) {
+    auto it = _map.find(clss->getName());
+    if (it != _map.end()) {
+        *clss = ClassDef(it->second, clss->getFieldCount(), clss->getMethods());
+    }
+    BASTImplicitVisitor::visit(clss);
+}
+
+void BASTSimplifier::VisibleToHiddenRenamer::visit(GlobalDef* global) {
+    auto it = _map.find(global->getName());
+    if (it != _map.end()) {
+        *global = GlobalDef(it->second, global->getBody());
+    }
+    _nextExpr = global->getBody();
+    BASTImplicitVisitor::visit(global);
+}
+
+void BASTSimplifier::VisibleToHiddenRenamer::visit(DefIdentifier* defid) {
+    auto it = _map.find(defid->getValue());
+    if (it != _map.end()) {
+        if (_nextExpr == defid) {
+            _toDelete = true;
+        } else {
+            *defid = DefIdentifier(it->second);
+        }
+    }
+}
 
 }
 

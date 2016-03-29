@@ -128,6 +128,7 @@ private:
         virtual void visit(DefIdentifier* defid) override;
 
         const std::map<std::string, std::string>& getHiddenToAnyMappings() const;
+        const std::map<std::string, std::string>& getVisibleToHiddenMappings() const;
 
     private:
 
@@ -154,6 +155,28 @@ private:
         virtual void visit(DefIdentifier* defid) override;
 
     private:
+
+        const std::map<std::string, std::string>& _map;
+    };
+
+    class VisibleToHiddenRenamer : public BASTImplicitVisitor {
+    public:
+
+        VisibleToHiddenRenamer(CompCtx_Ptr& ctx, const std::map<std::string, std::string>& map);
+        virtual ~VisibleToHiddenRenamer();
+
+        virtual void visit(Program* prog) override;
+
+        virtual void visit(MethodDef* meth) override;
+        virtual void visit(ClassDef* clss) override;
+        virtual void visit(GlobalDef* global) override;
+
+        virtual void visit(DefIdentifier* defid) override;
+
+    private:
+
+        bool _toDelete;
+        BASTNode* _nextExpr;
 
         const std::map<std::string, std::string>& _map;
     };
