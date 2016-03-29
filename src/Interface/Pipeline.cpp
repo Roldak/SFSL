@@ -14,6 +14,8 @@
 #include "Compiler/Frontend/Analyser/TypeChecking.h"
 #include "Compiler/Frontend/Symbols/SymbolResolver.h"
 #include "Compiler/Backend/AST2BAST/UserDataAssignment.h"
+#include "Compiler/Backend/AST2BAST/AST2BAST.h"
+#include "Compiler/Backend/BAST/Visitors/BASTPrinter.h"
 #include "Compiler/Backend/BytecodeGenerator.h"
 
 namespace sfsl {
@@ -100,10 +102,16 @@ public:
 
         _out = new out::LinkedListOutput<bc::BCInstruction*>(ctx);
 
-        bc::UserDataAssignment uda(ctx);
+        ast::UserDataAssignment uda(ctx);
+        bast::AST2BAST a2b(ctx);
+        bast::BASTPrinter printer(ctx, std::cout);
         bc::DefaultBytecodeGenerator gen(ctx, *_out);
 
         prog->onVisit(&uda);
+
+        bast::Program* bprog = a2b.transform(prog);
+        bprog->onVisit(&printer);
+
         prog->onVisit(&gen);
 
         pctx.output("out", _out);

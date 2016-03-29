@@ -32,6 +32,11 @@ public:
     virtual void visit(BASTNode* node) override;
     virtual void visit(Program* prog) override;
 
+    virtual void visit(Definition* def) override;
+    virtual void visit(MethodDef* meth) override;
+    virtual void visit(ClassDef* clss) override;
+    virtual void visit(GlobalDef* global) override;
+
     virtual void visit(Expression* expr) override;
     virtual void visit(Block* block) override;
     virtual void visit(DefIdentifier* defid) override;

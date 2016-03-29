@@ -42,8 +42,8 @@ protected:
     template<typename T>
     T* Emit(T* instr);
 
-    size_t getClassLoc(ast::ClassDecl* clss);
-    size_t getDefLoc(sym::DefinitionSymbol* def);
+    const std::string& getClassLoc(ast::ClassDecl* clss);
+    const std::string& getDefLoc(sym::DefinitionSymbol* def);
     size_t getVarLoc(sym::VariableSymbol* var);
 
     bool isVariableAttribute(sym::VariableSymbol* var);

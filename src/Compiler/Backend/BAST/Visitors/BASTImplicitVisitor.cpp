@@ -25,14 +25,30 @@ void BASTImplicitVisitor::visit(BASTNode* node) {
 }
 
 void BASTImplicitVisitor::visit(Program* prog) {
-    for (const ClassDef& clss : prog->getClasses()) {
-        for (const ClassDef::Method& meth : clss.getMethods()) {
-            meth.getMethodBody()->onVisit(this);
-        }
+    for (Definition* def : prog->getDefinitions()) {
+        def->onVisit(this);
     }
+}
 
-    for (const GlobalDef& global : prog->getGlobals()) {
-        global.getBody()->onVisit(this);
+void BASTImplicitVisitor::visit(Definition* def) {
+
+}
+
+void BASTImplicitVisitor::visit(MethodDef* meth) {
+    if (meth->getMethodBody()) {
+        meth->getMethodBody()->onVisit(this);
+    }
+}
+
+void BASTImplicitVisitor::visit(ClassDef* clss) {
+    for (DefIdentifier* defid : clss->getMethods()) {
+        defid->onVisit(this);
+    }
+}
+
+void BASTImplicitVisitor::visit(GlobalDef* global) {
+    if (global->getBody()) {
+        global->getBody()->onVisit(this);
     }
 }
 

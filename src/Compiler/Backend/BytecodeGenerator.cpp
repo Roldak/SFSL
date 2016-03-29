@@ -80,12 +80,12 @@ T* BytecodeGenerator::Emit(T* instr) {
     return instr;
 }
 
-size_t BytecodeGenerator::getClassLoc(ClassDecl* clss) {
-    return clss->getUserdata<ClassUserData>()->getClassLoc();
+const std::string& BytecodeGenerator::getClassLoc(ClassDecl* clss) {
+    return clss->getUserdata<ClassUserData>()->getDefId();
 }
 
-size_t BytecodeGenerator::getDefLoc(sym::DefinitionSymbol* def) {
-    return def->getUserdata<DefUserData>()->getDefLoc();
+const std::string& BytecodeGenerator::getDefLoc(sym::DefinitionSymbol* def) {
+    return def->getUserdata<DefUserData>()->getDefId();
 }
 
 size_t BytecodeGenerator::getVarLoc(sym::VariableSymbol* var) {
@@ -129,7 +129,7 @@ void DefaultBytecodeGenerator::visit(TypeDecl* tdecl) {
 }
 
 void DefaultBytecodeGenerator::visit(ClassDecl* clss) {
-    if (TRY_INSERT(_visitedNodes, clss)) {
+    /*if (TRY_INSERT(_visitedNodes, clss)) {
         for (TypeDecl* tdecl : clss->getTypeDecls()) {
             tdecl->onVisit(this);
         }
@@ -154,11 +154,11 @@ void DefaultBytecodeGenerator::visit(ClassDecl* clss) {
         Emit<StoreConst>(*clss, getClassLoc(clss));
 
         STOP_WRITING_TO_CONSTANT_POOL
-    }
+    }*/
 }
 
 void DefaultBytecodeGenerator::visit(DefineDecl* decl) {
-    if (decl->isExtern() || decl->isAbstract()) {
+    /*if (decl->isExtern() || decl->isAbstract()) {
         return;
     }
 
@@ -169,7 +169,7 @@ void DefaultBytecodeGenerator::visit(DefineDecl* decl) {
         Emit<StoreConst>(*decl, getDefLoc(decl->getSymbol()));
 
         STOP_WRITING_TO_CONSTANT_POOL
-    }
+    }*/
 }
 
 void DefaultBytecodeGenerator::visit(ProperTypeKindSpecifier* ptks) {
@@ -274,7 +274,7 @@ void DefaultBytecodeGenerator::visit(Tuple* tuple) {
 }
 
 void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
-    if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
+    /*if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
         pt->getClass()->onVisit(this);
 
         // TODO: Call the constructor of the function's class
@@ -289,7 +289,7 @@ void DefaultBytecodeGenerator::visit(FunctionCreation* func) {
         Emit<Return>(*func);
 
         BindLabel(funcEnd);
-    }
+    }*/
 }
 
 void DefaultBytecodeGenerator::visit(FunctionCall* call) {
@@ -325,16 +325,16 @@ void DefaultBytecodeGenerator::visit(FunctionCall* call) {
 }
 
 void DefaultBytecodeGenerator::visit(Instantiation* inst) {
-    if (type::ProperType* pt = type::getIf<type::ProperType>(inst->type()->apply(_ctx))) {
+    /*if (type::ProperType* pt = type::getIf<type::ProperType>(inst->type()->apply(_ctx))) {
         ClassDecl* clss = pt->getClass();
         size_t classLoc = clss->getUserdata<ClassUserData>()->getClassLoc();
         Emit<LoadConst>(*inst, classLoc);
         Emit<Instantiate>(*inst);
-    }
+    }*/
 }
 
 void DefaultBytecodeGenerator::visit(Identifier* ident) {
-    switch (ident->getSymbol()->getSymbolType()) {
+    /*switch (ident->getSymbol()->getSymbolType()) {
     case sym::SYM_VAR: {
         sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(ident->getSymbol());
         if (isVariableAttribute(var)) {
@@ -355,7 +355,7 @@ void DefaultBytecodeGenerator::visit(Identifier* ident) {
 
     default:
         break;
-    }
+    }*/
 }
 
 void DefaultBytecodeGenerator::visit(This* ths) {

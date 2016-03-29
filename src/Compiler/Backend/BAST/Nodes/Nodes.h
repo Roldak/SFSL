@@ -18,10 +18,14 @@ namespace sfsl {
 
 namespace bast {
 
-class Definition {
+class DefIdentifier;
+
+class Definition : public BASTNode {
 public:
     Definition(const std::string& name);
     virtual ~Definition();
+
+    SFSL_BAST_ON_VISIT_H
 
     const std::string& getName() const;
 
@@ -30,43 +34,48 @@ private:
     const std::string _name;
 };
 
+class MethodDef final : public Definition {
+public:
+    MethodDef(const std::string& name, size_t varCount);
+    MethodDef(const std::string& name, size_t varCount, BASTNode* body);
+
+    SFSL_BAST_ON_VISIT_H
+
+    size_t getVarCount() const;
+
+    BASTNode* getMethodBody() const;
+
+private:
+
+    size_t _varCount;
+    BASTNode* _body;
+};
+
 class ClassDef final : public Definition {
 public:
-    class Method final {
-    public:
-        Method(const std::string& name, size_t argCount);
-        Method(const std::string& name, size_t argCount, BASTNode* body);
 
-        const std::string& getName() const;
-
-        size_t getArgCount() const;
-
-        BASTNode* getMethodBody() const;
-
-    private:
-
-        const std::string _name;
-        size_t _argCount;
-        BASTNode* _body;
-    };
-
-    ClassDef(const std::string& name, size_t fieldCount, std::vector<Method>& methods);
+    ClassDef(const std::string& name, size_t fieldCount, const std::vector<DefIdentifier*>& methods);
     virtual ~ClassDef();
+
+    SFSL_BAST_ON_VISIT_H
 
     size_t getFieldCount() const;
 
-    const std::vector<Method>& getMethods() const;
+    const std::vector<DefIdentifier*>& getMethods() const;
 
 private:
 
     size_t _fieldCount;
-    std::vector<Method> _methods;
+    std::vector<DefIdentifier*> _methods;
 };
 
 class GlobalDef final : public Definition {
 public:
+    GlobalDef(const std::string& name);
     GlobalDef(const std::string& name, BASTNode* body);
     virtual ~GlobalDef();
+
+    SFSL_BAST_ON_VISIT_H
 
     BASTNode* getBody() const;
 
@@ -77,21 +86,17 @@ private:
 
 class Program : public BASTNode {
 public:
-    Program(const std::vector<ClassDef>& classes,
-            const std::vector<GlobalDef>& globals);
+    Program(const std::vector<Definition*>& definitions);
 
     virtual ~Program();
 
     SFSL_BAST_ON_VISIT_H
 
-    const std::vector<ClassDef>& getClasses() const;
-
-    const std::vector<GlobalDef>& getGlobals() const;
+    const std::vector<Definition*>& getDefinitions() const;
 
 private:
 
-    std::vector<ClassDef> _classes;
-    std::vector<GlobalDef> _globals;
+    std::vector<Definition*> _definitions;
 };
 
 /**

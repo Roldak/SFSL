@@ -16,7 +16,7 @@ namespace ast {
 // ASSIGN USER DATAS
 
 UserDataAssignment::UserDataAssignment(CompCtx_Ptr& ctx)
-    : ASTImplicitVisitor(ctx), _currentConstCount(0), _currentVarCount(0) {
+    : ASTImplicitVisitor(ctx), _freshId(0), _currentVarCount(0) {
 
 }
 
@@ -26,6 +26,13 @@ UserDataAssignment::~UserDataAssignment() {
 
 void UserDataAssignment::visit(ASTNode*) {
 
+}
+
+void UserDataAssignment::visit(TypeDecl* tdecl) {
+    ASTImplicitVisitor::visit(tdecl);
+    sym::TypeSymbol* tsym = tdecl->getSymbol();
+
+    tsym->setUserdata(_mngr.New<DefUserData>(tsym->getName()));
 }
 
 void UserDataAssignment::visit(ClassDecl* clss) {
@@ -80,9 +87,7 @@ void UserDataAssignment::visit(ClassDecl* clss) {
             defs[virtualLoc] = defsym;
         }
 
-        size_t clssLoc = clss->isAbstract() ? _currentConstCount : _currentConstCount++;
-
-        clss->setUserdata(_mngr.New<ClassUserData>(clssLoc, fields, defs, clss->isAbstract()));
+        clss->setUserdata(_mngr.New<ClassUserData>(freshName(clss->getName()), fields, defs, clss->isAbstract()));
     }
 }
 
@@ -91,9 +96,9 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     sym::DefinitionSymbol* def = decl->getSymbol();
 
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
-        def->setUserdata(_mngr.New<VirtualDefUserData>(decl->isAbstract() ? _currentConstCount : _currentConstCount++));
+        def->setUserdata(_mngr.New<VirtualDefUserData>(def->getName()));
     } else {
-        def->setUserdata(_mngr.New<DefUserData>(_currentConstCount++));
+        def->setUserdata(_mngr.New<DefUserData>(def->getName()));
     }
 }
 
@@ -104,7 +109,9 @@ void UserDataAssignment::visit(TypeSpecifier* tps) {
 }
 
 void UserDataAssignment::visit(FunctionCreation* func) {
-    SAVE_MEMBER_AND_SET(_currentVarCount, func->type()->getTypeKind() == type::TYPE_FUNCTION ? 0 : 1)
+    bool isFunction = func->type()->getTypeKind() == type::TYPE_FUNCTION;
+
+    SAVE_MEMBER_AND_SET(_currentVarCount, isFunction ? 0 : 1)
 
     ASTImplicitVisitor::visit(func);
 
@@ -112,24 +119,38 @@ void UserDataAssignment::visit(FunctionCreation* func) {
         pt->getClass()->onVisit(this);
     }
 
-    func->setUserdata(_mngr.New<FuncUserData>(_currentVarCount));
+    func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), _currentVarCount));
 
     RESTORE_MEMBER(_currentVarCount)
 }
 
+std::string UserDataAssignment::freshName(const std::string& prefix) {
+    return prefix + "$" + std::to_string(_freshId++);
+}
+
+// DEFINITION USER DATA
+
+DefUserData::DefUserData(const std::string& defId) : _defId(defId) {
+
+}
+
+DefUserData::~DefUserData() {
+
+}
+
+const std::string& DefUserData::getDefId() const {
+    return _defId;
+}
+
 // CLASS USER DATA
 
-ClassUserData::ClassUserData(size_t loc, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract)
-    : _loc(loc), _fields(fields), _defs(defs), _isAbstract(isAbstract) {
+ClassUserData::ClassUserData(const std::string& defId, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract)
+    : DefUserData(defId), _fields(fields), _defs(defs), _isAbstract(isAbstract) {
 
 }
 
 ClassUserData::~ClassUserData() {
 
-}
-
-size_t ClassUserData::getClassLoc() const {
-    return _loc;
 }
 
 size_t ClassUserData::getAttrCount() const {
@@ -174,7 +195,8 @@ bool ClassUserData::isAbstract() const {
 
 // FUNCTION USER DATA
 
-FuncUserData::FuncUserData(size_t varCount) : _varCount(varCount) {
+FuncUserData::FuncUserData(const std::string& defId, size_t varCount)
+    : DefUserData(defId), _varCount(varCount) {
 
 }
 
@@ -208,23 +230,9 @@ bool VarUserData::isAttribute() const {
     return _isAttriute;
 }
 
-// DEFINITION USER DATA
-
-DefUserData::DefUserData(size_t loc) : _loc(loc) {
-
-}
-
-DefUserData::~DefUserData() {
-
-}
-
-size_t DefUserData::getDefLoc() const {
-    return _loc;
-}
-
 // VIRTUAL DEFINITION USER DATA
 
-VirtualDefUserData::VirtualDefUserData(size_t loc) : DefUserData(loc) {
+VirtualDefUserData::VirtualDefUserData(const std::string& defId) : DefUserData(defId) {
 
 }
 

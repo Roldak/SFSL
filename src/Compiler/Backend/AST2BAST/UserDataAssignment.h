@@ -28,25 +28,40 @@ public:
 
     virtual void visit(ASTNode*) override;
 
+    virtual void visit(TypeDecl* tdecl) override;
     virtual void visit(ClassDecl* clss) override;
+
     virtual void visit(DefineDecl* decl) override;
     virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(FunctionCreation* func) override;
 
 private:
 
-    size_t _currentConstCount;
+    size_t _freshId;
+    std::string freshName(const std::string& prefix);
+
     size_t _currentVarCount;
 
     std::set<ClassDecl*> _visitedClasses;
 };
 
-class ClassUserData final : public common::MemoryManageable {
+class DefUserData : public common::MemoryManageable {
 public:
-    ClassUserData(size_t loc, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract);
+    DefUserData(const std::string& defId);
+    virtual ~DefUserData();
+
+    const std::string& getDefId() const;
+
+private:
+
+    const std::string _defId;
+};
+
+class ClassUserData final : public DefUserData {
+public:
+    ClassUserData(const std::string& defId, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract);
     virtual ~ClassUserData();
 
-    size_t getClassLoc() const;
     size_t getAttrCount() const;
     size_t getDefCount() const;
 
@@ -60,15 +75,14 @@ public:
 
 private:
 
-    size_t _loc;
     std::vector<sym::VariableSymbol*> _fields;
     std::vector<sym::DefinitionSymbol*> _defs;
     bool _isAbstract;
 };
 
-class FuncUserData final : public common::MemoryManageable {
+class FuncUserData final : public DefUserData {
 public:
-    FuncUserData(size_t varCount);
+    FuncUserData(const std::string& defId, size_t varCount);
     virtual ~FuncUserData();
 
     size_t getVarCount() const;
@@ -94,21 +108,9 @@ private:
     bool _isAttriute;
 };
 
-class DefUserData : public common::MemoryManageable {
-public:
-    DefUserData(size_t loc);
-    virtual ~DefUserData();
-
-    size_t getDefLoc() const;
-
-private:
-
-    size_t _loc;
-};
-
 class VirtualDefUserData : public DefUserData {
 public:
-    VirtualDefUserData(size_t loc);
+    VirtualDefUserData(const std::string& defId);
     virtual ~VirtualDefUserData();
 
     void setVirtualLocation(size_t virtLoc);

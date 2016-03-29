@@ -28,6 +28,22 @@ void BASTExplicitVisitor::visit(Program* prog) {
 
 }
 
+void BASTExplicitVisitor::visit(Definition* def) {
+
+}
+
+void BASTExplicitVisitor::visit(MethodDef* meth) {
+
+}
+
+void BASTExplicitVisitor::visit(ClassDef* clss) {
+
+}
+
+void BASTExplicitVisitor::visit(GlobalDef* global) {
+
+}
+
 void BASTExplicitVisitor::visit(Expression* expr) {
 
 }

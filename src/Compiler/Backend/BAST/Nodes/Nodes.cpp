@@ -23,37 +23,37 @@ Definition::~Definition() {
 
 }
 
+SFSL_BAST_ON_VISIT_CPP(Definition)
+
 const std::string& Definition::getName() const {
     return _name;
 }
 
-// CLASSDEF METHOD
+// METHOD
 
-ClassDef::Method::Method(const std::string& name, size_t argCount)
-    : _name(name), _argCount(argCount), _body(nullptr) {
-
-}
-
-ClassDef::Method::Method(const std::string& name, size_t argCount, BASTNode* body)
-    : _name(name), _argCount(argCount), _body(body) {
+MethodDef::MethodDef(const std::string& name, size_t varCount)
+    : Definition(name), _varCount(varCount), _body(nullptr) {
 
 }
 
-const std::string& ClassDef::Method::getName() const {
-    return _name;
+MethodDef::MethodDef(const std::string& name, size_t varCount, BASTNode* body)
+    : Definition(name), _varCount(varCount), _body(body) {
+
 }
 
-size_t ClassDef::Method::getArgCount() const {
-    return _argCount;
+SFSL_BAST_ON_VISIT_CPP(MethodDef)
+
+size_t MethodDef::getVarCount() const {
+    return _varCount;
 }
 
-BASTNode* ClassDef::Method::getMethodBody() const {
+BASTNode* MethodDef::getMethodBody() const {
     return _body;
 }
 
 // CLASSDEF
 
-ClassDef::ClassDef(const std::string& name, size_t fieldCount, std::vector<ClassDef::Method>& methods)
+ClassDef::ClassDef(const std::string& name, size_t fieldCount, const std::vector<DefIdentifier*>& methods)
     : Definition(name), _fieldCount(fieldCount), _methods(methods) {
 
 }
@@ -62,19 +62,24 @@ ClassDef::~ClassDef() {
 
 }
 
+SFSL_BAST_ON_VISIT_CPP(ClassDef)
+
 size_t ClassDef::getFieldCount() const {
     return _fieldCount;
 }
 
-const std::vector<ClassDef::Method>& ClassDef::getMethods() const {
+const std::vector<DefIdentifier*>& ClassDef::getMethods() const {
     return _methods;
 }
 
 // GLOBALDEF
 
 
-GlobalDef::GlobalDef(const std::string& name, BASTNode* body)
-    : Definition(name), _body(body) {
+GlobalDef::GlobalDef(const std::string& name) : Definition(name), _body(nullptr) {
+
+}
+
+GlobalDef::GlobalDef(const std::string& name, BASTNode* body) : Definition(name), _body(body) {
 
 }
 
@@ -82,14 +87,16 @@ GlobalDef::~GlobalDef() {
 
 }
 
+SFSL_BAST_ON_VISIT_CPP(GlobalDef)
+
 BASTNode* GlobalDef::getBody() const {
     return _body;
 }
 
 // PROGRAM
 
-Program::Program(const std::vector<ClassDef>& classes, const std::vector<GlobalDef>& globals)
-    : _classes(classes), _globals(globals) {
+Program::Program(const std::vector<Definition*>& definitions)
+    : _definitions(definitions) {
 
 }
 
@@ -99,12 +106,8 @@ Program::~Program() {
 
 SFSL_BAST_ON_VISIT_CPP(Program)
 
-const std::vector<ClassDef>& Program::getClasses() const {
-    return _classes;
-}
-
-const std::vector<GlobalDef>&Program::getGlobals() const {
-    return _globals;
+const std::vector<Definition*>& Program::getDefinitions() const {
+    return _definitions;
 }
 
 // EXPRESSION

@@ -34,6 +34,11 @@ public:
     virtual void visit(BASTNode* node) = 0;
     virtual void visit(Program* prog) = 0;
 
+    virtual void visit(Definition* def) = 0;
+    virtual void visit(MethodDef* meth) = 0;
+    virtual void visit(ClassDef* clss) = 0;
+    virtual void visit(GlobalDef* global) = 0;
+
     virtual void visit(Expression* expr) = 0;
     virtual void visit(Block* block) = 0;
     virtual void visit(DefIdentifier* defid) = 0;

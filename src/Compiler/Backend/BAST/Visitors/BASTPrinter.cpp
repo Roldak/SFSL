@@ -26,20 +26,48 @@ void BASTPrinter::visit(BASTNode* node) {
 }
 
 void BASTPrinter::visit(Program* prog) {
-    for (const ClassDef& clss : prog->getClasses()) {
-        _ostream << "class" << clss.getName() << "(" << clss.getFieldCount() << ")" << " {";
-        ++_indentCount;
-
-        for (const ClassDef::Method& meth : clss.getMethods()) {
-            printIndents();
-            _ostream << "meth " << meth.getName() << "(" << meth.getArgCount() << ") => ";
-            meth.getMethodBody()->onVisit(this);
-        }
-
-        --_indentCount;
-        printIndents();
-        _ostream << "}" << std::endl;
+    for (Definition* def : prog->getDefinitions()) {
+        def->onVisit(this);
     }
+}
+
+void BASTPrinter::visit(Definition* def) {
+
+}
+
+void BASTPrinter::visit(MethodDef* meth) {
+    printIndents();
+    _ostream << "meth " << meth->getName() << "(" << meth->getVarCount() << " vars)";
+    if (meth->getMethodBody()) {
+        _ostream << " => ";
+        meth->getMethodBody()->onVisit(this);
+    }
+    _ostream << std::endl;
+}
+
+void BASTPrinter::visit(ClassDef* clss) {
+    printIndents();
+    _ostream << "class " << clss->getName() << "(" << clss->getFieldCount() << " fields)" << " {" << std::endl;
+    ++_indentCount;
+
+    for (DefIdentifier* meth : clss->getMethods()) {
+        printIndents();
+        _ostream << "meth " << meth->getValue() << std::endl;
+    }
+
+    --_indentCount;
+    printIndents();
+    _ostream << "}" << std::endl;
+}
+
+void BASTPrinter::visit(GlobalDef* global) {
+    printIndents();
+    _ostream << "global " << global->getName();
+    if (global->getBody()) {
+        _ostream << " = ";
+        global->getBody()->onVisit(this);
+    }
+    _ostream << std::endl;
 }
 
 void BASTPrinter::visit(Expression* expr) {
