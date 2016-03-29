@@ -95,8 +95,8 @@ BASTNode* GlobalDef::getBody() const {
 
 // PROGRAM
 
-Program::Program(const std::vector<Definition*>& definitions)
-    : _definitions(definitions) {
+Program::Program(const std::vector<Definition*>& visibleDefs, const std::vector<Definition*>& hiddenDefs)
+    : _visibleDefs(visibleDefs), _hiddenDefs(hiddenDefs) {
 
 }
 
@@ -106,8 +106,12 @@ Program::~Program() {
 
 SFSL_BAST_ON_VISIT_CPP(Program)
 
-const std::vector<Definition*>& Program::getDefinitions() const {
-    return _definitions;
+const std::vector<Definition*>& Program::getVisibleDefinitions() const {
+    return _visibleDefs;
+}
+
+const std::vector<Definition*>& Program::getHiddenDefinitions() const {
+    return _hiddenDefs;
 }
 
 // EXPRESSION

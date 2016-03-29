@@ -30,7 +30,7 @@ void AST2BAST::visit(ast::Program* prog) {
     for (ast::ModuleDecl* module : prog->getModules()) {
         module->onVisit(this);
     }
-    make<Program>(_defs);
+    make<Program>(_visibleDefs, _hiddenDefs);
 }
 
 void AST2BAST::visit(ast::ModuleDecl* module) {
@@ -48,7 +48,7 @@ void AST2BAST::visit(ast::ModuleDecl* module) {
 }
 
 void AST2BAST::visit(ast::TypeDecl* tdecl) {
-    _defs.push_back(make<GlobalDef>(getDefId(tdecl->getSymbol()), transform(tdecl->getExpression())));
+    addDefinitionToProgram<GlobalDef>(tdecl->getSymbol(), transform(tdecl->getExpression()));
 }
 
 void AST2BAST::visit(ast::ClassDecl* clss) {
@@ -73,10 +73,10 @@ void AST2BAST::visit(ast::ClassDecl* clss) {
             methods.push_back(make<DefIdentifier>(getDefId(def)));
         }
 
-        _defs.push_back(make<ClassDef>(classUD->getDefId(), classUD->getAttrCount(), methods));
+        addDefinitionToProgram<ClassDef>(clss, classUD->getAttrCount(), methods);
     }
 
-    make<DefIdentifier>(classUD->getDefId());
+    make<DefIdentifier>(getDefId(clss));
 }
 
 void AST2BAST::visit(ast::DefineDecl* decl) {
@@ -84,7 +84,7 @@ void AST2BAST::visit(ast::DefineDecl* decl) {
         return;
     }
 
-    _defs.push_back(make<GlobalDef>(getDefId(decl->getSymbol()), transform(decl->getValue())));
+    addDefinitionToProgram<GlobalDef>(decl->getSymbol(), transform(decl->getValue()));
 }
 
 void AST2BAST::visit(ast::ProperTypeKindSpecifier* ptks) {
@@ -181,8 +181,8 @@ void AST2BAST::visit(ast::FunctionCreation* func) {
         // TODO: Call the constructor of the function's class
         make<Instantiation>(make<DefIdentifier>(getDefId(pt->getClass())));
     } else {
-        _defs.push_back(make<MethodDef>(fUD->getDefId(), fUD->getVarCount(), transform(func->getBody())));
-        make<DefIdentifier>(fUD->getDefId());
+        addDefinitionToProgram<MethodDef>(func, fUD->getVarCount(), transform(func->getBody()));
+        make<DefIdentifier>(getDefId(func));
     }
 }
 
@@ -211,7 +211,7 @@ void AST2BAST::visit(ast::FunctionCall* call) {
 
 void AST2BAST::visit(ast::Instantiation* inst) {
     std::string name = freshName("inst");
-    _defs.push_back(make<GlobalDef>(name, transform(inst->getInstantiatedExpression())));
+    _hiddenDefs.push_back(make<GlobalDef>(name, transform(inst->getInstantiatedExpression())));
     make<Instantiation>(make<DefIdentifier>(name));
 }
 
@@ -276,6 +276,10 @@ void AST2BAST::visitSymbolic(T* symbolic) {
     }
 }
 
+const std::string& AST2BAST::getDefId(ast::FunctionCreation* func) {
+    return func->getUserdata<ast::DefUserData>()->getDefId();
+}
+
 const std::string& AST2BAST::getDefId(ast::ClassDecl* clss) {
     return clss->getUserdata<ast::ClassUserData>()->getDefId();
 }
@@ -288,6 +292,22 @@ const std::string& AST2BAST::getDefId(sym::DefinitionSymbol* def) {
 const std::string& AST2BAST::getDefId(sym::TypeSymbol* tpe) {
     ast::DefUserData* defUD = tpe->getUserdata<ast::DefUserData>();
     return defUD ? defUD->getDefId() : tpe->getAbsoluteName();
+}
+
+template<typename T>
+bool AST2BAST::isHiddenDef(T* def) const {
+    ast::DefUserData* defUD = def->template getUserdata<ast::DefUserData>();
+    return defUD->isHidden();
+}
+
+template<typename BAST_NODE, typename DEF, typename... BAST_ARGS_REST>
+void AST2BAST::addDefinitionToProgram(DEF* def, BAST_ARGS_REST... args) {
+    BAST_NODE* node = make<BAST_NODE>(getDefId(def), std::forward<BAST_ARGS_REST>(args)...);
+    if (isHiddenDef(def)) {
+        _hiddenDefs.push_back(node);
+    } else {
+        _visibleDefs.push_back(node);
+    }
 }
 
 size_t AST2BAST::getVarLoc(sym::VariableSymbol* var) {
@@ -319,7 +339,7 @@ Expression* AST2BAST::transform(ast::Expression* node) {
 }
 
 bool AST2BAST::alreadyTransformed(ast::DefUserData* defUD) {
-    for (Definition* def : _defs) {
+    for (Definition* def : _visibleDefs) {
         if (def->getName() == defUD->getDefId()) {
             return true;
         }

@@ -25,7 +25,10 @@ void BASTImplicitVisitor::visit(BASTNode* node) {
 }
 
 void BASTImplicitVisitor::visit(Program* prog) {
-    for (Definition* def : prog->getDefinitions()) {
+    for (Definition* def : prog->getVisibleDefinitions()) {
+        def->onVisit(this);
+    }
+    for (Definition* def : prog->getHiddenDefinitions()) {
         def->onVisit(this);
     }
 }

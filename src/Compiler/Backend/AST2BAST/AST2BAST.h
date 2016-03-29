@@ -70,11 +70,18 @@ private:
     template<typename T>
     void visitSymbolic(T* symbolic);
 
+    const std::string& getDefId(ast::FunctionCreation* func);
     const std::string& getDefId(ast::ClassDecl* clss);
     const std::string& getDefId(sym::DefinitionSymbol* def);
     const std::string& getDefId(sym::TypeSymbol* tpe);
-    size_t getVarLoc(sym::VariableSymbol* var);
 
+    template<typename T>
+    bool isHiddenDef(T* def) const;
+
+    template<typename BAST_NODE, typename DEF, typename... BAST_ARGS_REST>
+    void addDefinitionToProgram(DEF* def, BAST_ARGS_REST... args);
+
+    size_t getVarLoc(sym::VariableSymbol* var);
     bool isVariableAttribute(sym::VariableSymbol* var);
 
     template<typename T, typename... Args>
@@ -90,7 +97,9 @@ private:
     size_t _freshId;
     std::string freshName(const std::string& prefix);
 
-    std::vector<Definition*> _defs;
+    std::vector<Definition*> _visibleDefs;
+    std::vector<Definition*> _hiddenDefs;
+
     common::AbstractReporter& _rep;
     BASTNode* _created;
 };

@@ -32,7 +32,7 @@ void UserDataAssignment::visit(TypeDecl* tdecl) {
     ASTImplicitVisitor::visit(tdecl);
     sym::TypeSymbol* tsym = tdecl->getSymbol();
 
-    tsym->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(tsym)));
+    tsym->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(tsym), false));
 }
 
 void UserDataAssignment::visit(ClassDecl* clss) {
@@ -87,7 +87,7 @@ void UserDataAssignment::visit(ClassDecl* clss) {
             defs[virtualLoc] = defsym;
         }
 
-        clss->setUserdata(_mngr.New<ClassUserData>(freshName(clss->getName()), fields, defs, clss->isAbstract()));
+        clss->setUserdata(_mngr.New<ClassUserData>(freshName(clss->getName()), true, fields, defs, clss->isAbstract()));
     }
 }
 
@@ -96,9 +96,9 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     sym::DefinitionSymbol* def = decl->getSymbol();
 
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
-        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromSymbol(def)));
+        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromSymbol(def), false));
     } else {
-        def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def)));
+        def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def), false));
     }
 }
 
@@ -119,7 +119,7 @@ void UserDataAssignment::visit(FunctionCreation* func) {
         pt->getClass()->onVisit(this);
     }
 
-    func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), _currentVarCount));
+    func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), true, _currentVarCount));
 
     RESTORE_MEMBER(_currentVarCount)
 }
@@ -139,7 +139,7 @@ std::string UserDataAssignment::nameFromSymbol(sym::Symbol* s) {
 
 // DEFINITION USER DATA
 
-DefUserData::DefUserData(const std::string& defId) : _defId(defId) {
+DefUserData::DefUserData(const std::string& defId, bool isHidden) : _defId(defId), _isHidden(isHidden) {
 
 }
 
@@ -151,10 +151,14 @@ const std::string& DefUserData::getDefId() const {
     return _defId;
 }
 
+bool DefUserData::isHidden() const {
+    return _isHidden;
+}
+
 // CLASS USER DATA
 
-ClassUserData::ClassUserData(const std::string& defId, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract)
-    : DefUserData(defId), _fields(fields), _defs(defs), _isAbstract(isAbstract) {
+ClassUserData::ClassUserData(const std::string& defId, bool isHidden, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract)
+    : DefUserData(defId, isHidden), _fields(fields), _defs(defs), _isAbstract(isAbstract) {
 
 }
 
@@ -204,8 +208,8 @@ bool ClassUserData::isAbstract() const {
 
 // FUNCTION USER DATA
 
-FuncUserData::FuncUserData(const std::string& defId, size_t varCount)
-    : DefUserData(defId), _varCount(varCount) {
+FuncUserData::FuncUserData(const std::string& defId, bool isHidden, size_t varCount)
+    : DefUserData(defId, isHidden), _varCount(varCount) {
 
 }
 
@@ -241,7 +245,7 @@ bool VarUserData::isAttribute() const {
 
 // VIRTUAL DEFINITION USER DATA
 
-VirtualDefUserData::VirtualDefUserData(const std::string& defId) : DefUserData(defId) {
+VirtualDefUserData::VirtualDefUserData(const std::string& defId, bool isHidden) : DefUserData(defId, isHidden) {
 
 }
 

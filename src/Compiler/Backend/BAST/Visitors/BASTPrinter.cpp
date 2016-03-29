@@ -26,9 +26,28 @@ void BASTPrinter::visit(BASTNode* node) {
 }
 
 void BASTPrinter::visit(Program* prog) {
-    for (Definition* def : prog->getDefinitions()) {
+    printIndents();
+    _ostream << "VISIBLE {" << std::endl;
+    ++_indentCount;
+
+    for (Definition* def : prog->getVisibleDefinitions()) {
         def->onVisit(this);
     }
+
+    --_indentCount;
+    printIndents();
+    _ostream << "}" << std::endl << std::endl << "HIDDEN {" << std::endl;
+
+    ++_indentCount;
+    printIndents();
+
+    for (Definition* def : prog->getHiddenDefinitions()) {
+        def->onVisit(this);
+    }
+
+    --_indentCount;
+    printIndents();
+    _ostream << "}" << std::endl;
 }
 
 void BASTPrinter::visit(Definition* def) {

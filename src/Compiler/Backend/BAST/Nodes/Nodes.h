@@ -86,17 +86,20 @@ private:
 
 class Program : public BASTNode {
 public:
-    Program(const std::vector<Definition*>& definitions);
+    Program(const std::vector<Definition*>& visibleDefs,
+            const std::vector<Definition*>& hiddenDefs);
 
     virtual ~Program();
 
     SFSL_BAST_ON_VISIT_H
 
-    const std::vector<Definition*>& getDefinitions() const;
+    const std::vector<Definition*>& getVisibleDefinitions() const;
+    const std::vector<Definition*>& getHiddenDefinitions() const;
 
 private:
 
-    std::vector<Definition*> _definitions;
+    std::vector<Definition*> _visibleDefs;
+    std::vector<Definition*> _hiddenDefs;
 };
 
 /**
