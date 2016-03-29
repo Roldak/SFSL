@@ -84,6 +84,10 @@ void BASTExplicitVisitor::visit(Instantiation* inst) {
 
 }
 
+void BASTExplicitVisitor::visit(UnitLitteral* unitlit) {
+
+}
+
 void BASTExplicitVisitor::visit(BoolLitteral* boollit) {
 
 }

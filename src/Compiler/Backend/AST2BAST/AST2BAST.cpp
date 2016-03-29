@@ -290,7 +290,7 @@ bool AST2BAST::isVariableAttribute(sym::VariableSymbol* var) {
 }
 
 Expression* AST2BAST::makeUnit() {
-    return make<Block>(std::vector<Expression*>());
+    return make<UnitLitteral>();
 }
 
 template<typename T, typename... Args>

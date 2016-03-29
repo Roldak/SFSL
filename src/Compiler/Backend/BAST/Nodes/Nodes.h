@@ -352,6 +352,20 @@ private:
 };
 
 /**
+ * @brief Represents a unit litteral
+ */
+class UnitLitteral : public Expression {
+public:
+
+    UnitLitteral();
+    virtual ~UnitLitteral();
+
+    SFSL_BAST_ON_VISIT_H
+
+private:
+};
+
+/**
  * @brief Represents a boolean litteral
  */
 class BoolLitteral : public Expression {

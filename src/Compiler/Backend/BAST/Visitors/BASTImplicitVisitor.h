@@ -48,6 +48,7 @@ public:
     virtual void visit(MethodCall* methcall) override;
     virtual void visit(Instantiation* inst) override;
 
+    virtual void visit(UnitLitteral* unitlit) override;
     virtual void visit(BoolLitteral* boollit) override;
     virtual void visit(IntLitteral* intlit) override;
     virtual void visit(RealLitteral* reallit) override;

@@ -50,6 +50,7 @@ public:
     virtual void visit(MethodCall* methcall) = 0;
     virtual void visit(Instantiation* inst) = 0;
 
+    virtual void visit(UnitLitteral* unitlit) = 0;
     virtual void visit(BoolLitteral* boollit) = 0;
     virtual void visit(IntLitteral* intlit) = 0;
     virtual void visit(RealLitteral* reallit) = 0;

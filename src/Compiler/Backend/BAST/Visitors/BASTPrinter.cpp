@@ -145,6 +145,10 @@ void BASTPrinter::visit(Instantiation* inst) {
     _ostream << "new " << inst->getClassId()->getValue();
 }
 
+void BASTPrinter::visit(UnitLitteral* unitlit) {
+    _ostream << "()";
+}
+
 void BASTPrinter::visit(BoolLitteral* boollit) {
     _ostream << boollit->getValue();
 }

@@ -100,6 +100,10 @@ void BASTImplicitVisitor::visit(Instantiation* inst) {
 
 }
 
+void BASTImplicitVisitor::visit(UnitLitteral* unitlit) {
+
+}
+
 void BASTImplicitVisitor::visit(BoolLitteral* boollit) {
 
 }

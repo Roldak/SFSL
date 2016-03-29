@@ -300,6 +300,18 @@ DefIdentifier* Instantiation::getClassId() const {
     return _defId;
 }
 
+// UNIT LITTERAL
+
+UnitLitteral::UnitLitteral() {
+
+}
+
+UnitLitteral::~UnitLitteral() {
+
+}
+
+SFSL_BAST_ON_VISIT_CPP(UnitLitteral)
+
 // BOOL LITTERAL
 
 BoolLitteral::BoolLitteral(const sfsl_bool_t value) : _value(value) {
