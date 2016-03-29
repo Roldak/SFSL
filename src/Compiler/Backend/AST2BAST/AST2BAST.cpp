@@ -48,7 +48,7 @@ void AST2BAST::visit(ast::ModuleDecl* module) {
 }
 
 void AST2BAST::visit(ast::TypeDecl* tdecl) {
-    _defs.push_back(make<GlobalDef>(tdecl->getSymbol()->getName(), transform(tdecl->getExpression())));
+    _defs.push_back(make<GlobalDef>(tdecl->getSymbol()->getAbsoluteName(), transform(tdecl->getExpression())));
 }
 
 void AST2BAST::visit(ast::ClassDecl* clss) {
@@ -84,7 +84,7 @@ void AST2BAST::visit(ast::DefineDecl* decl) {
         return;
     }
 
-    _defs.push_back(make<GlobalDef>(decl->getSymbol()->getName(), transform(decl->getValue())));
+    _defs.push_back(make<GlobalDef>(decl->getSymbol()->getAbsoluteName(), transform(decl->getValue())));
 }
 
 void AST2BAST::visit(ast::ProperTypeKindSpecifier* ptks) {
@@ -263,7 +263,7 @@ void AST2BAST::visitSymbolic(T* symbolic) {
 
         case sym::SYM_DEF:
         case sym::SYM_TPE: {
-            make<DefIdentifier>(symbolic->getSymbol()->getName());
+            make<DefIdentifier>(symbolic->getSymbol()->getAbsoluteName());
             break;
         }
 

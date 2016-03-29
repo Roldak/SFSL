@@ -32,7 +32,7 @@ void UserDataAssignment::visit(TypeDecl* tdecl) {
     ASTImplicitVisitor::visit(tdecl);
     sym::TypeSymbol* tsym = tdecl->getSymbol();
 
-    tsym->setUserdata(_mngr.New<DefUserData>(tsym->getName()));
+    tsym->setUserdata(_mngr.New<DefUserData>(tsym->getAbsoluteName()));
 }
 
 void UserDataAssignment::visit(ClassDecl* clss) {
@@ -96,9 +96,9 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     sym::DefinitionSymbol* def = decl->getSymbol();
 
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
-        def->setUserdata(_mngr.New<VirtualDefUserData>(def->getName()));
+        def->setUserdata(_mngr.New<VirtualDefUserData>(def->getAbsoluteName()));
     } else {
-        def->setUserdata(_mngr.New<DefUserData>(def->getName()));
+        def->setUserdata(_mngr.New<DefUserData>(def->getAbsoluteName()));
     }
 }
 

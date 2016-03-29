@@ -690,7 +690,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<
     meth->setType(_mngr.New<type::MethodType>(funcClass, argTypes, retType));
     meth->setPos(*func);
 
-    sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", "", funcDecl, funcClass);
+    sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", "()", funcDecl, funcClass);
     funcDecl->setSymbol(funcSym);
     funcDecl->setPos(*func);
 

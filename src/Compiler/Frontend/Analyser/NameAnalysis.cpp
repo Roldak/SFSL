@@ -85,7 +85,7 @@ void ScopePossessorVisitor::pushPathPart(const std::string& name) {
 }
 
 std::string ScopePossessorVisitor::absoluteName(const std::string& symName) {
-    return utils::join(_symbolPath, ".") + symName;
+    return utils::join(_symbolPath, ".") + "." + symName;
 }
 
 void ScopePossessorVisitor::popPathPart() {
@@ -253,7 +253,7 @@ void ScopeGeneration::visit(TypeSpecifier* tps) {
 
 void ScopeGeneration::createVar(Identifier* id) {
     std::string symName = id->getValue();
-    sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(symName, "");
+    sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(symName, symName);
     initCreated(id, arg);
 }
 
