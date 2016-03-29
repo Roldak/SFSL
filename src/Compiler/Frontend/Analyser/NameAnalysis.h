@@ -42,6 +42,12 @@ protected:
 
     void tryAddSymbol(sym::Symbol* sym);
 
+    void pushPathPart(const std::string& nameSymbol);
+    std::string absoluteName(const std::string& symName);
+    void popPathPart();
+
+    std::vector<std::string> _symbolPath;
+
     sym::Scope* _curScope;
 };
 

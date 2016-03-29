@@ -58,12 +58,18 @@ public:
      */
     const std::string& getName() const;
 
+    /**
+     * @return The absolute name of this symbol (path.name)
+     */
+    const std::string& getAbsoluteName() const;
+
 protected:
-    Symbol(const std::string& name);
+    Symbol(const std::string& name, const std::string& absoluteName);
 
 private:
 
     const std::string _name;
+    const std::string _absoluteName;
 };
 
 /**
@@ -71,7 +77,7 @@ private:
  */
 class ModuleSymbol : public Symbol, public Scoped {
 public:
-    ModuleSymbol(const std::string& name);
+    ModuleSymbol(const std::string& name, const std::string& absoluteName);
     virtual ~ModuleSymbol();
 
     virtual SYM_TYPE getSymbolType() const override;
@@ -82,7 +88,7 @@ public:
  */
 class TypeSymbol : public Symbol, public Scoped, public type::Typed, public kind::Kinded, public common::HasManageableUserdata {
 public:
-    TypeSymbol(const std::string& name, ast::TypeDecl* type);
+    TypeSymbol(const std::string& name, const std::string& absoluteName, ast::TypeDecl* type);
     virtual ~TypeSymbol();
 
     virtual SYM_TYPE getSymbolType() const override;
@@ -99,7 +105,7 @@ private:
  */
 class DefinitionSymbol : public Symbol, public Scoped, public type::Typed, public common::HasManageableUserdata {
 public:
-    DefinitionSymbol(const std::string& name, ast::DefineDecl* def, ast::TypeExpression* owner = nullptr);
+    DefinitionSymbol(const std::string& name, const std::string& absoluteName, ast::DefineDecl* def, ast::TypeExpression* owner = nullptr);
     virtual ~DefinitionSymbol();
 
     virtual SYM_TYPE getSymbolType() const override;
@@ -129,7 +135,7 @@ class VariableSymbol :
         public ast::UsageTrackable,
         public common::HasManageableUserdata {
 public:
-    VariableSymbol(const std::string& name);
+    VariableSymbol(const std::string& name, const std::string& absoluteName);
     virtual ~VariableSymbol();
 
     virtual SYM_TYPE getSymbolType() const override;

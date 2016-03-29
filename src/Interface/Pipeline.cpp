@@ -75,8 +75,8 @@ public:
 
         sym::SymbolResolver res(prog, namer, ctx);
 
-        ast::TopLevelTypeChecking topleveltypecheck(ctx, res);
-        ast::TypeChecking typeCheck(ctx, res);
+        ast::TopLevelTypeChecking topleveltypecheck(ctx, *namer, res);
+        ast::TypeChecking typeCheck(ctx, *namer, res);
 
         prog->onVisit(&topleveltypecheck);
         prog->onVisit(&typeCheck);
