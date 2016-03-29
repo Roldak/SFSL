@@ -39,7 +39,6 @@ void BASTPrinter::visit(Program* prog) {
     _ostream << "}" << std::endl << std::endl << "HIDDEN {" << std::endl;
 
     ++_indentCount;
-    printIndents();
 
     for (Definition* def : prog->getHiddenDefinitions()) {
         def->onVisit(this);

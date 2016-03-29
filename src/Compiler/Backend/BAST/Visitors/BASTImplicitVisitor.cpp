@@ -100,7 +100,7 @@ void BASTImplicitVisitor::visit(MethodCall* methcall) {
 }
 
 void BASTImplicitVisitor::visit(Instantiation* inst) {
-
+    inst->getClassId()->onVisit(this);
 }
 
 void BASTImplicitVisitor::visit(UnitLitteral* unitlit) {

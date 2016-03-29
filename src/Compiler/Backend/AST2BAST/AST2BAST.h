@@ -9,7 +9,11 @@
 #ifndef __SFSL__AST2BAST__
 #define __SFSL__AST2BAST__
 
+#include <list>
+
 #include "../../Frontend/AST/Visitors/ASTExplicitVisitor.h"
+#include "../BAST/Visitors/BASTImplicitVisitor.h"
+#include "../BAST/Visitors/BASTExplicitVisitor.h"
 #include "../BAST/Nodes/Nodes.h"
 #include "UserDataAssignment.h"
 
@@ -102,6 +106,57 @@ private:
 
     common::AbstractReporter& _rep;
     BASTNode* _created;
+};
+
+class BASTSimplifier : public BASTImplicitVisitor {
+public:
+
+    BASTSimplifier(CompCtx_Ptr& ctx);
+    virtual ~BASTSimplifier();
+
+    virtual void visit(Program* prog) override;
+
+private:
+
+    class Analyser : public BASTExplicitVisitor {
+    public:
+        Analyser(CompCtx_Ptr& ctx);
+        virtual ~Analyser();
+
+        virtual void visit(Program* prog) override;
+        virtual void visit(GlobalDef* global) override;
+        virtual void visit(DefIdentifier* defid) override;
+
+        const std::map<std::string, std::string>& getHiddenToAnyMappings() const;
+
+    private:
+
+        bool isHiddenName(const std::string& name) const;
+        std::string findSubstitution(std::string name) const;
+
+        bool _processingVisibleNames;
+
+        const std::string* _name;
+
+        std::set<std::string> _visibleNames;
+
+        std::map<std::string, std::string> _visibleToHiddenNameMappings;
+        std::map<std::string, std::string> _hiddenToAnyNameMappings;
+    };
+
+    class HiddenToAnyRenamer : public BASTImplicitVisitor {
+    public:
+
+        HiddenToAnyRenamer(CompCtx_Ptr& ctx, const std::map<std::string, std::string>& map);
+        virtual ~HiddenToAnyRenamer();
+
+        virtual void visit(Program* prog) override;
+        virtual void visit(DefIdentifier* defid) override;
+
+    private:
+
+        const std::map<std::string, std::string>& _map;
+    };
 };
 
 }

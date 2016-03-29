@@ -14,6 +14,8 @@ namespace sfsl {
 
 namespace bast {
 
+// AST2BAST
+
 AST2BAST::AST2BAST(CompCtx_Ptr& ctx) : ASTExplicitVisitor(ctx), _freshId(0), _rep(ctx->reporter()), _created(nullptr) {
 
 }
@@ -350,6 +352,142 @@ bool AST2BAST::alreadyTransformed(ast::DefUserData* defUD) {
 std::string AST2BAST::freshName(const std::string& prefix) {
     return prefix + "$$" + std::to_string(_freshId++);
 }
+
+// BAST SIMPLIFIER
+
+BASTSimplifier::BASTSimplifier(CompCtx_Ptr& ctx) : BASTImplicitVisitor(ctx) {
+
+}
+
+BASTSimplifier::~BASTSimplifier() {
+
+}
+
+void BASTSimplifier::visit(Program* prog) {
+    Analyser agg(_ctx);
+    prog->onVisit(&agg);
+
+    HiddenToAnyRenamer htar(_ctx, agg.getHiddenToAnyMappings());
+    prog->onVisit(&htar);
+}
+
+// ANALYSER
+
+BASTSimplifier::Analyser::Analyser(CompCtx_Ptr& ctx)
+        : BASTExplicitVisitor(ctx), _processingVisibleNames(false), _name(nullptr) {
+
+}
+
+BASTSimplifier::Analyser::~Analyser() {
+
+}
+
+void BASTSimplifier::Analyser::visit(Program* prog) {
+    _processingVisibleNames = true;
+    for (Definition* def : prog->getVisibleDefinitions()) {
+        _visibleNames.insert(def->getName());
+        def->onVisit(this);
+    }
+
+    _processingVisibleNames = false;
+    for (Definition* def : prog->getHiddenDefinitions()) {
+        def->onVisit(this);
+    }
+
+    for (auto& pair : _hiddenToAnyNameMappings) {
+        pair.second = findSubstitution(pair.second);
+    }
+
+    std::cout << "VISIBLE TO HIDDEN {" << std::endl;
+    for (const auto& pair : _visibleToHiddenNameMappings) {
+        std::cout << "\t" << pair.first << " REFERS " << pair.second << std::endl;
+    }
+    std::cout << "}" << std::endl << "HIDDEN TO ANY {" << std::endl;
+    for (const auto& pair : _hiddenToAnyNameMappings) {
+        std::cout << "\t" << pair.first << " REFERS " << pair.second << std::endl;
+    }
+    std::cout << "}" << std::endl;
+}
+
+void BASTSimplifier::Analyser::visit(GlobalDef* global) {
+    _name = nullptr;
+    global->getBody()->onVisit(this);
+    if (_name) {
+        if (_processingVisibleNames) {
+            if (isHiddenName(*_name)) {
+                _visibleToHiddenNameMappings[global->getName()] = *_name;
+            }
+        } else {
+            _hiddenToAnyNameMappings[global->getName()] = *_name;
+        }
+    }
+}
+
+void BASTSimplifier::Analyser::visit(DefIdentifier* defid) {
+    _name = &defid->getValue();
+}
+
+const std::map<std::string, std::string>& BASTSimplifier::Analyser::getHiddenToAnyMappings() const {
+    return _hiddenToAnyNameMappings;
+}
+
+bool BASTSimplifier::Analyser::isHiddenName(const std::string& name) const {
+    return _visibleNames.find(name) == _visibleNames.end();
+}
+
+std::string BASTSimplifier::Analyser::findSubstitution(std::string name) const {
+    while (true) {
+        auto it1 = _visibleToHiddenNameMappings.find(name);
+        auto it2 = _hiddenToAnyNameMappings.end();
+
+        if (it1 != _visibleToHiddenNameMappings.end()) {
+            it2 = _hiddenToAnyNameMappings.find(name);
+        }
+
+        if (it1 != _visibleToHiddenNameMappings.end()) {
+            name = it1->second;
+        } else if (it2 != _hiddenToAnyNameMappings.end()) {
+            name = it2->second;
+        } else {
+            break;
+        }
+    }
+    return name;
+}
+
+// HIDDEN TO ANY RENAMER
+
+BASTSimplifier::HiddenToAnyRenamer::HiddenToAnyRenamer(CompCtx_Ptr& ctx, const std::map<std::string, std::string>& map)
+    : BASTImplicitVisitor(ctx), _map(map) {
+
+}
+
+BASTSimplifier::HiddenToAnyRenamer::~HiddenToAnyRenamer() {
+
+}
+
+void BASTSimplifier::HiddenToAnyRenamer::visit(Program* prog) {
+    BASTImplicitVisitor::visit(prog);
+
+    std::vector<Definition*> newHiddenDefinitions;
+
+    for (Definition* hidden : prog->getHiddenDefinitions()) {
+        auto it = _map.find(hidden->getName());
+        if (it == _map.end()) {
+            newHiddenDefinitions.push_back(hidden);
+        }
+    }
+
+    *prog = Program(prog->getVisibleDefinitions(), newHiddenDefinitions);
+}
+
+void BASTSimplifier::HiddenToAnyRenamer::visit(DefIdentifier* defid) {
+    auto it = _map.find(defid->getValue());
+    if (it != _map.end()) {
+        *defid = DefIdentifier(it->second);
+    }
+}
+
 
 }
 

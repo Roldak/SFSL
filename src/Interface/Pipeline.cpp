@@ -105,11 +105,14 @@ public:
         ast::UserDataAssignment uda(ctx);
         bast::AST2BAST a2b(ctx);
         bast::BASTPrinter printer(ctx, std::cout);
+        bast::BASTSimplifier simplifier(ctx);
         bc::DefaultBytecodeGenerator gen(ctx, *_out);
 
         prog->onVisit(&uda);
 
         bast::Program* bprog = a2b.transform(prog);
+        bprog->onVisit(&printer);
+        bprog->onVisit(&simplifier);
         bprog->onVisit(&printer);
 
         prog->onVisit(&gen);
