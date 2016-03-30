@@ -81,6 +81,7 @@ std::string Operator::OperTypeToString(OPER_TYPE type) {
     case OPER_THIN_ARROW:return "->";
     case OPER_FAT_ARROW:return "=>";
     case OPER_DOT_DOT:  return "..";
+    case OPER_AT:       return "@";
     case OPER_SHARP:    return "#";
 
     default:            return "";
@@ -119,6 +120,7 @@ std::unordered_map<std::string, OPER_TYPE> createOperatorsMap() {
     map["->"] = OPER_THIN_ARROW;
     map["=>"] = OPER_FAT_ARROW;
     map[".."] = OPER_DOT_DOT;
+    map["@"] = OPER_AT;
     map["#"] = OPER_SHARP;
     return map;
 }

@@ -51,6 +51,7 @@ void AST2BAST::visit(ast::ModuleDecl* module) {
 
 void AST2BAST::visit(ast::TypeDecl* tdecl) {
     addDefinitionToProgram<GlobalDef>(tdecl->getSymbol(), transform(tdecl->getExpression()));
+    makeUnit();
 }
 
 void AST2BAST::visit(ast::ClassDecl* clss) {
@@ -87,6 +88,7 @@ void AST2BAST::visit(ast::DefineDecl* decl) {
     }
 
     addDefinitionToProgram<GlobalDef>(decl->getSymbol(), transform(decl->getValue()));
+    makeUnit();
 }
 
 void AST2BAST::visit(ast::ProperTypeKindSpecifier* ptks) {

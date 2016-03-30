@@ -314,8 +314,8 @@ Expression* Parser::parseStatement() {
 
         switch (kw) {
         case tok::KW_DEF:   return parseDef(true, false, false, false);
-        case tok::KW_IF:    return parseIf(true);
         case tok::KW_TPE:   return parseType(true);
+        case tok::KW_IF:    return parseIf(true);
 
         case tok::KW_REDEF:
         case tok::KW_ABSTRACT:
