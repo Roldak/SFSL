@@ -14,24 +14,50 @@ namespace ast {
 
 // ANNOTATION VALUE
 
-Annotation::ArgumentValue::ArgumentValue() : tag(K_ANNOT_BOOL), value{.b = false} {
+
+Annotation::ArgumentValue::Value::Value() {
 
 }
 
-Annotation::ArgumentValue::ArgumentValue(bool b) : tag(K_ANNOT_BOOL), value{.b = b} {
+Annotation::ArgumentValue::Value::~Value() {
 
 }
 
-Annotation::ArgumentValue::ArgumentValue(long i) : tag(K_ANNOT_INT), value{.i = i} {
-
+Annotation::ArgumentValue::ArgumentValue() : tag(K_ANNOT_BOOL) {
+    value.b = false;
 }
 
-Annotation::ArgumentValue::ArgumentValue(double r) : tag(K_ANNOT_REAL), value{.r = r} {
-
+Annotation::ArgumentValue::ArgumentValue(sfsl_bool_t b) : tag(K_ANNOT_BOOL) {
+    value.b = b;
 }
 
-Annotation::ArgumentValue::ArgumentValue(const std::string& s) : tag(K_ANNOT_STRING), value{.s = s} {
+Annotation::ArgumentValue::ArgumentValue(sfsl_int_t i) : tag(K_ANNOT_INT) {
+    value.i = i;
+}
 
+Annotation::ArgumentValue::ArgumentValue(sfsl_real_t r) : tag(K_ANNOT_REAL) {
+    value.r = r;
+}
+
+Annotation::ArgumentValue::ArgumentValue(const std::string& s) : tag(K_ANNOT_STRING) {
+    new (&value.s) std::string(s);
+}
+
+Annotation::ArgumentValue::ArgumentValue(const Annotation::ArgumentValue& other) : tag(other.tag) {
+    switch (tag) {
+    case K_ANNOT_BOOL:
+        value.b = other.value.b;
+        break;
+    case K_ANNOT_INT:
+        value.i = other.value.i;
+        break;
+    case K_ANNOT_REAL:
+        value.r = other.value.r;
+        break;
+    case K_ANNOT_STRING:
+        new (&value.s) std::string(other.value.s);
+        break;
+    }
 }
 
 // ANNOTATION

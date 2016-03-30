@@ -131,6 +131,11 @@ private:
         // others
 
     void parseAnnotations();
+    std::vector<Annotation*> consumeAnnotations();
+    bool annotationsConsumed() const;
+    common::Positionnable annotationsPos() const;
+    void reportErroneousAnnotations();
+
     ast::CanUseModules::ModulePath parseUsing(const common::Positionnable& usingpos, bool asStatement);
 
     template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>

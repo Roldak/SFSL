@@ -10,7 +10,9 @@
 #define __SFSL__KindExpressions__
 
 #include <iostream>
+
 #include "ASTNode.h"
+
 #include "../../Kinds/Kinds.h"
 
 namespace sfsl {

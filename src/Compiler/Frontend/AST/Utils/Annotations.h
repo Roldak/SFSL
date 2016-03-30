@@ -12,6 +12,8 @@
 #include <iostream>
 #include <vector>
 
+#include "../../../../Utils/Utils.h"
+
 #include "../../../Common/Positionnable.h"
 
 namespace sfsl {
@@ -23,16 +25,20 @@ public:
 
     struct ArgumentValue final {
         ArgumentValue();
-        ArgumentValue(bool b);
-        ArgumentValue(long i);
-        ArgumentValue(double r);
+        ArgumentValue(sfsl_bool_t b);
+        ArgumentValue(sfsl_int_t i);
+        ArgumentValue(sfsl_real_t r);
         ArgumentValue(const std::string& s);
+        ArgumentValue(const ArgumentValue& other);
 
         enum { K_ANNOT_BOOL, K_ANNOT_INT, K_ANNOT_REAL, K_ANNOT_STRING } tag;
-        union {
-            bool b;
-            long i;
-            double r;
+        union Value {
+            Value();
+            ~Value();
+
+            sfsl_bool_t b;
+            sfsl_int_t i;
+            sfsl_real_t r;
             std::string s;
         } value;
     };

@@ -131,8 +131,12 @@ Program* Parser::parseProgram() {
     SAVE_POS(startPos)
 
     while (_lex.hasNext()) {
+        parseAnnotations();
+
         expect(tok::KW_MODULE, "`module`", true);
         modules.push_back(parseModule());
+
+        reportErroneousAnnotations();
     }
 
     Program* prog = _mngr.New<Program>(modules);
@@ -147,10 +151,13 @@ ModuleDecl* Parser::parseModule() {
     std::vector<TypeDecl*> types;
     std::vector<DefineDecl*> decls;
     std::vector<CanUseModules::ModulePath> usings;
+    std::vector<Annotation*> annots(std::move(consumeAnnotations()));
 
     expect(tok::OPER_L_BRACE, "`{`");
 
     while (!accept(tok::OPER_R_BRACE)) {
+        parseAnnotations();
+
         SAVE_POS(keywordPos)
         bool isExtern = accept(tok::KW_EXTERN);
         SAVE_POS(externElemPos)
@@ -171,10 +178,13 @@ ModuleDecl* Parser::parseModule() {
         if (isExtern) {
             _ctx->reporter().error(externElemPos, "Modules or type declarations cannot be declared extern");
         }
+
+        reportErroneousAnnotations();
     }
 
     ModuleDecl* modDecl = _mngr.New<ModuleDecl>(moduleName, mods, types, decls);
     modDecl->setUsedModules(usings);
+    modDecl->setAnnotations(annots);
     modDecl->setPos(*moduleName);
     modDecl->setEndPos(_lastTokenEndPos);
 
@@ -182,6 +192,8 @@ ModuleDecl* Parser::parseModule() {
 }
 
 DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, bool isAbstract, Identifier* name) {
+    std::vector<Annotation*> annots(std::move(consumeAnnotations()));
+
     Identifier* defName = (name ? name : parseIdentifier("Expected definition name"));
 
     TypeExpression* typeSpecifier = nullptr;
@@ -209,6 +221,7 @@ DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, bool
     }
 
     DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, typeSpecifier, expr, isRedef, isExtern, isAbstract);
+    defDecl->setAnnotations(annots);
     defDecl->setPos(*defName);
     defDecl->setEndPos(_lastTokenEndPos);
     return defDecl;
@@ -216,6 +229,8 @@ DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, bool
 
 ClassDecl* Parser::parseClass(bool isAbstractClass) {
     SAVE_POS(startPos)
+
+    std::vector<Annotation*> annots(std::move(consumeAnnotations()));
 
     std::string className = _currentTypeName.empty() ? AnonymousClassName : _currentTypeName;
     TypeExpression* parent = nullptr;
@@ -236,6 +251,8 @@ ClassDecl* Parser::parseClass(bool isAbstractClass) {
     std::vector<DefineDecl*> defs;
 
     while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
+        parseAnnotations();
+
         bool isExtern = accept(tok::KW_EXTERN);
         bool isAbstract = accept(tok::KW_ABSTRACT);
 
@@ -276,15 +293,20 @@ ClassDecl* Parser::parseClass(bool isAbstractClass) {
         if (isAbstract) {
             _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared abstract");
         }
+
+        reportErroneousAnnotations();
     }
 
     ClassDecl* classDecl = _mngr.New<ClassDecl>(className, parent, tdecls, fields, defs, isAbstractClass);
+    classDecl->setAnnotations(annots);
     classDecl->setPos(startPos);
     classDecl->setEndPos(_lastTokenEndPos);
     return classDecl;
 }
 
 TypeDecl* Parser::parseType(bool asStatement) {
+    std::vector<Annotation*> annots(std::move(consumeAnnotations()));
+
     TypeIdentifier* typeName = parseTypeIdentifier("Expected type name");
     accept(tok::OPER_EQ);
 
@@ -300,6 +322,7 @@ TypeDecl* Parser::parseType(bool asStatement) {
     }
 
     TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr);
+    typeDecl->setAnnotations(annots);
     typeDecl->setPos(*typeName);
     typeDecl->setEndPos(_lastTokenEndPos);
     return typeDecl;
@@ -308,6 +331,8 @@ TypeDecl* Parser::parseType(bool asStatement) {
 Expression* Parser::parseStatement() {
     SAVE_POS(startPos)
 
+    parseAnnotations();
+
     if (isType(tok::TOK_KW) && as<tok::Keyword>()->getKwType() != tok::KW_THIS) {
         tok::KW_TYPE kw = as<tok::Keyword>()->getKwType();
         accept();
@@ -315,20 +340,26 @@ Expression* Parser::parseStatement() {
         switch (kw) {
         case tok::KW_DEF:   return parseDef(true, false, false, false);
         case tok::KW_TPE:   return parseType(true);
-        case tok::KW_IF:    return parseIf(true);
+        case tok::KW_IF:
+            reportErroneousAnnotations();
+            return parseIf(true);
 
         case tok::KW_REDEF:
         case tok::KW_ABSTRACT:
             _ctx->reporter().error(startPos, "`" + tok::Keyword::KeywordTypeToString(kw) +
                                    "` keyword can only be used inside a class scope");
+            reportErroneousAnnotations();
             return nullptr;
         default:
             _ctx->reporter().error(startPos, "Unexpected keyword `" + tok::Keyword::KeywordTypeToString(kw) + "`");
+            reportErroneousAnnotations();
             return nullptr;
         }
     } else if (accept(tok::OPER_L_BRACE)) {
+        reportErroneousAnnotations();
         return parseBlock();
     } else {
+        reportErroneousAnnotations();
         ExpressionStatement* expr = _mngr.New<ExpressionStatement>(parseExpression());
         expect(tok::OPER_SEMICOLON, "`;`");
         expr->setPos(startPos);
@@ -380,6 +411,9 @@ Expression* Parser::parseBinary(Expression* left, int precedence) {
 Expression* Parser::parsePrimary() {
     SAVE_POS(startPos)
     Expression* toRet = nullptr;
+    bool shouldReportAnnotations = true;
+
+    parseAnnotations();
 
     switch (_currentToken->getTokenType()) {
     case tok::TOK_BOOL_LIT:
@@ -420,9 +454,13 @@ Expression* Parser::parsePrimary() {
             if (tuple->getExpressions().size() == 1) {
                 toRet = tuple->getExpressions()[0];
             }
+
+            shouldReportAnnotations = false;
         }
         else if (accept(tok::OPER_L_BRACKET)) {
             SAVE_POS(pos)
+
+            std::vector<Annotation*> annots(std::move(consumeAnnotations()));
 
             TypeTuple* typeArgs = parseTypeTuple();
 
@@ -437,11 +475,12 @@ Expression* Parser::parsePrimary() {
             expect(tok::OPER_FAT_ARROW, "`=>`");
             toRet = _mngr.New<FunctionCreation>(_currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
                                                typeArgs, args, parseExpression(), retType);
+            static_cast<FunctionCreation*>(toRet)->setAnnotations(annots);
             toRet->setPos(pos);
             toRet->setEndPos(_lastTokenEndPos);
         }
         else if (accept(tok::OPER_L_BRACE)) {
-            return parseBlock();
+            toRet = parseBlock();
         } else {
             _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
             accept();
@@ -450,9 +489,9 @@ Expression* Parser::parsePrimary() {
 
     case tok::TOK_KW:
         if (accept(tok::KW_IF)) {
-            return parseIf(false);
+            toRet = parseIf(false);
         } else if (accept(tok::KW_THIS)) {
-            return parseThis(startPos);
+            toRet = parseThis(startPos);
         } else {
             _ctx->reporter().error(*_currentToken, "Unexpected keyword `" + _currentToken->toString() + "`");
             accept();
@@ -464,6 +503,10 @@ Expression* Parser::parsePrimary() {
                                "Expected int litteral | real litteral | string litteral "
                                "| identifier | keyword; got " + _currentToken->toString());
         accept();
+    }
+
+    if (shouldReportAnnotations) {
+        reportErroneousAnnotations();
     }
 
     return toRet;
@@ -546,15 +589,19 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
         expect(tok::OPER_L_PAREN, "`(`");
         res = _mngr.New<FunctionCall>(left, typeArgs, parseTuple());
     } else if (accept(tok::OPER_FAT_ARROW)) {
+        std::vector<Annotation*> annots(std::move(consumeAnnotations()));
         res = _mngr.New<FunctionCreation>(
                     _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
                     nullptr, left, parseExpression());
+        static_cast<FunctionCreation*>(res)->setAnnotations(annots);
     } else if (accept(tok::OPER_THIN_ARROW)) {
+        std::vector<Annotation*> annots(std::move(consumeAnnotations()));
         TypeExpression* retType = parseTypeExpression(false);
         expect(tok::OPER_FAT_ARROW, "`=>`");
         res = _mngr.New<FunctionCreation>(
                     _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
                     nullptr, left, parseExpression(), retType);
+        static_cast<FunctionCreation*>(res)->setAnnotations(annots);
     } else if (accept(tok::OPER_DOT)) {
         Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : parseIdentifier("Expected attribute / method name");
         res = _mngr.New<MemberAccess>(left, id);
@@ -563,7 +610,9 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     if (res) {
         res->setPos(*left);
         res->setEndPos(_lastTokenEndPos);
+
     }
+    reportErroneousAnnotations();
 
     return res;
 }
@@ -637,6 +686,8 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
     SAVE_POS(startPos)
     std::vector<TypeExpression*> exprs;
 
+    parseAnnotations();
+
     switch (_currentToken->getTokenType()) {
     case tok::TOK_ID:
         exprs.push_back(parseTypeIdentifier());
@@ -674,6 +725,8 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
                                "; got " + _currentToken->toString());
         accept();
     }
+
+    reportErroneousAnnotations();
 
     bool arrowNecessary = false;
     TypeExpression* toRet = nullptr;
@@ -746,8 +799,12 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
     return toRet;
 }
 
-void Parser::parseAnnotation() {
+void Parser::parseAnnotations() {
     SAVE_POS(pos)
+
+    if (!accept(tok::OPER_AT)) {
+        return;
+    }
 
     std::string name;
     std::vector<Annotation::ArgumentValue> args;
@@ -760,7 +817,7 @@ void Parser::parseAnnotation() {
         return;
     }
 
-    if (accept(tok::OPER_L_PAREN)) {
+    if (_currentToken->getStartPosition() == _lastTokenEndPos && accept(tok::OPER_L_PAREN)) {
         while (true) {
             if (isType(tok::TOK_BOOL_LIT)) {
                 args.push_back(Annotation::ArgumentValue(as<tok::BoolLitteral>()->getValue()));
@@ -776,7 +833,9 @@ void Parser::parseAnnotation() {
                                        "; got " + _currentToken->toString());
                 break;
             }
+
             accept();
+
             if (accept(tok::OPER_COMMA)) {
                 continue;
             } else if (accept(tok::OPER_R_PAREN)) {
@@ -795,9 +854,33 @@ void Parser::parseAnnotation() {
 
     _parsedAnnotations.push_back(annot);
 
-    if (accept(tok::OPER_AT)) {
-        parseAnnotation();
+    parseAnnotations();
+}
+
+std::vector<Annotation*> Parser::consumeAnnotations() {
+    std::vector<Annotation*> annots(std::move(_parsedAnnotations));
+    _parsedAnnotations.clear();
+    return annots;
+}
+
+bool Parser::annotationsConsumed() const {
+    return _parsedAnnotations.size() == 0;
+}
+
+common::Positionnable Parser::annotationsPos() const {
+    common::Positionnable pos;
+    if (_parsedAnnotations.size() > 0) {
+        pos = *_parsedAnnotations[0];
+        pos.setEndPos(_parsedAnnotations.back()->getEndPosition());
     }
+    return pos;
+}
+
+void Parser::reportErroneousAnnotations() {
+    if (!annotationsConsumed()) {
+        _ctx->reporter().error(annotationsPos(), "Illegal annotation placement");
+    }
+    _parsedAnnotations.clear();
 }
 
 CanUseModules::ModulePath Parser::parseUsing(const common::Positionnable& usingpos, bool asStatement) {
