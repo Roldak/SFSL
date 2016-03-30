@@ -539,8 +539,6 @@ BASTSimplifier::VisibleToHiddenRenamer::~VisibleToHiddenRenamer() {
 }
 
 void BASTSimplifier::VisibleToHiddenRenamer::visit(Program* prog) {
-    BASTImplicitVisitor::visit(prog);
-
     std::vector<Definition*> newVisibleDefinitions;
     std::vector<Definition*> newHiddenDefinitions;
 
@@ -554,9 +552,9 @@ void BASTSimplifier::VisibleToHiddenRenamer::visit(Program* prog) {
         }
     }
     for (Definition* hidden : prog->getHiddenDefinitions()) {
-        hidden->onVisit(this);
         auto it = _map.find(hidden->getName());
-        if (it == _map.end()) {
+        hidden->onVisit(this);
+        if (it != _map.end()) {
             newVisibleDefinitions.push_back(hidden);
         } else {
             newHiddenDefinitions.push_back(hidden);

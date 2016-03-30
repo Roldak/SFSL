@@ -177,7 +177,7 @@ void AnnotationUsageWarner::visit(FunctionCreation* func) {
 void AnnotationUsageWarner::visitAnnotable(Annotable* annotable) {
     for (Annotation* annot : annotable->getAnnotations()) {
         if (!annot->isUsed()) {
-            _rep.warning(*annot, "Unused annotation");
+            _rep.warning(*annot, "Unused annotation. It is either ill-formed, or the plugin using these annotations is missing.");
         }
     }
 }
