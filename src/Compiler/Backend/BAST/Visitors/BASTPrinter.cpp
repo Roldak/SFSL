@@ -118,13 +118,13 @@ void BASTPrinter::visit(VarIdentifier* varid) {
 void BASTPrinter::visit(FieldAccess* fieldacc) {
     _ostream << "(";
     fieldacc->getAccessed()->onVisit(this);
-    _ostream << "){" << fieldacc->getFieldId() << "}";
+    _ostream << ").{" << fieldacc->getFieldId() << "}";
 }
 
 void BASTPrinter::visit(FieldAssignmentExpression* fassign) {
     _ostream << "(";
     fassign->getAccessed()->onVisit(this);
-    _ostream << "){" << fassign->getFieldId() << "} = (";
+    _ostream << ").{" << fassign->getFieldId() << "} = (";
     fassign->getValue()->onVisit(this);
     _ostream << ")";
 }

@@ -137,7 +137,30 @@ void AST2BAST::visit(ast::ExpressionStatement* exp) {
 }
 
 void AST2BAST::visit(ast::AssignmentExpression* aex) {
-
+    if (ast::isNodeOfType<ast::TypeSpecifier>(aex->getLhs(), _ctx)) {
+        ast::TypeSpecifier* tps = static_cast<ast::TypeSpecifier*>(aex->getLhs());
+        assignIdentifier(tps->getSpecified(), aex->getRhs());
+    }
+    else if (ast::isNodeOfType<ast::MemberAccess>(aex->getLhs(), _ctx)) {
+        ast::MemberAccess* mac = static_cast<ast::MemberAccess*>(aex->getLhs());
+        if (mac->getSymbol()->getSymbolType() == sym::SYM_VAR) {
+            sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(mac->getSymbol());
+            make<FieldAssignmentExpression>(transform(mac->getAccessed()), getVarLoc(var), transform(aex->getRhs()));
+        } else {
+            _rep.fatal(*mac, "Shouldn't be able to assign non var member");
+        }
+    }
+    else if (ast::isNodeOfType<ast::IfExpression>(aex->getLhs(), _ctx)) {
+        // TODO
+    }
+    else if (ast::isNodeOfType<ast::Tuple>(aex->getLhs(), _ctx)) {
+        // TODO
+    }
+    else if (ast::isNodeOfType<ast::Identifier>(aex->getLhs(), _ctx)) {
+        assignIdentifier(static_cast<ast::Identifier*>(aex->getLhs()), aex->getRhs());
+    } else {
+        _rep.fatal(*aex, "Is not allowed");
+    }
 }
 
 void AST2BAST::visit(ast::TypeSpecifier* tps) {
@@ -249,7 +272,7 @@ Program* AST2BAST::transform(ast::Program* node) {
 template<typename T>
 void AST2BAST::visitSymbolic(T* symbolic) {
     if (symbolic->getSymbolCount() != 1) {
-        _rep.error(*symbolic, "Identifier refers to several symbols");
+        _rep.error(*symbolic, "Symbolic refers to several symbols");
         makeBad();
     } else {
         switch (symbolic->getSymbol()->getSymbolType()) {
@@ -273,8 +296,25 @@ void AST2BAST::visitSymbolic(T* symbolic) {
         }
 
         default:
+            _rep.fatal(*symbolic, "Cannot generate expression for this kind of symbolic");
             break;
         }
+    }
+}
+
+void AST2BAST::assignIdentifier(ast::Identifier* ident, ast::Expression* val) {
+    if (ident->getSymbolCount() != 1) {
+        _rep.error(*ident, "Identifier refers to several symbols");
+        makeBad();
+    } else if (ident->getSymbol()->getSymbolType() == sym::SYM_VAR) {
+        sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(ident->getSymbol());
+        if (isVariableAttribute(var)) {
+            make<FieldAssignmentExpression>(make<VarIdentifier>(0), getVarLoc(var), transform(val));
+        } else {
+            make<VarAssignmentExpression>(getVarLoc(var), transform(val));
+        }
+    } else {
+        _rep.fatal(*ident, "Cannot assign identifier to this kind of symbol");
     }
 }
 

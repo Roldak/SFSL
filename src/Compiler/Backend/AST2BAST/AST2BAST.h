@@ -74,6 +74,8 @@ private:
     template<typename T>
     void visitSymbolic(T* symbolic);
 
+    void assignIdentifier(ast::Identifier* ident, ast::Expression* val);
+
     const std::string& getDefId(ast::FunctionCreation* func);
     const std::string& getDefId(ast::ClassDecl* clss);
     const std::string& getDefId(sym::DefinitionSymbol* def);
