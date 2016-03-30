@@ -82,7 +82,7 @@ private:
     const std::string& getDefId(sym::TypeSymbol* tpe);
 
     template<typename T>
-    bool isHiddenDef(T* def) const;
+    bool isVisibleDef(T* def) const;
 
     template<typename BAST_NODE, typename DEF, typename... BAST_ARGS_REST>
     void addDefinitionToProgram(DEF* def, BAST_ARGS_REST... args);

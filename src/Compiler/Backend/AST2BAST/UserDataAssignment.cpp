@@ -32,7 +32,7 @@ void UserDataAssignment::visit(TypeDecl* tdecl) {
     ASTImplicitVisitor::visit(tdecl);
     sym::TypeSymbol* tsym = tdecl->getSymbol();
 
-    tsym->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(tsym), false));
+    tsym->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(tsym), true));
 }
 
 void UserDataAssignment::visit(ClassDecl* clss) {
@@ -87,7 +87,7 @@ void UserDataAssignment::visit(ClassDecl* clss) {
             defs[virtualLoc] = defsym;
         }
 
-        clss->setUserdata(_mngr.New<ClassUserData>(freshName(clss->getName()), true, fields, defs, clss->isAbstract()));
+        clss->setUserdata(_mngr.New<ClassUserData>(freshName(clss->getName()), false, fields, defs, clss->isAbstract()));
     }
 }
 
@@ -96,9 +96,9 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     sym::DefinitionSymbol* def = decl->getSymbol();
 
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
-        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromSymbol(def), false));
+        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromSymbol(def), true));
     } else {
-        def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def), false));
+        def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def), true));
     }
 }
 
@@ -119,7 +119,7 @@ void UserDataAssignment::visit(FunctionCreation* func) {
         pt->getClass()->onVisit(this);
     }
 
-    func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), true, _currentVarCount));
+    func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), false, _currentVarCount));
 
     RESTORE_MEMBER(_currentVarCount)
 }
@@ -139,7 +139,7 @@ std::string UserDataAssignment::nameFromSymbol(sym::Symbol* s) {
 
 // DEFINITION USER DATA
 
-DefUserData::DefUserData(const std::string& defId, bool isHidden) : _defId(defId), _isHidden(isHidden) {
+DefUserData::DefUserData(const std::string& defId, bool isVisible) : _defId(defId), _isVisible(isVisible) {
 
 }
 
@@ -151,8 +151,8 @@ const std::string& DefUserData::getDefId() const {
     return _defId;
 }
 
-bool DefUserData::isHidden() const {
-    return _isHidden;
+bool DefUserData::isVisible() const {
+    return _isVisible;
 }
 
 // CLASS USER DATA

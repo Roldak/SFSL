@@ -339,18 +339,18 @@ const std::string& AST2BAST::getDefId(sym::TypeSymbol* tpe) {
 }
 
 template<typename T>
-bool AST2BAST::isHiddenDef(T* def) const {
+bool AST2BAST::isVisibleDef(T* def) const {
     ast::DefUserData* defUD = def->template getUserdata<ast::DefUserData>();
-    return defUD->isHidden();
+    return defUD->isVisible();
 }
 
 template<typename BAST_NODE, typename DEF, typename... BAST_ARGS_REST>
 void AST2BAST::addDefinitionToProgram(DEF* def, BAST_ARGS_REST... args) {
     BAST_NODE* node = make<BAST_NODE>(getDefId(def), std::forward<BAST_ARGS_REST>(args)...);
-    if (isHiddenDef(def)) {
-        _hiddenDefs.push_back(node);
-    } else {
+    if (isVisibleDef(def)) {
         _visibleDefs.push_back(node);
+    } else {
+        _hiddenDefs.push_back(node);
     }
 }
 

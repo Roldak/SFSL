@@ -48,22 +48,22 @@ private:
 
 class DefUserData : public common::MemoryManageable {
 public:
-    DefUserData(const std::string& defId, bool isHidden);
+    DefUserData(const std::string& defId, bool isVisible);
     virtual ~DefUserData();
 
     const std::string& getDefId() const;
 
-    bool isHidden() const;
+    bool isVisible() const;
 
 private:
 
     const std::string _defId;
-    bool _isHidden;
+    bool _isVisible;
 };
 
 class ClassUserData final : public DefUserData {
 public:
-    ClassUserData(const std::string& defId, bool isHidden, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract);
+    ClassUserData(const std::string& defId, bool isVisible, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract);
     virtual ~ClassUserData();
 
     size_t getAttrCount() const;
@@ -86,7 +86,7 @@ private:
 
 class FuncUserData final : public DefUserData {
 public:
-    FuncUserData(const std::string& defId, bool isHidden, size_t varCount);
+    FuncUserData(const std::string& defId, bool isVisible, size_t varCount);
     virtual ~FuncUserData();
 
     size_t getVarCount() const;
@@ -114,7 +114,7 @@ private:
 
 class VirtualDefUserData : public DefUserData {
 public:
-    VirtualDefUserData(const std::string& defId, bool isHidden);
+    VirtualDefUserData(const std::string& defId, bool isVisible);
     virtual ~VirtualDefUserData();
 
     void setVirtualLocation(size_t virtLoc);
