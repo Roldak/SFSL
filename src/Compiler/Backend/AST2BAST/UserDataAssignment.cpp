@@ -32,7 +32,7 @@ void UserDataAssignment::visit(TypeDecl* tdecl) {
     ASTImplicitVisitor::visit(tdecl);
     sym::TypeSymbol* tsym = tdecl->getSymbol();
 
-    tsym->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(tsym), true));
+    tsym->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(tsym), visibilityFromAnnotable(tdecl)));
 }
 
 void UserDataAssignment::visit(ClassDecl* clss) {
@@ -96,9 +96,9 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     sym::DefinitionSymbol* def = decl->getSymbol();
 
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
-        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromSymbol(def), true));
+        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromSymbol(def), visibilityFromAnnotable(decl)));
     } else {
-        def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def), true));
+        def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def), visibilityFromAnnotable(decl)));
     }
 }
 
@@ -135,6 +135,12 @@ std::string UserDataAssignment::nameFromSymbol(sym::Symbol* s) {
     } else {
         return name;
     }
+}
+
+bool UserDataAssignment::visibilityFromAnnotable(Annotable* a) {
+    bool isVisible = false;
+    a->matchAnnotation<>("export", [&](){ isVisible = true; });
+    return isVisible;
 }
 
 // DEFINITION USER DATA

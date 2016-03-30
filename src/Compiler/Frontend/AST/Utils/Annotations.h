@@ -79,7 +79,7 @@ private:
     std::vector<Annotation*> _annotations;
 };
 
-namespace _utils {
+namespace annotation_utils {
 
 template<typename T>
 struct function_traits;
@@ -158,7 +158,7 @@ void Annotable::matchAnnotation(const std::string& name, Func&& callback) {
     for (const Annotation* annot : _annotations) {
         if (annot->getName() == name) {
             if (annot->getArgs().size() == sizeof...(Args)) {
-                _utils::CallGenerator<0, sizeof...(Args), StdFunc>::apply(StdFunc(callback), annot->getArgs());
+                annotation_utils::CallGenerator<0, sizeof...(Args), StdFunc>::apply(StdFunc(callback), annot->getArgs());
             }
         }
     }

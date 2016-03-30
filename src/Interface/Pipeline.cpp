@@ -111,7 +111,7 @@ public:
         prog->onVisit(&uda);
 
         bast::Program* bprog = a2b.transform(prog);
-        bprog->onVisit(&simplifier);
+        //bprog->onVisit(&simplifier);
         bprog->onVisit(&printer);
 
         prog->onVisit(&gen);
