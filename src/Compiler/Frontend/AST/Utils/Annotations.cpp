@@ -97,6 +97,10 @@ Annotable::~Annotable() {
 
 }
 
+void Annotable::annotate(Annotation* annot) {
+    _annotations.push_back(annot);
+}
+
 void Annotable::setAnnotations(const std::vector<Annotation*>& annotations) {
     _annotations = annotations;
 }

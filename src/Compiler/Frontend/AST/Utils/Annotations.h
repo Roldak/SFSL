@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <vector>
+#include <functional>
 
 #include "../../../../Utils/Utils.h"
 
@@ -65,13 +66,103 @@ public:
     Annotable();
     virtual ~Annotable();
 
+    template<typename ...Args, typename Func>
+    void matchAnnotation(const std::string& name, Func&& callback);
+
+    void annotate(Annotation* annot);
     void setAnnotations(const std::vector<Annotation*>& annotations);
+
     const std::vector<Annotation*>& getAnnotations() const;
 
 private:
 
     std::vector<Annotation*> _annotations;
 };
+
+namespace _utils {
+
+template<typename T>
+struct function_traits;
+
+template<typename ...Args>
+struct function_traits<std::function<void(Args...)>> {
+    static const size_t nargs = sizeof...(Args);
+
+    template<size_t i>
+    using Arg_t = typename std::tuple_element<i, std::tuple<Args...>>::type;
+};
+
+template<typename T, typename std::enable_if<std::is_same<bool, T>::value, T>::type* = nullptr>
+bool fromAnnotationValue(const Annotation::ArgumentValue& in, T* out) {
+    if (in.tag == Annotation::ArgumentValue::K_ANNOT_BOOL) {
+        *out = in.value.b;
+        return true;
+    }
+    return false;
+}
+
+template<typename T, typename std::enable_if<std::is_integral<T>::value, T>::type* = nullptr>
+bool fromAnnotationValue(const Annotation::ArgumentValue& in, T* out) {
+    if (in.tag == Annotation::ArgumentValue::K_ANNOT_INT) {
+        *out = in.value.i;
+        return true;
+    }
+    return false;
+}
+
+template<typename T, typename std::enable_if<std::is_floating_point<T>::value, T>::type* = nullptr>
+bool fromAnnotationValue(const Annotation::ArgumentValue& in, T* out) {
+    if (in.tag == Annotation::ArgumentValue::K_ANNOT_REAL) {
+        *out = in.value.r;
+        return true;
+    }
+    return false;
+}
+
+template<typename T, typename std::enable_if<std::is_same<std::string, std::remove_const<std::remove_reference<T>>>::value, T>::type* = nullptr>
+bool fromAnnotationValue(const Annotation::ArgumentValue& in, T* out) {
+    if (in.tag == Annotation::ArgumentValue::K_ANNOT_STRING) {
+        *out = in.value.s;
+        return true;
+    }
+    return false;
+}
+
+template<size_t i, size_t left, typename Func, typename ...Args>
+struct CallGenerator {
+    static void apply(Func callback, const std::vector<Annotation::ArgumentValue>& annotargs, Args... args) {
+        typedef function_traits<Func> F_t;
+        typedef typename F_t::template Arg_t<i> Arg;
+
+        Arg a;
+
+        if (fromAnnotationValue(annotargs[i], &a)) {
+            CallGenerator<i + 1, left - 1, Func, Args..., Arg>::apply(callback, annotargs, args..., a);
+        }
+    }
+};
+
+template<size_t i, typename Func, typename ...Args>
+struct CallGenerator<i, 0, Func, Args...> {
+    static void apply(Func callback, const std::vector<Annotation::ArgumentValue>& annotargs, Args... args) {
+        callback(args...);
+    }
+};
+
+}
+
+template<typename ...Args, typename Func>
+void Annotable::matchAnnotation(const std::string& name, Func&& callback) {
+    typedef std::function<void(Args...)> StdFunc;
+
+    for (const Annotation* annot : _annotations) {
+        if (annot->getName() == name) {
+            if (annot->getArgs().size() == sizeof...(Args)) {
+                _utils::CallGenerator<0, sizeof...(Args), StdFunc>::apply(StdFunc(callback), annot->getArgs());
+            }
+        }
+    }
+}
 
 }
 
