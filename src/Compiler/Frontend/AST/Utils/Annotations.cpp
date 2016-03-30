@@ -14,6 +14,10 @@ namespace ast {
 
 // ANNOTATION VALUE
 
+Annotation::ArgumentValue::ArgumentValue() : tag(K_ANNOT_BOOL), value{.b = false} {
+
+}
+
 Annotation::ArgumentValue::ArgumentValue(bool b) : tag(K_ANNOT_BOOL), value{.b = b} {
 
 }

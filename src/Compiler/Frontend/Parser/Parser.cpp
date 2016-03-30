@@ -92,7 +92,7 @@ T* Parser::as() {
 }
 
 template<typename T>
-T* Parser::parseIdentifierHelper(const std::string errMsg) {
+T* Parser::parseIdentifierHelper(const std::string& errMsg) {
     std::string name;
 
     SAVE_POS(startPos)
@@ -744,6 +744,60 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
     }
 
     return toRet;
+}
+
+void Parser::parseAnnotation() {
+    SAVE_POS(pos)
+
+    std::string name;
+    std::vector<Annotation::ArgumentValue> args;
+
+    if (isType(tok::TOK_ID)) {
+        name = as<tok::Identifier>()->toString();
+        accept();
+    } else {
+        _ctx->reporter().error(*_currentToken, "Expected identifier; got " + _currentToken->toString());
+        return;
+    }
+
+    if (accept(tok::OPER_L_PAREN)) {
+        while (true) {
+            if (isType(tok::TOK_BOOL_LIT)) {
+                args.push_back(Annotation::ArgumentValue(as<tok::BoolLitteral>()->getValue()));
+            } else if (isType(tok::TOK_INT_LIT)) {
+                args.push_back(Annotation::ArgumentValue(as<tok::IntLitteral>()->getValue()));
+            } else if (isType(tok::TOK_REAL_LIT)) {
+                args.push_back(Annotation::ArgumentValue(as<tok::RealLitteral>()->getValue()));
+            } else if (isType(tok::TOK_STR_LIT)) {
+                args.push_back(Annotation::ArgumentValue(as<tok::StringLitteral>()->getValue()));
+            } else {
+                _ctx->reporter().error(*_currentToken,
+                                       "Expected bool | int | real | string litteral"
+                                       "; got " + _currentToken->toString());
+                break;
+            }
+            accept();
+            if (accept(tok::OPER_COMMA)) {
+                continue;
+            } else if (accept(tok::OPER_R_PAREN)) {
+                break;
+            } else {
+                _ctx->reporter().error(*_currentToken,
+                                       "Expected `,` or `)`; got " + _currentToken->toString());
+                break;
+            }
+        }
+    }
+
+    Annotation* annot = _mngr.New<Annotation>(name, args);
+    annot->setPos(pos);
+    annot->setEndPos(_lastTokenEndPos);
+
+    _parsedAnnotations.push_back(annot);
+
+    if (accept(tok::OPER_AT)) {
+        parseAnnotation();
+    }
 }
 
 CanUseModules::ModulePath Parser::parseUsing(const common::Positionnable& usingpos, bool asStatement) {

@@ -22,6 +22,7 @@ class Annotation : public common::MemoryManageable, public common::Positionnable
 public:
 
     struct ArgumentValue final {
+        ArgumentValue();
         ArgumentValue(bool b);
         ArgumentValue(long i);
         ArgumentValue(double r);

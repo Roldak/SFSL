@@ -26,6 +26,8 @@
 #include "../AST/Nodes/TypeExpressions.h"
 #include "../AST/Nodes/KindExpressions.h"
 
+#include "../AST/Utils/Annotations.h"
+
 namespace sfsl {
 
 namespace ast {
@@ -84,7 +86,7 @@ private:
     // Parsing
 
     template<typename T>
-    T* parseIdentifierHelper(const std::string errMsg);
+    T* parseIdentifierHelper(const std::string& errMsg);
 
     ast::Identifier* parseIdentifier(const std::string& errMsg = "");
     ast::TypeIdentifier* parseTypeIdentifier(const std::string& errMsg = "");
@@ -128,6 +130,7 @@ private:
 
         // others
 
+    void parseAnnotations();
     ast::CanUseModules::ModulePath parseUsing(const common::Positionnable& usingpos, bool asStatement);
 
     template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
@@ -137,6 +140,8 @@ private:
     ast::Identifier* parseOperatorsAsIdentifer();
 
     // Members
+
+    std::vector<Annotation*> _parsedAnnotations;
 
     CompCtx_Ptr _ctx;
     common::AbstractMemoryManager& _mngr;
