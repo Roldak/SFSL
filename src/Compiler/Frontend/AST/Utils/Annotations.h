@@ -130,22 +130,23 @@ bool fromAnnotationValue(const Annotation::ArgumentValue& in, T* out) {
 
 template<size_t i, size_t left, typename Func, typename ...Args>
 struct CallGenerator {
-    static void apply(Func callback, const std::vector<Annotation::ArgumentValue>& annotargs, Args... args) {
+    static void apply(Func callback, Annotation* annot, Args... args) {
         typedef function_traits<Func> F_t;
         typedef typename F_t::template Arg_t<i> Arg;
 
         Arg a;
 
-        if (fromAnnotationValue(annotargs[i], &a)) {
-            CallGenerator<i + 1, left - 1, Func, Args..., Arg>::apply(callback, annotargs, args..., a);
+        if (fromAnnotationValue(annot->getArgs()[i], &a)) {
+            CallGenerator<i + 1, left - 1, Func, Args..., Arg>::apply(callback, annot, args..., a);
         }
     }
 };
 
 template<size_t i, typename Func, typename ...Args>
 struct CallGenerator<i, 0, Func, Args...> {
-    static void apply(Func callback, const std::vector<Annotation::ArgumentValue>& annotargs, Args... args) {
+    static void apply(Func callback, Annotation* annot, Args... args) {
         callback(args...);
+        annot->setUsed();
     }
 };
 
@@ -155,10 +156,10 @@ template<typename ...Args, typename Func>
 void Annotable::matchAnnotation(const std::string& name, Func&& callback) {
     typedef std::function<void(Args...)> StdFunc;
 
-    for (const Annotation* annot : _annotations) {
+    for (Annotation* annot : _annotations) {
         if (annot->getName() == name) {
             if (annot->getArgs().size() == sizeof...(Args)) {
-                annotation_utils::CallGenerator<0, sizeof...(Args), StdFunc>::apply(StdFunc(callback), annot->getArgs());
+                annotation_utils::CallGenerator<0, sizeof...(Args), StdFunc>::apply(StdFunc(callback), annot);
             }
         }
     }

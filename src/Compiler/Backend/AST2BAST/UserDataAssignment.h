@@ -26,8 +26,6 @@ public:
     UserDataAssignment(CompCtx_Ptr& ctx);
     virtual ~UserDataAssignment();
 
-    virtual void visit(ASTNode*) override;
-
     virtual void visit(TypeDecl* tdecl) override;
     virtual void visit(ClassDecl* clss) override;
 
@@ -45,6 +43,26 @@ private:
     size_t _currentVarCount;
 
     std::set<ClassDecl*> _visitedClasses;
+};
+
+class AnnotationUsageWarner : public ASTImplicitVisitor {
+public:
+
+    AnnotationUsageWarner(CompCtx_Ptr& ctx);
+    virtual ~AnnotationUsageWarner();
+
+    virtual void visit(ModuleDecl* module) override;
+    virtual void visit(TypeDecl* tdecl) override;
+    virtual void visit(ClassDecl* clss) override;
+
+    virtual void visit(DefineDecl* decl) override;
+    virtual void visit(FunctionCreation* func) override;
+
+private:
+
+    void visitAnnotable(Annotable* annotable);
+
+    common::AbstractReporter& _rep;
 };
 
 class DefUserData : public common::MemoryManageable {

@@ -24,10 +24,6 @@ UserDataAssignment::~UserDataAssignment() {
 
 }
 
-void UserDataAssignment::visit(ASTNode*) {
-
-}
-
 void UserDataAssignment::visit(TypeDecl* tdecl) {
     ASTImplicitVisitor::visit(tdecl);
     sym::TypeSymbol* tsym = tdecl->getSymbol();
@@ -141,6 +137,49 @@ bool UserDataAssignment::visibilityFromAnnotable(Annotable* a) {
     bool isVisible = false;
     a->matchAnnotation<>("export", [&](){ isVisible = true; });
     return isVisible;
+}
+
+// ANNOTATION USAGE WARNER
+
+AnnotationUsageWarner::AnnotationUsageWarner(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx), _rep(ctx->reporter()) {
+
+}
+
+AnnotationUsageWarner::~AnnotationUsageWarner() {
+
+}
+
+void AnnotationUsageWarner::visit(ModuleDecl* module) {
+    visitAnnotable(module);
+    ASTImplicitVisitor::visit(module);
+}
+
+void AnnotationUsageWarner::visit(TypeDecl* tdecl) {
+    visitAnnotable(tdecl);
+    ASTImplicitVisitor::visit(tdecl);
+}
+
+void AnnotationUsageWarner::visit(ClassDecl* clss) {
+    visitAnnotable(clss);
+    ASTImplicitVisitor::visit(clss);
+}
+
+void AnnotationUsageWarner::visit(DefineDecl* decl) {
+    visitAnnotable(decl);
+    ASTImplicitVisitor::visit(decl);
+}
+
+void AnnotationUsageWarner::visit(FunctionCreation* func) {
+    visitAnnotable(func);
+    ASTImplicitVisitor::visit(func);
+}
+
+void AnnotationUsageWarner::visitAnnotable(Annotable* annotable) {
+    for (Annotation* annot : annotable->getAnnotations()) {
+        if (!annot->isUsed()) {
+            _rep.warning(*annot, "Unused annotation");
+        }
+    }
 }
 
 // DEFINITION USER DATA
