@@ -1,6 +1,8 @@
 #include <iostream>
 #include "sfsl.h"
 
+const size_t MAX_FUNCTION_CLASS_COUNT = 10;
+
 using namespace sfsl;
 
 void createFunctionClass(ProgramBuilder builder, Module dest, size_t nbArg) {
@@ -32,7 +34,7 @@ void createFunctionClass(ProgramBuilder builder, Module dest, size_t nbArg) {
     dest.typeDef(name, funcTC);
 }
 
-COMPILE_PASS(ProgramBuilder builder, Pipeline&) {
+COMPILE_PASS(ProgramBuilder builder, Pipeline&, const std::vector<std::string>& args) {
     Module slang = builder.openModule("sfsl").openModule("lang");
     slang.typeDef("unit", builder.classBuilder("unit").build());
     slang.typeDef("bool", builder.classBuilder("bool").build());
@@ -40,10 +42,9 @@ COMPILE_PASS(ProgramBuilder builder, Pipeline&) {
     slang.typeDef("real", builder.classBuilder("real").build());
     slang.typeDef("string", builder.classBuilder("string").build());
 
-    createFunctionClass(builder, slang, 0);
-    createFunctionClass(builder, slang, 1);
-    createFunctionClass(builder, slang, 2);
-    createFunctionClass(builder, slang, 3);
-    createFunctionClass(builder, slang, 4);
-    createFunctionClass(builder, slang, 5);
+    size_t funcClassToCreate = args.size() > 0 ? (size_t) std::atol(args[0].c_str()) : MAX_FUNCTION_CLASS_COUNT;
+
+    for (size_t i = 0; i < std::min(funcClassToCreate, MAX_FUNCTION_CLASS_COUNT); ++i) {
+        createFunctionClass(builder, slang, i);
+    }
 }

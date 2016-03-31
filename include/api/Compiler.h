@@ -20,8 +20,8 @@
 
 DECL_PRIVATE_IMPL_FOR(Compiler)
 
-#define COMPILE_PASS(prog, pipeline) \
-    extern "C" void __declspec(dllexport) __stdcall compilePass(prog, pipeline)
+#define COMPILE_PASS(prog, pipeline, args) \
+    extern "C" void __declspec(dllexport) __stdcall compilePass(prog, pipeline, args)
 
 namespace sfsl {
 
@@ -30,7 +30,7 @@ public:
     Compiler(const CompilerConfig& config);
     ~Compiler();
 
-    void loadPlugin(const std::string& pathToPluginDll);
+    void loadPlugin(const std::string& pathToPluginDll, const std::vector<std::string>& args = {});
     void unloadPlugin(const std::string& pathToPluginDll);
 
     ProgramBuilder parse(const std::string& srcName, const std::string& srcContent);

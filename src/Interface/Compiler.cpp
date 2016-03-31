@@ -51,7 +51,7 @@
 
 #ifdef USER_API_PLUGIN_FEATURE
 
-typedef void (__stdcall *CompilePass)(sfsl::ProgramBuilder, sfsl::Pipeline&);
+typedef void (__stdcall *CompilePass)(sfsl::ProgramBuilder, sfsl::Pipeline&, const std::vector<std::string>&);
 
 #ifdef _WIN32
 
@@ -98,10 +98,12 @@ void unloadDll(DLLHandle handle) {
 #endif
 
 struct Plugin final {
-    Plugin(const std::string& path, DLLHandle handle, CompilePass compilePass)
-        : path(path), handle(handle), compilePass(compilePass) { }
+    Plugin(const std::string& path, const std::vector<std::string>& args, DLLHandle handle, CompilePass compilePass)
+        : path(path), args(args), handle(handle), compilePass(compilePass) { }
 
     std::string path;
+    std::vector<std::string> args;
+
     DLLHandle handle;
     CompilePass compilePass;
 };
@@ -122,10 +124,10 @@ public:
         unloadPlugins();
     }
 
-    void loadPlugin(const std::string& path) {
+    void loadPlugin(const std::string& path, const std::vector<std::string>& args) {
         if (DLLHandle dll = loadDll(path)) {
             if (CompilePass cp = (CompilePass)getSymbol(dll, "compilePass")) {
-                plugins.push_back(Plugin(path, dll, cp));
+                plugins.push_back(Plugin(path, args, dll, cp));
             } else {
                 throw CompileError("Could not fetch symbol `compilePass` in plugin `" + path + "`");
             }
@@ -146,7 +148,7 @@ public:
 
     void compilePass(ProgramBuilder progbuilder, Pipeline& pipeline) {
         for (const Plugin& plugin : plugins) {
-            plugin.compilePass(progbuilder, pipeline);
+            plugin.compilePass(progbuilder, pipeline, plugin.args);
         }
     }
 
@@ -400,8 +402,8 @@ Compiler::~Compiler() {
 
 }
 
-void Compiler::loadPlugin(const std::string& pathToPluginDll) {
-    _impl->loadPlugin(pathToPluginDll);
+void Compiler::loadPlugin(const std::string& pathToPluginDll, const std::vector<std::string>& args) {
+    _impl->loadPlugin(pathToPluginDll, args);
 }
 
 void Compiler::unloadPlugin(const std::string& pathToPluginDll) {
