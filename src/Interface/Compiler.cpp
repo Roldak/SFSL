@@ -122,11 +122,10 @@ public:
         unloadPlugins();
     }
 
-    size_t loadPlugin(const std::string& path) {
+    void loadPlugin(const std::string& path) {
         if (DLLHandle dll = loadDll(path)) {
             if (CompilePass cp = (CompilePass)getSymbol(dll, "compilePass")) {
                 plugins.push_back(Plugin(path, dll, cp));
-                return plugins.size() - 1;
             } else {
                 throw CompileError("Could not fetch symbol `compilePass` in plugin `" + path + "`");
             }
@@ -163,6 +162,26 @@ public:
 
     ~COMPILER_IMPL_NAME() {
 
+    }
+
+    void throwPluginNotSupportedError() {
+        throw CompileError("Plugins are not supported in this version of sfsl");
+    }
+
+    void loadPlugin(const std::string&) {
+        throwPluginNotSupportedError();
+    }
+
+    void unloadPlugin(const std::string&) {
+        throwPluginNotSupportedError();
+    }
+
+    void compilePass(ProgramBuilder, Pipeline&) {
+        throwPluginNotSupportedError();
+    }
+
+    void unloadPlugins() {
+        throwPluginNotSupportedError();
     }
 
 #endif
@@ -482,14 +501,19 @@ Type ProgramBuilder::parseType(const std::string& str) {
 }
 
 Type ProgramBuilder::createFunctionType(const std::vector<Type>& argTypes, Type retType) {
-    if (!_impl) {
+    bool ok = _impl && retType;
+    for (Type t : argTypes) {
+        ok = ok && t;
+    }
+
+    if (!ok) {
         return MAKE_INVALID(Type);
     }
 
     std::vector<ast::TypeExpression*> argTypeExprs(argTypes.size());
     ast::TypeExpression* retTypeExpr = retType._impl->_type;
 
-    std::transform(argTypes.begin(), argTypes.end(), argTypeExprs.begin(), [](Type t) { return t._impl->_type;});
+    std::transform(argTypes.begin(), argTypes.end(), argTypeExprs.begin(), [](Type t) { return t._impl->_type; });
 
     return Type(NEW_TYPE_IMPL(ast::FunctionTypeDecl::make(
                                   argTypeExprs, retTypeExpr,

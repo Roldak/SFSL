@@ -87,9 +87,9 @@ target_include_directories(${USER_API_TARGET} PRIVATE ./src/)
 target_include_directories(${USER_API_TARGET} PRIVATE ./include/)
 target_compile_definitions(${USER_API_TARGET} PRIVATE -DBUILD_API)
 
-If(USER_API_PLUGIN_FEATURE)
+if(USER_API_PLUGIN_FEATURE)
   target_compile_definitions(${USER_API_TARGET} PRIVATE -DUSER_API_PLUGIN_FEATURE)
-EndIf()
+endIf()
 
 target_link_libraries(${USER_API_TARGET} ${COMPILER_LIB_TARGET})
 
@@ -137,6 +137,8 @@ target_link_libraries(${COMPLETER_TARGET} ${USER_API_TARGET})
 #     STDLIB BUILD INSTRUCTIONS    #
 ####################################
 
+if(COMPILE_STDLIB)
+
 file(GLOB_RECURSE STDLIB_SRC_LIST ./stdlib/*.cpp)
 
 add_library(${STDLIB_TARGET} SHARED ${STDLIB_SRC_LIST})
@@ -144,6 +146,8 @@ apply_target_properties(${STDLIB_TARGET} ${STDLIB_BUILD_TYPE} ${STDLIB_OUTPUT_NA
 
 target_include_directories(${STDLIB_TARGET} PRIVATE ./include/)
 target_link_libraries(${STDLIB_TARGET} ${USER_API_TARGET})
+
+endif()
 
 ###################################
 #          MISCELLANEOUS          #
