@@ -8,11 +8,7 @@
 
 #include "Lexer.h"
 
-#include "Tokens/Identifier.h"
-#include "Tokens/Keyword.h"
-#include "Tokens/Operators.h"
-#include "Tokens/Litterals.h"
-#include "Tokens/Others.h"
+#include "Tokens.h"
 #include "../../../Utils/Utils.h"
 
 namespace sfsl {

@@ -14,9 +14,7 @@
 #include <functional>
 
 #include "../Lexer/Lexer.h"
-#include "../Lexer/Tokens/Keyword.h"
-#include "../Lexer/Tokens/Operators.h"
-#include "../Lexer/Tokens/Identifier.h"
+#include "../Lexer/Tokens.h"
 
 #include "../../Common/CompilationContext.h"
 #include "../../../Common/AbstractPrimitiveNamer.h"

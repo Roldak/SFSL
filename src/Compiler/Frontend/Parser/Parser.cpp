@@ -8,7 +8,7 @@
 
 #include "Parser.h"
 
-#include "../Lexer/Tokens/Litterals.h"
+#include "../Lexer/Tokens.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 
 #define SAVE_POS(ident) const common::Positionnable ident = *_currentToken;
