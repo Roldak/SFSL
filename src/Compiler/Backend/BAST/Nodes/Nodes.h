@@ -54,18 +54,19 @@ private:
 class ClassDef final : public Definition {
 public:
 
-    ClassDef(const std::string& name, size_t fieldCount, const std::vector<DefIdentifier*>& methods);
+    ClassDef(const std::string& name, size_t fieldCount, DefIdentifier* parent, const std::vector<DefIdentifier*>& methods);
     virtual ~ClassDef();
 
     SFSL_BAST_ON_VISIT_H
 
     size_t getFieldCount() const;
-
+    DefIdentifier* getParent() const;
     const std::vector<DefIdentifier*>& getMethods() const;
 
 private:
 
     size_t _fieldCount;
+    DefIdentifier* _parent;
     std::vector<DefIdentifier*> _methods;
 };
 

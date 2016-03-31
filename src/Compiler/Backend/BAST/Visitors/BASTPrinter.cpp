@@ -65,7 +65,11 @@ void BASTPrinter::visit(MethodDef* meth) {
 
 void BASTPrinter::visit(ClassDef* clss) {
     printIndents();
-    _ostream << "class " << clss->getName() << "(" << clss->getFieldCount() << " fields)" << " {" << std::endl;
+    _ostream << "class " << clss->getName() << "(" << clss->getFieldCount() << " fields)";
+    if (clss->getParent()) {
+        _ostream << " : " << clss->getParent()->getValue();
+    }
+    _ostream << " {" << std::endl;
     ++_indentCount;
 
     for (DefIdentifier* meth : clss->getMethods()) {

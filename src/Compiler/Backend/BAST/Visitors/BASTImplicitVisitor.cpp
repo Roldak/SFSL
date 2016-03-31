@@ -44,6 +44,9 @@ void BASTImplicitVisitor::visit(MethodDef* meth) {
 }
 
 void BASTImplicitVisitor::visit(ClassDef* clss) {
+    if (clss->getParent()) {
+        clss->getParent()->onVisit(this);
+    }
     for (DefIdentifier* defid : clss->getMethods()) {
         defid->onVisit(this);
     }

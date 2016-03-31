@@ -53,8 +53,8 @@ BASTNode* MethodDef::getMethodBody() const {
 
 // CLASSDEF
 
-ClassDef::ClassDef(const std::string& name, size_t fieldCount, const std::vector<DefIdentifier*>& methods)
-    : Definition(name), _fieldCount(fieldCount), _methods(methods) {
+ClassDef::ClassDef(const std::string& name, size_t fieldCount, DefIdentifier* parent, const std::vector<DefIdentifier*>& methods)
+    : Definition(name), _fieldCount(fieldCount), _parent(parent), _methods(methods) {
 
 }
 
@@ -66,6 +66,10 @@ SFSL_BAST_ON_VISIT_CPP(ClassDef)
 
 size_t ClassDef::getFieldCount() const {
     return _fieldCount;
+}
+
+DefIdentifier* ClassDef::getParent() const {
+    return _parent;
 }
 
 const std::vector<DefIdentifier*>& ClassDef::getMethods() const {

@@ -33,10 +33,6 @@ void UserDataAssignment::visit(TypeDecl* tdecl) {
 
 void UserDataAssignment::visit(ClassDecl* clss) {
     if (TRY_INSERT(_visitedClasses, clss)) {
-        for (TypeDecl* tdecl : clss->getTypeDecls()) {
-            tdecl->onVisit(this);
-        }
-
         std::vector<sym::VariableSymbol*> fields;
         std::vector<sym::DefinitionSymbol*> defs;
 
@@ -84,6 +80,10 @@ void UserDataAssignment::visit(ClassDecl* clss) {
         }
 
         clss->setUserdata(_mngr.New<ClassUserData>(freshName(clss->getName()), false, fields, defs, clss->isAbstract()));
+
+        for (TypeDecl* tdecl : clss->getTypeDecls()) {
+            tdecl->onVisit(this);
+        }
     }
 }
 

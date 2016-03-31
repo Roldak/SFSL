@@ -56,10 +56,13 @@ void AST2BAST::visit(ast::TypeDecl* tdecl) {
 
 void AST2BAST::visit(ast::ClassDecl* clss) {
     ast::ClassUserData* classUD = clss->getUserdata<ast::ClassUserData>();
+    DefIdentifier* parentId = nullptr;
 
     if (!alreadyTransformed(classUD)) {
         if (clss->getParent()) {
-            clss->getParent()->onVisit(this);
+            std::string name = freshName("parent");
+            _hiddenDefs.push_back(make<GlobalDef>(name, transform(clss->getParent())));
+            parentId = make<DefIdentifier>(name);
         }
 
         for (ast::TypeDecl* tdecl: clss->getTypeDecls()) {
@@ -76,7 +79,7 @@ void AST2BAST::visit(ast::ClassDecl* clss) {
             methods.push_back(make<DefIdentifier>(getDefId(def)));
         }
 
-        addDefinitionToProgram<ClassDef>(clss, classUD->getAttrCount(), methods);
+        addDefinitionToProgram<ClassDef>(clss, classUD->getAttrCount(), parentId, methods);
     }
 
     make<DefIdentifier>(getDefId(clss));
@@ -575,7 +578,7 @@ void BASTSimplifier::VisibleToHiddenRenamer::visit(MethodDef* meth) {
 void BASTSimplifier::VisibleToHiddenRenamer::visit(ClassDef* clss) {
     auto it = _map.find(clss->getName());
     if (it != _map.end()) {
-        *clss = ClassDef(it->second, clss->getFieldCount(), clss->getMethods());
+        *clss = ClassDef(it->second, clss->getFieldCount(), clss->getParent(), clss->getMethods());
     }
     BASTImplicitVisitor::visit(clss);
 }
