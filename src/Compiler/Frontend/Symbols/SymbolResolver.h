@@ -9,8 +9,6 @@
 #ifndef __SFSL__SymbolResolver__
 #define __SFSL__SymbolResolver__
 
-#define NUMBER_OF_FUNC_TYPES 6
-
 #include <iostream>
 #include "../AST/Nodes/Program.h"
 #include "../../../Common/AbstractPrimitiveNamer.h"
@@ -74,9 +72,10 @@ public:
 
 private:
 
-    type::Type* createTypeFromSymbol(Symbol* sym);
+    type::Type* createTypeFromSymbol(Symbol* sym) const;
 
     Scope* _scope;
+    const common::AbstractPrimitiveNamer* _namer;
     mutable CompCtx_Ptr _ctx;
 
     type::Type* _unitType;
@@ -84,7 +83,7 @@ private:
     type::Type* _intType;
     type::Type* _realType;
     type::Type* _stringType;
-    type::Type* _funcTypes[NUMBER_OF_FUNC_TYPES];
+    mutable std::vector<type::Type*> _funcTypes;
 };
 
 }

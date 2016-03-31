@@ -16,17 +16,13 @@ namespace sfsl {
 namespace sym {
 
 SymbolResolver::SymbolResolver(const ast::Program* prog, const common::AbstractPrimitiveNamer* namer, const CompCtx_Ptr& ctx)
-    : _scope(prog->getScope()), _ctx(ctx) {
+    : _scope(prog->getScope()), _namer(namer), _ctx(ctx) {
 
-    _unitType   = createTypeFromSymbol(getSymbol(namer->Unit()));
-    _boolType   = createTypeFromSymbol(getSymbol(namer->Bool()));
-    _intType    = createTypeFromSymbol(getSymbol(namer->Int()));
-    _realType   = createTypeFromSymbol(getSymbol(namer->Real()));
-    _stringType = createTypeFromSymbol(getSymbol(namer->String()));
-
-    for (size_t i = 0; i < NUMBER_OF_FUNC_TYPES; ++i) {
-        _funcTypes[i] = createTypeFromSymbol(getSymbol(namer->Func(i)));
-    }
+    _unitType   = createTypeFromSymbol(getSymbol(_namer->Unit()));
+    _boolType   = createTypeFromSymbol(getSymbol(_namer->Bool()));
+    _intType    = createTypeFromSymbol(getSymbol(_namer->Int()));
+    _realType   = createTypeFromSymbol(getSymbol(_namer->Real()));
+    _stringType = createTypeFromSymbol(getSymbol(_namer->String()));
 }
 
 SymbolResolver::~SymbolResolver() {
@@ -96,8 +92,10 @@ type::Type* SymbolResolver::String() const {
 }
 
 type::Type* SymbolResolver::Func(size_t nbArgs) const {
-    if (nbArgs >= NUMBER_OF_FUNC_TYPES) {
-        throw common::CompilationFatalError("Func" + utils::T_toString(nbArgs) + " does not exists");
+    if (nbArgs >= _funcTypes.size()) {
+        for (size_t i = _funcTypes.size(); i <= nbArgs; ++i) {
+            _funcTypes.push_back(createTypeFromSymbol(getSymbol(_namer->Func(i))));
+        }
     }
 
     if (!_funcTypes[nbArgs]) {
@@ -106,7 +104,7 @@ type::Type* SymbolResolver::Func(size_t nbArgs) const {
     return _funcTypes[nbArgs];
 }
 
-type::Type* SymbolResolver::createTypeFromSymbol(Symbol* sym) {
+type::Type* SymbolResolver::createTypeFromSymbol(Symbol* sym) const {
     if (sym) {
         if (sym->getSymbolType() == SYM_TPE) {
             return ast::ASTTypeCreator::createType(static_cast<sym::TypeSymbol*>(sym)->getTypeDecl()->getExpression(), _ctx);
