@@ -23,6 +23,7 @@ class SFSL_API_PUBLIC TypeConstructorBuilder final {
 public:
 
     ~TypeConstructorBuilder();
+    operator bool() const;
 
     TypeConstructorBuilder& setArgs(const std::vector<Type>& args);
     TypeConstructorBuilder& setReturn(Type retExpr);
@@ -30,7 +31,7 @@ public:
     Type build() const;
 
 private:
-    friend class Compiler;
+    friend class ProgramBuilder;
 
     TypeConstructorBuilder(PRIVATE_IMPL_PTR(TypeConstructorBuilder) impl);
 

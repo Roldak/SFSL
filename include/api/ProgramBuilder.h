@@ -12,6 +12,8 @@
 #include <iostream>
 #include "SetVisibilities.h"
 #include "Module.h"
+#include "ClassBuilder.h"
+#include "TypeConstructorBuilder.h"
 
 DECL_PRIVATE_IMPL_FOR(ProgramBuilder)
 
@@ -24,6 +26,12 @@ public:
     operator bool() const;
 
     Module openModule(const std::string& moduleName) const;
+
+    Type parseType(const std::string& str);
+    Type createFunctionType(const std::vector<Type>& argTypes, Type retType);
+
+    ClassBuilder classBuilder(const std::string& className);
+    TypeConstructorBuilder typeConstructorBuilder(const std::string& typeConstructorName);
 
 private:
     friend class Compiler;

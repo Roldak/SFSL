@@ -14,8 +14,6 @@
 #include "SetVisibilities.h"
 #include "CompilerConfig.h"
 #include "ProgramBuilder.h"
-#include "ClassBuilder.h"
-#include "TypeConstructorBuilder.h"
 #include "Type.h"
 #include "Pipeline.h"
 #include "AbstractOutputCollector.h"
@@ -40,12 +38,6 @@ public:
     void compile(   ProgramBuilder progBuilder,
                     AbstractOutputCollector& collector,
                     const Pipeline& ppl = Pipeline::createDefault());
-
-    Type parseType(const std::string& str);
-    Type createFunctionType(const std::vector<Type>& argTypes, Type retType);
-
-    ClassBuilder classBuilder(const std::string& className);
-    TypeConstructorBuilder typeConstructorBuilder(const std::string& typeConstructorName);
 
 private:
     PRIVATE_IMPL_PTR(Compiler) _impl;

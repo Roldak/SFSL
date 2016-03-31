@@ -23,6 +23,8 @@ public:
 
     ~ClassBuilder();
 
+    operator bool() const;
+
     ClassBuilder& setAbstract(bool value);
     ClassBuilder& addField(const std::string& fieldName, Type fieldType);
     ClassBuilder& addExternDef(const std::string& defName, Type defType, bool isRedef);
@@ -31,7 +33,7 @@ public:
     Type build() const;
 
 private:
-    friend class Compiler;
+    friend class ProgramBuilder;
 
     ClassBuilder(PRIVATE_IMPL_PTR(ClassBuilder) impl);
 

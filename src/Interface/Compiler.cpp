@@ -47,6 +47,8 @@
 #define NEW_CLASSBUILDER_IMPL       NEW_PRIV_IMPL(ClassBuilder)
 #define NEW_TCBUILDER_IMPL          NEW_PRIV_IMPL(TypeConstructorBuilder)
 
+#define MAKE_INVALID(T)             (T(PRIVATE_IMPL_PTR(T)(nullptr)))
+
 #ifdef USER_API_PLUGIN_FEATURE
 
 typedef void (__stdcall *CompilePass)(sfsl::ProgramBuilder, sfsl::Pipeline&);
@@ -196,11 +198,19 @@ public:
     }
 
     void externDef(const std::string& defName, Type defType) {
+        if (!defType) {
+            throw CompileError("Type of definition was not valid");
+        }
+
         ast::Identifier* nameId = mngr.New<ast::Identifier>(defName);
         _ddecls.push_back(mngr.New<ast::DefineDecl>(nameId, defType._impl->_type, nullptr, false, true, false));
     }
 
     void typeDef(const std::string& name, Type type) {
+        if (!type) {
+            throw CompileError("Type to typedef was not valid");
+        }
+
         _tdecls.push_back(mngr.New<ast::TypeDecl>(mngr.New<ast::TypeIdentifier>(name), type._impl->_type));
     }
 
@@ -213,7 +223,9 @@ public:
 
 class PROGRAMBUILDER_IMPL_NAME final : public ModuleContainer {
 public:
-    PROGRAMBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, ast::Program* prog) : mngr(mngr), _prog(prog) { }
+    PROGRAMBUILDER_IMPL_NAME(COMPILER_IMPL_PTR cmp, ast::Program* prog)
+        : cmp(cmp), mngr(cmp->ctx->memoryManager()), _prog(prog) { }
+
     virtual ~PROGRAMBUILDER_IMPL_NAME() { }
 
     virtual Module createProxyModule(const std::string& name) const {
@@ -234,7 +246,9 @@ public:
         }
     }
 
+    COMPILER_IMPL_PTR cmp;
     common::AbstractMemoryManager& mngr;
+
     ast::Program* _prog;
 };
 
@@ -250,23 +264,33 @@ public:
     }
 
     void addField(const std::string& fieldName, Type fieldType) {
+        if (!fieldType) {
+            throw CompileError("Type of field was not valid");
+        }
+
         ast::Identifier* id = _mngr.New<ast::Identifier>(fieldName);
         ast::TypeExpression* tpe = fieldType._impl->_type;
         _fields.push_back(_mngr.New<ast::TypeSpecifier>(id, tpe));
     }
 
     void addDef(const std::string& defName, Type defType, bool isRedef, bool isExtern, bool isAbstract) {
+        if (!defType) {
+            throw CompileError("Type of definition was not valid");
+        }
+
         ast::Identifier* id = _mngr.New<ast::Identifier>(defName);
         ast::TypeExpression* tpe = defType._impl->_type;
         _defs.push_back(_mngr.New<ast::DefineDecl>(id, tpe, nullptr, isRedef, isExtern, isAbstract));
     }
 
     Type build() const {
-        ast::ClassDecl* clss = _mngr.New<ast::ClassDecl>(_name, nullptr,
-                                         std::vector<ast::TypeDecl*>(),
-                                         _fields, _defs, _isAbstract);
-
-        return Type(NEW_TYPE_IMPL(clss));
+        if (ast::ClassDecl* clss = _mngr.New<ast::ClassDecl>(_name, nullptr,
+                                                             std::vector<ast::TypeDecl*>(),
+                                                             _fields, _defs, _isAbstract)) {
+            return Type(NEW_TYPE_IMPL(clss));
+        } else {
+            return MAKE_INVALID(Type);
+        }
     }
 
 private:
@@ -290,19 +314,31 @@ public:
     void setArgs(const std::vector<Type>& args) {
         _args.clear();
         for (Type arg : args) {
-            _args.push_back(arg._impl->_type);
+            if (arg) {
+                _args.push_back(arg._impl->_type);
+            } else {
+                throw CompileError("A parameter of TypeConstructor was not valid");
+            }
         }
     }
 
     void setRetExpr(Type ret) {
-        _ret = ret._impl->_type;
+        if (ret) {
+            _ret = ret._impl->_type;
+        } else {
+            throw CompileError("The return type set to the TypeConstructor was not valid");
+        }
     }
 
     Type build() const {
         ast::TypeTuple* tt = _mngr.New<ast::TypeTuple>(_args);
         ast::TypeConstructorCreation* tc = _mngr.New<ast::TypeConstructorCreation>(_name, tt, _ret);
 
-        return Type(NEW_TYPE_IMPL(tc));
+        if (tc) {
+            return Type(NEW_TYPE_IMPL(tc));
+        } else {
+            return MAKE_INVALID(Type);
+        }
     }
 
 private:
@@ -361,9 +397,9 @@ ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& sr
         ast::Program* program = parser.parse();
 
         if (_impl->ctx->reporter().getErrorCount() == 0) {
-            return ProgramBuilder(NEW_PROGRAMBUILDER_IMPL(_impl->ctx->memoryManager(), program));
+            return ProgramBuilder(NEW_PROGRAMBUILDER_IMPL(_impl, program));
         } else {
-            return ProgramBuilder(nullptr);
+            return MAKE_INVALID(ProgramBuilder);
         }
     } catch (const common::CompilationFatalError& err) {
         throw CompileError(err.what());
@@ -375,6 +411,7 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
         return;
     }
 
+    // use a copy of the pipeline
     Pipeline ppl(tmp);
 
     _impl->compilePass(progBuilder, ppl);
@@ -387,6 +424,9 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
     pctx.output("ctx", &ctx);
     pctx.output("prog", prog);
     pctx.output("namer", namer);
+
+    // make the program builder invalid so that it can't be compiled again
+    progBuilder._impl = nullptr;
 
     try {
         std::set<std::shared_ptr<Phase>> phases(ppl.getPhases());
@@ -407,32 +447,6 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
     }
 }
 
-Type Compiler::parseType(const std::string& str) {
-    src::StringSource source(src::InputSourceName::make(_impl->ctx, "type"), str);
-    lex::Lexer lexer(_impl->ctx, source);
-    ast::Parser parser(_impl->ctx, lexer, _impl->namer);
-    ast::TypeExpression* tpe = parser.parseType();
-
-    return Type(NEW_TYPE_IMPL(_impl->ctx->reporter().getErrorCount() == 0 ? tpe : nullptr));
-}
-
-Type Compiler::createFunctionType(const std::vector<Type>& argTypes, Type retType) {
-    std::vector<ast::TypeExpression*> argTypeExprs(argTypes.size());
-    ast::TypeExpression* retTypeExpr = retType._impl->_type;
-
-    std::transform(argTypes.begin(), argTypes.end(), argTypeExprs.begin(), [](Type t) { return t._impl->_type;});
-
-    return Type(NEW_TYPE_IMPL(ast::FunctionTypeDecl::make(argTypeExprs, retTypeExpr, _impl->namer->Func(argTypes.size()), _impl->ctx)));
-}
-
-ClassBuilder Compiler::classBuilder(const std::string& className) {
-    return ClassBuilder(NEW_CLASSBUILDER_IMPL(_impl->ctx->memoryManager(), className));
-}
-
-TypeConstructorBuilder Compiler::typeConstructorBuilder(const std::string& typeConstructorName) {
-    return TypeConstructorBuilder(NEW_TCBUILDER_IMPL(_impl->ctx->memoryManager(), typeConstructorName));
-}
-
 // PROGRAM BUILDER
 
 ProgramBuilder::ProgramBuilder(PROGRAMBUILDER_IMPL_PTR impl) : _impl(impl) {
@@ -451,7 +465,52 @@ Module ProgramBuilder::openModule(const std::string& moduleName) const {
     if (_impl) {
         return _impl->openModule(moduleName);
     }
-    return Module(nullptr);
+    return MAKE_INVALID(Module);
+}
+
+Type ProgramBuilder::parseType(const std::string& str) {
+    if (!_impl) {
+        return MAKE_INVALID(Type);
+    }
+
+    src::StringSource source(src::InputSourceName::make(_impl->cmp->ctx, "type"), str);
+    lex::Lexer lexer(_impl->cmp->ctx, source);
+    ast::Parser parser(_impl->cmp->ctx, lexer, _impl->cmp->namer);
+    ast::TypeExpression* tpe = parser.parseType();
+
+    return Type(NEW_TYPE_IMPL(_impl->cmp->ctx->reporter().getErrorCount() == 0 ? tpe : nullptr));
+}
+
+Type ProgramBuilder::createFunctionType(const std::vector<Type>& argTypes, Type retType) {
+    if (!_impl) {
+        return MAKE_INVALID(Type);
+    }
+
+    std::vector<ast::TypeExpression*> argTypeExprs(argTypes.size());
+    ast::TypeExpression* retTypeExpr = retType._impl->_type;
+
+    std::transform(argTypes.begin(), argTypes.end(), argTypeExprs.begin(), [](Type t) { return t._impl->_type;});
+
+    return Type(NEW_TYPE_IMPL(ast::FunctionTypeDecl::make(
+                                  argTypeExprs, retTypeExpr,
+                                  _impl->cmp->namer->Func(argTypes.size()),
+                                  _impl->cmp->ctx)));
+}
+
+ClassBuilder ProgramBuilder::classBuilder(const std::string& className) {
+    if (_impl) {
+        return ClassBuilder(NEW_CLASSBUILDER_IMPL(_impl->cmp->ctx->memoryManager(), className));
+    } else {
+        return MAKE_INVALID(ClassBuilder);
+    }
+}
+
+TypeConstructorBuilder ProgramBuilder::typeConstructorBuilder(const std::string& typeConstructorName) {
+    if (_impl) {
+        return TypeConstructorBuilder(NEW_TCBUILDER_IMPL(_impl->cmp->ctx->memoryManager(), typeConstructorName));
+    } else {
+        return MAKE_INVALID(TypeConstructorBuilder);
+    }
 }
 
 // CLASS BUILDER
@@ -464,28 +523,44 @@ ClassBuilder::~ClassBuilder() {
 
 }
 
+ClassBuilder::operator bool() const {
+    return _impl != nullptr;
+}
+
 ClassBuilder& ClassBuilder::setAbstract(bool value) {
-    _impl->setAbstract(value);
+    if (_impl) {
+        _impl->setAbstract(value);
+    }
     return *this;
 }
 
 ClassBuilder& ClassBuilder::addField(const std::string& fieldName, Type fieldType) {
-    _impl->addField(fieldName, fieldType);
+    if (_impl) {
+        _impl->addField(fieldName, fieldType);
+    }
     return *this;
 }
 
 ClassBuilder& ClassBuilder::addExternDef(const std::string& defName, Type defType, bool isRedef) {
-    _impl->addDef(defName, defType, isRedef, true, false);
+    if (_impl) {
+        _impl->addDef(defName, defType, isRedef, true, false);
+    }
     return *this;
 }
 
 ClassBuilder& ClassBuilder::addAbstractDef(const std::string& defName, Type defType) {
-    _impl->addDef(defName, defType, false, false, true);
+    if (_impl) {
+        _impl->addDef(defName, defType, false, false, true);
+    }
     return *this;
 }
 
 Type ClassBuilder::build() const {
-    return _impl->build();
+    if (_impl) {
+        return _impl->build();
+    } else {
+        return MAKE_INVALID(Type);
+    }
 }
 
 // TYPE CONSTRUCTOR BUILDER
@@ -498,18 +573,30 @@ TypeConstructorBuilder::~TypeConstructorBuilder() {
 
 }
 
+TypeConstructorBuilder::operator bool() const {
+    return _impl != nullptr;
+}
+
 TypeConstructorBuilder& TypeConstructorBuilder::setArgs(const std::vector<Type>& args) {
-    _impl->setArgs(args);
+    if (_impl) {
+        _impl->setArgs(args);
+    }
     return *this;
 }
 
 TypeConstructorBuilder& TypeConstructorBuilder::setReturn(Type retExpr) {
-    _impl->setRetExpr(retExpr);
+    if (_impl) {
+        _impl->setRetExpr(retExpr);
+    }
     return *this;
 }
 
 Type TypeConstructorBuilder::build() const {
-    return _impl->build();
+    if (_impl) {
+        return _impl->build();
+    } else {
+        return MAKE_INVALID(Type);
+    }
 }
 
 // MODULE
@@ -530,7 +617,7 @@ Module Module::openModule(const std::string& moduleName) const {
     if (_impl) {
         return _impl->openModule(moduleName);
     }
-    return Module(nullptr);
+    return MAKE_INVALID(Module);
 }
 
 void Module::externDef(const std::string& defName, Type defType) {
@@ -556,7 +643,7 @@ Type::~Type() {
 }
 
 Type::operator bool() const {
-    return _impl->_type != nullptr;
+    return _impl != nullptr;
 }
 
 }

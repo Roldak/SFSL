@@ -26,7 +26,9 @@ public:
     operator bool() const;
 
 private:
-    friend class Compiler;
+    friend class ProgramBuilder;
+    friend class ClassBuilder;
+    friend class TypeConstructorBuilder;
     friend class PRIVATE_IMPL(Module);
     friend class PRIVATE_IMPL(ClassBuilder);
     friend class PRIVATE_IMPL(TypeConstructorBuilder);
