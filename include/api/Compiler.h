@@ -29,6 +29,9 @@ public:
     Compiler(const CompilerConfig& config);
     ~Compiler();
 
+    void loadPlugin(const std::string& pathToPluginDll);
+    void unloadPlugin(const std::string& pathToPluginDll);
+
     ProgramBuilder parse(const std::string& srcName, const std::string& srcContent);
 
     void compile(   ProgramBuilder progBuilder,

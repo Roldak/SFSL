@@ -47,6 +47,65 @@
 #define NEW_CLASSBUILDER_IMPL       NEW_PRIV_IMPL(ClassBuilder)
 #define NEW_TCBUILDER_IMPL          NEW_PRIV_IMPL(TypeConstructorBuilder)
 
+#ifdef USER_API_PLUGIN_FEATURE
+
+typedef void (__stdcall *CompilePass)(sfsl::ProgramBuilder, sfsl::Pipeline);
+
+#ifdef _WIN32
+
+#include <windows.h>
+
+typedef HINSTANCE DLLHandle;
+typedef FARPROC FuncPtr;
+
+DLLHandle loadDll(const std::string& path) {
+    return LoadLibrary(path.c_str());
+}
+
+FuncPtr getSymbol(DLLHandle handle, const std::string& sym) {
+    return GetProcAddress(handle, sym.c_str());
+}
+
+void unloadDll(DLLHandle handle) {
+    FreeLibrary(handle);
+}
+
+#else
+
+#include <dlfcn.h>
+
+typedef void* DLLHandle;
+typedef void* FuncPtr;
+
+DLLHandle loadDll(const std::string& path) {
+    return dlopen(path.c_str(), RTLD_LAZY);
+}
+
+FuncPtr getSymbol(DLLHandle handle, const std::string& sym) {
+    FuncPtr func = dlsym(handle, sym.c_str());
+    if (dlerror() != NULL) {
+        return NULL;
+    }
+    return func;
+}
+
+void unloadDll(DLLHandle handle) {
+    dlclose(handle);
+}
+
+#endif
+
+struct Plugin final {
+    Plugin(const std::string& path, DLLHandle handle, CompilePass compilePass)
+        : path(path), handle(handle), compilePass(compilePass) { }
+
+    std::string path;
+    DLLHandle handle;
+    CompilePass compilePass;
+};
+
+#endif /* USER_API_PLUGIN_FEATURE */
+
 BEGIN_PRIVATE_DEF
 
 class COMPILER_IMPL_NAME final {
@@ -54,10 +113,61 @@ public:
     COMPILER_IMPL_NAME(CompCtx_Ptr ctx, common::AbstractPrimitiveNamer* namer)
         : ctx(ctx), namer(namer) {}
 
-    ~COMPILER_IMPL_NAME() { }
+
+#ifdef USER_API_PLUGIN_FEATURE
+
+    ~COMPILER_IMPL_NAME() {
+        unloadPlugins();
+    }
+
+    size_t loadPlugin(const std::string& path) {
+        if (DLLHandle dll = loadDll(path)) {
+            if (CompilePass cp = (CompilePass)getSymbol(dll, "compilePass")) {
+                plugins.push_back(Plugin(path, dll, cp));
+                return plugins.size() - 1;
+            } else {
+                throw CompileError("Could not fetch symbol `compilePass` in plugin `" + path + "`");
+            }
+        } else {
+            throw CompileError("Could not open plugin `" + path + "`");
+        }
+    }
+
+    void unloadPlugin(const std::string& path) {
+        for (auto i = plugins.begin(), e = plugins.end(); i != e; ++i) {
+            if (i->path == path) {
+                unloadDll(i->handle);
+                plugins.erase(i);
+                return;
+            }
+        }
+    }
+
+    void compilePass(ProgramBuilder progbuilder, Pipeline pipeline) {
+        for (const Plugin& plugin : plugins) {
+            plugin.compilePass(progbuilder, pipeline);
+        }
+    }
+
+    void unloadPlugins() {
+        for (Plugin plugin : plugins) {
+            unloadDll(plugin.handle);
+        }
+        plugins.clear();
+    }
+
+    std::vector<Plugin> plugins;
+#else
+
+    ~COMPILER_IMPL_NAME() {
+
+    }
+
+#endif
 
     CompCtx_Ptr ctx;
     common::AbstractPrimitiveNamer* namer;
+
 };
 
 class TYPE_IMPL_NAME final {
@@ -233,6 +343,14 @@ Compiler::Compiler(const CompilerConfig& config) {
 
 Compiler::~Compiler() {
 
+}
+
+void Compiler::loadPlugin(const std::string& pathToPluginDll) {
+    _impl->loadPlugin(pathToPluginDll);
+}
+
+void Compiler::unloadPlugin(const std::string& pathToPluginDll) {
+    _impl->unloadPlugin(pathToPluginDll);
 }
 
 ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& srcContent) {

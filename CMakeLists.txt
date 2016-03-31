@@ -26,6 +26,10 @@ set(COMPILER_EXE_BUILD_TYPE     debug)
 set(COMPILER_TESTS_BUILD_TYPE   debug)
 set(COMPLETER_BUILD_TYPE        debug)
 
+# USER API OPTIONS (comment unwanted options)
+
+set(USER_API_PLUGIN_FEATURE     TRUE)
+
 ###################################
 #       CMAKE DEFINITIONS         #
 ###################################
@@ -78,6 +82,11 @@ apply_target_properties(${USER_API_TARGET} ${USER_API_BUILD_TYPE} ${USER_API_OUT
 target_include_directories(${USER_API_TARGET} PRIVATE ./src/)
 target_include_directories(${USER_API_TARGET} PRIVATE ./include/)
 target_compile_definitions(${USER_API_TARGET} PRIVATE -DBUILD_API)
+
+If(USER_API_PLUGIN_FEATURE)
+  target_compile_definitions(${USER_API_TARGET} PRIVATE -DUSER_API_PLUGIN_FEATURE)
+EndIf()
+
 target_link_libraries(${USER_API_TARGET} ${COMPILER_LIB_TARGET})
 
 ###################################
