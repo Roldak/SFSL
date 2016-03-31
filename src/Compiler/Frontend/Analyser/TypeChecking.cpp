@@ -675,7 +675,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<
     parentTypeArgs.push_back(retType);
 
     std::string parentName = "Func" + utils::T_toString(argTypes.size());
-    std::string absoluteParentName = utils::join(_namer.Func(argTypes.size()), ".") + "." + parentName;
+    std::string absoluteParentName = utils::join(_namer.Func(argTypes.size()), ".");
     type::Type* parentType = _mngr.New<type::ConstructorApplyType>(_res.Func(argTypes.size()), parentTypeArgs);
     sym::TypeSymbol* parentSymbol = _mngr.New<sym::TypeSymbol>(parentName, absoluteParentName, nullptr);
     TypeIdentifier* parentExpr = _mngr.New<TypeIdentifier>(parentName);

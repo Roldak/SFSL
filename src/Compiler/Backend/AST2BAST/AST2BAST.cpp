@@ -120,9 +120,9 @@ void AST2BAST::visit(ast::TypeConstructorCreation* typeconstructor) {
 
 void AST2BAST::visit(ast::TypeConstructorCall* tcall) {
     tcall->getCallee()->onVisit(this);
-    for (ast::TypeExpression* arg : tcall->getArgs()) {
+    /*for (ast::TypeExpression* arg : tcall->getArgs()) {
         arg->onVisit(this);
-    }
+    }*/
 }
 
 void AST2BAST::visit(ast::TypeIdentifier* tident) {
