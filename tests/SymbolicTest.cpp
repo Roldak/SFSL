@@ -8,7 +8,6 @@
 
 #include "SymbolicTest.h"
 #include "Visitors/SymbolAssertionsChecker.h"
-#include "TestUtils.h"
 
 namespace sfsl {
 
@@ -51,8 +50,8 @@ bool SymbolicTest::run(AbstractTestLogger& logger) {
             logger.result(_name, false, std::string("Fatal: failed to parse the program"));
         } else {
             try {
-                buildSTDModules(cmp, builder);
-                builder.openModule("test").externDef(ASSERT_SAME_SYM, cmp.parseType("(sfsl.lang.string, sfsl.lang.unit)->sfsl.lang.unit"));
+                cmp.loadPlugin("libstdlib-d");
+                builder.openModule("test").externDef(ASSERT_SAME_SYM, builder.parseType("(sfsl.lang.string, sfsl.lang.unit)->sfsl.lang.unit"));
 
                 ErrorCountCollector errcount;
                 cmp.compile(builder, errcount, _ppl);

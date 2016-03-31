@@ -12,6 +12,7 @@ set(USER_API_OUTPUT_NAME        "sfsl")
 set(COMPILER_EXE_OUTPUT_NAME    "sfslc")
 set(COMPILER_TESTS_OUTPUT_NAME  "sfsltests")
 set(COMPLETER_OUTPUT_NAME       "sfslcompl")
+set(STDLIB_OUTPUT_NAME          "stdlib")
 
 # TARGET OPTIONS
 
@@ -25,10 +26,12 @@ set(USER_API_BUILD_TYPE         debug)
 set(COMPILER_EXE_BUILD_TYPE     debug)
 set(COMPILER_TESTS_BUILD_TYPE   debug)
 set(COMPLETER_BUILD_TYPE        debug)
+set(STDLIB_BUILD_TYPE           debug)
 
-# USER API OPTIONS (comment unwanted options)
+# USER API OPTIONS (modify freely)
 
 set(USER_API_PLUGIN_FEATURE     TRUE)
+set(COMPILE_STDLIB              TRUE)
 
 ###################################
 #       CMAKE DEFINITIONS         #
@@ -41,6 +44,7 @@ set(USER_API_TARGET             sfsl)
 set(COMPILER_EXE_TARGET         sfslc)
 set(COMPILER_TESTS_TARGET       sfsltests)
 set(COMPLETER_TARGET            sfslcompl)
+set(STDLIB_TARGET               stdlib)
 
 function(apply_target_properties target build_type output_name)
     if(${build_type} STREQUAL debug)
@@ -128,6 +132,18 @@ apply_target_properties(${COMPLETER_TARGET} ${COMPLETER_BUILD_TYPE} ${COMPLETER_
 target_include_directories(${COMPLETER_TARGET} PRIVATE ./src/)
 target_include_directories(${COMPLETER_TARGET} PRIVATE ./include/)
 target_link_libraries(${COMPLETER_TARGET} ${USER_API_TARGET})
+
+####################################
+#     STDLIB BUILD INSTRUCTIONS    #
+####################################
+
+file(GLOB_RECURSE STDLIB_SRC_LIST ./stdlib/*.cpp)
+
+add_library(${STDLIB_TARGET} SHARED ${STDLIB_SRC_LIST})
+apply_target_properties(${STDLIB_TARGET} ${STDLIB_BUILD_TYPE} ${STDLIB_OUTPUT_NAME})
+
+target_include_directories(${STDLIB_TARGET} PRIVATE ./include/)
+target_link_libraries(${STDLIB_TARGET} ${USER_API_TARGET})
 
 ###################################
 #          MISCELLANEOUS          #

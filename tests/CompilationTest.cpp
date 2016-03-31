@@ -7,7 +7,6 @@
 //
 
 #include "CompilationTest.h"
-#include "TestUtils.h"
 
 namespace sfsl {
 
@@ -33,7 +32,7 @@ bool CompilationTest::run(AbstractTestLogger& logger) {
             success = false;
         } else {
             try {
-                buildSTDModules(cmp, builder);
+                cmp.loadPlugin("libstdlib-d");
                 ErrorCountCollector errcount;
                 cmp.compile(builder, errcount, _ppl);
                 success = ((errcount.get() == 0) == _shouldCompile);
