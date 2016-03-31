@@ -76,6 +76,17 @@ inline size_t split(std::vector<std::string>& toFill, const std::string& str, ch
     return toFill.size();
 }
 
+inline std::string join(const std::vector<std::string>& parts, const std::string& delimiter) {
+    std::string full;
+    if (parts.size() > 0) {
+        for (size_t i = 0; i < parts.size() - 1; ++i) {
+            full += parts[i] + delimiter;
+        }
+        full += parts.back();
+    }
+    return full;
+}
+
 }
 
 namespace chrutils {

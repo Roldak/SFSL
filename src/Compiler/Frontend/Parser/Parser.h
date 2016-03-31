@@ -14,9 +14,7 @@
 #include <functional>
 
 #include "../Lexer/Lexer.h"
-#include "../Lexer/Tokens/Keyword.h"
-#include "../Lexer/Tokens/Operators.h"
-#include "../Lexer/Tokens/Identifier.h"
+#include "../Lexer/Tokens.h"
 
 #include "../../Common/CompilationContext.h"
 #include "../../../Common/AbstractPrimitiveNamer.h"
@@ -25,6 +23,8 @@
 #include "../AST/Nodes/Expressions.h"
 #include "../AST/Nodes/TypeExpressions.h"
 #include "../AST/Nodes/KindExpressions.h"
+
+#include "../AST/Utils/Annotations.h"
 
 namespace sfsl {
 
@@ -84,7 +84,7 @@ private:
     // Parsing
 
     template<typename T>
-    T* parseIdentifierHelper(const std::string errMsg);
+    T* parseIdentifierHelper(const std::string& errMsg);
 
     ast::Identifier* parseIdentifier(const std::string& errMsg = "");
     ast::TypeIdentifier* parseTypeIdentifier(const std::string& errMsg = "");
@@ -128,6 +128,12 @@ private:
 
         // others
 
+    void parseAnnotations();
+    std::vector<Annotation*> consumeAnnotations();
+    bool annotationsConsumed() const;
+    common::Positionnable annotationsPos() const;
+    void reportErroneousAnnotations();
+
     ast::CanUseModules::ModulePath parseUsing(const common::Positionnable& usingpos, bool asStatement);
 
     template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
@@ -137,6 +143,8 @@ private:
     ast::Identifier* parseOperatorsAsIdentifer();
 
     // Members
+
+    std::vector<Annotation*> _parsedAnnotations;
 
     CompCtx_Ptr _ctx;
     common::AbstractMemoryManager& _mngr;

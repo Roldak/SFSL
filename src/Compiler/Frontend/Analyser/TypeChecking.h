@@ -23,11 +23,12 @@ namespace ast {
  */
 class TypeChecker : public ASTImplicitVisitor {
 public:
-    TypeChecker(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
+    TypeChecker(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res);
     virtual ~TypeChecker();
 
 protected:
 
+    const common::AbstractPrimitiveNamer& _namer;
     const sym::SymbolResolver& _res;
     common::AbstractReporter& _rep;
 };
@@ -37,7 +38,7 @@ protected:
  */
 class TopLevelTypeChecking : public TypeChecker {
 public:
-    TopLevelTypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
+    TopLevelTypeChecking(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res);
     virtual ~TopLevelTypeChecking();
 
     virtual void visit(ASTNode* node) override;
@@ -58,7 +59,7 @@ private:
 class TypeChecking : public TypeChecker {
 public:
 
-    TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res);
+    TypeChecking(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res);
     virtual ~TypeChecking();
 
     virtual void visit(ASTNode*) override;

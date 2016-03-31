@@ -11,12 +11,16 @@
 
 #include <iostream>
 #include <vector>
+
 #include "Expressions.h"
 #include "TypeExpressions.h"
 #include "KindExpressions.h"
+
 #include "../../Symbols/Symbols.h"
 #include "../../Symbols/Symbolic.h"
+
 #include "../Utils/CanUseModules.h"
+#include "../Utils/Annotations.h"
 
 namespace sfsl {
 
@@ -36,7 +40,8 @@ class TypeDecl;
 class ModuleDecl :
         public ASTNode,
         public sym::Symbolic<sym::ModuleSymbol>,
-        public CanUseModules {
+        public CanUseModules,
+        public Annotable {
 public:
 
     ModuleDecl(Identifier* name,
@@ -81,7 +86,10 @@ private:
  *  - This definition's name
  *  - The value associated to this definition
  */
-class DefineDecl : public Expression, public sym::Symbolic<sym::DefinitionSymbol> {
+class DefineDecl :
+        public Expression,
+        public sym::Symbolic<sym::DefinitionSymbol>,
+        public Annotable {
 public:
 
     DefineDecl(Identifier* name, TypeExpression* tp, Expression* value, bool isRedef, bool isExtern, bool isAbstract);
@@ -131,7 +139,10 @@ private:
 
 };
 
-class TypeDecl : public Expression, public sym::Symbolic<sym::TypeSymbol> {
+class TypeDecl :
+        public Expression,
+        public sym::Symbolic<sym::TypeSymbol>,
+        public Annotable {
 public:
 
     TypeDecl(TypeIdentifier* id, TypeExpression* exp);

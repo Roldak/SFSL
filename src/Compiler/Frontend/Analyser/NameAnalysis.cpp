@@ -44,19 +44,22 @@ void ScopePossessorVisitor::tryAddSymbol(sym::Symbol* sym) {
 
 template<typename T, typename U>
 T* ScopePossessorVisitor::createSymbol(U* node) {
-    T* sym = _mngr.New<T>(node->getName()->getValue());
+    std::string symName = node->getName()->getValue();
+    T* sym = _mngr.New<T>(symName, absoluteName(symName));
     initCreated(node, sym);
     return sym;
 }
 
 sym::DefinitionSymbol* ScopePossessorVisitor::createSymbol(DefineDecl* node, TypeExpression* currentThis) {
-    sym::DefinitionSymbol* sym = _mngr.New<sym::DefinitionSymbol>(node->getName()->getValue(), node, currentThis);
+    std::string symName = node->getName()->getValue();
+    sym::DefinitionSymbol* sym = _mngr.New<sym::DefinitionSymbol>(symName, absoluteName(symName), node, currentThis);
     initCreated(node, sym);
     return sym;
 }
 
 sym::TypeSymbol* ScopePossessorVisitor::createSymbol(TypeDecl* node) {
-    sym::TypeSymbol* sym = _mngr.New<sym::TypeSymbol>(node->getName()->getValue(), node);
+    std::string symName = node->getName()->getValue();
+    sym::TypeSymbol* sym = _mngr.New<sym::TypeSymbol>(symName, absoluteName(symName), node);
     initCreated(node, sym);
     return sym;
 }
@@ -75,6 +78,18 @@ void ScopePossessorVisitor::setVariableSymbolicUsed(T* symbolic, bool val) {
             static_cast<sym::VariableSymbol*>(s)->setUsed(val);
         }
     }
+}
+
+void ScopePossessorVisitor::pushPathPart(const std::string& name) {
+    _symbolPath.push_back(name);
+}
+
+std::string ScopePossessorVisitor::absoluteName(const std::string& symName) {
+    return utils::join(_symbolPath, ".") + "." + symName;
+}
+
+void ScopePossessorVisitor::popPathPart() {
+    _symbolPath.pop_back();
 }
 
 // SCOPE GENERATION
@@ -101,16 +116,22 @@ void ScopeGeneration::visit(ModuleDecl* module) {
         sym::Scope* last = _curScope;
         _curScope = mod->getScope();
 
+        pushPathPart(module->getName()->getValue());
+
         ASTImplicitVisitor::visit(module);
+
+        popPathPart();
 
         _curScope = last;
     } else {
         createSymbol<sym::ModuleSymbol>(module);
 
         pushScope(module->getSymbol());
+        pushPathPart(module->getName()->getValue());
 
         ASTImplicitVisitor::visit(module);
 
+        popPathPart();
         popScope();
     }
 }
@@ -119,9 +140,11 @@ void ScopeGeneration::visit(TypeDecl* tdecl) {
     createSymbol(tdecl);
 
     pushScope(tdecl->getSymbol(), true);
+    pushPathPart(tdecl->getName()->getValue());
 
     ASTImplicitVisitor::visit(tdecl);
 
+    popPathPart();
     popScope();
 }
 
@@ -141,6 +164,7 @@ void ScopeGeneration::visit(DefineDecl* def) {
     createSymbol(def, _currentThis);
 
     pushScope(def->getSymbol(), true);
+    pushPathPart(def->getName()->getValue());
 
     SAVE_MEMBER_AND_SET(_currentThis, nullptr)
 
@@ -148,6 +172,7 @@ void ScopeGeneration::visit(DefineDecl* def) {
 
     RESTORE_MEMBER(_currentThis)
 
+    popPathPart();
     popScope();
 }
 
@@ -227,7 +252,8 @@ void ScopeGeneration::visit(TypeSpecifier* tps) {
 }
 
 void ScopeGeneration::createVar(Identifier* id) {
-    sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(id->getValue());
+    std::string symName = id->getValue();
+    sym::VariableSymbol* arg = _mngr.New<sym::VariableSymbol>(symName, symName);
     initCreated(id, arg);
 }
 

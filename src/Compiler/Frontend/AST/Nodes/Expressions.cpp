@@ -7,7 +7,7 @@
 //
 
 #include "Expressions.h"
-#include "../Visitors/ASTImplicitVisitor.h"
+#include "../Visitors/ASTVisitor.h"
 
 namespace sfsl {
 
@@ -23,7 +23,7 @@ SFSL_AST_ON_VISIT_CPP(Expression)
 
 // EXPRESSION STATEMENT
 
-ExpressionStatement::ExpressionStatement(Expression *expr) : _expr(expr) {
+ExpressionStatement::ExpressionStatement(Expression* expr) : _expr(expr) {
 
 }
 
@@ -39,7 +39,7 @@ Expression *ExpressionStatement::getExpression() const {
 
 // ASSIGNMENT EXPRESSION
 
-AssignmentExpression::AssignmentExpression(Expression *lhs, Expression *rhs)
+AssignmentExpression::AssignmentExpression(Expression* lhs, Expression* rhs)
     : _lhs(lhs), _rhs(rhs) {
 
 }

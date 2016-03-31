@@ -11,13 +11,19 @@
 
 #include <iostream>
 #include <vector>
+
 #include "ASTNode.h"
+
 #include "../../../../Utils/Utils.h"
+
 #include "../../Symbols/Symbols.h"
 #include "../../Symbols/Symbolic.h"
+
 #include "../../Types/Types.h"
 #include "../../Types/TypeParametrizable.h"
+
 #include "../Utils/CanUseModules.h"
+#include "../Utils/Annotations.h"
 
 namespace sfsl {
 
@@ -230,7 +236,8 @@ class FunctionCreation :
         public Expression,
         public sym::Scoped,
         public common::HasManageableUserdata,
-        public type::TypeParametrizable {
+        public type::TypeParametrizable,
+        public Annotable {
 public:
 
     FunctionCreation(const std::string& name, TypeTuple* typeArgs, Expression* args, Expression* body, TypeExpression* retType = nullptr);

@@ -41,7 +41,8 @@ T* applyEnvsHelper(T* t, const type::SubstitutionTable& subtable, const type::Su
 
 // TYPE CHECKER
 
-TypeChecker::TypeChecker(CompCtx_Ptr& ctx, const sym::SymbolResolver& res) : ASTImplicitVisitor(ctx), _res(res), _rep(ctx->reporter()) {
+TypeChecker::TypeChecker(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res)
+    : ASTImplicitVisitor(ctx), _namer(namer), _res(res), _rep(ctx->reporter()) {
 
 }
 
@@ -51,7 +52,8 @@ TypeChecker::~TypeChecker() {
 
 // TOP LEVEL TYPE CHECKING
 
-TopLevelTypeChecking::TopLevelTypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res) : TypeChecker(ctx, res) {
+TopLevelTypeChecking::TopLevelTypeChecking(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res)
+    : TypeChecker(ctx, namer, res) {
 
 }
 
@@ -124,8 +126,8 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
 
 // TYPE CHECKING
 
-TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const sym::SymbolResolver& res)
-    : TypeChecker(ctx, res), _currentThis(nullptr), _nextDef(nullptr), _triggeringDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr} {
+TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res)
+    : TypeChecker(ctx, namer, res), _currentThis(nullptr), _nextDef(nullptr), _triggeringDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr} {
 
 }
 
@@ -673,8 +675,9 @@ void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<
     parentTypeArgs.push_back(retType);
 
     std::string parentName = "Func" + utils::T_toString(argTypes.size());
+    std::string absoluteParentName = utils::join(_namer.Func(argTypes.size()), ".");
     type::Type* parentType = _mngr.New<type::ConstructorApplyType>(_res.Func(argTypes.size()), parentTypeArgs);
-    sym::TypeSymbol* parentSymbol = _mngr.New<sym::TypeSymbol>(parentName, nullptr);
+    sym::TypeSymbol* parentSymbol = _mngr.New<sym::TypeSymbol>(parentName, absoluteParentName, nullptr);
     TypeIdentifier* parentExpr = _mngr.New<TypeIdentifier>(parentName);
 
     parentExpr->setSymbol(parentSymbol);
@@ -688,7 +691,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<
     meth->setType(_mngr.New<type::MethodType>(funcClass, argTypes, retType));
     meth->setPos(*func);
 
-    sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", funcDecl, funcClass);
+    sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", "", funcDecl, funcClass);
     funcDecl->setSymbol(funcSym);
     funcDecl->setPos(*func);
 

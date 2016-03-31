@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include "BufferedInputSource.h"
-#include "Tokens/Token.h"
+#include "Tokens.h"
 #include "../../Common/CompilationContext.h"
 
 namespace sfsl {

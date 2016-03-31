@@ -13,6 +13,7 @@
 #define SFSL_AST_ON_VISIT_CPP(clss) void clss::onVisit(ASTVisitor* visitor) { visitor->visit(this); }
 
 #include <iostream>
+
 #include "../../../Common/MemoryManageable.h"
 #include "../../../Common/Positionnable.h"
 

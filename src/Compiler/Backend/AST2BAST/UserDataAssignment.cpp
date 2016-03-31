@@ -7,16 +7,16 @@
 //
 
 #include "UserDataAssignment.h"
-#include "../Frontend/AST/Visitors/ASTTypeCreator.h"
+#include "../../Frontend/AST/Visitors/ASTTypeCreator.h"
 
 namespace sfsl {
 
-namespace bc {
+namespace ast {
 
 // ASSIGN USER DATAS
 
 UserDataAssignment::UserDataAssignment(CompCtx_Ptr& ctx)
-    : ASTImplicitVisitor(ctx), _currentConstCount(0), _currentVarCount(0) {
+    : ASTImplicitVisitor(ctx), _freshId(0), _currentVarCount(0) {
 
 }
 
@@ -24,16 +24,15 @@ UserDataAssignment::~UserDataAssignment() {
 
 }
 
-void UserDataAssignment::visit(ASTNode*) {
+void UserDataAssignment::visit(TypeDecl* tdecl) {
+    ASTImplicitVisitor::visit(tdecl);
+    sym::TypeSymbol* tsym = tdecl->getSymbol();
 
+    tsym->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(tsym), visibilityFromAnnotable(tdecl)));
 }
 
 void UserDataAssignment::visit(ClassDecl* clss) {
     if (TRY_INSERT(_visitedClasses, clss)) {
-        for (TypeDecl* tdecl : clss->getTypeDecls()) {
-            tdecl->onVisit(this);
-        }
-
         std::vector<sym::VariableSymbol*> fields;
         std::vector<sym::DefinitionSymbol*> defs;
 
@@ -80,9 +79,11 @@ void UserDataAssignment::visit(ClassDecl* clss) {
             defs[virtualLoc] = defsym;
         }
 
-        size_t clssLoc = clss->isAbstract() ? _currentConstCount : _currentConstCount++;
+        clss->setUserdata(_mngr.New<ClassUserData>(freshName(clss->getName()), false, fields, defs, clss->isAbstract()));
 
-        clss->setUserdata(_mngr.New<ClassUserData>(clssLoc, fields, defs, clss->isAbstract()));
+        for (TypeDecl* tdecl : clss->getTypeDecls()) {
+            tdecl->onVisit(this);
+        }
     }
 }
 
@@ -91,9 +92,9 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     sym::DefinitionSymbol* def = decl->getSymbol();
 
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
-        def->setUserdata(_mngr.New<VirtualDefUserData>(decl->isAbstract() ? _currentConstCount : _currentConstCount++));
+        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromSymbol(def), visibilityFromAnnotable(decl)));
     } else {
-        def->setUserdata(_mngr.New<DefUserData>(_currentConstCount++));
+        def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def), visibilityFromAnnotable(decl)));
     }
 }
 
@@ -104,7 +105,9 @@ void UserDataAssignment::visit(TypeSpecifier* tps) {
 }
 
 void UserDataAssignment::visit(FunctionCreation* func) {
-    SAVE_MEMBER_AND_SET(_currentVarCount, func->type()->getTypeKind() == type::TYPE_FUNCTION ? 0 : 1)
+    bool isFunction = func->type()->getTypeKind() == type::TYPE_FUNCTION;
+
+    SAVE_MEMBER_AND_SET(_currentVarCount, isFunction ? 0 : 1)
 
     ASTImplicitVisitor::visit(func);
 
@@ -112,24 +115,100 @@ void UserDataAssignment::visit(FunctionCreation* func) {
         pt->getClass()->onVisit(this);
     }
 
-    func->setUserdata(_mngr.New<FuncUserData>(_currentVarCount));
+    func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), false, _currentVarCount));
 
     RESTORE_MEMBER(_currentVarCount)
 }
 
+std::string UserDataAssignment::freshName(const std::string& prefix) {
+    return prefix + "$" + std::to_string(_freshId++);
+}
+
+std::string UserDataAssignment::nameFromSymbol(sym::Symbol* s) {
+    const std::string& name = s->getAbsoluteName();
+    if (name == "") {
+        return freshName(name);
+    } else {
+        return name;
+    }
+}
+
+bool UserDataAssignment::visibilityFromAnnotable(Annotable* a) {
+    bool isVisible = false;
+    a->matchAnnotation<>("export", [&](){ isVisible = true; });
+    return isVisible;
+}
+
+// ANNOTATION USAGE WARNER
+
+AnnotationUsageWarner::AnnotationUsageWarner(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx), _rep(ctx->reporter()) {
+
+}
+
+AnnotationUsageWarner::~AnnotationUsageWarner() {
+
+}
+
+void AnnotationUsageWarner::visit(ModuleDecl* module) {
+    visitAnnotable(module);
+    ASTImplicitVisitor::visit(module);
+}
+
+void AnnotationUsageWarner::visit(TypeDecl* tdecl) {
+    visitAnnotable(tdecl);
+    ASTImplicitVisitor::visit(tdecl);
+}
+
+void AnnotationUsageWarner::visit(ClassDecl* clss) {
+    visitAnnotable(clss);
+    ASTImplicitVisitor::visit(clss);
+}
+
+void AnnotationUsageWarner::visit(DefineDecl* decl) {
+    visitAnnotable(decl);
+    ASTImplicitVisitor::visit(decl);
+}
+
+void AnnotationUsageWarner::visit(FunctionCreation* func) {
+    visitAnnotable(func);
+    ASTImplicitVisitor::visit(func);
+}
+
+void AnnotationUsageWarner::visitAnnotable(Annotable* annotable) {
+    for (Annotation* annot : annotable->getAnnotations()) {
+        if (!annot->isUsed()) {
+            _rep.warning(*annot, "Unused annotation. It is either ill-formed, or the plugin using these annotations is missing.");
+        }
+    }
+}
+
+// DEFINITION USER DATA
+
+DefUserData::DefUserData(const std::string& defId, bool isVisible) : _defId(defId), _isVisible(isVisible) {
+
+}
+
+DefUserData::~DefUserData() {
+
+}
+
+const std::string& DefUserData::getDefId() const {
+    return _defId;
+}
+
+bool DefUserData::isVisible() const {
+    return _isVisible;
+}
+
 // CLASS USER DATA
 
-ClassUserData::ClassUserData(size_t loc, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract)
-    : _loc(loc), _fields(fields), _defs(defs), _isAbstract(isAbstract) {
+ClassUserData::ClassUserData(const std::string& defId, bool isHidden, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract)
+    : DefUserData(defId, isHidden), _fields(fields), _defs(defs), _isAbstract(isAbstract) {
 
 }
 
 ClassUserData::~ClassUserData() {
 
-}
-
-size_t ClassUserData::getClassLoc() const {
-    return _loc;
 }
 
 size_t ClassUserData::getAttrCount() const {
@@ -174,7 +253,8 @@ bool ClassUserData::isAbstract() const {
 
 // FUNCTION USER DATA
 
-FuncUserData::FuncUserData(size_t varCount) : _varCount(varCount) {
+FuncUserData::FuncUserData(const std::string& defId, bool isHidden, size_t varCount)
+    : DefUserData(defId, isHidden), _varCount(varCount) {
 
 }
 
@@ -208,23 +288,9 @@ bool VarUserData::isAttribute() const {
     return _isAttriute;
 }
 
-// DEFINITION USER DATA
-
-DefUserData::DefUserData(size_t loc) : _loc(loc) {
-
-}
-
-DefUserData::~DefUserData() {
-
-}
-
-size_t DefUserData::getDefLoc() const {
-    return _loc;
-}
-
 // VIRTUAL DEFINITION USER DATA
 
-VirtualDefUserData::VirtualDefUserData(size_t loc) : DefUserData(loc) {
+VirtualDefUserData::VirtualDefUserData(const std::string& defId, bool isHidden) : DefUserData(defId, isHidden) {
 
 }
 

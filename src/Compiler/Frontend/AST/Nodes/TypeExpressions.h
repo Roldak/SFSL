@@ -10,10 +10,14 @@
 #define __SFSL__TypeExpressions__
 
 #include <iostream>
+
 #include "Expressions.h"
+
 #include "../../Kinds/Kinds.h"
 #include "../../Types/TypeParametrizable.h"
 #include "../../Types/CanSubtype.h"
+
+#include "../Utils/Annotations.h"
 
 namespace sfsl {
 
@@ -47,7 +51,8 @@ class ClassDecl :
         public sym::Scoped,
         public type::TypeParametrizable,
         public type::CanSubtype<ClassDecl>,
-        public common::HasManageableUserdata {
+        public common::HasManageableUserdata,
+        public Annotable {
 public:
 
     ClassDecl(

@@ -14,7 +14,8 @@ namespace sym {
 
 // SYMBOL
 
-Symbol::Symbol(const std::string& name) : _name(name) {
+Symbol::Symbol(const std::string& name, const std::string& absoluteName)
+    : _name(name), _absoluteName(absoluteName) {
 
 }
 
@@ -30,9 +31,13 @@ const std::string& Symbol::getName() const {
     return _name;
 }
 
+const std::string& Symbol::getAbsoluteName() const {
+    return _absoluteName;
+}
+
 // MODULE SYMBOL
 
-ModuleSymbol::ModuleSymbol(const std::string& name) : Symbol(name) {
+ModuleSymbol::ModuleSymbol(const std::string& name, const std::string& absoluteName) : Symbol(name, absoluteName) {
 
 }
 
@@ -46,7 +51,8 @@ SYM_TYPE ModuleSymbol::getSymbolType() const {
 
 // CLASS SYMBOL
 
-TypeSymbol::TypeSymbol(const std::string& name, ast::TypeDecl* type) : Symbol(name), _type(type) {
+TypeSymbol::TypeSymbol(const std::string& name, const std::string& absoluteName, ast::TypeDecl* type)
+    : Symbol(name, absoluteName), _type(type) {
 
 }
 
@@ -64,8 +70,8 @@ ast::TypeDecl* TypeSymbol::getTypeDecl() const {
 
 // DEFINITION SYMBOL
 
-DefinitionSymbol::DefinitionSymbol(const std::string& name, ast::DefineDecl* def, ast::TypeExpression* owner)
-    : Symbol(name), _def(def), _owner(owner), _overriden(nullptr) {
+DefinitionSymbol::DefinitionSymbol(const std::string& name, const std::string& absoluteName, ast::DefineDecl* def, ast::TypeExpression* owner)
+    : Symbol(name, absoluteName), _def(def), _owner(owner), _overriden(nullptr) {
 
 }
 
@@ -99,7 +105,7 @@ DefinitionSymbol *DefinitionSymbol::getOverridenSymbol() const {
 
 // VARIABLE SYMBOL
 
-VariableSymbol::VariableSymbol(const std::string& name) : Symbol(name) {
+VariableSymbol::VariableSymbol(const std::string& name, const std::string& absoluteName) : Symbol(name, absoluteName) {
 
 }
 
