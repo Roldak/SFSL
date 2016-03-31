@@ -49,7 +49,7 @@
 
 #ifdef USER_API_PLUGIN_FEATURE
 
-typedef void (__stdcall *CompilePass)(sfsl::ProgramBuilder, sfsl::Pipeline);
+typedef void (__stdcall *CompilePass)(sfsl::ProgramBuilder, sfsl::Pipeline&);
 
 #ifdef _WIN32
 
@@ -143,7 +143,7 @@ public:
         }
     }
 
-    void compilePass(ProgramBuilder progbuilder, Pipeline pipeline) {
+    void compilePass(ProgramBuilder progbuilder, Pipeline& pipeline) {
         for (const Plugin& plugin : plugins) {
             plugin.compilePass(progbuilder, pipeline);
         }
@@ -370,10 +370,14 @@ ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& sr
     }
 }
 
-void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& collector, const Pipeline& ppl) {
+void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& collector, const Pipeline& tmp) {
     if (!progBuilder) {
         return;
     }
+
+    Pipeline ppl(tmp);
+
+    _impl->compilePass(progBuilder, ppl);
 
     PhaseContext pctx;
     CompCtx_Ptr ctx = _impl->ctx;
