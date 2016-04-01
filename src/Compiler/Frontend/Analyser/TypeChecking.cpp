@@ -400,9 +400,7 @@ void TypeChecking::visit(FunctionCreation* func) {
 
     if (TypeExpression* retTypeExpr = func->getReturnType()) {
         func->getReturnType()->onVisit(this);
-        if (type::Type* type = ASTTypeCreator::createType(retTypeExpr, _ctx)) {
-            retType = type;
-        } else {
+        if (!(retType = ASTTypeCreator::createType(retTypeExpr, _ctx))) {
             _rep.error(*retTypeExpr, "Invalid return type");
         }
     } else {
@@ -508,9 +506,8 @@ void TypeChecking::visit(Instantiation* inst) {
     if (type::ProperType* pt = type::getIf<type::ProperType>(instType->applyTCCallsOnly(_ctx))) {
         if (pt->getClass()->isAbstract()) {
             _rep.error(*inst, "Cannot instantiate abstract class " + pt->getClass()->getName());
-        } else {
-            inst->setType(pt);
         }
+        inst->setType(pt);
     } else {
         _rep.error(*inst, "Only classes can be instantiated. Found " + instType->toString());
     }
@@ -595,10 +592,10 @@ bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* new
         type::Type* calleeT = field.t->applyTCCallsOnly(_ctx);
 
         if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
-            expectedArgTypes = &static_cast<type::FunctionType*>(ft->apply(_ctx))->getArgTypes();
+            expectedArgTypes = &ft->apply(_ctx)->getArgTypes();
             retType = ft->getRetType();
         } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
-            expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
+            expectedArgTypes = &mt->apply(_ctx)->getArgTypes();
             retType = mt->getRetType();
 
             MemberAccess* dot = _mngr.New<MemberAccess>(newCallee, _mngr.New<Identifier>(member));

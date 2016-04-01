@@ -89,7 +89,7 @@ public:
     virtual bool isSubTypeOf(const Type* other) const override;
     virtual std::string toString() const override;
 
-    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+    virtual ProperType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
 
     ast::ClassDecl* getClass() const;
 
@@ -108,8 +108,8 @@ public:
     virtual bool isSubTypeOf(const Type* other) const override;
     virtual std::string toString() const override;
 
-    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
-    virtual Type* apply(CompCtx_Ptr& ctx) const override;
+    virtual FunctionType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+    virtual FunctionType* apply(CompCtx_Ptr& ctx) const override;
 
     const std::vector<Type*>& getArgTypes() const;
     Type* getRetType() const;
@@ -130,8 +130,8 @@ public:
     virtual bool isSubTypeOf(const Type *other) const override;
     virtual std::string toString() const override;
 
-    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
-    virtual Type* apply(CompCtx_Ptr &ctx) const override;
+    virtual MethodType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+    virtual MethodType* apply(CompCtx_Ptr &ctx) const override;
 
     ast::ClassDecl* getOwner() const;
     const std::vector<Type*>& getArgTypes() const;
@@ -156,7 +156,7 @@ public:
     virtual bool isSubTypeOf(const Type* other) const override;
     virtual std::string toString() const override;
 
-    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+    virtual TypeConstructorType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
 
     ast::TypeConstructorCreation* getTypeConstructor() const;
 

@@ -181,7 +181,7 @@ std::string ProperType::toString() const {
     return _class->getName() + Type::toString();
 }
 
-Type* ProperType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+ProperType* ProperType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
     SubstitutionTable copy = _subTable;
     if (applyEnvHelper(table, copy)) {
         return ctx->memoryManager().New<ProperType>(_class, copy);
@@ -243,7 +243,7 @@ std::string FunctionType::toString() const {
     return toRet + ")->" + _retType->toString();
 }
 
-Type* FunctionType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+FunctionType* FunctionType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
     SubstitutionTable copy = _subTable;
     applyEnvHelper(table, copy);
 
@@ -255,7 +255,7 @@ Type* FunctionType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx)
     return ctx->memoryManager().New<FunctionType>(substitued, findSubstitution(table, _retType)->substitute(table, ctx), _class, copy);
 }
 
-Type* FunctionType::apply(CompCtx_Ptr& ctx) const {
+FunctionType* FunctionType::apply(CompCtx_Ptr& ctx) const {
     std::vector<Type*> applied(_argTypes.size());
     for (size_t i = 0; i < _argTypes.size(); ++i) {
         applied[i] = _argTypes[i]->apply(ctx);
@@ -318,7 +318,7 @@ std::string MethodType::toString() const {
     return toRet + ")->" + _retType->toString();
 }
 
-Type* MethodType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+MethodType* MethodType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
     SubstitutionTable copy = _subTable;
     applyEnvHelper(table, copy);
 
@@ -330,7 +330,7 @@ Type* MethodType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) c
     return ctx->memoryManager().New<MethodType>(_owner, substitued, findSubstitution(table, _retType)->substitute(table, ctx), copy);
 }
 
-Type* MethodType::apply(CompCtx_Ptr& ctx) const {
+MethodType* MethodType::apply(CompCtx_Ptr& ctx) const {
     std::vector<Type*> applied(_argTypes.size());
     for (size_t i = 0; i < _argTypes.size(); ++i) {
         applied[i] = _argTypes[i]->apply(ctx);
@@ -378,7 +378,7 @@ std::string TypeConstructorType::toString() const {
     return _typeConstructor->getName() + Type::toString();
 }
 
-Type* TypeConstructorType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
+TypeConstructorType* TypeConstructorType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
     SubstitutionTable copy = _subTable;
     if (applyEnvHelper(table, copy)) {
         return ctx->memoryManager().New<TypeConstructorType>(_typeConstructor, copy);
