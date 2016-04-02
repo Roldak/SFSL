@@ -139,13 +139,13 @@ target_link_libraries(${COMPLETER_TARGET} ${USER_API_TARGET})
 
 if(COMPILE_STDLIB)
 
-file(GLOB_RECURSE STDLIB_SRC_LIST ./stdlib/*.cpp)
+    file(GLOB_RECURSE STDLIB_SRC_LIST ./stdlib/*.cpp)
 
-add_library(${STDLIB_TARGET} SHARED ${STDLIB_SRC_LIST})
-apply_target_properties(${STDLIB_TARGET} ${STDLIB_BUILD_TYPE} ${STDLIB_OUTPUT_NAME})
+    add_library(${STDLIB_TARGET} SHARED ${STDLIB_SRC_LIST})
+    apply_target_properties(${STDLIB_TARGET} ${STDLIB_BUILD_TYPE} ${STDLIB_OUTPUT_NAME})
 
-target_include_directories(${STDLIB_TARGET} PRIVATE ./include/)
-target_link_libraries(${STDLIB_TARGET} ${USER_API_TARGET})
+    target_include_directories(${STDLIB_TARGET} PRIVATE ./include/)
+    target_link_libraries(${STDLIB_TARGET} ${USER_API_TARGET})
 
 endif()
 
@@ -153,6 +153,13 @@ endif()
 #          MISCELLANEOUS          #
 ###################################
 
-set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+if (STDLIB_BUILD_TYPE STREQUAL debug)
+    set(DEF_STDLIB_NAME "\\\"lib${STDLIB_OUTPUT_NAME}-d\\\"")
+else()
+    set(DEF_STDLIB_NAME "\\\"lib${STDLIB_OUTPUT_NAME}\\\"")
+endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSTDLIBNAME=${DEF_STDLIB_NAME}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")

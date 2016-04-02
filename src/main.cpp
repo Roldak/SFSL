@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
     AbstractOutputCollector* col;
 
     try {
-        cmp.loadPlugin("libstdlib-d");
+        cmp.loadPlugin(STDLIBNAME);
 
         ProgramBuilder builder = cmp.parse(sourceFile, source);
 

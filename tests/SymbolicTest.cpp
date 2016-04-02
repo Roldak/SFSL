@@ -50,7 +50,7 @@ bool SymbolicTest::run(AbstractTestLogger& logger) {
             logger.result(_name, false, std::string("Fatal: failed to parse the program"));
         } else {
             try {
-                cmp.loadPlugin("libstdlib-d");
+                cmp.loadPlugin(STDLIBNAME);
                 builder.openModule("test").externDef(ASSERT_SAME_SYM, builder.parseType("(sfsl.lang.string, sfsl.lang.unit)->sfsl.lang.unit"));
 
                 ErrorCountCollector errcount;

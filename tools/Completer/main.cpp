@@ -239,7 +239,7 @@ int main(int argc, char** argv) {
         return 3;
     }
 
-    cmp.loadPlugin("libstdlib-d");
+    cmp.loadPlugin(STDLIBNAME);
 
     if (generate) {
         Pipeline ppl = Pipeline::createEmpty().insert(std::shared_ptr<Phase>(new ScopeIdentiferPhase));

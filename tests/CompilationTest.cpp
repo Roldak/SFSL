@@ -32,7 +32,7 @@ bool CompilationTest::run(AbstractTestLogger& logger) {
             success = false;
         } else {
             try {
-                cmp.loadPlugin("libstdlib-d");
+                cmp.loadPlugin(STDLIBNAME);
                 ErrorCountCollector errcount;
                 cmp.compile(builder, errcount, _ppl);
                 success = ((errcount.get() == 0) == _shouldCompile);

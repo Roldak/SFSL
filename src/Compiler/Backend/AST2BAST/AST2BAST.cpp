@@ -221,7 +221,7 @@ void AST2BAST::visit(ast::FunctionCall* call) {
         sym::DefinitionSymbol* def = static_cast<sym::DefinitionSymbol*>(ast::ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx));
         size_t virtualLoc = def->getUserdata<ast::VirtualDefUserData>()->getVirtualLocation();
 
-        Expression* callee;
+        Expression* callee = nullptr;
         std::vector<Expression*> args;
 
         if (ast::isNodeOfType<ast::MemberAccess>(call->getCallee(), _ctx)) {
