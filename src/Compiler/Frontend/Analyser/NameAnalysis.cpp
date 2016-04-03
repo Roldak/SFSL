@@ -140,11 +140,9 @@ void ScopeGeneration::visit(TypeDecl* tdecl) {
     createSymbol(tdecl);
 
     pushScope(tdecl->getSymbol(), true);
-    pushPathPart(tdecl->getName()->getValue());
 
     ASTImplicitVisitor::visit(tdecl);
 
-    popPathPart();
     popScope();
 }
 
@@ -152,11 +150,13 @@ void ScopeGeneration::visit(ClassDecl* clss) {
     pushScope(clss, true);
 
     SAVE_MEMBER_AND_SET(_currentThis, clss)
+    pushPathPart(clss->getName());
 
     ASTImplicitVisitor::visit(clss);
 
     RESTORE_MEMBER(_currentThis)
 
+    popPathPart();
     popScope();
 }
 

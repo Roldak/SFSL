@@ -169,6 +169,7 @@ void AST2BAST::visit(ast::AssignmentExpression* aex) {
 }
 
 void AST2BAST::visit(ast::TypeSpecifier* tps) {
+    tps->getTypeNode()->onVisit(this);
     makeUnit();
 }
 
