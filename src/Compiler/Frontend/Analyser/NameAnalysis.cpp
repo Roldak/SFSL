@@ -328,15 +328,17 @@ void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
     debugDumpDependencies(tc);
 #endif
 
-    _parameters.resize(_parameters.size() - pushed);
+    popTypeParameters(pushed);
 }
 
 void TypeDependencyFixation::visit(FunctionCreation* func) {
     func->setDependencies(_parameters);
 
+    size_t pushed = 0;
+
     if (func->getTypeArgs()) {
         func->getTypeArgs()->onVisit(this);
-        pushTypeParameters(func->getTypeArgs()->getExpressions());
+        pushed = pushTypeParameters(func->getTypeArgs()->getExpressions());
     }
 
     func->getArgs()->onVisit(this);
@@ -350,6 +352,8 @@ void TypeDependencyFixation::visit(FunctionCreation* func) {
 #ifdef DEBUG_DEPENDENCIES
     debugDumpDependencies(func);
 #endif
+
+    popTypeParameters(pushed);
 }
 
 void TypeDependencyFixation::visit(TypeConstructorCall* tcall) {
@@ -380,6 +384,10 @@ size_t TypeDependencyFixation::pushTypeParameters(const std::vector<TypeExpressi
         }
     }
     return pushed;
+}
+
+void TypeDependencyFixation::popTypeParameters(size_t pushed) {
+    _parameters.resize(_parameters.size() - pushed);
 }
 
 template<typename T>

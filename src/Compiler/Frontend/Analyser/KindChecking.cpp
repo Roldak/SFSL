@@ -60,7 +60,7 @@ void KindChecking::visit(ClassDecl* clss) {
 
         if (TypeExpression* p = clss->getParent()) {
             if (p->kind()->getKindGenre() != kind::KIND_PROPER) {
-                _rep.error(*p, "Kind mismatch. Expected proper type, found " + p->kind()->toString());
+                _rep.error(*p, "Kind mismatch. Expected proper type, found type of kind " + p->kind()->toString());
             }
         }
     }
@@ -71,7 +71,7 @@ void KindChecking::visit(DefineDecl* decl) {
 
     if (TypeExpression* expr = decl->getTypeSpecifier()) {
         if (expr->kind()->getKindGenre() != kind::KIND_PROPER) {
-            _rep.error(*expr, "Kind mismatch. Expected proper type, found " + expr->kind()->toString());
+            _rep.error(*expr, "Kind mismatch. Expected proper type, found type of kind " + expr->kind()->toString());
         }
     }
 }
@@ -81,12 +81,12 @@ void KindChecking::visit(FunctionTypeDecl* ftdecl) {
 
     for (TypeExpression* texpr : ftdecl->getArgTypes()) {
         if (texpr->kind()->getKindGenre() != kind::KIND_PROPER) {
-            _rep.error(*texpr, "Kind mismatch. Expected proper type, found " + texpr->kind()->toString());
+            _rep.error(*texpr, "Kind mismatch. Expected proper type, found type of kind " + texpr->kind()->toString());
         }
     }
 
     if (ftdecl->getRetType()->kind()->getKindGenre() != kind::KIND_PROPER) {
-        _rep.error(*ftdecl->getRetType(), "Kind mismatch. Expected proper type, found " + ftdecl->getRetType()->kind()->toString());
+        _rep.error(*ftdecl->getRetType(), "Kind mismatch. Expected proper type, found type of kind " + ftdecl->getRetType()->kind()->toString());
     }
 
     ftdecl->setKind(kind::ProperKind::create());
@@ -181,7 +181,7 @@ void KindChecking::visit(TypeSpecifier* ts) {
     ASTImplicitVisitor::visit(ts);
 
     if (ts->getTypeNode()->kind()->getKindGenre() != kind::KIND_PROPER) {
-        _rep.error(*ts, "Variable cannot have type " + ts->getTypeNode()->kind()->toString() + " which is not a proper type.");
+        _rep.error(*ts, "Variables must have a proper type. Found a type of kind " + ts->getTypeNode()->kind()->toString());
     }
 }
 
@@ -189,7 +189,7 @@ void KindChecking::visit(Instantiation* inst) {
     ASTImplicitVisitor::visit(inst);
 
     if (inst->getInstantiatedExpression()->kind()->getKindGenre() != kind::KIND_PROPER) {
-        _rep.error(*inst, "Can only instantiate proper types. Found " + inst->getInstantiatedExpression()->kind()->toString());
+        _rep.error(*inst, "Only proper types can be instantiated. Found type of kind " + inst->getInstantiatedExpression()->kind()->toString());
     }
 }
 

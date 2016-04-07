@@ -104,6 +104,7 @@ public:
 private:
 
     size_t pushTypeParameters(const std::vector<TypeExpression*>& typeParams);
+    void popTypeParameters(size_t pushed);
 
     template<typename T>
     void debugDumpDependencies(const T* param) const;
