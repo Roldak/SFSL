@@ -156,6 +156,8 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
 
     if (typeArgs.size() != args.size()) { // can happen if this is called before kind checking occurs
         return type::Type::NotYetDefined();
+    } else if (typeArgs.size() == 0) {
+        return fc;
     }
 
     type::SubstitutionTable subs(buildSubstitutionTableFromTypeParameterInstantiation(typeArgs, args, ctx));
