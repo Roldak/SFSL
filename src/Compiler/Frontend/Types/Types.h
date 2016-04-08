@@ -20,6 +20,7 @@
 namespace sfsl {
 
 namespace ast {
+class TypeExpression;
 class ClassDecl;
 class TypeConstructorCreation;
 }
@@ -100,7 +101,7 @@ protected:
 
 class FunctionType : public ProperType {
 public:
-    FunctionType(const std::vector<Type*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable = {});
+    FunctionType(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable = {});
 
     virtual ~FunctionType();
 
@@ -111,20 +112,20 @@ public:
     virtual FunctionType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
     virtual FunctionType* apply(CompCtx_Ptr& ctx) const override;
 
-    const std::vector<Type*>& getTypeArgs() const;
+    const std::vector<ast::TypeExpression*>& getTypeArgs() const;
     const std::vector<Type*>& getArgTypes() const;
     Type* getRetType() const;
 
 private:
 
-    std::vector<Type*> _typeArgs;
+    std::vector<ast::TypeExpression*> _typeArgs;
     std::vector<Type*> _argTypes;
     Type* _retType;
 };
 
 class MethodType : public Type {
 public:
-    MethodType(ast::ClassDecl* owner, const std::vector<Type*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable = {});
+    MethodType(ast::ClassDecl* owner, const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable = {});
 
     virtual ~MethodType();
 
@@ -136,7 +137,7 @@ public:
     virtual MethodType* apply(CompCtx_Ptr &ctx) const override;
 
     ast::ClassDecl* getOwner() const;
-    const std::vector<Type*>& getTypeArgs() const;
+    const std::vector<ast::TypeExpression*>& getTypeArgs() const;
     const std::vector<Type*>& getArgTypes() const;
     Type* getRetType() const;
 
@@ -145,7 +146,7 @@ public:
 private:
 
     ast::ClassDecl* _owner;
-    std::vector<Type*> _typeArgs;
+    std::vector<ast::TypeExpression*> _typeArgs;
     std::vector<Type*> _argTypes;
     Type* _retType;
 };

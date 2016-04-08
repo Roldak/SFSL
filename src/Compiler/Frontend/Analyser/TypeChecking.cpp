@@ -97,11 +97,6 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
     if (func == _nextDef) {
         // to be able to resolve overloads without having to fully typecheck the body of the function
 
-        std::vector<type::Type*> typeArgs;
-        for (TypeExpression* targ : func->getTypeArgs()->getExpressions()) {
-            typeArgs.push_back(ASTTypeCreator::createType(targ, _ctx));
-        }
-
         Expression* expr = func->getArgs();
         std::vector<Expression*> args;
 
@@ -123,7 +118,7 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
             }
         }
 
-        func->setType(_mngr.New<type::FunctionType>(typeArgs, argTypes, type::Type::NotYetDefined(), nullptr));
+        func->setType(_mngr.New<type::FunctionType>(func->getTypeArgs()->getExpressions(), argTypes, type::Type::NotYetDefined(), nullptr));
     }
 
     ASTImplicitVisitor::visit(func);
@@ -384,11 +379,6 @@ void TypeChecking::visit(Tuple* tuple) {
 }
 
 void TypeChecking::visit(FunctionCreation* func) {
-    std::vector<type::Type*> typeArgs;
-    for (TypeExpression* targ : func->getTypeArgs()->getExpressions()) {
-        typeArgs.push_back(ASTTypeCreator::createType(targ, _ctx));
-    }
-
     func->getArgs()->onVisit(this);
 
     Expression* expr = func->getArgs();
@@ -423,13 +413,13 @@ void TypeChecking::visit(FunctionCreation* func) {
         // func is a method
 
         if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
-            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), typeArgs, argTypes, retType));
+            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), func->getTypeArgs()->getExpressions(), argTypes, retType));
         } else {
             _rep.fatal(*func, "Unknown type of `this`");
         }
     } else {
         // func is a free function
-        assignFunctionType(func, typeArgs, argTypes, retType);
+        assignFunctionType(func, func->getTypeArgs()->getExpressions(), argTypes, retType);
     }
 
     if (func->getReturnType()) {
@@ -480,7 +470,7 @@ void TypeChecking::visit(FunctionCall* call) {
 
         retType = inst->type(); // force constructor to return type of its `this`
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
-        expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
+        expectedArgTypes = &mt->apply(_ctx)->getArgTypes();
         retType = mt->getRetType();
     } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
         if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", expectedArgTypes, retType)) {
@@ -678,7 +668,7 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
 }
 
 void TypeChecking::assignFunctionType(FunctionCreation* func,
-                                      const std::vector<type::Type*>& typeArgs,
+                                      const std::vector<TypeExpression*>& typeArgs,
                                       const std::vector<type::Type*>& argTypes,
                                       type::Type* retType) {
 

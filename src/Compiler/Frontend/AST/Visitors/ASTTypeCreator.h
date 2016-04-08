@@ -71,10 +71,32 @@ public:
      */
     static type::Type* evalTypeConstructor(type::TypeConstructorType* ctr, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx);
 
+    /**
+     * @brief Evaluates the given function constructor with the given arguments
+     * and returns its result.
+     *
+     * @param fc The function constructor to evaluate (a FunctionType or a MethodType)
+     * @param args The arguments to feed the function constructors with
+     * @param ctx The compilation context
+     * @return The function type that was created after evaluating the type constructor
+     * (or the `not yet defined` type in case of failure)
+     */
+    static type::Type* evalFunctionConstructor(type::Type* fc, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx);
+
 protected:
 
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
     type::SubstitutionTable buildSubstitutionTableFromTypeParametrizable(type::TypeParametrizable* param);
+
+    /**
+     * @brief Creates a substitution table mapping the types of the parameters to the types of the arguments
+     * @param typeParameters The expressions representing the type parameters (for example, TypeIdentifiers or KindSpecifiers)
+     * @param args The corresponding vector of type arguments
+     * @param ctx The compilation context
+     * @return The substitution table that was created
+     */
+    static type::SubstitutionTable buildSubstitutionTableFromTypeParameterInstantiation(
+            const std::vector<TypeExpression*> params, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx);
 
     type::Type* _created;
 
