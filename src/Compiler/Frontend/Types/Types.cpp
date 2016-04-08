@@ -196,8 +196,8 @@ ast::ClassDecl* ProperType::getClass() const {
 
 // FUNCTION TYPE
 
-FunctionType::FunctionType(const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
-    : ProperType(clss, substitutionTable), _argTypes(argTypes), _retType(retType) {
+FunctionType::FunctionType(const std::vector<Type*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
+    : ProperType(clss, substitutionTable), _typeArgs(typeArgs), _argTypes(argTypes), _retType(retType) {
 
 }
 
@@ -252,7 +252,7 @@ FunctionType* FunctionType::substitute(const SubstitutionTable& table, CompCtx_P
         substitued[i] = findSubstitution(table, _argTypes[i])->substitute(table, ctx);
     }
 
-    return ctx->memoryManager().New<FunctionType>(substitued, findSubstitution(table, _retType)->substitute(table, ctx), _class, copy);
+    return ctx->memoryManager().New<FunctionType>(_typeArgs, substitued, findSubstitution(table, _retType)->substitute(table, ctx), _class, copy);
 }
 
 FunctionType* FunctionType::apply(CompCtx_Ptr& ctx) const {
@@ -261,7 +261,11 @@ FunctionType* FunctionType::apply(CompCtx_Ptr& ctx) const {
         applied[i] = _argTypes[i]->apply(ctx);
     }
 
-    return ctx->memoryManager().New<FunctionType>(applied, _retType->apply(ctx), _class, _subTable);
+    return ctx->memoryManager().New<FunctionType>(_typeArgs, applied, _retType->apply(ctx), _class, _subTable);
+}
+
+const std::vector<Type*>&FunctionType::getTypeArgs() const {
+    return _typeArgs;
 }
 
 const std::vector<Type*>& FunctionType::getArgTypes() const {
@@ -274,8 +278,8 @@ Type* FunctionType::getRetType() const {
 
 // METHOD TYPE
 
-MethodType::MethodType(ast::ClassDecl* owner, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable)
-    : Type(substitutionTable), _owner(owner), _argTypes(argTypes), _retType(retType) {
+MethodType::MethodType(ast::ClassDecl* owner, const std::vector<Type*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable)
+    : Type(substitutionTable), _owner(owner), _typeArgs(typeArgs), _argTypes(argTypes), _retType(retType) {
 
 }
 
@@ -327,7 +331,7 @@ MethodType* MethodType::substitute(const SubstitutionTable& table, CompCtx_Ptr& 
         substitued[i] = findSubstitution(table, _argTypes[i])->substitute(table, ctx);
     }
 
-    return ctx->memoryManager().New<MethodType>(_owner, substitued, findSubstitution(table, _retType)->substitute(table, ctx), copy);
+    return ctx->memoryManager().New<MethodType>(_owner, _typeArgs, substitued, findSubstitution(table, _retType)->substitute(table, ctx), copy);
 }
 
 MethodType* MethodType::apply(CompCtx_Ptr& ctx) const {
@@ -336,11 +340,15 @@ MethodType* MethodType::apply(CompCtx_Ptr& ctx) const {
         applied[i] = _argTypes[i]->apply(ctx);
     }
 
-    return ctx->memoryManager().New<MethodType>(_owner, applied, _retType->apply(ctx), _subTable);
+    return ctx->memoryManager().New<MethodType>(_owner, _typeArgs, applied, _retType->apply(ctx), _subTable);
 }
 
 ast::ClassDecl* MethodType::getOwner() const {
     return _owner;
+}
+
+const std::vector<Type*>&MethodType::getTypeArgs() const {
+    return _typeArgs;
 }
 
 const std::vector<Type*>& MethodType::getArgTypes() const {
@@ -352,7 +360,7 @@ Type* MethodType::getRetType() const {
 }
 
 MethodType* MethodType::fromFunctionType(const FunctionType* ft, ast::ClassDecl* owner, CompCtx_Ptr& ctx) {
-    return ctx->memoryManager().New<MethodType>(owner, ft->getArgTypes(), ft->getRetType(), ft->getSubstitutionTable());
+    return ctx->memoryManager().New<MethodType>(owner, ft->getTypeArgs(), ft->getArgTypes(), ft->getRetType(), ft->getSubstitutionTable());
 }
 
 // TYPE CONSTRUCTOR

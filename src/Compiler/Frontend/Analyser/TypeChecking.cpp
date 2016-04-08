@@ -97,6 +97,11 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
     if (func == _nextDef) {
         // to be able to resolve overloads without having to fully typecheck the body of the function
 
+        std::vector<type::Type*> typeArgs;
+        for (TypeExpression* targ : func->getTypeArgs()->getExpressions()) {
+            typeArgs.push_back(ASTTypeCreator::createType(targ, _ctx));
+        }
+
         Expression* expr = func->getArgs();
         std::vector<Expression*> args;
 
@@ -118,7 +123,7 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
             }
         }
 
-        func->setType(_mngr.New<type::FunctionType>(argTypes, type::Type::NotYetDefined(), nullptr));
+        func->setType(_mngr.New<type::FunctionType>(typeArgs, argTypes, type::Type::NotYetDefined(), nullptr));
     }
 
     ASTImplicitVisitor::visit(func);
@@ -379,6 +384,11 @@ void TypeChecking::visit(Tuple* tuple) {
 }
 
 void TypeChecking::visit(FunctionCreation* func) {
+    std::vector<type::Type*> typeArgs;
+    for (TypeExpression* targ : func->getTypeArgs()->getExpressions()) {
+        typeArgs.push_back(ASTTypeCreator::createType(targ, _ctx));
+    }
+
     func->getArgs()->onVisit(this);
 
     Expression* expr = func->getArgs();
@@ -413,13 +423,13 @@ void TypeChecking::visit(FunctionCreation* func) {
         // func is a method
 
         if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
-            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), argTypes, retType));
+            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), typeArgs, argTypes, retType));
         } else {
             _rep.fatal(*func, "Unknown type of `this`");
         }
     } else {
         // func is a free function
-        assignFunctionType(func, argTypes, retType);
+        assignFunctionType(func, typeArgs, argTypes, retType);
     }
 
     if (func->getReturnType()) {
@@ -667,7 +677,11 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
     return nullptr;
 }
 
-void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType) {
+void TypeChecking::assignFunctionType(FunctionCreation* func,
+                                      const std::vector<type::Type*>& typeArgs,
+                                      const std::vector<type::Type*>& argTypes,
+                                      type::Type* retType) {
+
     std::vector<type::Type*> parentTypeArgs = argTypes;
     parentTypeArgs.push_back(retType);
 
@@ -685,7 +699,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<
     ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), parentExpr, std::vector<TypeDecl*>(),
                                                   std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
 
-    meth->setType(_mngr.New<type::MethodType>(funcClass, argTypes, retType));
+    meth->setType(_mngr.New<type::MethodType>(funcClass, typeArgs, argTypes, retType));
     meth->setPos(*func);
 
     sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", "", funcDecl, funcClass);
@@ -706,7 +720,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<
 
     funcClassScope->addSymbol(funcSym);
 
-    func->setType(_mngr.New<type::FunctionType>(argTypes, retType, funcClass));
+    func->setType(_mngr.New<type::FunctionType>(typeArgs, argTypes, retType, funcClass));
     funcSym->setType(meth->type());
 }
 
