@@ -439,7 +439,7 @@ void TypeChecking::visit(FunctionCreation* func) {
 void TypeChecking::visit(FunctionCall* call) {
     call->getArgsTuple()->onVisit(this);
 
-    const std::vector<TypeExpression*>& callTypeArgs = call->getTypeArgs();
+    std::vector<TypeExpression*> callTypeArgs = call->getTypeArgsTuple() ? call->getTypeArgs() : std::vector<TypeExpression*>();
     const std::vector<Expression*>& callArgs = call->getArgs();
 
     std::vector<type::Type*> callTypeArgsTypes(callTypeArgs.size());
@@ -458,6 +458,7 @@ void TypeChecking::visit(FunctionCall* call) {
 
     SAVE_MEMBER(_expectedInfo)
 
+    _expectedInfo.typeArgs = &callTypeArgsTypes;
     _expectedInfo.args = &callArgTypes;
     _expectedInfo.ret = nullptr;
     _expectedInfo.node = call->getCallee();
@@ -838,7 +839,8 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         const AnySymbolicData data(val.symbol, val.env);
         if (data.symbol->getSymbolType() == sym::SYM_DEF) {
             sym::DefinitionSymbol* defsymbol = static_cast<sym::DefinitionSymbol*>(data.symbol);
-            OverloadedDefSymbolCandidate::append(candidates, defsymbol, defsymbol->type(), expectedArgCount, subtable, data.env, _ctx);
+            type::Type* deftype = ASTTypeCreator::evalFunctionConstructor(defsymbol->type(), *_expectedInfo.typeArgs, _ctx);
+            OverloadedDefSymbolCandidate::append(candidates, defsymbol, deftype, expectedArgCount, subtable, data.env, _ctx);
         }
     }
 

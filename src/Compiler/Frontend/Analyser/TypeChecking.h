@@ -102,6 +102,7 @@ private:
     };
 
     struct ExpectedInfo final {
+        const std::vector<type::Type*>* typeArgs;
         const std::vector<type::Type*>* args;
         type::Type* ret;
         ASTNode* node;
