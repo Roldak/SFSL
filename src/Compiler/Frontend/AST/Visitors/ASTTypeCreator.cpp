@@ -149,7 +149,7 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(fc)) {
         typeArgs = mt->getTypeArgs();
         created = ctx->memoryManager().New<type::MethodType>(
-                        mt->getOwner(), std::vector<TypeExpression*>(), ft->getArgTypes(), ft->getRetType(), ft->getSubstitutionTable());
+                        mt->getOwner(), std::vector<TypeExpression*>(), mt->getArgTypes(), mt->getRetType(), mt->getSubstitutionTable());
     } else {
         return type::Type::NotYetDefined();
     }
