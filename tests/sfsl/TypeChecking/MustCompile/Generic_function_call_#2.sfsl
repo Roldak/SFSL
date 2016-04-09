@@ -1,0 +1,39 @@
+module test {	
+	using sfsl.lang
+	
+	type Box[T] => class {
+		x: T;
+		new(v: T) => {
+			x = v;
+		}
+	}
+	
+	type Pair[A, B] => class {
+		x: A;
+		y: B;
+		new(a: A, b: B) => {
+			x = a;
+			y = b;
+		}
+	}
+	
+	type A = class {
+		new() => {}
+		def f[T](x: T) => x
+		def g[T](x: T) => Box[T](x)
+		def h[T](x: Box[T]) => x.x
+	}
+	
+	type B[T] => class {
+		new() => {}
+		def to[U]() => B[U]()
+		def toPair[U](a: T, b: U) => Pair[T, U](a, b)
+	}
+	
+	def test1: int = A().f[int](2)
+	def test2: Box[int] = A().g[int](2)
+	def test3: int = A().h[int](Box[int](2))
+	
+	def test4: B[real] = B[int]().to[real]()
+	def test5: Pair[int, string] = B[int]().toPair[string](2, "hello")
+}

@@ -470,6 +470,7 @@ void TypeChecking::visit(FunctionCall* call) {
 
         if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
             if (!transformIntoCallToMember(call, inst, pt, "new", callTypeArgs, expectedArgTypes, retType)) {
+                call->setType(inst->type());
                 return;
             }
         } else {

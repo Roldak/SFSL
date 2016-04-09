@@ -1,0 +1,27 @@
+module test {	
+	using sfsl.lang
+	
+	type A = class { new() => {} }	
+	type B = class : A { new(a: int) => {} }
+	type C[T] => class : B { new(a: int, x: T) => {} }
+	
+	def f[T](x: T) => x
+	def g[T](x: T) => f[T](x)
+	def h[F: *->*]() => {
+		x: F[int];
+		x;
+	}
+	def i[F: *->*, T]() => {
+		x: F[T];
+		x;
+	}
+	
+	def test1: A = f[A](A())
+	def test2: A = f[A](B(2))
+	def test3: A = f[A](C[real](2, 4.3))
+	
+	def test4: int = g[int](2)
+	
+	def test5: C[int] = h[C]()
+	def test6: C[string] = i[C, string]()
+}

@@ -1,0 +1,6 @@
+module test {	
+	using sfsl.lang
+	
+	def f[F: *->*]() => {}
+	def test1: unit = f[int]()
+}
