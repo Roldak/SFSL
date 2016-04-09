@@ -690,51 +690,65 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
                                       const std::vector<type::Type*>& argTypes,
                                       type::Type* retType) {
 
-    std::vector<type::Type*> parentTypeArgs = argTypes;
-    parentTypeArgs.push_back(retType);
-
-    std::string parentName = "Func" + utils::T_toString(argTypes.size());
-    std::string absoluteParentName = utils::join(_namer.Func(argTypes.size()), ".");
-    type::Type* parentType = _mngr.New<type::ConstructorApplyType>(_res.Func(argTypes.size()), parentTypeArgs);
-    sym::TypeSymbol* parentSymbol = _mngr.New<sym::TypeSymbol>(parentName, absoluteParentName, nullptr);
-    TypeIdentifier* parentExpr = _mngr.New<TypeIdentifier>(parentName);
-
-    parentExpr->setSymbol(parentSymbol);
-    parentSymbol->setType(parentType);
+    std::vector<TypeExpression*> typeArgs;
+    ClassDecl* funcClass;
+    type::Type* funcType;
 
     FunctionCreation* meth = _mngr.New<FunctionCreation>("()", func->getTypeArgs(), func->getArgs(), func->getBody(), func->getReturnType());
-    DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, true, false, false);
-    ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), parentExpr, std::vector<TypeDecl*>(),
-                                                  std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
+    DefineDecl* funcDecl;
+    sym::Scope* funcClassScope = _mngr.New<sym::Scope>(func->getScope()->getParent(), true);
 
-    std::vector<TypeExpression*> typeArgs;
     if (func->getTypeArgs()) {
         typeArgs = func->getTypeArgs()->getExpressions();
+        funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, false, false, false);
+        funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr, std::vector<TypeDecl*>(),
+                                                          std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
+
+        funcType = _mngr.New<type::ProperType>(funcClass);
+    } else {
+        std::vector<type::Type*> parentTypeArgs = argTypes;
+        parentTypeArgs.push_back(retType);
+
+        std::string parentName = "Func" + utils::T_toString(argTypes.size());
+        std::string absoluteParentName = utils::join(_namer.Func(argTypes.size()), ".");
+        type::Type* parentType = _mngr.New<type::ConstructorApplyType>(_res.Func(argTypes.size()), parentTypeArgs);
+        sym::TypeSymbol* parentSymbol = _mngr.New<sym::TypeSymbol>(parentName, absoluteParentName, nullptr);
+        TypeIdentifier* parentExpr = _mngr.New<TypeIdentifier>(parentName);
+
+        parentExpr->setSymbol(parentSymbol);
+        parentSymbol->setType(parentType);
+
+        funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, true, false, false);
+        funcClass   = _mngr.New<ClassDecl>(func->getName(), parentExpr, std::vector<TypeDecl*>(),
+                                                          std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
+
+        funcType = _mngr.New<type::FunctionType>(typeArgs, argTypes, retType, funcClass);
+
+        _redefs.push_back(funcDecl);
+
+        if (type::ProperType* parentPT = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
+            funcClassScope->copySymbolsFrom(parentPT->getClass()->getScope(), parentPT->getSubstitutionTable());
+        } else {
+            _rep.fatal(*funcDecl, "Could not create type " + parentName);
+        }
     }
 
     meth->setType(_mngr.New<type::MethodType>(funcClass, typeArgs, argTypes, retType));
     meth->setPos(*func);
 
     sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", "", funcDecl, funcClass);
+    funcSym->setType(meth->type());
     funcDecl->setSymbol(funcSym);
     funcDecl->setPos(*func);
 
-    sym::Scope* funcClassScope = _mngr.New<sym::Scope>(func->getScope()->getParent(), true);
     funcClass->setScope(funcClassScope);
     funcClass->setPos(*func);
 
-    if (type::ProperType* parentPT = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
-        funcClassScope->copySymbolsFrom(parentPT->getClass()->getScope(), parentPT->getSubstitutionTable());
-    } else {
-        _rep.fatal(*funcDecl, "Could not create type " + parentName);
-    }
-
-    _redefs.push_back(funcDecl);
-
     funcClassScope->addSymbol(funcSym);
 
-    func->setType(_mngr.New<type::FunctionType>(typeArgs, argTypes, retType, funcClass));
-    funcSym->setType(meth->type());
+    func->setType(funcType);
+
+    _visitedDefs.insert(funcDecl);
 }
 
 class OverloadedDefSymbolCandidate final {
