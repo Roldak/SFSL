@@ -162,8 +162,7 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
 
     type::SubstitutionTable subs(buildSubstitutionTableFromTypeParameterInstantiation(typeArgs, args, ctx));
 
-    created = type::Type::findSubstitution(subs, created)->substitute(subs, ctx);
-    created = type::Type::findSubstitution(fc->getSubstitutionTable(), created)->substitute(fc->getSubstitutionTable(), ctx);
+    created = created->substitute(subs, ctx);
 
     return created;
 }

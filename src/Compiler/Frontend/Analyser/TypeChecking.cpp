@@ -131,7 +131,7 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
 // TYPE CHECKING
 
 TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res)
-    : TypeChecker(ctx, namer, res), _currentThis(nullptr), _nextDef(nullptr), _triggeringDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr} {
+    : TypeChecker(ctx, namer, res), _currentThis(nullptr), _nextDef(nullptr), _triggeringDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr, nullptr} {
 
 }
 
@@ -417,7 +417,9 @@ void TypeChecking::visit(FunctionCreation* func) {
         // func is a method
 
         if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
-            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), func->getTypeArgs()->getExpressions(), argTypes, retType));
+            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis),
+                                                      func->getTypeArgs() ? func->getTypeArgs()->getExpressions() : std::vector<TypeExpression*>(),
+                                                      argTypes, retType));
         } else {
             _rep.fatal(*func, "Unknown type of `this`");
         }
