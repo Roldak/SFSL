@@ -77,11 +77,13 @@ public:
      *
      * @param fc The function constructor to evaluate (a FunctionType or a MethodType)
      * @param args The arguments to feed the function constructors with
+     * @param callPos the position of the call
      * @param ctx The compilation context
      * @return The function type that was created after evaluating the type constructor
      * (or the `not yet defined` type in case of failure)
      */
-    static type::Type* evalFunctionConstructor(type::Type* fc, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx);
+    static type::Type* evalFunctionConstructor(type::Type* fc, const std::vector<TypeExpression*>& args,
+                                               const common::Positionnable& callPos, CompCtx_Ptr& ctx);
 
 protected:
 

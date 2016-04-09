@@ -12,6 +12,8 @@
 
 #include "../../Symbols/Scope.h"
 
+#include "../../Analyser/KindChecking.h"
+
 namespace sfsl {
 
 namespace ast {
@@ -137,30 +139,44 @@ type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, 
     return created;
 }
 
-type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx) {
+type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::vector<TypeExpression*>& args,
+                                                    const common::Positionnable& callPos, CompCtx_Ptr& ctx) {
 
-    std::vector<TypeExpression*> typeArgs;
+    std::vector<TypeExpression*> typeParams;
     type::Type* created;
 
     if (type::FunctionType* ft = type::getIf<type::FunctionType>(fc)) {
-        typeArgs = ft->getTypeArgs();
+        typeParams = ft->getTypeArgs();
         created = ctx->memoryManager().New<type::FunctionType>(
                         std::vector<TypeExpression*>(), ft->getArgTypes(), ft->getRetType(), ft->getClass(), ft->getSubstitutionTable());
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(fc)) {
-        typeArgs = mt->getTypeArgs();
+        typeParams = mt->getTypeArgs();
         created = ctx->memoryManager().New<type::MethodType>(
                         mt->getOwner(), std::vector<TypeExpression*>(), mt->getArgTypes(), mt->getRetType(), mt->getSubstitutionTable());
     } else {
         return type::Type::NotYetDefined();
     }
 
-    if (typeArgs.size() != args.size()) { // can happen if this is called before kind checking occurs
+
+    std::vector<kind::Kind*> paramKinds;
+    for (const TypeExpression* expr : typeParams) {
+        paramKinds.push_back(expr->kind());
+    }
+
+    if (!KindChecking::kindCheckArgumentSubstitution(paramKinds, args, callPos, ctx)) {
         return type::Type::NotYetDefined();
-    } else if (typeArgs.size() == 0) {
+    } else if (typeParams.size() == 0) {
         return fc;
     }
 
-    type::SubstitutionTable subs(buildSubstitutionTableFromTypeParameterInstantiation(typeArgs, args, ctx));
+    std::vector<type::Type*> argTypes(args.size());
+    for (size_t i = 0; i < args.size(); ++i) {
+        if (!(argTypes[i] = ASTTypeCreator::createType(args[i], ctx))) {
+            argTypes[i] = type::Type::NotYetDefined();
+        }
+    }
+
+    type::SubstitutionTable subs(buildSubstitutionTableFromTypeParameterInstantiation(typeParams, argTypes, ctx));
 
     created = created->substitute(subs, ctx);
 

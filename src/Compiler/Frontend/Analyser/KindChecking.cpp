@@ -136,26 +136,14 @@ void KindChecking::visit(TypeConstructorCall* tcall) {
 
     if (kind::TypeConstructorKind* k = kind::getIf<kind::TypeConstructorKind>(tcall->getCallee()->kind())) {
 
-        const std::vector<TypeExpression*> callArgs = tcall->getArgs();
-        const std::vector<kind::Kind*> argkinds = k->getArgKinds();
+        const std::vector<TypeExpression*>& callArgs = tcall->getArgs();
+        const std::vector<kind::Kind*>& argKinds = k->getArgKinds();
 
-        if (callArgs.size() != argkinds.size()) {
-            _rep.error(*tcall, "Wrong number of type arguments. Expected " +
-                       utils::T_toString(argkinds.size()) + ", found " + utils::T_toString(callArgs.size()));
+        if (kindCheckArgumentSubstitution(argKinds, callArgs, *tcall, _ctx)) {
+            tcall->setKind(k->getRetKind());
+        } else {
             tcall->setKind(kind::Kind::NotYetDefined());
-            return;
         }
-
-        for (size_t i = 0; i < callArgs.size(); ++i) {
-            if (!callArgs[i]->kind()->isSubKindOf(argkinds[i])) {
-                _rep.error(*callArgs[i], "Kind mismatch. Expected " + argkinds[i]->toString() +
-                           ", found " + callArgs[i]->kind()->toString());
-                tcall->setKind(kind::Kind::NotYetDefined());
-                return;
-            }
-        }
-
-        tcall->setKind(k->getRetKind());
 
     } else {
         _rep.error(*tcall->getCallee(), "Type expression " + tcall->getCallee()->kind()->toString() + " cannot be called.");
@@ -191,6 +179,26 @@ void KindChecking::visit(Instantiation* inst) {
     if (inst->getInstantiatedExpression()->kind()->getKindGenre() != kind::KIND_PROPER) {
         _rep.error(*inst, "Only proper types can be instantiated. Found type of kind " + inst->getInstantiatedExpression()->kind()->toString());
     }
+}
+
+bool KindChecking::kindCheckArgumentSubstitution(const std::vector<kind::Kind*>& parametersKinds,
+                                                 const std::vector<TypeExpression*>& arguments,
+                                                 const common::Positionnable& callPos, CompCtx_Ptr& ctx) {
+    if (arguments.size() != parametersKinds.size()) {
+        ctx->reporter().error(callPos, "Wrong number of type arguments. Expected " +
+                   utils::T_toString(parametersKinds.size()) + ", found " + utils::T_toString(arguments.size()));
+        return false;
+    }
+
+    for (size_t i = 0; i < arguments.size(); ++i) {
+        if (!arguments[i]->kind()->isSubKindOf(parametersKinds[i])) {
+            ctx->reporter().error(*arguments[i], "Kind mismatch. Expected " + parametersKinds[i]->toString() +
+                       ", found " + arguments[i]->kind()->toString());
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void KindChecking::visitDeferredExpressions() {
