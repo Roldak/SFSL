@@ -8,9 +8,12 @@
 
 #include "Types.h"
 #include "../AST/Nodes/TypeExpressions.h"
+#include "../AST/Nodes/KindExpressions.h"
+
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTSymbolExtractor.h"
+#include "../AST/Visitors/ASTKindCreator.h"
 
 namespace sfsl {
 
@@ -108,6 +111,36 @@ std::string Type::debugSubstitutionTableToString(const SubstitutionTable& table)
     return std::accumulate(table.begin(), table.end(), std::string("{"), [](const std::string& str, const std::pair<Type*, Type*>& pair) {
         return str + pair.first->toString() + " => " + pair.second->toString() + " ; ";
     }) + "}";
+}
+
+Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
+    static ast::ProperTypeKindSpecifier proper;
+    static std::vector<std::pair<kind::Kind*, type::Type*>> defaultGenerics;
+
+    // check if already exists (not an optimization, but a needed operation)
+
+    kind::Kind* tpeKind = tpe->kind();
+
+    for (const std::pair<kind::Kind*, type::Type*>& defGen : defaultGenerics) {
+        if (defGen.first->isSubKindOf(tpeKind)) {
+            return defGen.second;
+        }
+    }
+
+    // if not, add it
+
+    ast::KindSpecifyingExpression* kse;
+
+    if (ast::isNodeOfType<ast::KindSpecifier>(tpe, ctx)) {
+        kse = static_cast<ast::KindSpecifier*>(tpe)->getKindNode();
+    } else {
+        kse = &proper;
+    }
+
+    type::Type* res = ast::ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(kse, ctx);
+    defaultGenerics.push_back(std::make_pair(tpeKind, res));
+
+    return res;
 }
 
 // TYPE MUST BE INFERRED
@@ -258,12 +291,23 @@ FunctionType* FunctionType::substitute(const SubstitutionTable& table, CompCtx_P
 }
 
 FunctionType* FunctionType::apply(CompCtx_Ptr& ctx) const {
-    std::vector<Type*> applied(_argTypes.size());
-    for (size_t i = 0; i < _argTypes.size(); ++i) {
-        applied[i] = _argTypes[i]->apply(ctx);
+    const FunctionType* self = this;
+
+    if (_typeArgs.size() > 0) {
+        std::vector<Type*> defaultTypes(_typeArgs.size());
+        for (size_t i = 0; i < defaultTypes.size(); ++i) {
+            defaultTypes[i] = Type::DefaultGenericType(_typeArgs[i], ctx);
+        }
+        SubstitutionTable sub = ast::ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(_typeArgs, defaultTypes, ctx);
+        self = self->substitute(sub, ctx);
     }
 
-    return ctx->memoryManager().New<FunctionType>(_typeArgs, applied, _retType->apply(ctx), _class, _subTable);
+    std::vector<Type*> applied(self->_argTypes.size());
+    for (size_t i = 0; i < self->_argTypes.size(); ++i) {
+        applied[i] = self->_argTypes[i]->apply(ctx);
+    }
+
+    return ctx->memoryManager().New<FunctionType>(std::vector<ast::TypeExpression*>(), applied, self->_retType->apply(ctx), self->_class, self->_subTable);
 }
 
 const std::vector<ast::TypeExpression*>& FunctionType::getTypeArgs() const {
@@ -339,12 +383,23 @@ MethodType* MethodType::substitute(const SubstitutionTable& table, CompCtx_Ptr& 
 }
 
 MethodType* MethodType::apply(CompCtx_Ptr& ctx) const {
-    std::vector<Type*> applied(_argTypes.size());
-    for (size_t i = 0; i < _argTypes.size(); ++i) {
-        applied[i] = _argTypes[i]->apply(ctx);
+    const MethodType* self = this;
+
+    if (_typeArgs.size() > 0) {
+        std::vector<Type*> defaultTypes(_typeArgs.size());
+        for (size_t i = 0; i < defaultTypes.size(); ++i) {
+            defaultTypes[i] = Type::DefaultGenericType(_typeArgs[i], ctx);
+        }
+        SubstitutionTable sub = ast::ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(_typeArgs, defaultTypes, ctx);
+        self = self->substitute(sub, ctx);
     }
 
-    return ctx->memoryManager().New<MethodType>(_owner, _typeArgs, applied, _retType->apply(ctx), _subTable);
+    std::vector<Type*> applied(self->_argTypes.size());
+    for (size_t i = 0; i < self->_argTypes.size(); ++i) {
+        applied[i] = self->_argTypes[i]->apply(ctx);
+    }
+
+    return ctx->memoryManager().New<MethodType>(self->_owner, std::vector<ast::TypeExpression*>(), applied, self->_retType->apply(ctx), self->_subTable);
 }
 
 ast::ClassDecl* MethodType::getOwner() const {

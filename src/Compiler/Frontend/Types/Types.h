@@ -56,6 +56,8 @@ public:
 
 protected:
 
+    static Type* DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx);
+
     const SubstitutionTable _subTable;
 };
 

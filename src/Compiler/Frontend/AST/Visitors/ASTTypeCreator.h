@@ -85,11 +85,6 @@ public:
     static type::Type* evalFunctionConstructor(type::Type* fc, const std::vector<TypeExpression*>& args,
                                                const common::Positionnable& callPos, CompCtx_Ptr& ctx);
 
-protected:
-
-    void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
-    type::SubstitutionTable buildSubstitutionTableFromTypeParametrizable(type::TypeParametrizable* param);
-
     /**
      * @brief Creates a substitution table mapping the types of the parameters to the types of the arguments
      * @param typeParameters The expressions representing the type parameters (for example, TypeIdentifiers or KindSpecifiers)
@@ -99,6 +94,11 @@ protected:
      */
     static type::SubstitutionTable buildSubstitutionTableFromTypeParameterInstantiation(
             const std::vector<TypeExpression*> params, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx);
+
+protected:
+
+    void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
+    type::SubstitutionTable buildSubstitutionTableFromTypeParametrizable(type::TypeParametrizable* param);
 
     type::Type* _created;
 
