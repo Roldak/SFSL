@@ -483,7 +483,7 @@ std::string BASTSimplifier::Analyser::findSubstitution(std::string name) const {
         auto it1 = _visibleToHiddenNameMappings.find(name);
         auto it2 = _hiddenToAnyNameMappings.end();
 
-        if (it1 != _visibleToHiddenNameMappings.end()) {
+        if (it1 == _visibleToHiddenNameMappings.end()) {
             it2 = _hiddenToAnyNameMappings.find(name);
         }
 
