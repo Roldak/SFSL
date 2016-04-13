@@ -114,13 +114,19 @@ private:
 /**
  * @brief Represents a function type declaration (e.g. (int, real)->int)
  */
-class FunctionTypeDecl : public TypeExpression {
+class FunctionTypeDecl : public TypeExpression, public sym::Scoped {
 public:
 
-    FunctionTypeDecl(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType, TypeExpression* classEquivalent);
+    FunctionTypeDecl(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<TypeExpression*>& argTypes,
+                     TypeExpression* retType, TypeExpression* classEquivalent);
     virtual ~FunctionTypeDecl();
 
     SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The TypeExpressions defining the type arguments
+     */
+    const std::vector<TypeExpression*>& getTypeArgs() const;
 
     /**
      * @return The TypeExpressions defining the types of the arguments
@@ -141,11 +147,12 @@ public:
      * @brief Constructors a FunctionTypeDecl with the given arguments. (will create the classEquivalent itself)
      * @return an instance of FunctionTypeDecl from the given arguments
      */
-    static TypeExpression* make(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType,
-                                const std::vector<std::string>& TCPath, CompCtx_Ptr ctx);
+    static TypeExpression* make(const std::vector<TypeExpression*>& typeArgs, const std::vector<TypeExpression*>& argTypes,
+                                TypeExpression* retType, const std::vector<std::string>& TCPath, CompCtx_Ptr ctx);
 
 private:
 
+    std::vector<TypeExpression*> _typeArgs;
     std::vector<TypeExpression*> _argTypes;
     TypeExpression* _retType;
 
@@ -193,7 +200,7 @@ public:
     /**
      * @return The sequence of expressions that compose the tuple
      */
-    const std::vector<TypeExpression*>& getExpressions();
+    const std::vector<TypeExpression*>& getExpressions() const;
 
 private:
 

@@ -673,8 +673,12 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence, bo
     return left;
 }
 
-TypeExpression* Parser::createFunctionTypeDecl(const std::vector<TypeExpression*>& args, TypeExpression* ret) {
-    return FunctionTypeDecl::make(args, ret, _namer->Func(args.size()), _ctx);
+TypeExpression* Parser::createFunctionTypeDecl(const TypeTuple* typeParams, const std::vector<TypeExpression*>& args, TypeExpression* ret) {
+    std::vector<TypeExpression*> params;
+    if (typeParams) {
+        params = typeParams->getExpressions();
+    }
+    return FunctionTypeDecl::make(params, args, ret, _namer->Func(args.size()), _ctx);
 }
 
 TypeTuple* Parser::parseTypeTuple() {
@@ -699,6 +703,13 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
     case tok::TOK_OPER:
         if (accept(tok::OPER_L_BRACKET)) {
             exprs.push_back(parseTypeTuple());
+            if (accept(tok::OPER_L_PAREN)) {
+                std::vector<TypeExpression*> args;
+                parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(args, [&](){return parseTypeExpression();});
+                if (expect(tok::OPER_THIN_ARROW, "`->`")) {
+                    return createFunctionTypeDecl(static_cast<TypeTuple*>(exprs[0]), args, parseTypeExpression(allowTypeConstructor));
+                }
+            }
         } else if (accept(tok::OPER_L_PAREN)) {
             parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(exprs, [&](){return parseTypeExpression();});
         } else {
@@ -738,7 +749,7 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
     }
 
     if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
-        toRet = createFunctionTypeDecl(exprs, parseTypeExpression(allowTypeConstructor));
+        toRet = createFunctionTypeDecl(nullptr, exprs, parseTypeExpression(allowTypeConstructor));
     }
 
     if (toRet) {

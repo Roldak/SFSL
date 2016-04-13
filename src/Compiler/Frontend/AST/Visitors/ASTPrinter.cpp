@@ -149,6 +149,17 @@ void ASTPrinter::visit(TypeConstructorKindSpecifier* tcks) {
 }
 
 void ASTPrinter::visit(FunctionTypeDecl* ftdecl) {
+    if (ftdecl->getTypeArgs().size() > 0) {
+        _ostream << "[";
+
+        for (size_t i = 0; i < ftdecl->getTypeArgs().size() - 1; ++i) {
+            ftdecl->getTypeArgs()[i]->onVisit(this);
+            _ostream << ", ";
+        }
+        ftdecl->getTypeArgs().back()->onVisit(this);
+
+        _ostream << "]";
+    }
     _ostream << "(";
     for (size_t i = 0; i < ftdecl->getArgTypes().size(); ++i) {
         ftdecl->getArgTypes()[i]->onVisit(this);

@@ -55,7 +55,7 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
         _ctx->reporter().fatal(*ftdecl, "Could not create type of this function's class equivalent");
     }
 
-    _created = _mngr.New<type::FunctionType>(std::vector<TypeExpression*>(), argTypes, retType, functionClass, table);
+    _created = _mngr.New<type::FunctionType>(ftdecl->getTypeArgs(), argTypes, retType, functionClass, table);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
