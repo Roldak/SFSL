@@ -322,6 +322,18 @@ void TypeDependencyFixation::visit(ClassDecl* clss) {
 #endif
 }
 
+void TypeDependencyFixation::visit(FunctionTypeDecl* ftdecl) {
+    size_t pushed = pushTypeParameters(ftdecl->getTypeArgs());
+
+    for (TypeExpression* arg : ftdecl->getArgTypes()) {
+        arg->onVisit(this);
+    }
+    ftdecl->getRetType()->onVisit(this);
+    ftdecl->getClassEquivalent()->onVisit(this);
+
+    popTypeParameters(pushed);
+}
+
 void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
     tc->setDependencies(_parameters);
 
