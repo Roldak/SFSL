@@ -1,0 +1,5 @@
+module test {
+	using sfsl.lang
+
+	def f: [T](int)->int = [T](x: int) => x
+}

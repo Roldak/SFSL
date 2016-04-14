@@ -1,0 +1,11 @@
+module test {
+	using sfsl.lang
+
+	type A = class {
+		def a[T](x: T) => x
+	}
+	
+	type B = class : A {
+		redef a[T, U](x: T) => x
+	}
+}
