@@ -518,6 +518,7 @@ Type ProgramBuilder::createFunctionType(const std::vector<Type>& argTypes, Type 
     std::transform(argTypes.begin(), argTypes.end(), argTypeExprs.begin(), [](Type t) { return t._impl->_type; });
 
     return Type(NEW_TYPE_IMPL(ast::FunctionTypeDecl::make(
+                                  std::vector<ast::TypeExpression*>(),
                                   argTypeExprs, retTypeExpr,
                                   _impl->cmp->namer->Func(argTypes.size()),
                                   _impl->cmp->ctx)));

@@ -176,6 +176,20 @@ void ScopeGeneration::visit(DefineDecl* def) {
     popScope();
 }
 
+void ScopeGeneration::visit(FunctionTypeDecl* ftdecl) {
+    pushScope(ftdecl);
+
+    generateTypeParametersSymbols(ftdecl->getTypeArgs());
+
+    for (TypeExpression* arg : ftdecl->getArgTypes()) {
+        arg->onVisit(this);
+    }
+    ftdecl->getRetType()->onVisit(this);
+    ftdecl->getClassEquivalent()->onVisit(this);
+
+    popScope();
+}
+
 void ScopeGeneration::visit(TypeConstructorCreation* tc) {
     pushScope(tc);
 
@@ -306,6 +320,18 @@ void TypeDependencyFixation::visit(ClassDecl* clss) {
 #ifdef DEBUG_DEPENDENCIES
     debugDumpDependencies(clss);
 #endif
+}
+
+void TypeDependencyFixation::visit(FunctionTypeDecl* ftdecl) {
+    size_t pushed = pushTypeParameters(ftdecl->getTypeArgs());
+
+    for (TypeExpression* arg : ftdecl->getArgTypes()) {
+        arg->onVisit(this);
+    }
+    ftdecl->getRetType()->onVisit(this);
+    ftdecl->getClassEquivalent()->onVisit(this);
+
+    popTypeParameters(pushed);
 }
 
 void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
@@ -454,6 +480,14 @@ void SymbolAssignation::visit(DefineDecl* def) {
     SAVE_SCOPE(def->getSymbol())
 
     ASTImplicitVisitor::visit(def);
+
+    RESTORE_SCOPE
+}
+
+void SymbolAssignation::visit(FunctionTypeDecl* ftdecl) {
+    SAVE_SCOPE(ftdecl)
+
+    ASTImplicitVisitor::visit(ftdecl);
 
     RESTORE_SCOPE
 }

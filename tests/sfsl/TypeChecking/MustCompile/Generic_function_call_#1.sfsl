@@ -1,0 +1,17 @@
+module test {
+	using sfsl.lang
+	
+	def a[T](x: int) => x
+	
+	def b[T](x: T) => 2
+	def c[T](x: int) => y: T
+	def d[T](x: T) => x
+	
+	def e[A, B, C](x: A, y: B) => z: C
+	
+	def testa: int = a[int](2)
+	def testb: int = b[real](3.2)
+	def testc: real = c[real](2)
+	def testd: string = d[string]("hello")
+	def teste: int = e[bool, real, int](true, 3.14)
+}

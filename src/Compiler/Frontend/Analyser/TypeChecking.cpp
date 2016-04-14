@@ -69,7 +69,8 @@ void TopLevelTypeChecking::visit(ClassDecl* clss) {
     ASTImplicitVisitor::visit(clss);
 
     for (TypeSpecifier* tps : clss->getFields()) {
-        if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx)) {
+        if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx, true)) { // 'true' since errors for function constructors
+                                                                                            // will be reported in typechecking
             static_cast<sym::VariableSymbol*>(tps->getSpecified()->getSymbol())->setType(tpe);
             tps->setType(tpe);
         }
@@ -79,7 +80,8 @@ void TopLevelTypeChecking::visit(ClassDecl* clss) {
 void TopLevelTypeChecking::visit(DefineDecl* decl) {
     if (TypeExpression* typeExpr = decl->getTypeSpecifier()) {
         typeExpr->onVisit(this);
-        type::Type* tp = ASTTypeCreator::createType(typeExpr, _ctx);
+        type::Type* tp = ASTTypeCreator::createType(typeExpr, _ctx, true); // 'true' since errors for function constructors
+                                                                           // will be reported in typechecking
         decl->getSymbol()->setType(tp);
 
         // visit value but don't need to create the type, so don't set _nextDef
@@ -111,14 +113,19 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
         for (size_t i = 0; i < args.size(); ++i) {
             if (isNodeOfType<TypeSpecifier>(args[i], _ctx)) {
                 TypeSpecifier* tps = static_cast<TypeSpecifier*>(args[i]);
-                argTypes[i] = ASTTypeCreator::createType(tps->getTypeNode(), _ctx);
+                argTypes[i] = ASTTypeCreator::createType(tps->getTypeNode(), _ctx, true); // 'true' since errors for function constructors
+                                                                                          // will be reported in typechecking
             } else {
                 _rep.error(*args[i], "Omitting the type of the argument is forbidden in this case");
                 argTypes[i] = type::Type::NotYetDefined();
             }
         }
 
-        func->setType(_mngr.New<type::FunctionType>(argTypes, type::Type::NotYetDefined(), nullptr));
+        std::vector<TypeExpression*> typeArgs;
+        if (func->getTypeArgs()) {
+            typeArgs = func->getTypeArgs()->getExpressions();
+        }
+        func->setType(_mngr.New<type::FunctionType>(typeArgs, argTypes, type::Type::NotYetDefined(), nullptr));
     }
 
     ASTImplicitVisitor::visit(func);
@@ -127,7 +134,7 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
 // TYPE CHECKING
 
 TypeChecking::TypeChecking(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res)
-    : TypeChecker(ctx, namer, res), _currentThis(nullptr), _nextDef(nullptr), _triggeringDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr} {
+    : TypeChecker(ctx, namer, res), _currentThis(nullptr), _nextDef(nullptr), _triggeringDef(nullptr), _expectedInfo{nullptr, nullptr, nullptr, nullptr} {
 
 }
 
@@ -192,7 +199,7 @@ void TypeChecking::visit(DefineDecl* decl) {
 
         if (TypeExpression* tpexpr = decl->getTypeSpecifier()) {
             tpexpr->onVisit(this);
-            expectedType = ASTTypeCreator::createType(tpexpr, _ctx);
+            expectedType = ASTTypeCreator::createType(tpexpr, _ctx, _currentThis != nullptr);
 
             if (expectedType->applyTCCallsOnly(_ctx)->getTypeKind() == type::TYPE_FUNCTION && _currentThis) {
                 expectedType = type::MethodType::fromFunctionType(
@@ -413,7 +420,9 @@ void TypeChecking::visit(FunctionCreation* func) {
         // func is a method
 
         if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
-            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis), argTypes, retType));
+            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis),
+                                                      func->getTypeArgs() ? func->getTypeArgs()->getExpressions() : std::vector<TypeExpression*>(),
+                                                      argTypes, retType));
         } else {
             _rep.fatal(*func, "Unknown type of `this`");
         }
@@ -435,6 +444,8 @@ void TypeChecking::visit(FunctionCreation* func) {
 void TypeChecking::visit(FunctionCall* call) {
     call->getArgsTuple()->onVisit(this);
 
+    std::vector<TypeExpression*> callTypeArgs = call->getTypeArgsTuple() ? call->getTypeArgs() : std::vector<TypeExpression*>();
+
     const std::vector<Expression*>& callArgs = call->getArgs();
     std::vector<type::Type*> callArgTypes(callArgs.size());
 
@@ -444,6 +455,7 @@ void TypeChecking::visit(FunctionCall* call) {
 
     SAVE_MEMBER(_expectedInfo)
 
+    _expectedInfo.typeArgs = &callTypeArgs;
     _expectedInfo.args = &callArgTypes;
     _expectedInfo.ret = nullptr;
     _expectedInfo.node = call->getCallee();
@@ -460,7 +472,8 @@ void TypeChecking::visit(FunctionCall* call) {
         _expectedInfo.node = inst;
 
         if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
-            if (!transformIntoCallToMember(call, inst, pt, "new", expectedArgTypes, retType)) {
+            if (!transformIntoCallToMember(call, inst, pt, "new", callTypeArgs, expectedArgTypes, retType)) {
+                call->setType(inst->type());
                 return;
             }
         } else {
@@ -469,11 +482,13 @@ void TypeChecking::visit(FunctionCall* call) {
         }
 
         retType = inst->type(); // force constructor to return type of its `this`
-    } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
-        expectedArgTypes = &static_cast<type::FunctionType*>(calleeT->apply(_ctx))->getArgTypes();
+    } else if (type::MethodType* mt = type::getIf<type::MethodType>(
+                   ASTTypeCreator::evalFunctionConstructor(calleeT, callTypeArgs, *call, _ctx))) {
+
+        expectedArgTypes = &mt->apply(_ctx)->getArgTypes();
         retType = mt->getRetType();
     } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
-        if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", expectedArgTypes, retType)) {
+        if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", callTypeArgs, expectedArgTypes, retType)) {
             return;
         }
     } else {
@@ -582,14 +597,14 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
 }
 
 bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
-                                             const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType) {
+                                             const std::vector<TypeExpression*>& typeArgs, const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType) {
     ClassDecl* clss = pt->getClass();
     const type::SubstitutionTable& subtable = pt->getSubstitutionTable();
 
     FieldInfo field = tryGetFieldInfo(newCallee, clss, member, subtable);
 
     if (field.isValid()) {
-        type::Type* calleeT = field.t->applyTCCallsOnly(_ctx);
+        type::Type* calleeT = ASTTypeCreator::evalFunctionConstructor(field.t->applyTCCallsOnly(_ctx), typeArgs, *call, _ctx);
 
         if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
             expectedArgTypes = &ft->apply(_ctx)->getArgTypes();
@@ -608,7 +623,7 @@ bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* new
 
             return true;
         } else {
-            _rep.error(*newCallee, "Member `" + member + "` of class " + clss->getName() + " is not a value");
+            _rep.error(*newCallee, "Member `" + member + "` of class " + clss->getName() + " is not callable");
         }
     } else {
         _rep.error(*newCallee, "No member named `" + member + "` in class " + clss->getName());
@@ -667,47 +682,69 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
     return nullptr;
 }
 
-void TypeChecking::assignFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType) {
-    std::vector<type::Type*> parentTypeArgs = argTypes;
-    parentTypeArgs.push_back(retType);
+void TypeChecking::assignFunctionType(FunctionCreation* func,
+                                      const std::vector<type::Type*>& argTypes,
+                                      type::Type* retType) {
 
-    std::string parentName = "Func" + utils::T_toString(argTypes.size());
-    std::string absoluteParentName = utils::join(_namer.Func(argTypes.size()), ".");
-    type::Type* parentType = _mngr.New<type::ConstructorApplyType>(_res.Func(argTypes.size()), parentTypeArgs);
-    sym::TypeSymbol* parentSymbol = _mngr.New<sym::TypeSymbol>(parentName, absoluteParentName, nullptr);
-    TypeIdentifier* parentExpr = _mngr.New<TypeIdentifier>(parentName);
-
-    parentExpr->setSymbol(parentSymbol);
-    parentSymbol->setType(parentType);
+    std::vector<TypeExpression*> typeArgs;
+    ClassDecl* funcClass;
+    type::Type* funcType;
 
     FunctionCreation* meth = _mngr.New<FunctionCreation>("()", func->getTypeArgs(), func->getArgs(), func->getBody(), func->getReturnType());
-    DefineDecl* funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, true, false, false);
-    ClassDecl* funcClass   = _mngr.New<ClassDecl>(func->getName(), parentExpr, std::vector<TypeDecl*>(),
-                                                  std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
+    DefineDecl* funcDecl;
+    sym::Scope* funcClassScope = _mngr.New<sym::Scope>(func->getScope()->getParent(), true);
 
-    meth->setType(_mngr.New<type::MethodType>(funcClass, argTypes, retType));
+    if (func->getTypeArgs()) {
+        typeArgs = func->getTypeArgs()->getExpressions();
+        funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, false, false, false);
+        funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr, std::vector<TypeDecl*>(),
+                                                          std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
+
+        funcType = _mngr.New<type::ProperType>(funcClass);
+    } else {
+        std::vector<type::Type*> parentTypeArgs = argTypes;
+        parentTypeArgs.push_back(retType);
+
+        std::string parentName = "Func" + utils::T_toString(argTypes.size());
+        std::string absoluteParentName = utils::join(_namer.Func(argTypes.size()), ".");
+        type::Type* parentType = _mngr.New<type::ConstructorApplyType>(_res.Func(argTypes.size()), parentTypeArgs);
+        sym::TypeSymbol* parentSymbol = _mngr.New<sym::TypeSymbol>(parentName, absoluteParentName, nullptr);
+        TypeIdentifier* parentExpr = _mngr.New<TypeIdentifier>(parentName);
+
+        parentExpr->setSymbol(parentSymbol);
+        parentSymbol->setType(parentType);
+
+        funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, true, false, false);
+        funcClass   = _mngr.New<ClassDecl>(func->getName(), parentExpr, std::vector<TypeDecl*>(),
+                                                          std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
+
+        funcType = _mngr.New<type::FunctionType>(typeArgs, argTypes, retType, funcClass);
+
+        _redefs.push_back(funcDecl);
+
+        if (type::ProperType* parentPT = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
+            funcClassScope->copySymbolsFrom(parentPT->getClass()->getScope(), parentPT->getSubstitutionTable());
+        } else {
+            _rep.fatal(*funcDecl, "Could not create type " + parentName);
+        }
+    }
+
+    meth->setType(_mngr.New<type::MethodType>(funcClass, typeArgs, argTypes, retType));
     meth->setPos(*func);
 
     sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", "", funcDecl, funcClass);
+    funcSym->setType(meth->type());
     funcDecl->setSymbol(funcSym);
     funcDecl->setPos(*func);
 
-    sym::Scope* funcClassScope = _mngr.New<sym::Scope>(func->getScope()->getParent(), true);
     funcClass->setScope(funcClassScope);
     funcClass->setPos(*func);
 
-    if (type::ProperType* parentPT = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
-        funcClassScope->copySymbolsFrom(parentPT->getClass()->getScope(), parentPT->getSubstitutionTable());
-    } else {
-        _rep.fatal(*funcDecl, "Could not create type " + parentName);
-    }
-
-    _redefs.push_back(funcDecl);
-
     funcClassScope->addSymbol(funcSym);
 
-    func->setType(_mngr.New<type::FunctionType>(argTypes, retType, funcClass));
-    funcSym->setType(meth->type());
+    func->setType(funcType);
+
+    _visitedDefs.insert(funcDecl);
 }
 
 class OverloadedDefSymbolCandidate final {
@@ -814,7 +851,8 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         const AnySymbolicData data(val.symbol, val.env);
         if (data.symbol->getSymbolType() == sym::SYM_DEF) {
             sym::DefinitionSymbol* defsymbol = static_cast<sym::DefinitionSymbol*>(data.symbol);
-            OverloadedDefSymbolCandidate::append(candidates, defsymbol, defsymbol->type(), expectedArgCount, subtable, data.env, _ctx);
+            type::Type* deftype = ASTTypeCreator::evalFunctionConstructor(defsymbol->type(), *_expectedInfo.typeArgs, *triggerer, _ctx);
+            OverloadedDefSymbolCandidate::append(candidates, defsymbol, deftype, expectedArgCount, subtable, data.env, _ctx);
         }
     }
 

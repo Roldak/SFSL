@@ -47,6 +47,10 @@ public:
     virtual void visit(TypeSpecifier* ts) override;
     virtual void visit(Instantiation* inst) override;
 
+    static bool kindCheckArgumentSubstitution(const std::vector<kind::Kind*>& parametersKinds,
+                                              const std::vector<TypeExpression*>& arguments,
+                                              const common::Positionnable& callPos, CompCtx_Ptr& ctx);
+
 private:
 
     void visitDeferredExpressions();

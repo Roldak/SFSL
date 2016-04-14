@@ -12,12 +12,14 @@
 
 #include "../../Symbols/Scope.h"
 
+#include "../../Analyser/KindChecking.h"
+
 namespace sfsl {
 
 namespace ast {
 
-ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args)
-    : ASTExplicitVisitor(ctx), _created(nullptr), _args(args) {
+ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args, bool allowFunctionConstructors)
+    : ASTExplicitVisitor(ctx), _created(nullptr), _args(args), _allowFunctionConstructors(allowFunctionConstructors) {
 
 }
 
@@ -37,10 +39,10 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
     const std::vector<TypeExpression*>& argTypeExprs(ftdecl->getArgTypes());
 
     std::vector<type::Type*> argTypes(argTypeExprs.size());
-    type::Type* retType = createType(ftdecl->getRetType(), _ctx);
+    type::Type* retType = createType(ftdecl->getRetType(), _ctx); // don't allow function constructors
 
     for (size_t i = 0; i < argTypes.size(); ++i) {
-        argTypes[i] = createType(argTypeExprs[i], _ctx);
+        argTypes[i] = createType(argTypeExprs[i], _ctx); // don't allow function constructors
     }
 
     ClassDecl* functionClass = nullptr;
@@ -53,7 +55,12 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
         _ctx->reporter().fatal(*ftdecl, "Could not create type of this function's class equivalent");
     }
 
-    _created = _mngr.New<type::FunctionType>(argTypes, retType, functionClass, table);
+    if (!_allowFunctionConstructors && ftdecl->getTypeArgs().size() > 0) {
+        _ctx->reporter().error(*ftdecl, "Function type cannot be declared generic in this context");
+        _created = _mngr.New<type::FunctionType>(std::vector<TypeExpression*>(), argTypes, retType, functionClass, table);
+    } else {
+        _created = _mngr.New<type::FunctionType>(ftdecl->getTypeArgs(), argTypes, retType, functionClass, table);
+    }
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
@@ -108,45 +115,75 @@ type::Type* ASTTypeCreator::getCreatedType() const {
     return _created;
 }
 
-type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx) {
-    ASTTypeCreator creator(ctx, {});
+type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx, bool allowFunctionConstructors) {
+    ASTTypeCreator creator(ctx, {}, allowFunctionConstructors);
     node->onVisit(&creator);
     return creator.getCreatedType();
 }
 
 type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx) {
-    type::Type* created = createType(ctr->getTypeConstructor()->getBody(), ctx);
-
-    TypeExpression* expr = ctr->getTypeConstructor()->getArgs();
+    TypeExpression* argsExpr = ctr->getTypeConstructor()->getArgs();
     std::vector<TypeExpression*> params;
 
-    if (isNodeOfType<TypeTuple>(expr, ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
-        params = static_cast<TypeTuple*>(expr)->getExpressions();
+    if (isNodeOfType<TypeTuple>(argsExpr, ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        params = static_cast<TypeTuple*>(argsExpr)->getExpressions();
     } else { // form is `exp => ...` or `[exp] => ...`
-        params.push_back(expr);
+        params.push_back(argsExpr);
     }
 
     if (params.size() != args.size()) { // can happen if this is called before kind checking occurs
         return type::Type::NotYetDefined();
     }
 
-    for (TypeExpression*& param : params) {
-        if (isNodeOfType<KindSpecifier>(param, ctx)) {
-            param = static_cast<KindSpecifier*>(param)->getSpecified();
-        }
-    }
-
-    type::SubstitutionTable subs;
-
-    for (size_t i = 0; i < params.size(); ++i) {
-        // can only be a TypeSymbol
-        sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(ASTSymbolExtractor::extractSymbol(params[i], ctx));
-
-        subs[param->type()] = args[i]->apply(ctx);
-    }
+    type::Type* created = createType(ctr->getTypeConstructor()->getBody(), ctx);
+    type::SubstitutionTable subs(buildSubstitutionTableFromTypeParameterInstantiation(params, args, ctx));
 
     created = type::Type::findSubstitution(subs, created)->substitute(subs, ctx);
     created = type::Type::findSubstitution(ctr->getSubstitutionTable(), created)->substitute(ctr->getSubstitutionTable(), ctx);
+
+    return created;
+}
+
+type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::vector<TypeExpression*>& args,
+                                                    const common::Positionnable& callPos, CompCtx_Ptr& ctx) {
+
+    std::vector<TypeExpression*> typeParams;
+    type::Type* created;
+
+    if (type::FunctionType* ft = type::getIf<type::FunctionType>(fc)) {
+        typeParams = ft->getTypeArgs();
+        created = ctx->memoryManager().New<type::FunctionType>(
+                        std::vector<TypeExpression*>(), ft->getArgTypes(), ft->getRetType(), ft->getClass(), ft->getSubstitutionTable());
+    } else if (type::MethodType* mt = type::getIf<type::MethodType>(fc)) {
+        typeParams = mt->getTypeArgs();
+        created = ctx->memoryManager().New<type::MethodType>(
+                        mt->getOwner(), std::vector<TypeExpression*>(), mt->getArgTypes(), mt->getRetType(), mt->getSubstitutionTable());
+    } else {
+        return type::Type::NotYetDefined();
+    }
+
+
+    std::vector<kind::Kind*> paramKinds;
+    for (const TypeExpression* expr : typeParams) {
+        paramKinds.push_back(expr->kind());
+    }
+
+    if (!KindChecking::kindCheckArgumentSubstitution(paramKinds, args, callPos, ctx)) {
+        return type::Type::NotYetDefined();
+    } else if (typeParams.size() == 0) {
+        return fc;
+    }
+
+    std::vector<type::Type*> argTypes(args.size());
+    for (size_t i = 0; i < args.size(); ++i) {
+        if (!(argTypes[i] = ASTTypeCreator::createType(args[i], ctx))) {
+            argTypes[i] = type::Type::NotYetDefined();
+        }
+    }
+
+    type::SubstitutionTable subs(buildSubstitutionTableFromTypeParameterInstantiation(typeParams, argTypes, ctx));
+
+    created = created->substitute(subs, ctx);
 
     return created;
 }
@@ -193,6 +230,27 @@ type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParametriz
     }
 
     return table;
+}
+
+type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(
+        std::vector<TypeExpression*> params, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx) {
+
+    for (TypeExpression*& param : params) {
+        if (isNodeOfType<KindSpecifier>(param, ctx)) {
+            param = static_cast<KindSpecifier*>(param)->getSpecified();
+        }
+    }
+
+    type::SubstitutionTable subs;
+
+    for (size_t i = 0; i < params.size(); ++i) {
+        // can only be a TypeSymbol
+        sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(ASTSymbolExtractor::extractSymbol(params[i], ctx));
+
+        subs[param->type()] = args[i]->apply(ctx);
+    }
+
+    return subs;
 }
 
 }

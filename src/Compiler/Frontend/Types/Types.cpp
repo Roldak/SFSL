@@ -8,9 +8,12 @@
 
 #include "Types.h"
 #include "../AST/Nodes/TypeExpressions.h"
+#include "../AST/Nodes/KindExpressions.h"
+
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTSymbolExtractor.h"
+#include "../AST/Visitors/ASTKindCreator.h"
 
 namespace sfsl {
 
@@ -110,6 +113,36 @@ std::string Type::debugSubstitutionTableToString(const SubstitutionTable& table)
     }) + "}";
 }
 
+Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
+    static ast::ProperTypeKindSpecifier proper;
+    static std::vector<std::pair<kind::Kind*, type::Type*>> defaultGenerics;
+
+    // check if already exists (not an optimization, but a needed operation)
+
+    kind::Kind* tpeKind = tpe->kind();
+
+    for (const std::pair<kind::Kind*, type::Type*>& defGen : defaultGenerics) {
+        if (defGen.first->isSubKindOf(tpeKind)) {
+            return defGen.second;
+        }
+    }
+
+    // if not, add it
+
+    ast::KindSpecifyingExpression* kse;
+
+    if (ast::isNodeOfType<ast::KindSpecifier>(tpe, ctx)) {
+        kse = static_cast<ast::KindSpecifier*>(tpe)->getKindNode();
+    } else {
+        kse = &proper;
+    }
+
+    type::Type* res = ast::ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(kse, ctx);
+    defaultGenerics.push_back(std::make_pair(tpeKind, res));
+
+    return res;
+}
+
 // TYPE MUST BE INFERRED
 
 TypeToBeInferred::TypeToBeInferred(const std::vector<Typed*>& associatedTyped) : _associatedTyped(associatedTyped) {
@@ -196,8 +229,10 @@ ast::ClassDecl* ProperType::getClass() const {
 
 // FUNCTION TYPE
 
-FunctionType::FunctionType(const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
-    : ProperType(clss, substitutionTable), _argTypes(argTypes), _retType(retType) {
+FunctionType::FunctionType(
+        const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType,
+        ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
+    : ProperType(clss, substitutionTable), _typeArgs(typeArgs), _argTypes(argTypes), _retType(retType) {
 
 }
 
@@ -252,16 +287,31 @@ FunctionType* FunctionType::substitute(const SubstitutionTable& table, CompCtx_P
         substitued[i] = findSubstitution(table, _argTypes[i])->substitute(table, ctx);
     }
 
-    return ctx->memoryManager().New<FunctionType>(substitued, findSubstitution(table, _retType)->substitute(table, ctx), _class, copy);
+    return ctx->memoryManager().New<FunctionType>(_typeArgs, substitued, findSubstitution(table, _retType)->substitute(table, ctx), _class, copy);
 }
 
 FunctionType* FunctionType::apply(CompCtx_Ptr& ctx) const {
-    std::vector<Type*> applied(_argTypes.size());
-    for (size_t i = 0; i < _argTypes.size(); ++i) {
-        applied[i] = _argTypes[i]->apply(ctx);
+    const FunctionType* self = this;
+
+    if (_typeArgs.size() > 0) {
+        std::vector<Type*> defaultTypes(_typeArgs.size());
+        for (size_t i = 0; i < defaultTypes.size(); ++i) {
+            defaultTypes[i] = Type::DefaultGenericType(_typeArgs[i], ctx);
+        }
+        SubstitutionTable sub = ast::ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(_typeArgs, defaultTypes, ctx);
+        self = self->substitute(sub, ctx);
     }
 
-    return ctx->memoryManager().New<FunctionType>(applied, _retType->apply(ctx), _class, _subTable);
+    std::vector<Type*> applied(self->_argTypes.size());
+    for (size_t i = 0; i < self->_argTypes.size(); ++i) {
+        applied[i] = self->_argTypes[i]->apply(ctx);
+    }
+
+    return ctx->memoryManager().New<FunctionType>(std::vector<ast::TypeExpression*>(), applied, self->_retType->apply(ctx), self->_class, self->_subTable);
+}
+
+const std::vector<ast::TypeExpression*>& FunctionType::getTypeArgs() const {
+    return _typeArgs;
 }
 
 const std::vector<Type*>& FunctionType::getArgTypes() const {
@@ -274,8 +324,10 @@ Type* FunctionType::getRetType() const {
 
 // METHOD TYPE
 
-MethodType::MethodType(ast::ClassDecl* owner, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable)
-    : Type(substitutionTable), _owner(owner), _argTypes(argTypes), _retType(retType) {
+MethodType::MethodType(ast::ClassDecl* owner,
+                       const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType,
+                       const SubstitutionTable& substitutionTable)
+    : Type(substitutionTable), _owner(owner), _typeArgs(typeArgs), _argTypes(argTypes), _retType(retType) {
 
 }
 
@@ -327,20 +379,35 @@ MethodType* MethodType::substitute(const SubstitutionTable& table, CompCtx_Ptr& 
         substitued[i] = findSubstitution(table, _argTypes[i])->substitute(table, ctx);
     }
 
-    return ctx->memoryManager().New<MethodType>(_owner, substitued, findSubstitution(table, _retType)->substitute(table, ctx), copy);
+    return ctx->memoryManager().New<MethodType>(_owner, _typeArgs, substitued, findSubstitution(table, _retType)->substitute(table, ctx), copy);
 }
 
 MethodType* MethodType::apply(CompCtx_Ptr& ctx) const {
-    std::vector<Type*> applied(_argTypes.size());
-    for (size_t i = 0; i < _argTypes.size(); ++i) {
-        applied[i] = _argTypes[i]->apply(ctx);
+    const MethodType* self = this;
+
+    if (_typeArgs.size() > 0) {
+        std::vector<Type*> defaultTypes(_typeArgs.size());
+        for (size_t i = 0; i < defaultTypes.size(); ++i) {
+            defaultTypes[i] = Type::DefaultGenericType(_typeArgs[i], ctx);
+        }
+        SubstitutionTable sub = ast::ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(_typeArgs, defaultTypes, ctx);
+        self = self->substitute(sub, ctx);
     }
 
-    return ctx->memoryManager().New<MethodType>(_owner, applied, _retType->apply(ctx), _subTable);
+    std::vector<Type*> applied(self->_argTypes.size());
+    for (size_t i = 0; i < self->_argTypes.size(); ++i) {
+        applied[i] = self->_argTypes[i]->apply(ctx);
+    }
+
+    return ctx->memoryManager().New<MethodType>(self->_owner, std::vector<ast::TypeExpression*>(), applied, self->_retType->apply(ctx), self->_subTable);
 }
 
 ast::ClassDecl* MethodType::getOwner() const {
     return _owner;
+}
+
+const std::vector<ast::TypeExpression*>& MethodType::getTypeArgs() const {
+    return _typeArgs;
 }
 
 const std::vector<Type*>& MethodType::getArgTypes() const {
@@ -352,7 +419,7 @@ Type* MethodType::getRetType() const {
 }
 
 MethodType* MethodType::fromFunctionType(const FunctionType* ft, ast::ClassDecl* owner, CompCtx_Ptr& ctx) {
-    return ctx->memoryManager().New<MethodType>(owner, ft->getArgTypes(), ft->getRetType(), ft->getSubstitutionTable());
+    return ctx->memoryManager().New<MethodType>(owner, ft->getTypeArgs(), ft->getArgTypes(), ft->getRetType(), ft->getSubstitutionTable());
 }
 
 // TYPE CONSTRUCTOR

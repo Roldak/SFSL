@@ -29,7 +29,7 @@ public:
      * @brief Creates an ASTTypeCreator
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args);
+    ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args, bool allowFunctionConstructors);
 
     virtual ~ASTTypeCreator();
 
@@ -57,7 +57,7 @@ public:
      * @param ctx The compilation context
      * @return The generated type
      */
-    static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx);
+    static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, bool allowFunctionConstructors = false);
 
     /**
      * @brief Evaluates the given type constructor with the given arguments
@@ -71,6 +71,30 @@ public:
      */
     static type::Type* evalTypeConstructor(type::TypeConstructorType* ctr, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx);
 
+    /**
+     * @brief Evaluates the given function constructor with the given arguments
+     * and returns its result.
+     *
+     * @param fc The function constructor to evaluate (a FunctionType or a MethodType)
+     * @param args The arguments to feed the function constructors with
+     * @param callPos the position of the call
+     * @param ctx The compilation context
+     * @return The function type that was created after evaluating the type constructor
+     * (or the `not yet defined` type in case of failure)
+     */
+    static type::Type* evalFunctionConstructor(type::Type* fc, const std::vector<TypeExpression*>& args,
+                                               const common::Positionnable& callPos, CompCtx_Ptr& ctx);
+
+    /**
+     * @brief Creates a substitution table mapping the types of the parameters to the types of the arguments
+     * @param typeParameters The expressions representing the type parameters (for example, TypeIdentifiers or KindSpecifiers)
+     * @param args The corresponding vector of type arguments
+     * @param ctx The compilation context
+     * @return The substitution table that was created
+     */
+    static type::SubstitutionTable buildSubstitutionTableFromTypeParameterInstantiation(
+            const std::vector<TypeExpression*> params, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx);
+
 protected:
 
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
@@ -79,6 +103,8 @@ protected:
     type::Type* _created;
 
     const std::vector<type::Type*>& _args;
+
+    bool _allowFunctionConstructors;
 
     std::set<sym::TypeSymbol*> _visitedTypes;
 };

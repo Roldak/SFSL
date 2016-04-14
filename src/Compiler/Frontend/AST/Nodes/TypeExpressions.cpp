@@ -67,8 +67,9 @@ bool ClassDecl::isAbstract() const {
 
 // FUNCTION TYPE DECLARATION
 
-FunctionTypeDecl::FunctionTypeDecl(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType, TypeExpression* classEquivalent)
-    : _argTypes(argTypes), _retType(retType), _classEquivalent(classEquivalent) {
+FunctionTypeDecl::FunctionTypeDecl(const std::vector<TypeExpression*>& typeArgs, const std::vector<TypeExpression*>& argTypes,
+                                   TypeExpression* retType, TypeExpression* classEquivalent)
+    : _typeArgs(typeArgs), _argTypes(argTypes), _retType(retType), _classEquivalent(classEquivalent) {
 
 }
 
@@ -77,6 +78,10 @@ FunctionTypeDecl::~FunctionTypeDecl() {
 }
 
 SFSL_AST_ON_VISIT_CPP(FunctionTypeDecl)
+
+const std::vector<TypeExpression*>& FunctionTypeDecl::getTypeArgs() const {
+    return _typeArgs;
+}
 
 const std::vector<TypeExpression*>& FunctionTypeDecl::getArgTypes() const {
     return _argTypes;
@@ -102,8 +107,8 @@ TypeExpression* makeCallee(std::vector<std::string> path, CompCtx_Ptr ctx) {
     }
 }
 
-TypeExpression* FunctionTypeDecl::make(const std::vector<TypeExpression*>& argTypes, TypeExpression* retType,
-                                       const std::vector<std::string>& TCPath, CompCtx_Ptr ctx) {
+TypeExpression* FunctionTypeDecl::make(const std::vector<TypeExpression*>& typeArgs, const std::vector<TypeExpression*>& argTypes,
+                                       TypeExpression* retType, const std::vector<std::string>& TCPath, CompCtx_Ptr ctx) {
     std::vector<TypeExpression*> args = argTypes;
     args.push_back(retType);
 
@@ -111,7 +116,7 @@ TypeExpression* FunctionTypeDecl::make(const std::vector<TypeExpression*>& argTy
     TypeExpression* callee = makeCallee(TCPath, ctx);
     TypeConstructorCall* classEq = ctx->memoryManager().New<TypeConstructorCall>(callee, argsTuple);
 
-    return ctx->memoryManager().New<FunctionTypeDecl>(argTypes, retType, classEq);
+    return ctx->memoryManager().New<FunctionTypeDecl>(typeArgs, argTypes, retType, classEq);
 }
 
 // TYPE MEMBER ACCESS
@@ -146,7 +151,7 @@ TypeTuple::~TypeTuple() {
 
 SFSL_AST_ON_VISIT_CPP(TypeTuple)
 
-const std::vector<TypeExpression*>& TypeTuple::getExpressions() {
+const std::vector<TypeExpression*>& TypeTuple::getExpressions() const {
     return _exprs;
 }
 

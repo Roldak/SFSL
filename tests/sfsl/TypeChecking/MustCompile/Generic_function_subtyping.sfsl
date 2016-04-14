@@ -1,0 +1,42 @@
+module test {
+	using sfsl.lang
+
+	type A = class {
+		def a[T](x: int) => x
+		def b[T](x: T) => 2
+		def c[T](x: int) => y: T
+		def d[T](x: T) => x
+		def e[T](a: T, b: int) => b
+		def f[T](a: T, b: T) => a
+		def g[A, B, C](a: A, b: B) => c: C
+		def h[A, B, C](a: A) => (b: B) => c: C
+		def i[F: *->*, T](f: F[T]) => x: T
+		def j[F: [[*, *]->*]->*, G: [*, *]->[*, *]->*, A, B]() => res: F[G[A, B]]
+	}
+	
+	type B = class : A {
+		redef a[U](x: int) => x
+		redef b[U](x: U) => 3
+		redef c[U](x: int) => y: U
+		redef d[U](x: U) => x
+		redef e[U](a: U, b: int) => b
+		redef f[U](a: U, b: U) => a
+		redef g[X, B, C](a: X, b: B) => c: C
+		redef h[X, Y, Z](a: X) => (b: Y) => c: Z
+		redef j[V: [[*, *]->*]->*, D: [*, *]->[*, *]->*, X, Y]() => res: V[D[X, Y]]
+	}
+	
+	type C = abstract class {
+		abstract def f: [U](int)->int
+		abstract def g: [X](X)->X
+		abstract def h: [A, B, C, D, E](A, B)->(C, D)->E
+		abstract def i: [F: *->*, T](T)->F[T]
+	}
+	
+	type D = class : C {
+		redef f[T](x: int) => 2
+		redef g[A](x: A) => x
+		redef h[V, W, X, Y, Z](v: V, w: W) => (x: X, y: Y) => z: Z
+		redef i[K: *->*, L](x: L) => y: K[L]
+	}
+}

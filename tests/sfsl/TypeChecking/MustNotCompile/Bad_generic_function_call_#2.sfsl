@@ -1,0 +1,11 @@
+module test {	
+	using sfsl.lang
+	
+	type Box[T] => class {
+		x: T;
+	}
+	
+	def f[T]() => {}
+	
+	def test1: unit = f[Box]()
+}

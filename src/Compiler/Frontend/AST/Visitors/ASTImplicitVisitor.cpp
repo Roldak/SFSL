@@ -86,6 +86,9 @@ void ASTImplicitVisitor::visit(TypeConstructorKindSpecifier* tcks) {
 }
 
 void ASTImplicitVisitor::visit(FunctionTypeDecl* ftdecl) {
+    for (TypeExpression* targ : ftdecl->getTypeArgs()) {
+        targ->onVisit(this);
+    }
     for (TypeExpression* arg : ftdecl->getArgTypes()) {
         arg->onVisit(this);
     }

@@ -128,6 +128,14 @@ TypeDecl* ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(ASTNode* node
     return tdecl;
 }
 
+type::Type* ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(ASTNode* node, CompCtx_Ptr& ctx) {
+    ASTDefaultTypeFromKindCreator creator(ctx, "tmp");
+    node->onVisit(&creator);
+    TypeExpression* expr = creator.getCreatedType();
+
+    return ASTTypeCreator::createType(expr, ctx);
+}
+
 }
 
 }

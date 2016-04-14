@@ -91,6 +91,16 @@ public:
      */
     static TypeDecl* createDefaultTypeFromKind(ASTNode* node, const std::string& name, CompCtx_Ptr& ctx);
 
+    /**
+     * @brief Creates the default Type from an ASTNode, if the node corresponds
+     * to a valid syntax of a kind specifying node.
+     *
+     * @param node The kind for which to derive a default type
+     * @param ctx The compilation context
+     * @return The generated Type
+     */
+    static type::Type* createDefaultTypeFromKind(ASTNode* node, CompCtx_Ptr& ctx);
+
 protected:
 
     TypeExpression* _created;
