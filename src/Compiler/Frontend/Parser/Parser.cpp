@@ -707,7 +707,10 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
                 std::vector<TypeExpression*> args;
                 parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(args, [&](){return parseTypeExpression();});
                 if (expect(tok::OPER_THIN_ARROW, "`->`")) {
-                    return createFunctionTypeDecl(static_cast<TypeTuple*>(exprs[0]), args, parseTypeExpression(allowTypeConstructor));
+                    exprs[0] = createFunctionTypeDecl(static_cast<TypeTuple*>(exprs[0]), args, parseTypeExpression(allowTypeConstructor));
+                    // - arrowNecessary will be false since expr.size() == 1,
+                    // - accept(tok::OPER_THIN_ARROW) can't happen because it would have been parsed in ret type,
+                    // => so we're good normally. (ugly though)
                 }
             }
         } else if (accept(tok::OPER_L_PAREN)) {

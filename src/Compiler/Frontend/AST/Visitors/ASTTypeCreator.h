@@ -29,7 +29,7 @@ public:
      * @brief Creates an ASTTypeCreator
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args);
+    ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args, bool allowFunctionConstructors);
 
     virtual ~ASTTypeCreator();
 
@@ -57,7 +57,7 @@ public:
      * @param ctx The compilation context
      * @return The generated type
      */
-    static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx);
+    static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, bool allowFunctionConstructors = false);
 
     /**
      * @brief Evaluates the given type constructor with the given arguments
@@ -103,6 +103,8 @@ protected:
     type::Type* _created;
 
     const std::vector<type::Type*>& _args;
+
+    bool _allowFunctionConstructors;
 
     std::set<sym::TypeSymbol*> _visitedTypes;
 };

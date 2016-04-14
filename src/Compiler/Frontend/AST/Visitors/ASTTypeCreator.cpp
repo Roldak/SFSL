@@ -18,8 +18,8 @@ namespace sfsl {
 
 namespace ast {
 
-ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args)
-    : ASTExplicitVisitor(ctx), _created(nullptr), _args(args) {
+ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args, bool allowFunctionConstructors)
+    : ASTExplicitVisitor(ctx), _created(nullptr), _args(args), _allowFunctionConstructors(allowFunctionConstructors) {
 
 }
 
@@ -39,10 +39,10 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
     const std::vector<TypeExpression*>& argTypeExprs(ftdecl->getArgTypes());
 
     std::vector<type::Type*> argTypes(argTypeExprs.size());
-    type::Type* retType = createType(ftdecl->getRetType(), _ctx);
+    type::Type* retType = createType(ftdecl->getRetType(), _ctx); // don't allow function constructors
 
     for (size_t i = 0; i < argTypes.size(); ++i) {
-        argTypes[i] = createType(argTypeExprs[i], _ctx);
+        argTypes[i] = createType(argTypeExprs[i], _ctx); // don't allow function constructors
     }
 
     ClassDecl* functionClass = nullptr;
@@ -55,7 +55,12 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
         _ctx->reporter().fatal(*ftdecl, "Could not create type of this function's class equivalent");
     }
 
-    _created = _mngr.New<type::FunctionType>(ftdecl->getTypeArgs(), argTypes, retType, functionClass, table);
+    if (!_allowFunctionConstructors && ftdecl->getTypeArgs().size() > 0) {
+        _ctx->reporter().error(*ftdecl, "Function type cannot be declared generic in this context");
+        _created = _mngr.New<type::FunctionType>(std::vector<TypeExpression*>(), argTypes, retType, functionClass, table);
+    } else {
+        _created = _mngr.New<type::FunctionType>(ftdecl->getTypeArgs(), argTypes, retType, functionClass, table);
+    }
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
@@ -110,8 +115,8 @@ type::Type* ASTTypeCreator::getCreatedType() const {
     return _created;
 }
 
-type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx) {
-    ASTTypeCreator creator(ctx, {});
+type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx, bool allowFunctionConstructors) {
+    ASTTypeCreator creator(ctx, {}, allowFunctionConstructors);
     node->onVisit(&creator);
     return creator.getCreatedType();
 }
