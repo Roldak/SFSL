@@ -48,11 +48,13 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
     ClassDecl* functionClass = nullptr;
     type::SubstitutionTable table;
 
-    if (type::ProperType* pt = type::getIf<type::ProperType>(createType(ftdecl->getClassEquivalent(), _ctx)->applyTCCallsOnly(_ctx))) {
-        functionClass = pt->getClass();
-        table = pt->getSubstitutionTable();
-    } else {
-        _ctx->reporter().fatal(*ftdecl, "Could not create type of this function's class equivalent");
+    if (ftdecl->getTypeArgs().size() == 0) {
+        if (type::ProperType* pt = type::getIf<type::ProperType>(createType(ftdecl->getClassEquivalent(), _ctx)->applyTCCallsOnly(_ctx))) {
+            functionClass = pt->getClass();
+            table = pt->getSubstitutionTable();
+        } else {
+            _ctx->reporter().fatal(*ftdecl, "Could not create type of this function's class equivalent");
+        }
     }
 
     if (!_allowFunctionConstructors && ftdecl->getTypeArgs().size() > 0) {

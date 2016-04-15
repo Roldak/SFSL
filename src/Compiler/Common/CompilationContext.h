@@ -10,6 +10,7 @@
 #define __SFSL__CompilationContext__
 
 #include <iostream>
+#include <map>
 #include <memory>
 
 #include "MemoryManager.h"
@@ -43,6 +44,17 @@ public:
      */
     AbstractReporter& reporter() const;
 
+    template<typename T>
+    /**
+     * @brief Used to retrieve user data element of a given them from this compilation context.
+     * If no entry of the given name were found, the entry is automatically created,
+     * using the default constructor of the required type, which is therefore required
+     *
+     * @param name The name of the user data to retrieve (or insert)
+     * @return The user data associated to the given name
+     */
+    T* retrieveContextUserData(const std::string& name);
+
     /**
      * @return Creates the default CompilationContext, which uses :
      *  - ChunkedMemoryManager as the memory manager.
@@ -63,7 +75,17 @@ private:
     std::unique_ptr<AbstractMemoryManager> _mngr;
     std::unique_ptr<AbstractReporter> _rprt;
 
+    std::map<std::string, MemoryManageable*> _ctxUserData;
 };
+
+template<typename T>
+T* CompilationContext::retrieveContextUserData(const std::string& name) {
+    auto it = _ctxUserData.insert(std::make_pair(name, nullptr));
+    if (it.second) {
+        it.first->second = _mngr->New<T>();
+    }
+    return static_cast<T*>(it.first->second);
+}
 
 }
 

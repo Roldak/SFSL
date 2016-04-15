@@ -15,6 +15,8 @@
 #include "../AST/Visitors/ASTSymbolExtractor.h"
 #include "../AST/Visitors/ASTKindCreator.h"
 
+#define DEFAULT_GENERIC_TYPE_HOLDER_ENTRY_NAME "DefaultGenericTypeHolder@sfsl::type::DefaultGenericType"
+
 namespace sfsl {
 
 namespace type {
@@ -113,18 +115,40 @@ std::string Type::debugSubstitutionTableToString(const SubstitutionTable& table)
     }) + "}";
 }
 
+struct DefaultGenericTypeHolder : public common::MemoryManageable {
+    virtual ~DefaultGenericTypeHolder() { }
+
+    bool findCachedDefaultGeneric(kind::Kind* ofkind, type::Type** out) const {
+        for (const std::pair<kind::Kind*, type::Type*>& defGen : _cachedDefaultGenerics) {
+            if (defGen.first->isSubKindOf(ofkind)) {
+                *out = defGen.second;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void cacheDefaultGeneric(kind::Kind* ofkind, type::Type* ofType) {
+        _cachedDefaultGenerics.push_back(std::make_pair(ofkind, ofType));
+    }
+
+private:
+
+    std::vector<std::pair<kind::Kind*, type::Type*>> _cachedDefaultGenerics;
+};
+
 Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
     static ast::ProperTypeKindSpecifier proper;
-    static std::vector<std::pair<kind::Kind*, type::Type*>> defaultGenerics;
+
+    DefaultGenericTypeHolder* holder = ctx->retrieveContextUserData<DefaultGenericTypeHolder>(DEFAULT_GENERIC_TYPE_HOLDER_ENTRY_NAME);
 
     // check if already exists (not an optimization, but a needed operation)
 
     kind::Kind* tpeKind = tpe->kind();
+    type::Type* cachedType = nullptr;
 
-    for (const std::pair<kind::Kind*, type::Type*>& defGen : defaultGenerics) {
-        if (defGen.first->isSubKindOf(tpeKind)) {
-            return defGen.second;
-        }
+    if (holder->findCachedDefaultGeneric(tpeKind, &cachedType)) {
+        return cachedType;
     }
 
     // if not, add it
@@ -138,7 +162,8 @@ Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
     }
 
     type::Type* res = ast::ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(kse, ctx);
-    defaultGenerics.push_back(std::make_pair(tpeKind, res));
+
+    holder->cacheDefaultGeneric(tpeKind, res);
 
     return res;
 }
