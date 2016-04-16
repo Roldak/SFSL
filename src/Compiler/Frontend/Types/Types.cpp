@@ -271,11 +271,22 @@ TYPE_KIND FunctionType::getTypeKind() const {
 
 bool FunctionType::isSubTypeOf(const Type* other) const {
     if (FunctionType* f = getIf<FunctionType>(other)) {
+        const std::vector<ast::TypeExpression*>& oTypeArgs = f->getTypeArgs();
         const std::vector<Type*>& oArgTypes = f->getArgTypes();
         const Type* oRetType = f->getRetType();
 
+        if (_typeArgs.size() != oTypeArgs.size()) {
+            return false;
+        }
+
         if (_argTypes.size() != oArgTypes.size()) {
             return false;
+        }
+
+        for (size_t i = 0; i < _typeArgs.size(); ++i) {
+            if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind())) {
+                return false;
+            }
         }
 
         for (size_t i = 0; i < _argTypes.size(); ++i) {
@@ -332,7 +343,7 @@ FunctionType* FunctionType::apply(CompCtx_Ptr& ctx) const {
         applied[i] = self->_argTypes[i]->apply(ctx);
     }
 
-    return ctx->memoryManager().New<FunctionType>(std::vector<ast::TypeExpression*>(), applied, self->_retType->apply(ctx), self->_class, self->_subTable);
+    return ctx->memoryManager().New<FunctionType>(self->_typeArgs, applied, self->_retType->apply(ctx), self->_class, self->_subTable);
 }
 
 const std::vector<ast::TypeExpression*>& FunctionType::getTypeArgs() const {
@@ -366,11 +377,23 @@ TYPE_KIND MethodType::getTypeKind() const {
 
 bool MethodType::isSubTypeOf(const Type* other) const {
     if (MethodType* m = getIf<MethodType>(other)) {
+        const std::vector<ast::TypeExpression*>& oTypeArgs = m->getTypeArgs();
         const std::vector<Type*>& oArgTypes = m->getArgTypes();
         const Type* oRetType = m->getRetType();
 
+        if (_typeArgs.size() != oTypeArgs.size()) {
+            return false;
+        }
+
+
         if (_argTypes.size() != oArgTypes.size()) {
             return false;
+        }
+
+        for (size_t i = 0; i < _typeArgs.size(); ++i) {
+            if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind())) {
+                return false;
+            }
         }
 
         for (size_t i = 0; i < _argTypes.size(); ++i) {
@@ -424,7 +447,7 @@ MethodType* MethodType::apply(CompCtx_Ptr& ctx) const {
         applied[i] = self->_argTypes[i]->apply(ctx);
     }
 
-    return ctx->memoryManager().New<MethodType>(self->_owner, std::vector<ast::TypeExpression*>(), applied, self->_retType->apply(ctx), self->_subTable);
+    return ctx->memoryManager().New<MethodType>(self->_owner, self->_typeArgs, applied, self->_retType->apply(ctx), self->_subTable);
 }
 
 ast::ClassDecl* MethodType::getOwner() const {
