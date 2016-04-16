@@ -382,12 +382,6 @@ void TypeDependencyFixation::visit(FunctionCreation* func) {
     popTypeParameters(pushed);
 }
 
-void TypeDependencyFixation::visit(TypeConstructorCall* tcall) {
-    tcall->setDependencies(_parameters);
-
-    ASTImplicitVisitor::visit(tcall);
-}
-
 size_t TypeDependencyFixation::pushTypeParameters(const std::vector<TypeExpression*>& typeParams) {
     size_t pushed = 0;
     for (TypeExpression* typeParam : typeParams) {

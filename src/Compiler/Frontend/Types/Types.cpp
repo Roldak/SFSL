@@ -545,15 +545,12 @@ Type* ConstructorApplyType::substitute(const SubstitutionTable& table, CompCtx_P
         return const_cast<ConstructorApplyType*>(this);
     }
 
-    SubstitutionTable copy = _subTable;
-    applyEnvHelper(table, copy);
-
     std::vector<Type*> substitued(_args.size());
     for (size_t i = 0; i < _args.size(); ++i) {
         substitued[i] = findSubstitution(table, _args[i])->substitute(table, ctx);
     }
 
-    return ctx->memoryManager().New<ConstructorApplyType>(findSubstitution(table, _callee)->substitute(table, ctx), substitued, copy);
+    return ctx->memoryManager().New<ConstructorApplyType>(findSubstitution(table, _callee)->substitute(table, ctx), substitued);
 }
 
 Type* ConstructorApplyType::apply(CompCtx_Ptr& ctx) const {

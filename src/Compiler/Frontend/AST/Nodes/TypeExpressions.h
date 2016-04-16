@@ -246,7 +246,7 @@ private:
 /**
  * @brief Represents a type constructor call.
  */
-class TypeConstructorCall : public TypeExpression, public type::TypeParametrizable {
+class TypeConstructorCall : public TypeExpression {
 public:
 
     TypeConstructorCall(TypeExpression* callee, TypeTuple* args);
