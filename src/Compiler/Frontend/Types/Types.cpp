@@ -486,7 +486,10 @@ TYPE_KIND TypeConstructorType::getTypeKind() const {
 }
 
 bool TypeConstructorType::isSubTypeOf(const Type* other) const {
-    return this == other;
+    if (TypeConstructorType* tc = getIf<TypeConstructorType>(other)) {
+        return _typeConstructor == tc->getTypeConstructor();
+    }
+    return false;
 }
 
 std::string TypeConstructorType::toString() const {

@@ -1,0 +1,11 @@
+module test {
+	using sfsl.lang
+
+	type A = class {
+		def a[F: *->*](x: F[int]) => 42
+	}
+	
+	type B = class : A {
+		redef a[F: *->*](x: F[real]) => 42
+	}
+}

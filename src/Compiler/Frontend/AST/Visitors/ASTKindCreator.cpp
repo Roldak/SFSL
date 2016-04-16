@@ -65,6 +65,12 @@ ASTDefaultTypeFromKindCreator::ASTDefaultTypeFromKindCreator(CompCtx_Ptr& ctx, c
 
 }
 
+ASTDefaultTypeFromKindCreator::ASTDefaultTypeFromKindCreator(CompCtx_Ptr& ctx, const std::string& name,
+                                                             const std::vector<sym::TypeSymbol*>& dependencies)
+    : ASTImplicitVisitor(ctx), _name(name), _parameters(dependencies) {
+
+}
+
 ASTDefaultTypeFromKindCreator::~ASTDefaultTypeFromKindCreator() {
 
 }
@@ -80,6 +86,7 @@ void ASTDefaultTypeFromKindCreator::visit(ProperTypeKindSpecifier*) {
                                            std::vector<DefineDecl*>(), false);
 
     clss->setScope(_mngr.New<sym::Scope>(nullptr));
+    clss->setDependencies(_parameters);
 
     clss->CanSubtypeClasses::insertParent(clss);
 
@@ -88,18 +95,26 @@ void ASTDefaultTypeFromKindCreator::visit(ProperTypeKindSpecifier*) {
 
 void ASTDefaultTypeFromKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
     std::vector<TypeExpression*> args(tcks->getArgs().size());
+    std::vector<sym::TypeSymbol*> dependencies(tcks->getArgs().size());
     TypeExpression* ret;
 
     for (size_t i = 0; i < args.size(); ++i) {
-        args[i] = createDefaultTypeFromKind(tcks->getArgs()[i], _name + "Arg" + utils::T_toString(i), _ctx)->getName();
+        TypeDecl* tdecl = createDefaultTypeFromKind(tcks->getArgs()[i], _name + "Arg" + utils::T_toString(i), _parameters, _ctx);
+        args[i] = tdecl->getName();
+        dependencies[i] = tdecl->getSymbol();
     }
 
-    ret = createDefaultTypeFromKind(tcks->getRet(), _name + "Ret", _ctx)->getName();
+    pushTypeParameters(dependencies);
+
+    ret = createDefaultTypeFromKind(tcks->getRet(), _name + "Ret", _parameters, _ctx)->getName();
+
+    popTypeParameters(dependencies.size());
 
     TypeTuple* tt = _mngr.New<TypeTuple>(args);
 
     TypeConstructorCreation* tcc = _mngr.New<TypeConstructorCreation>(_name, tt, ret);
     tcc->setScope(_mngr.New<sym::Scope>(nullptr));
+    tcc->setDependencies(_parameters);
 
     _created = tcc;
 }
@@ -108,8 +123,24 @@ TypeExpression* ASTDefaultTypeFromKindCreator::getCreatedType() const {
     return _created;
 }
 
+void ASTDefaultTypeFromKindCreator::pushTypeParameters(const std::vector<sym::TypeSymbol*>& typeParams) {
+    for (sym::TypeSymbol* typeParam : typeParams) {
+        _parameters.push_back(typeParam);
+    }
+}
+
+void ASTDefaultTypeFromKindCreator::popTypeParameters(size_t pushed) {
+    _parameters.resize(_parameters.size() - pushed);
+}
+
+
 TypeDecl* ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(ASTNode* node, const std::string& name, CompCtx_Ptr& ctx) {
-    ASTDefaultTypeFromKindCreator creator(ctx, name);
+    return createDefaultTypeFromKind(node, name, std::vector<sym::TypeSymbol*>(), ctx);
+}
+
+TypeDecl* ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(ASTNode* node, const std::string& name,
+                                               const std::vector<sym::TypeSymbol*>& dependencies, CompCtx_Ptr& ctx) {
+    ASTDefaultTypeFromKindCreator creator(ctx, name, dependencies);
     node->onVisit(&creator);
     TypeExpression* expr = creator.getCreatedType();
 
