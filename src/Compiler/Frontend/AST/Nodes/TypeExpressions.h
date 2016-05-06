@@ -112,6 +112,44 @@ private:
 };
 
 /**
+ * @brief Represents a type parameter (e.g. `in T: *->*`)
+ */
+class TypeParameter : public TypeExpression {
+public:
+    enum VARIANCE_TYPE {
+        VAR_T_NONE,
+        VAR_T_IN,
+        VAR_T_OUT
+    };
+
+    TypeParameter(VARIANCE_TYPE varianceType, const std::string& name, KindSpecifyingExpression* kindExpr);
+    virtual ~TypeParameter();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The variance annotation (`in`, `out`, or not specified)
+     */
+    VARIANCE_TYPE getVarianceType() const;
+
+    /**
+     * @return The name of the type parameter (e.g. `T`)
+     */
+    const std::string& getName() const;
+
+    /**
+     * @return The kind expression of the type parameter (e.g. `*->*`)
+     */
+    KindSpecifyingExpression* getKindExpression() const;
+
+private:
+
+    VARIANCE_TYPE _varianceType;
+    std::string _name;
+    KindSpecifyingExpression* _kindExpr;
+};
+
+/**
  * @brief Represents a function type declaration (e.g. (int, real)->int)
  */
 class FunctionTypeDecl : public TypeExpression, public sym::Scoped {

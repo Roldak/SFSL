@@ -686,6 +686,57 @@ TypeTuple* Parser::parseTypeTuple() {
     return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression>(exprs, [&](){return parseTypeExpression();});
 }
 
+std::vector<TypeParameter*> Parser::parseTypeParameters(bool allowVarianceAnnotations) {
+    std::vector<TypeParameter*> typeParameters;
+
+    if (!accept(tok::OPER_R_BRACKET)) {
+        do {
+            SAVE_POS(tpStartPos)
+
+            TypeParameter::VARIANCE_TYPE vt;
+            std::string name;
+            KindSpecifyingExpression* kindExpr;
+
+            if (accept(tok::KW_IN)) {
+                vt = TypeParameter::VAR_T_IN;
+            } else if (accept(tok::KW_OUT)) {
+                vt = TypeParameter::VAR_T_OUT;
+            } else {
+                vt = TypeParameter::VAR_T_NONE;
+            }
+
+            if (vt != TypeParameter::VAR_T_NONE && !allowVarianceAnnotations) {
+                _ctx->reporter().error(tpStartPos, "Variance annotation are not allowed in this context");
+            }
+
+            if (isType(tok::TOK_ID)) {
+                name = as<tok::Identifier>()->toString();
+            } else {
+                _ctx->reporter().error(*_currentToken, "Expected type parameter name, found " + _currentToken->toString());
+            }
+            accept();
+
+            if (accept(tok::OPER_COLON)) {
+                kindExpr = parseKindSpecifyingExpression();
+            } else {
+                kindExpr = _mngr.New<ProperTypeKindSpecifier>();
+                kindExpr->setPos(*_currentToken);
+            }
+
+            TypeParameter* typeParam = _mngr.New<TypeParameter>(vt, name, kindExpr);
+            typeParam->setPos(tpStartPos);
+            typeParam->setEndPos(_lastTokenEndPos);
+
+            typeParameters.push_back(typeParam);
+
+        } while (accept(tok::OPER_COMMA) && !accept(tok::TOK_EOF));
+
+        expect(tok::OPER_R_BRACKET, "`" + tok::Operator::OperTypeToString(tok::OPER_R_BRACKET) + "`");
+    }
+
+    return typeParameters;
+}
+
 TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
     SAVE_POS(startPos)
     std::vector<TypeExpression*> exprs;

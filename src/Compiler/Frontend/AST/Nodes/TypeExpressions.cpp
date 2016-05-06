@@ -65,6 +65,31 @@ bool ClassDecl::isAbstract() const {
     return _isAbstract;
 }
 
+// TYPE PARAMETER
+
+TypeParameter::TypeParameter(TypeParameter::VARIANCE_TYPE varianceType, const std::string& name, KindSpecifyingExpression* kindExpr)
+    : _varianceType(varianceType), _name(name), _kindExpr(kindExpr) {
+
+}
+
+TypeParameter::~TypeParameter() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeParameter)
+
+TypeParameter::VARIANCE_TYPE TypeParameter::getVarianceType() const {
+    return _varianceType;
+}
+
+const std::string& TypeParameter::getName() const {
+    return _name;
+}
+
+KindSpecifyingExpression* TypeParameter::getKindExpression() const {
+    return _kindExpr;
+}
+
 // FUNCTION TYPE DECLARATION
 
 FunctionTypeDecl::FunctionTypeDecl(const std::vector<TypeExpression*>& typeArgs, const std::vector<TypeExpression*>& argTypes,
