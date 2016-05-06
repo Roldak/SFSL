@@ -209,11 +209,11 @@ void ScopeGeneration::visit(TypeConstructorCreation* tc) {
     popScope();
 }
 
-void ScopeGeneration::visit(KindSpecifier* ks) {
+void ScopeGeneration::visit(TypeParameter* tparam) {
     TypeDecl* defaultType = ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
-                ks->getKindNode(), ks->getSpecified()->getValue(), _ctx);
+                tparam->getKindNode(), tparam->getSpecified()->getValue(), _ctx);
 
-    createProperType(ks->getSpecified(), defaultType);
+    createProperType(tparam->getSpecified(), defaultType);
 }
 
 void ScopeGeneration::visit(Block* block) {
@@ -292,7 +292,7 @@ void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpres
             createProperType(static_cast<TypeIdentifier*>(typeParam),
                              ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
                                  _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(typeParam)->getValue(), _ctx));
-        } else if(isNodeOfType<KindSpecifier>(typeParam, _ctx)) { // arg of the form `T: kind`
+        } else if(isNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `T: kind`
             // The type var is already going to be created by the KindSpecifier Node
             typeParam->onVisit(this);
         } else {
@@ -389,8 +389,8 @@ size_t TypeDependencyFixation::pushTypeParameters(const std::vector<TypeExpressi
 
         if (isNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
             id = static_cast<TypeIdentifier*>(typeParam);
-        } else if(isNodeOfType<KindSpecifier>(typeParam, _ctx)) { // arg of the form `x: kind`
-            id = static_cast<KindSpecifier*>(typeParam)->getSpecified();
+        } else if(isNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `x: kind`
+            id = static_cast<TypeParameter*>(typeParam)->getSpecified();
         } else {
             break; // Error already reported in scope generation
                     //  => compiler will stop before type dependency is even used

@@ -27,7 +27,7 @@ public:
     virtual void visit(ast::ModuleDecl* module) override;
     virtual void visit(ast::TypeDecl* tdecl) override;
     virtual void visit(ast::DefineDecl* decl) override;
-    virtual void visit(ast::KindSpecifier* ks) override;
+    virtual void visit(ast::TypeParameter* tparam) override;
     virtual void visit(ast::FunctionCall* call) override;
     virtual void visit(ast::TypeSpecifier* tps) override;
 

@@ -121,11 +121,10 @@ private:
     ast::TypeExpression* createFunctionTypeDecl(const TypeTuple* typeParams, const std::vector<TypeExpression*>& args, TypeExpression* ret);
     ast::TypeTuple* parseTypeTuple();
 
-    std::vector<TypeParameter*> parseTypeParameters(bool allowVarianceAnnotations);
+    ast::TypeTuple* parseTypeParameters(bool allowVarianceAnnotations);
 
         // kind expression
 
-    ast::KindSpecifier* parseKindSpecifier(ast::TypeIdentifier* id);
     ast::KindSpecifyingExpression* parseKindSpecifyingExpression();
 
         // annotations

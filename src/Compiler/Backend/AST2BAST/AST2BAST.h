@@ -47,7 +47,7 @@ public:
     virtual void visit(ast::TypeConstructorCall* tcall) override;
     virtual void visit(ast::TypeIdentifier* tident) override;
     virtual void visit(ast::TypeToBeInferred* tbi) override;
-    virtual void visit(ast::KindSpecifier* ks) override;
+    virtual void visit(ast::TypeParameter* tparam) override;
 
     virtual void visit(ast::ExpressionStatement* exp) override;
 

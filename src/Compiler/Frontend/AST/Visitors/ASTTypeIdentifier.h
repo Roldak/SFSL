@@ -91,8 +91,8 @@ public:
         setIfSame<TypeToBeInferred>();
     }
 
-    virtual void visit(KindSpecifier*) override {
-        setIfSame<KindSpecifier>();
+    virtual void visit(TypeParameter*) override {
+        setIfSame<TypeParameter>();
     }
 
     virtual void visit(ExpressionStatement*) override {

@@ -462,7 +462,7 @@ Expression* Parser::parsePrimary() {
 
             std::vector<Annotation*> annots(std::move(consumeAnnotations()));
 
-            TypeTuple* typeArgs = parseTypeTuple();
+            TypeTuple* typeParams = parseTypeParameters(false);
 
             expect(tok::OPER_L_PAREN, "`(`");
             Tuple* args = parseTuple();
@@ -474,7 +474,7 @@ Expression* Parser::parsePrimary() {
 
             expect(tok::OPER_FAT_ARROW, "`=>`");
             toRet = _mngr.New<FunctionCreation>(_currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
-                                               typeArgs, args, parseExpression(), retType);
+                                               typeParams, args, parseExpression(), retType);
             static_cast<FunctionCreation*>(toRet)->setAnnotations(annots);
             toRet->setPos(pos);
             toRet->setEndPos(_lastTokenEndPos);
@@ -686,15 +686,17 @@ TypeTuple* Parser::parseTypeTuple() {
     return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression>(exprs, [&](){return parseTypeExpression();});
 }
 
-std::vector<TypeParameter*> Parser::parseTypeParameters(bool allowVarianceAnnotations) {
-    std::vector<TypeParameter*> typeParameters;
+TypeTuple* Parser::parseTypeParameters(bool allowVarianceAnnotations) {
+    std::vector<TypeExpression*> typeParameters;
+
+    SAVE_POS(startPos)
 
     if (!accept(tok::OPER_R_BRACKET)) {
         do {
             SAVE_POS(tpStartPos)
 
             TypeParameter::VARIANCE_TYPE vt;
-            std::string name;
+            TypeIdentifier* ident;
             KindSpecifyingExpression* kindExpr;
 
             if (accept(tok::KW_IN)) {
@@ -709,12 +711,7 @@ std::vector<TypeParameter*> Parser::parseTypeParameters(bool allowVarianceAnnota
                 _ctx->reporter().error(tpStartPos, "Variance annotation are not allowed in this context");
             }
 
-            if (isType(tok::TOK_ID)) {
-                name = as<tok::Identifier>()->toString();
-            } else {
-                _ctx->reporter().error(*_currentToken, "Expected type parameter name, found " + _currentToken->toString());
-            }
-            accept();
+            ident = parseTypeIdentifier("Expected type name");
 
             if (accept(tok::OPER_COLON)) {
                 kindExpr = parseKindSpecifyingExpression();
@@ -723,7 +720,7 @@ std::vector<TypeParameter*> Parser::parseTypeParameters(bool allowVarianceAnnota
                 kindExpr->setPos(*_currentToken);
             }
 
-            TypeParameter* typeParam = _mngr.New<TypeParameter>(vt, name, kindExpr);
+            TypeParameter* typeParam = _mngr.New<TypeParameter>(vt, ident, kindExpr);
             typeParam->setPos(tpStartPos);
             typeParam->setEndPos(_lastTokenEndPos);
 
@@ -734,7 +731,11 @@ std::vector<TypeParameter*> Parser::parseTypeParameters(bool allowVarianceAnnota
         expect(tok::OPER_R_BRACKET, "`" + tok::Operator::OperTypeToString(tok::OPER_R_BRACKET) + "`");
     }
 
-    return typeParameters;
+    TypeTuple* typeParamsTuple = _mngr.New<TypeTuple>(typeParameters);
+    typeParamsTuple->setPos(startPos);
+    typeParamsTuple->setEndPos(_lastTokenEndPos);
+
+    return typeParamsTuple;
 }
 
 TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
@@ -746,14 +747,11 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
     switch (_currentToken->getTokenType()) {
     case tok::TOK_ID:
         exprs.push_back(parseTypeIdentifier());
-        if (accept(tok::OPER_COLON)) {
-            exprs[0] = parseKindSpecifier(static_cast<TypeIdentifier*>(exprs[0]));
-        }
         break;
 
     case tok::TOK_OPER:
         if (accept(tok::OPER_L_BRACKET)) {
-            exprs.push_back(parseTypeTuple());
+            exprs.push_back(parseTypeParameters(true));
             if (accept(tok::OPER_L_PAREN)) {
                 std::vector<TypeExpression*> args;
                 parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(args, [&](){return parseTypeExpression();});
@@ -812,14 +810,6 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
     }
 
     return toRet;
-}
-
-KindSpecifier* Parser::parseKindSpecifier(TypeIdentifier* id) {
-    KindSpecifyingExpression* expr = parseKindSpecifyingExpression();
-    KindSpecifier* spec = _mngr.New<KindSpecifier>(id, expr);
-    spec->setPos(*id);
-    spec->setEndPos(_lastTokenEndPos);
-    return spec;
 }
 
 KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {

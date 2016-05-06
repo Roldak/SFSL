@@ -216,10 +216,15 @@ void ASTPrinter::visit(TypeToBeInferred*) {
 
 }
 
-void ASTPrinter::visit(KindSpecifier* ks) {
-    ks->getSpecified()->onVisit(this);
+void ASTPrinter::visit(TypeParameter* tparam) {
+    switch (tparam->getVarianceType()) {
+    case TypeParameter::VAR_T_IN:   _ostream << "in "; break;
+    case TypeParameter::VAR_T_OUT:  _ostream << "out "; break;
+    case TypeParameter::VAR_T_NONE: _ostream << ""; break;
+    }
+    tparam->getSpecified()->onVisit(this);
     _ostream << " : ";
-    ks->getKindNode()->onVisit(this);
+    tparam->getKindNode()->onVisit(this);
 }
 
 void ASTPrinter::visit(ExpressionStatement* exp) {

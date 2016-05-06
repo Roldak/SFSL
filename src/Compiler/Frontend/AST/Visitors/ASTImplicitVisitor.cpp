@@ -124,10 +124,9 @@ void ASTImplicitVisitor::visit(TypeIdentifier*) {
 void ASTImplicitVisitor::visit(TypeToBeInferred*) {
 
 }
-
-void ASTImplicitVisitor::visit(KindSpecifier* ks) {
-    ks->getSpecified()->onVisit(this);
-    ks->getKindNode()->onVisit(this);
+void ASTImplicitVisitor::visit(TypeParameter* tparam) {
+    tparam->getSpecified()->onVisit(this);
+    tparam->getKindNode()->onVisit(this);
 }
 
 void ASTImplicitVisitor::visit(ExpressionStatement* exp) {

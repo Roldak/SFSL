@@ -158,11 +158,11 @@ void KindChecking::visit(TypeToBeInferred* tbi) {
     tbi->setKind(kind::ProperKind::create());
 }
 
-void KindChecking::visit(KindSpecifier* ks) {
-    ASTImplicitVisitor::visit(ks);
-    kind::Kind* k = ASTKindCreator::createKind(ks->getKindNode(), _ctx);
-    ks->getSpecified()->setKind(k);
-    ks->setKind(k);
+void KindChecking::visit(TypeParameter* tparam) {
+    ASTImplicitVisitor::visit(tparam);
+    kind::Kind* k = ASTKindCreator::createKind(tparam->getKindNode(), _ctx);
+    tparam->getSpecified()->setKind(k);
+    tparam->setKind(k);
 }
 
 void KindChecking::visit(TypeSpecifier* ts) {

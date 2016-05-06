@@ -69,7 +69,7 @@ public:
     virtual void visit(FunctionTypeDecl* ftdecl) override;
 
     virtual void visit(TypeConstructorCreation* tc) override;
-    virtual void visit(KindSpecifier* ks) override;
+    virtual void visit(TypeParameter* tparam) override;
 
     virtual void visit(Block* block) override;
     virtual void visit(FunctionCreation* func) override;

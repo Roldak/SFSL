@@ -200,7 +200,7 @@ void DefaultBytecodeGenerator::visit(TypeIdentifier* tident) {
 
 }
 
-void DefaultBytecodeGenerator::visit(KindSpecifier* ks) {
+void DefaultBytecodeGenerator::visit(TypeParameter* tparam) {
 
 }
 

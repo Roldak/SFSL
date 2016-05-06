@@ -112,44 +112,6 @@ private:
 };
 
 /**
- * @brief Represents a type parameter (e.g. `in T: *->*`)
- */
-class TypeParameter : public TypeExpression {
-public:
-    enum VARIANCE_TYPE {
-        VAR_T_NONE,
-        VAR_T_IN,
-        VAR_T_OUT
-    };
-
-    TypeParameter(VARIANCE_TYPE varianceType, const std::string& name, KindSpecifyingExpression* kindExpr);
-    virtual ~TypeParameter();
-
-    SFSL_AST_ON_VISIT_H
-
-    /**
-     * @return The variance annotation (`in`, `out`, or not specified)
-     */
-    VARIANCE_TYPE getVarianceType() const;
-
-    /**
-     * @return The name of the type parameter (e.g. `T`)
-     */
-    const std::string& getName() const;
-
-    /**
-     * @return The kind expression of the type parameter (e.g. `*->*`)
-     */
-    KindSpecifyingExpression* getKindExpression() const;
-
-private:
-
-    VARIANCE_TYPE _varianceType;
-    std::string _name;
-    KindSpecifyingExpression* _kindExpr;
-};
-
-/**
  * @brief Represents a function type declaration (e.g. (int, real)->int)
  */
 class FunctionTypeDecl : public TypeExpression, public sym::Scoped {
@@ -348,27 +310,39 @@ public:
 };
 
 /**
- * @brief Represents a kind specifying expression, e.g `T: [*]->*`
+ * @brief Represents a type parameter (e.g. `in T: *->*`)
  */
-class KindSpecifier : public TypeExpression {
+class TypeParameter : public TypeExpression {
 public:
-    KindSpecifier(TypeIdentifier* specified, KindSpecifyingExpression* type);
-    virtual ~KindSpecifier();
+    enum VARIANCE_TYPE {
+        VAR_T_NONE,
+        VAR_T_IN,
+        VAR_T_OUT
+    };
+
+    TypeParameter(VARIANCE_TYPE varianceType, TypeIdentifier* specified, KindSpecifyingExpression* type);
+    virtual ~TypeParameter();
 
     SFSL_AST_ON_VISIT_H
 
     /**
-     * @return The specified part
+     * @return The variance annotation (`in`, `out`, or not specified)
+     */
+    VARIANCE_TYPE getVarianceType() const;
+
+    /**
+     * @return The specified part (e.g. `T`)
      */
     TypeIdentifier* getSpecified() const;
 
     /**
-     * @return The type part
+     * @return The kind part (e.g. `*->*`)
      */
     KindSpecifyingExpression* getKindNode() const;
 
 private:
 
+    VARIANCE_TYPE _varianceType;
     TypeIdentifier* _specified;
     KindSpecifyingExpression* _kind;
 };
