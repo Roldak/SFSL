@@ -235,7 +235,7 @@ SFSL_AST_ON_VISIT_CPP(TypeToBeInferred)
 
 // TYPE PARAMETER
 
-TypeParameter::TypeParameter(VARIANCE_TYPE varianceType, TypeIdentifier* specified, KindSpecifyingExpression* kind)
+TypeParameter::TypeParameter(common::VARIANCE_TYPE varianceType, TypeIdentifier* specified, KindSpecifyingExpression* kind)
     : _varianceType(varianceType), _specified(specified), _kind(kind) {
 
 }
@@ -246,7 +246,7 @@ TypeParameter::~TypeParameter() {
 
 SFSL_AST_ON_VISIT_CPP(TypeParameter)
 
-VARIANCE_TYPE TypeParameter::getVarianceType() const {
+common::VARIANCE_TYPE TypeParameter::getVarianceType() const {
     return _varianceType;
 }
 

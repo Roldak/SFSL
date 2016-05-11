@@ -18,7 +18,7 @@
 #include "../../Types/CanSubtype.h"
 
 #include "../Utils/Annotations.h"
-#include "../Utils/Miscellaneous.h"
+#include "../../Common/Miscellaneous.h"
 
 namespace sfsl {
 
@@ -315,7 +315,7 @@ public:
  */
 class TypeParameter : public TypeExpression {
 public:
-    TypeParameter(VARIANCE_TYPE varianceType, TypeIdentifier* specified, KindSpecifyingExpression* type);
+    TypeParameter(common::VARIANCE_TYPE varianceType, TypeIdentifier* specified, KindSpecifyingExpression* type);
     virtual ~TypeParameter();
 
     SFSL_AST_ON_VISIT_H
@@ -323,7 +323,7 @@ public:
     /**
      * @return The variance annotation (`in`, `out`, or not specified)
      */
-    VARIANCE_TYPE getVarianceType() const;
+    common::VARIANCE_TYPE getVarianceType() const;
 
     /**
      * @return The specified part (e.g. `T`)
@@ -337,7 +337,7 @@ public:
 
 private:
 
-    VARIANCE_TYPE _varianceType;
+    common::VARIANCE_TYPE _varianceType;
     TypeIdentifier* _specified;
     KindSpecifyingExpression* _kind;
 };

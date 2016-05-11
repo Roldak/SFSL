@@ -12,6 +12,7 @@
 #include <iostream>
 #include <vector>
 #include "../../Common/MemoryManageable.h"
+#include "../Common/Miscellaneous.h"
 
 namespace sfsl {
 
@@ -47,7 +48,15 @@ public:
 
 class TypeConstructorKind : public Kind {
 public:
-    TypeConstructorKind(const std::vector<Kind*>& args, Kind* ret);
+    struct Parameter {
+        Parameter();
+        Parameter(common::VARIANCE_TYPE vt, Kind* kind);
+
+        common::VARIANCE_TYPE varianceType;
+        Kind* kind;
+    };
+
+    TypeConstructorKind(const std::vector<Parameter>& args, Kind* ret);
 
     virtual KIND_GENRE getKindGenre() const override;
     virtual bool isSubKindOf(Kind* other) const override;
@@ -55,12 +64,14 @@ public:
 
     virtual std::string toString() const override;
 
-    const std::vector<Kind*>& getArgKinds() const;
+    const std::vector<Parameter>& getArgKinds() const;
     Kind* getRetKind() const;
 
 private:
 
-    std::vector<Kind*> _args;
+    static bool isVarianceSubKind(common::VARIANCE_TYPE a, common::VARIANCE_TYPE b);
+
+    std::vector<Parameter> _args;
     Kind* _ret;
 };
 

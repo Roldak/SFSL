@@ -75,7 +75,15 @@ ProperKind* ProperKind::create() {
 
 // TYPE CONSTRUCTOR KIND
 
-TypeConstructorKind::TypeConstructorKind(const std::vector<Kind*>& args, Kind* ret) : _args(args), _ret(ret) {
+TypeConstructorKind::Parameter::Parameter() : varianceType(common::VAR_T_NONE), kind(nullptr) {
+
+}
+
+TypeConstructorKind::Parameter::Parameter(common::VARIANCE_TYPE vt, Kind* kind) : varianceType(vt), kind(kind) {
+
+}
+
+TypeConstructorKind::TypeConstructorKind(const std::vector<Parameter>& args, Kind* ret) : _args(args), _ret(ret) {
 
 }
 
@@ -86,14 +94,15 @@ KIND_GENRE TypeConstructorKind::getKindGenre() const {
 bool TypeConstructorKind::isSubKindOf(Kind* other) const {
     if (TypeConstructorKind* tck = getIf<TypeConstructorKind>(other)) {
 
-        const std::vector<Kind*>& others = tck->getArgKinds();
+        const std::vector<Parameter>& others = tck->getArgKinds();
 
         if (others.size() != _args.size()) {
             return false;
         }
 
         for (size_t i = 0; i < _args.size(); ++i) {
-            if (!_args[i]->isSubKindOf(others[i])) {
+            if (!_args[i].kind->isSubKindOf(others[i].kind) ||
+                !isVarianceSubKind(_args[i].varianceType, others[i].varianceType)) {
                 return false;
             }
         }
@@ -112,7 +121,8 @@ TypeConstructorKind::~TypeConstructorKind() {
 std::string TypeConstructorKind::toString() const {
     std::string toRet = "[";
     for (size_t i = 0; i < _args.size(); ++i) {
-        toRet += _args[i]->toString();
+        toRet += common::varianceTypeToString(_args[i].varianceType, true);
+        toRet += _args[i].kind->toString();
         if (i != _args.size() - 1) {
             toRet += ", ";
         }
@@ -120,12 +130,22 @@ std::string TypeConstructorKind::toString() const {
     return toRet + "]->" + _ret->toString();
 }
 
-const std::vector<Kind*>& TypeConstructorKind::getArgKinds() const {
+const std::vector<TypeConstructorKind::Parameter>& TypeConstructorKind::getArgKinds() const {
     return _args;
 }
 
 Kind* TypeConstructorKind::getRetKind() const {
     return _ret;
+}
+
+bool TypeConstructorKind::isVarianceSubKind(common::VARIANCE_TYPE a, common::VARIANCE_TYPE b) {
+    if (a == b) {
+        return true;
+    } else if (b == common::VAR_T_NONE) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 // KINDED

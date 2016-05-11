@@ -13,7 +13,7 @@
 
 namespace sfsl {
 
-namespace ast {
+namespace common {
 
 enum VARIANCE_TYPE {
     VAR_T_NONE,

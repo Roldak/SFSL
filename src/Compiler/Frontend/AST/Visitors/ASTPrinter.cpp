@@ -220,9 +220,9 @@ void ASTPrinter::visit(TypeToBeInferred*) {
 
 void ASTPrinter::visit(TypeParameter* tparam) {
     switch (tparam->getVarianceType()) {
-    case VAR_T_IN:   _ostream << "in "; break;
-    case VAR_T_OUT:  _ostream << "out "; break;
-    case VAR_T_NONE: _ostream << ""; break;
+    case common::VAR_T_IN:   _ostream << "in "; break;
+    case common::VAR_T_OUT:  _ostream << "out "; break;
+    case common::VAR_T_NONE: _ostream << ""; break;
     }
     tparam->getSpecified()->onVisit(this);
     _ostream << " : ";

@@ -34,18 +34,21 @@ void ASTKindCreator::visit(ProperTypeKindSpecifier* ptks) {
 }
 
 void ASTKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
-    std::vector<kind::Kind*> args(tcks->getArgs().size());
+    std::vector<kind::TypeConstructorKind::Parameter> params(tcks->getArgs().size());
     kind::Kind* ret;
 
-    for (size_t i = 0; i < args.size(); ++i) {
-        tcks->getArgs()[i].kindExpr->onVisit(this);
-        args[i] = _created;
+    for (size_t i = 0; i < params.size(); ++i) {
+        const TypeConstructorKindSpecifier::Parameter& tcParam(tcks->getArgs()[i]);
+        tcParam.kindExpr->onVisit(this);
+
+        params[i].varianceType = tcParam.varianceType;
+        params[i].kind = _created;
     }
 
     tcks->getRet()->onVisit(this);
     ret = _created;
 
-    _created = _mngr.New<kind::TypeConstructorKind>(args, ret);
+    _created = _mngr.New<kind::TypeConstructorKind>(params, ret);
 }
 
 kind::Kind* ASTKindCreator::getCreatedKind() const {

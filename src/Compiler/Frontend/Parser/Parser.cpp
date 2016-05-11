@@ -695,19 +695,19 @@ TypeTuple* Parser::parseTypeParameters(bool allowVarianceAnnotations) {
         do {
             SAVE_POS(tpStartPos)
 
-            VARIANCE_TYPE vt;
+            common::VARIANCE_TYPE vt;
             TypeIdentifier* ident;
             KindSpecifyingExpression* kindExpr;
 
             if (accept(tok::KW_IN)) {
-                vt = VAR_T_IN;
+                vt = common::VAR_T_IN;
             } else if (accept(tok::KW_OUT)) {
-                vt = VAR_T_OUT;
+                vt = common::VAR_T_OUT;
             } else {
-                vt = VAR_T_NONE;
+                vt = common::VAR_T_NONE;
             }
 
-            if (vt != VAR_T_NONE && !allowVarianceAnnotations) {
+            if (vt != common::VAR_T_NONE && !allowVarianceAnnotations) {
                 _ctx->reporter().error(tpStartPos, "Variance annotation are not allowed in this context");
             }
 
@@ -823,7 +823,7 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
     case tok::TOK_OPER:
         if (accept(tok::OPER_TIMES)) {
             toRet = _mngr.New<ProperTypeKindSpecifier>();
-            exprs.push_back(TypeConstructorKindSpecifier::Parameter(VAR_T_NONE, toRet));
+            exprs.push_back(TypeConstructorKindSpecifier::Parameter(common::VAR_T_NONE, toRet));
         } else if (accept(tok::OPER_L_BRACKET)) {
             parseTuple<TypeConstructorKindSpecifier, tok::OPER_R_BRACKET, TypeConstructorKindSpecifier::Parameter>(
                         exprs, [&](){return parseTypeConstructorKindSpecifierParameter();});
@@ -858,11 +858,11 @@ TypeConstructorKindSpecifier::Parameter Parser::parseTypeConstructorKindSpecifie
     TypeConstructorKindSpecifier::Parameter param;
 
     if (accept(tok::KW_IN)) {
-        param.varianceType = VAR_T_IN;
+        param.varianceType = common::VAR_T_IN;
     } else if (accept(tok::KW_OUT)) {
-        param.varianceType = VAR_T_OUT;
+        param.varianceType = common::VAR_T_OUT;
     } else {
-        param.varianceType = VAR_T_NONE;
+        param.varianceType = common::VAR_T_NONE;
     }
 
     param.kindExpr = parseKindSpecifyingExpression();

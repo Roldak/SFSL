@@ -10,7 +10,7 @@
 
 namespace sfsl {
 
-namespace ast {
+namespace common {
 
 std::string varianceTypeToString(VARIANCE_TYPE vt, bool addSpaceIfNotNone) {
     std::string suffix = addSpaceIfNotNone ? " " : "";

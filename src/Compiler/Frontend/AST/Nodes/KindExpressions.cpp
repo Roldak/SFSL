@@ -35,11 +35,11 @@ SFSL_AST_ON_VISIT_CPP(ProperTypeKindSpecifier)
 
 // TYPE CONSTRUCTOR KIND SPECIFIER
 
-TypeConstructorKindSpecifier::Parameter::Parameter() : varianceType(VAR_T_NONE), kindExpr(nullptr) {
+TypeConstructorKindSpecifier::Parameter::Parameter() : varianceType(common::VAR_T_NONE), kindExpr(nullptr) {
 
 }
 
-TypeConstructorKindSpecifier::Parameter::Parameter(VARIANCE_TYPE vt, KindSpecifyingExpression* expr) : varianceType(vt), kindExpr(expr) {
+TypeConstructorKindSpecifier::Parameter::Parameter(common::VARIANCE_TYPE vt, KindSpecifyingExpression* expr) : varianceType(vt), kindExpr(expr) {
 
 }
 

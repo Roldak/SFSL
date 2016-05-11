@@ -14,7 +14,7 @@
 #include "ASTNode.h"
 
 #include "../../Kinds/Kinds.h"
-#include "../Utils/Miscellaneous.h"
+#include "../../Common/Miscellaneous.h"
 
 namespace sfsl {
 
@@ -56,11 +56,11 @@ class TypeConstructorKindSpecifier: public KindSpecifyingExpression {
 public:
     struct Parameter {
         Parameter();
-        Parameter(VARIANCE_TYPE vt, KindSpecifyingExpression* expr);
+        Parameter(common::VARIANCE_TYPE vt, KindSpecifyingExpression* expr);
 
         operator bool() const;
 
-        VARIANCE_TYPE varianceType;
+        common::VARIANCE_TYPE varianceType;
         KindSpecifyingExpression* kindExpr;
     };
 

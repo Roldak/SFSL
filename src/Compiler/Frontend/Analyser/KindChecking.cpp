@@ -119,16 +119,20 @@ void KindChecking::visit(TypeConstructorCreation* tc) {
         exprs.push_back(tc->getArgs());
     }
 
-    std::vector<kind::Kind*> argKinds(exprs.size());
+    std::vector<kind::TypeConstructorKind::Parameter> params(exprs.size());
     kind::Kind* retKind;
 
     for (size_t i = 0; i < exprs.size(); ++i) {
-        argKinds[i] = exprs[i]->kind();
+        params[i].varianceType = common::VAR_T_NONE;
+        if (isNodeOfType<TypeParameter>(exprs[i], _ctx)) {
+            params[i].varianceType = static_cast<TypeParameter*>(exprs[i])->getVarianceType();
+        }
+        params[i].kind = exprs[i]->kind();
     }
 
     retKind = tc->getBody()->kind();
 
-    tc->setKind(_mngr.New<kind::TypeConstructorKind>(argKinds, retKind));
+    tc->setKind(_mngr.New<kind::TypeConstructorKind>(params, retKind));
 }
 
 void KindChecking::visit(TypeConstructorCall* tcall) {
@@ -137,9 +141,14 @@ void KindChecking::visit(TypeConstructorCall* tcall) {
     if (kind::TypeConstructorKind* k = kind::getIf<kind::TypeConstructorKind>(tcall->getCallee()->kind())) {
 
         const std::vector<TypeExpression*>& callArgs = tcall->getArgs();
-        const std::vector<kind::Kind*>& argKinds = k->getArgKinds();
+        const std::vector<kind::TypeConstructorKind::Parameter>& params = k->getArgKinds();
 
-        if (kindCheckArgumentSubstitution(argKinds, callArgs, *tcall, _ctx)) {
+        std::vector<kind::Kind*> paramKinds(params.size());
+        for (size_t i = 0; i < params.size(); ++i) {
+            paramKinds[i] = params[i].kind;
+        }
+
+        if (kindCheckArgumentSubstitution(paramKinds, callArgs, *tcall, _ctx)) {
             tcall->setKind(k->getRetKind());
         } else {
             tcall->setKind(kind::Kind::NotYetDefined());
