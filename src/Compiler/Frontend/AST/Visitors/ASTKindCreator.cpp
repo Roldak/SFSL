@@ -102,8 +102,10 @@ void ASTDefaultTypeFromKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
     TypeExpression* ret;
 
     for (size_t i = 0; i < args.size(); ++i) {
-        TypeDecl* tdecl = createDefaultTypeFromKind(tcks->getArgs()[i].kindExpr, _name + "Arg" + utils::T_toString(i), _parameters, _ctx);
-        args[i] = tdecl->getName();
+        const TypeConstructorKindSpecifier::Parameter& tcksParam(tcks->getArgs()[i]);
+        TypeDecl* tdecl = createDefaultTypeFromKind(tcksParam.kindExpr, _name + "Arg" + utils::T_toString(i), _parameters, _ctx);
+
+        args[i] = _mngr.New<TypeParameter>(tcksParam.varianceType, tdecl->getName(), tcksParam.kindExpr);
         dependencies[i] = tdecl->getSymbol();
     }
 
