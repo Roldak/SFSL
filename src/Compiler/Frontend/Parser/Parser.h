@@ -126,6 +126,7 @@ private:
         // kind expression
 
     ast::KindSpecifyingExpression* parseKindSpecifyingExpression();
+    ast::TypeConstructorKindSpecifier::Parameter parseTypeConstructorKindSpecifierParameter();
 
         // annotations
 
@@ -140,7 +141,7 @@ private:
     ast::CanUseModules::ModulePath parseUsing(const common::Positionnable& usingpos, bool asStatement);
 
     template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
-    RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE*>& exprs, const PARSING_FUNC& f);
+    RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE>& exprs, const PARSING_FUNC& f);
 
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
     ast::Identifier* parseOperatorsAsIdentifer();

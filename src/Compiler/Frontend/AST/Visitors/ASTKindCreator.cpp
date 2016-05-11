@@ -38,7 +38,7 @@ void ASTKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
     kind::Kind* ret;
 
     for (size_t i = 0; i < args.size(); ++i) {
-        tcks->getArgs()[i]->onVisit(this);
+        tcks->getArgs()[i].kindExpr->onVisit(this);
         args[i] = _created;
     }
 
@@ -99,7 +99,7 @@ void ASTDefaultTypeFromKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
     TypeExpression* ret;
 
     for (size_t i = 0; i < args.size(); ++i) {
-        TypeDecl* tdecl = createDefaultTypeFromKind(tcks->getArgs()[i], _name + "Arg" + utils::T_toString(i), _parameters, _ctx);
+        TypeDecl* tdecl = createDefaultTypeFromKind(tcks->getArgs()[i].kindExpr, _name + "Arg" + utils::T_toString(i), _parameters, _ctx);
         args[i] = tdecl->getName();
         dependencies[i] = tdecl->getSymbol();
     }

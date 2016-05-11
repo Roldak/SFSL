@@ -139,7 +139,9 @@ void ASTPrinter::visit(ProperTypeKindSpecifier*) {
 void ASTPrinter::visit(TypeConstructorKindSpecifier* tcks) {
     _ostream << "[";
     for (size_t i = 0; i < tcks->getArgs().size(); ++i) {
-        tcks->getArgs()[i]->onVisit(this);
+        TypeConstructorKindSpecifier::Parameter param = tcks->getArgs()[i];
+        _ostream << varianceTypeToString(param.varianceType, true);
+        param.kindExpr->onVisit(this);
         if (i != tcks->getArgs().size() - 1) {
             _ostream << ", ";
         }

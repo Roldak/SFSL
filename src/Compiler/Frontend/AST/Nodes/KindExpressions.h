@@ -36,7 +36,7 @@ public:
 };
 
 /**
- * @brief Represents a tuple
+ * @brief A kind expression representing the proper kind: The expression `*`
  */
 class ProperTypeKindSpecifier : public KindSpecifyingExpression {
 public:
@@ -50,12 +50,21 @@ private:
 };
 
 /**
- * @brief Represents a type constructor creation, e.g. `[T] => class { x: T; }`
+ * @brief A kind expression representing the type constructor kind, e.g. `*->*`, `[in *, out *]->*` etc.
  */
 class TypeConstructorKindSpecifier: public KindSpecifyingExpression {
 public:
+    struct Parameter {
+        Parameter();
+        Parameter(VARIANCE_TYPE vt, KindSpecifyingExpression* expr);
 
-    TypeConstructorKindSpecifier(const std::vector<KindSpecifyingExpression*>& args, KindSpecifyingExpression* ret = nullptr);
+        operator bool() const;
+
+        VARIANCE_TYPE varianceType;
+        KindSpecifyingExpression* kindExpr;
+    };
+
+    TypeConstructorKindSpecifier(const std::vector<Parameter>& args, KindSpecifyingExpression* ret = nullptr);
     virtual ~TypeConstructorKindSpecifier();
 
     SFSL_AST_ON_VISIT_H
@@ -63,7 +72,7 @@ public:
     /**
      * @return The sequence of kind expressions that compose the type constructor specifier
      */
-    const std::vector<KindSpecifyingExpression*>& getArgs() const;
+    const std::vector<Parameter>& getArgs() const;
 
     /**
      * @return The ret kind of the type constructor
@@ -78,7 +87,7 @@ public:
 
 private:
 
-    std::vector<KindSpecifyingExpression*> _args;
+    std::vector<Parameter> _args;
     KindSpecifyingExpression* _ret;
 };
 

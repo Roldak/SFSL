@@ -35,7 +35,19 @@ SFSL_AST_ON_VISIT_CPP(ProperTypeKindSpecifier)
 
 // TYPE CONSTRUCTOR KIND SPECIFIER
 
-TypeConstructorKindSpecifier::TypeConstructorKindSpecifier(const std::vector<KindSpecifyingExpression*>& args, KindSpecifyingExpression* ret)
+TypeConstructorKindSpecifier::Parameter::Parameter() : varianceType(VAR_T_NONE), kindExpr(nullptr) {
+
+}
+
+TypeConstructorKindSpecifier::Parameter::Parameter(VARIANCE_TYPE vt, KindSpecifyingExpression* expr) : varianceType(vt), kindExpr(expr) {
+
+}
+
+TypeConstructorKindSpecifier::Parameter::operator bool() const {
+    return kindExpr;
+}
+
+TypeConstructorKindSpecifier::TypeConstructorKindSpecifier(const std::vector<Parameter>& args, KindSpecifyingExpression* ret)
     : _args(args), _ret(ret) {
 
 }
@@ -46,7 +58,7 @@ TypeConstructorKindSpecifier::~TypeConstructorKindSpecifier() {
 
 SFSL_AST_ON_VISIT_CPP(TypeConstructorKindSpecifier)
 
-const std::vector<KindSpecifyingExpression*>& TypeConstructorKindSpecifier::getArgs() const {
+const std::vector<TypeConstructorKindSpecifier::Parameter>& TypeConstructorKindSpecifier::getArgs() const {
     return _args;
 }
 

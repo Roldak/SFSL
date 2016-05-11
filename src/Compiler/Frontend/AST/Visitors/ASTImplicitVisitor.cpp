@@ -79,8 +79,8 @@ void ASTImplicitVisitor::visit(ProperTypeKindSpecifier* ptks) {
 }
 
 void ASTImplicitVisitor::visit(TypeConstructorKindSpecifier* tcks) {
-    for (KindSpecifyingExpression* arg : tcks->getArgs()) {
-        arg->onVisit(this);
+    for (TypeConstructorKindSpecifier::Parameter arg : tcks->getArgs()) {
+        arg.kindExpr->onVisit(this);
     }
     tcks->getRet()->onVisit(this);
 }

@@ -9,6 +9,8 @@
 #ifndef __SFSL__Miscellanous__
 #define __SFSL__Miscellanous__
 
+#include <iostream>
+
 namespace sfsl {
 
 namespace ast {
@@ -18,6 +20,8 @@ enum VARIANCE_TYPE {
     VAR_T_IN,
     VAR_T_OUT
 };
+
+std::string varianceTypeToString(VARIANCE_TYPE vt, bool addSpaceIfNotNone = false);
 
 }
 

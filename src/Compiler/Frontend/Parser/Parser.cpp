@@ -619,7 +619,7 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
 
 Tuple* Parser::parseTuple() {
     std::vector<Expression*> exprs;
-    return parseTuple<Tuple, tok::OPER_R_PAREN, Expression>(exprs, [&](){return parseExpression();});
+    return parseTuple<Tuple, tok::OPER_R_PAREN, Expression*>(exprs, [&](){return parseExpression();});
 }
 
 TypeExpression* Parser::parseTypeExpression(bool allowTypeConstructor) {
@@ -683,7 +683,7 @@ TypeExpression* Parser::createFunctionTypeDecl(const TypeTuple* typeParams, cons
 
 TypeTuple* Parser::parseTypeTuple() {
     std::vector<TypeExpression*> exprs;
-    return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression>(exprs, [&](){return parseTypeExpression();});
+    return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression*>(exprs, [&](){return parseTypeExpression();});
 }
 
 TypeTuple* Parser::parseTypeParameters(bool allowVarianceAnnotations) {
@@ -754,7 +754,7 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
             exprs.push_back(parseTypeParameters(true));
             if (accept(tok::OPER_L_PAREN)) {
                 std::vector<TypeExpression*> args;
-                parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(args, [&](){return parseTypeExpression();});
+                parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression*>(args, [&](){return parseTypeExpression();});
                 if (expect(tok::OPER_THIN_ARROW, "`->`")) {
                     exprs[0] = createFunctionTypeDecl(static_cast<TypeTuple*>(exprs[0]), args, parseTypeExpression(allowTypeConstructor));
                     // - arrowNecessary will be false since expr.size() == 1,
@@ -763,7 +763,7 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
                 }
             }
         } else if (accept(tok::OPER_L_PAREN)) {
-            parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression>(exprs, [&](){return parseTypeExpression();});
+            parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression*>(exprs, [&](){return parseTypeExpression();});
         } else {
             _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
             accept();
@@ -814,7 +814,7 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
 
 KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
     KindSpecifyingExpression* toRet = nullptr;
-    std::vector<KindSpecifyingExpression*> exprs;
+    std::vector<TypeConstructorKindSpecifier::Parameter> exprs;
     bool arrowNecessary = false;
 
     SAVE_POS(startPos)
@@ -823,10 +823,10 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
     case tok::TOK_OPER:
         if (accept(tok::OPER_TIMES)) {
             toRet = _mngr.New<ProperTypeKindSpecifier>();
-            exprs.push_back(toRet);
+            exprs.push_back(TypeConstructorKindSpecifier::Parameter(VAR_T_NONE, toRet));
         } else if (accept(tok::OPER_L_BRACKET)) {
-            parseTuple<TypeConstructorKindSpecifier, tok::OPER_R_BRACKET, KindSpecifyingExpression>(
-                        exprs, [&](){return parseKindSpecifyingExpression();});
+            parseTuple<TypeConstructorKindSpecifier, tok::OPER_R_BRACKET, TypeConstructorKindSpecifier::Parameter>(
+                        exprs, [&](){return parseTypeConstructorKindSpecifierParameter();});
 
             arrowNecessary = true;
         }
@@ -852,6 +852,22 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
     }
 
     return toRet;
+}
+
+TypeConstructorKindSpecifier::Parameter Parser::parseTypeConstructorKindSpecifierParameter() {
+    TypeConstructorKindSpecifier::Parameter param;
+
+    if (accept(tok::KW_IN)) {
+        param.varianceType = VAR_T_IN;
+    } else if (accept(tok::KW_OUT)) {
+        param.varianceType = VAR_T_OUT;
+    } else {
+        param.varianceType = VAR_T_NONE;
+    }
+
+    param.kindExpr = parseKindSpecifyingExpression();
+
+    return param;
 }
 
 void Parser::parseAnnotations() {
@@ -963,13 +979,13 @@ CanUseModules::ModulePath Parser::parseUsing(const common::Positionnable& usingp
 }
 
 template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
-RETURN_TYPE* Parser::parseTuple(std::vector<ELEMENT_TYPE*>& exprs, const PARSING_FUNC& f) {
+RETURN_TYPE* Parser::parseTuple(std::vector<ELEMENT_TYPE>& exprs, const PARSING_FUNC& f) {
 
     SAVE_POS(startPos)
 
     if (!accept(R_DELIM)) {
         do {
-            if (ELEMENT_TYPE* arg = f()){
+            if (ELEMENT_TYPE arg = f()){
                 exprs.push_back(arg);
             }
         } while (accept(tok::OPER_COMMA) && !accept(tok::TOK_EOF));

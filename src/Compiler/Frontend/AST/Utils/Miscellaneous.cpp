@@ -7,3 +7,20 @@
 //
 
 #include "Miscellaneous.h"
+
+namespace sfsl {
+
+namespace ast {
+
+std::string varianceTypeToString(VARIANCE_TYPE vt, bool addSpaceIfNotNone) {
+    std::string suffix = addSpaceIfNotNone ? " " : "";
+    switch (vt) {
+    case VAR_T_IN:  return std::string("in") + suffix;
+    case VAR_T_OUT: return std::string("out") + suffix;
+    default:        return "";
+    }
+}
+
+}
+
+}
