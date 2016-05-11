@@ -18,6 +18,7 @@
 #include "../../Types/CanSubtype.h"
 
 #include "../Utils/Annotations.h"
+#include "../Utils/Miscellaneous.h"
 
 namespace sfsl {
 
@@ -314,12 +315,6 @@ public:
  */
 class TypeParameter : public TypeExpression {
 public:
-    enum VARIANCE_TYPE {
-        VAR_T_NONE,
-        VAR_T_IN,
-        VAR_T_OUT
-    };
-
     TypeParameter(VARIANCE_TYPE varianceType, TypeIdentifier* specified, KindSpecifyingExpression* type);
     virtual ~TypeParameter();
 

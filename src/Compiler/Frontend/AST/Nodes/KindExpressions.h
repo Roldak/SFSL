@@ -14,6 +14,7 @@
 #include "ASTNode.h"
 
 #include "../../Kinds/Kinds.h"
+#include "../Utils/Miscellaneous.h"
 
 namespace sfsl {
 

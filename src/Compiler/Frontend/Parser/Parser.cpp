@@ -695,19 +695,19 @@ TypeTuple* Parser::parseTypeParameters(bool allowVarianceAnnotations) {
         do {
             SAVE_POS(tpStartPos)
 
-            TypeParameter::VARIANCE_TYPE vt;
+            VARIANCE_TYPE vt;
             TypeIdentifier* ident;
             KindSpecifyingExpression* kindExpr;
 
             if (accept(tok::KW_IN)) {
-                vt = TypeParameter::VAR_T_IN;
+                vt = VAR_T_IN;
             } else if (accept(tok::KW_OUT)) {
-                vt = TypeParameter::VAR_T_OUT;
+                vt = VAR_T_OUT;
             } else {
-                vt = TypeParameter::VAR_T_NONE;
+                vt = VAR_T_NONE;
             }
 
-            if (vt != TypeParameter::VAR_T_NONE && !allowVarianceAnnotations) {
+            if (vt != VAR_T_NONE && !allowVarianceAnnotations) {
                 _ctx->reporter().error(tpStartPos, "Variance annotation are not allowed in this context");
             }
 
