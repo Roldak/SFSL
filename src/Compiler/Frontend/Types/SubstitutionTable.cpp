@@ -15,6 +15,16 @@ namespace type {
 
 namespace impl {
 
+SubstitutionTable::Substitution::Substitution()
+    : varianceType(common::VAR_T_NONE), key(nullptr), value(nullptr) {
+
+}
+
+SubstitutionTable::Substitution::Substitution(common::VARIANCE_TYPE vt, Type* k, Type* v)
+    : varianceType(vt), key(k), value(v) {
+
+}
+
 SubstitutionTable::SubstitutionComparator SubstitutionTable::Comparator;
 
 SubstitutionTable::SubstitutionTable() {
@@ -41,15 +51,15 @@ void SubstitutionTable::insert(SubstitutionTable::const_iterator b, Substitution
 Type*& SubstitutionTable::operator [](Type* key) {
     iterator it = find(key);
     if (it != end()) {
-        return it->second;
+        return it->value;
     } else {
-        return insert(std::make_pair(key, nullptr))->second;
+        return insert(Substitution(common::VAR_T_NONE, key, nullptr))->value;
     }
 }
 
 SubstitutionTable::iterator SubstitutionTable::find(const Type* key) {
     for (size_t i = 0, e = _subs.size(); i < e; ++i) {
-        if (_subs[i].first == key) {
+        if (_subs[i].key == key) {
             return begin() + i;
         }
     }
@@ -58,7 +68,7 @@ SubstitutionTable::iterator SubstitutionTable::find(const Type* key) {
 
 SubstitutionTable::const_iterator SubstitutionTable::find(const Type* key) const {
     for (size_t i = 0, e = _subs.size(); i < e; ++i) {
-        if (_subs[i].first == key) {
+        if (_subs[i].key == key) {
             return begin() + i;
         }
     }
@@ -82,7 +92,7 @@ SubstitutionTable::const_iterator SubstitutionTable::end() const {
 }
 
 bool SubstitutionTable::SubstitutionComparator::operator ()(const SubstitutionTable::Substitution& a, const SubstitutionTable::Substitution& b) const {
-    return a.first < b.first;
+    return a.key < b.key;
 }
 
 }

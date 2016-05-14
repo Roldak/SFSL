@@ -72,7 +72,7 @@ std::string Type::toString() const {
     if (!_subTable.empty()) {
         toRet += "{";
         for (const auto& pair : _subTable) {
-            toRet += pair.first->toString() + "=>" + pair.second->toString() + ", ";
+            toRet += pair.key->toString() + "=>" + pair.value->toString() + ", ";
         }
         toRet = toRet.substr(0, toRet.size() - 2) + "}";
     }
@@ -91,14 +91,14 @@ Type* Type::findSubstitution(const SubstitutionTable& table, Type* toFind, bool*
         *matched = m;
     }
 
-    return m ? found->second : toFind;
+    return m ? found->value : toFind;
 }
 
 bool Type::applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to) {
     bool matched = false;
     for (auto& pair : to) {
         bool tmp;
-        pair.second = findSubstitution(env, pair.second, &tmp);
+        pair.value = findSubstitution(env, pair.value, &tmp);
         matched |= tmp;
     }
     return matched;
@@ -110,8 +110,8 @@ Type* Type::NotYetDefined() {
 }
 
 std::string Type::debugSubstitutionTableToString(const SubstitutionTable& table) {
-    return std::accumulate(table.begin(), table.end(), std::string("{"), [](const std::string& str, const std::pair<Type*, Type*>& pair) {
-        return str + pair.first->toString() + " => " + pair.second->toString() + " ; ";
+    return std::accumulate(table.begin(), table.end(), std::string("{"), [](const std::string& str, const SubstitutionTable::Substitution& sub) {
+        return str + common::varianceTypeToString(sub.varianceType, true) + sub.key->toString() + " => " + sub.value->toString() + " ; ";
     }) + "}";
 }
 
@@ -145,7 +145,7 @@ Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
     // check if already exists (not an optimization, but a needed operation)
 
     kind::Kind* tpeKind = tpe->kind();
-    type::Type* cachedType = nullptr;
+    type::Type* cachedType;
 
     if (holder->findCachedDefaultGeneric(tpeKind, &cachedType)) {
         return cachedType;
@@ -218,15 +218,29 @@ TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
 bool ProperType::isSubTypeOf(const Type* other) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
         if (_class->CanSubtypeClasses::extends(objother->_class)) {
-            const SubstitutionTable& osub = objother->getSubstitutionTable();
+            const SubstitutionTable& osubs = objother->getSubstitutionTable();
 
-            //std::cout << toString() << " : " << debugSubstitutionTableToString(getSubstitutionTable()) << std::endl;
-            //std::cout << other->toString() << " : " << debugSubstitutionTableToString(other->getSubstitutionTable()) << std::endl;
+            std::cout << toString() << " : " << debugSubstitutionTableToString(getSubstitutionTable()) << std::endl;
+            std::cout << other->toString() << " : " << debugSubstitutionTableToString(other->getSubstitutionTable()) << std::endl;
 
-            for (const auto& pair : _subTable) {
-                const auto& subpair = osub.find(pair.first);
-                if (subpair != osub.end() && !pair.second->isSubTypeOf(subpair->second)) { // TODO support contravariance maybe?
+            for (const SubstitutionTable::Substitution& osub : osubs) {
+                const auto& sub = _subTable.find(osub.key);
+
+                if (sub == _subTable.end()) {
                     return false;
+                } else switch (osub.varianceType) {
+                case common::VAR_T_IN:
+                    if (!osub.value->isSubTypeOf(sub->value))
+                        return false;
+                    break;
+                case common::VAR_T_OUT:
+                    if (!sub->value->isSubTypeOf(osub.value))
+                        return false;
+                    break;
+                default:
+                    if (!sub->value->isSubTypeOf(osub.value) || !osub.value->isSubTypeOf(sub->value))
+                        return false;
+                    break;
                 }
             }
             return true;

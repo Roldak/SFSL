@@ -228,7 +228,7 @@ type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParametriz
     const std::vector<type::TypeParametrizable::Parameter>& syms(param->getDependencies());
 
     for (type::TypeParametrizable::Parameter ts : syms) {
-        table.insert(std::make_pair(ts.symbol->type(), ts.symbol->type()));
+        table.insert(type::SubstitutionTable::Substitution(ts.varianceType, ts.symbol->type(), ts.symbol->type()));
     }
 
     return table;
