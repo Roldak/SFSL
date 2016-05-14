@@ -48,7 +48,7 @@ public:
     virtual void visit(TypeConstructorCall* tcall) override;
     virtual void visit(TypeIdentifier* tident) override;
     virtual void visit(TypeToBeInferred* tbi) override;
-    virtual void visit(KindSpecifier* ks) override;
+    virtual void visit(TypeParameter* tparam) override;
 
     virtual void visit(ExpressionStatement* exp) override;
 

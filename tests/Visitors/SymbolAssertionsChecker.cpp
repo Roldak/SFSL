@@ -42,9 +42,9 @@ void SymbolAssertionsChecker::visit(ast::DefineDecl* decl) {
     ASTImplicitVisitor::visit(decl);
 }
 
-void SymbolAssertionsChecker::visit(ast::KindSpecifier* ks) {
-    tryAddTestSymbol(ks->getSpecified()->getSymbol());
-    ASTImplicitVisitor::visit(ks);
+void SymbolAssertionsChecker::visit(ast::TypeParameter* tparam) {
+    tryAddTestSymbol(tparam->getSpecified()->getSymbol());
+    ASTImplicitVisitor::visit(tparam);
 }
 
 void SymbolAssertionsChecker::visit(ast::FunctionCall* call) {

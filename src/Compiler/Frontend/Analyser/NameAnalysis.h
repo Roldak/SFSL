@@ -69,7 +69,7 @@ public:
     virtual void visit(FunctionTypeDecl* ftdecl) override;
 
     virtual void visit(TypeConstructorCreation* tc) override;
-    virtual void visit(KindSpecifier* ks) override;
+    virtual void visit(TypeParameter* tparam) override;
 
     virtual void visit(Block* block) override;
     virtual void visit(FunctionCreation* func) override;
@@ -104,13 +104,15 @@ public:
 
 private:
 
+    typedef type::TypeParametrizable::Parameter Parameter;
+
     size_t pushTypeParameters(const std::vector<TypeExpression*>& typeParams);
     void popTypeParameters(size_t pushed);
 
     template<typename T>
     void debugDumpDependencies(const T* param) const;
 
-    std::vector<sym::TypeSymbol*> _parameters;
+    std::vector<Parameter> _parameters;
 };
 
 /**

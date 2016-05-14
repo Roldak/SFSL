@@ -233,23 +233,28 @@ TypeToBeInferred::~TypeToBeInferred() {
 
 SFSL_AST_ON_VISIT_CPP(TypeToBeInferred)
 
-// KIND SPECIFIER
+// TYPE PARAMETER
 
-KindSpecifier::KindSpecifier(TypeIdentifier* specified, KindSpecifyingExpression* kind) : _specified(specified), _kind(kind) {
-
-}
-
-KindSpecifier::~KindSpecifier() {
+TypeParameter::TypeParameter(common::VARIANCE_TYPE varianceType, TypeIdentifier* specified, KindSpecifyingExpression* kind)
+    : _varianceType(varianceType), _specified(specified), _kind(kind) {
 
 }
 
-SFSL_AST_ON_VISIT_CPP(KindSpecifier)
+TypeParameter::~TypeParameter() {
 
-TypeIdentifier* KindSpecifier::getSpecified() const {
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeParameter)
+
+common::VARIANCE_TYPE TypeParameter::getVarianceType() const {
+    return _varianceType;
+}
+
+TypeIdentifier* TypeParameter::getSpecified() const {
     return _specified;
 }
 
-KindSpecifyingExpression* KindSpecifier::getKindNode() const {
+KindSpecifyingExpression* TypeParameter::getKindNode() const {
     return _kind;
 }
 

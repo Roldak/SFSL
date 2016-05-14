@@ -220,7 +220,7 @@ void TypeChecking::visit(DefineDecl* decl) {
         if (foundType) {
             type::Type* appliedFT = foundType->applyTCCallsOnly(_ctx);
             if (!type::getIf<type::ProperType>(appliedFT) && !type::getIf<type::MethodType>(appliedFT)) {
-                _rep.error(*decl->getValue(), "Right-hand side of definition must evaluate to a proper type. Found " + foundType->toString());
+                _rep.error(*decl->getValue(), "Right-hand side of definition must evaluate to a proper type. Found " + foundType->apply(_ctx)->toString());
             }
         }
 
@@ -275,7 +275,7 @@ void TypeChecking::visit(AssignmentExpression* aex) {
         tbi->assignInferredType(rhsT);
     } else if (!rhsT->apply(_ctx)->isSubTypeOf(lhsT->apply(_ctx))) {
         _rep.error(*aex, "Assigning incompatible type. Expected " +
-                   lhsT->toString() + ", found " + rhsT->toString());
+                   lhsT->apply(_ctx)->toString() + ", found " + rhsT->apply(_ctx)->toString());
     }
 
     aex->setType(rhsT);
@@ -320,7 +320,7 @@ void TypeChecking::visit(IfExpression* ifexpr) {
     ASTImplicitVisitor::visit(ifexpr);
 
     if (!ifexpr->getCondition()->type()->apply(_ctx)->isSubTypeOf(_res.Bool())) {
-        _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (Found " + ifexpr->getCondition()->type()->toString() + ")");
+        _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (Found " + ifexpr->getCondition()->type()->apply(_ctx)->toString() + ")");
     }
 
     type::Type* thenType = ifexpr->getThen()->type();
@@ -334,12 +334,12 @@ void TypeChecking::visit(IfExpression* ifexpr) {
             ifexpr->setType(thenType);
         } else {
             _rep.error(*ifexpr, "The then-part and else-part have different types. Found " +
-                       thenType->toString() + " and " + elseType->toString());
+                       thenType->apply(_ctx)->toString() + " and " + elseType->apply(_ctx)->toString());
         }
     } else {
         if (!thenType->apply(_ctx)->isSubTypeOf(_res.Unit())) {
             _rep.error(*ifexpr->getThen(), "An if-expression without else-part must have its then-part evaluate to unit. Found " +
-                       thenType->toString());
+                       thenType->apply(_ctx)->toString());
         }
         ifexpr->setType(_res.Unit());
     }
@@ -524,7 +524,7 @@ void TypeChecking::visit(Instantiation* inst) {
         }
         inst->setType(pt);
     } else {
-        _rep.error(*inst, "Only classes can be instantiated. Found " + instType->toString());
+        _rep.error(*inst, "Only classes can be instantiated. Found " + instType->apply(_ctx)->toString());
     }
 }
 
@@ -677,7 +677,7 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
     }
 
     _rep.error(*def, "Could not find the definition overriden by " +
-               def->getName() + " (which has type " + def->type()->toString() + ")");
+               def->getName() + " (which has type " + def->type()->apply(_ctx)->toString() + ")");
 
     return nullptr;
 }

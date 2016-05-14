@@ -133,7 +133,7 @@ void AST2BAST::visit(ast::TypeToBeInferred* tbi) {
     makeBad();
 }
 
-void AST2BAST::visit(ast::KindSpecifier* ks) {
+void AST2BAST::visit(ast::TypeParameter* tparam) {
     makeBad();
 }
 

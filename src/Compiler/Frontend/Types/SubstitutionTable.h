@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <map>
+#include "../Common/Miscellaneous.h"
 
 namespace sfsl {
 
@@ -25,7 +26,17 @@ namespace impl {
  */
 class SubstitutionTable final {
 public:
-    typedef std::pair<Type*, Type*> Substitution;
+    //typedef std::pair<Type*, Type*> Substitution;
+
+    struct Substitution {
+        Substitution();
+        Substitution(common::VARIANCE_TYPE vt, Type* k, Type* v);
+
+        common::VARIANCE_TYPE varianceType;
+        Type* key;
+        Type* value;
+    };
+
     typedef std::vector<Substitution>::iterator iterator;
     typedef std::vector<Substitution>::const_iterator const_iterator;
 
@@ -47,6 +58,8 @@ public:
 
     iterator end();
     const_iterator end() const;
+
+    size_t size() const;
 
 private:
 

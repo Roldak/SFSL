@@ -172,7 +172,7 @@ void BASTPrinter::visit(UnitLitteral* unitlit) {
 }
 
 void BASTPrinter::visit(BoolLitteral* boollit) {
-    _ostream << boollit->getValue();
+    _ostream << (boollit->getValue() ? "true" : "false");
 }
 
 void BASTPrinter::visit(IntLitteral* intlit) {

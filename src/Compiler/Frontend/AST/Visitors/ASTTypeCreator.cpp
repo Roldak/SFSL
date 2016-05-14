@@ -32,7 +32,20 @@ void ASTTypeCreator::visit(ASTNode*) {
 }
 
 void ASTTypeCreator::visit(ClassDecl* clss) {
-    _created = _mngr.New<type::ProperType>(clss, buildSubstitutionTableFromTypeParametrizable(clss));
+    type::SubstitutionTable finalTable;
+
+    if (clss->getParent()) {
+        clss->getParent()->onVisit(this);
+        if (_created) {
+            if (type::ProperType* parent = type::getIf<type::ProperType>(_created->apply(_ctx))) {
+                finalTable = parent->getSubstitutionTable();
+            }
+        }
+    }
+    type::SubstitutionTable thisTable(buildSubstitutionTableFromTypeParametrizable(clss));
+    finalTable.insert(thisTable.begin(), thisTable.end());
+
+    _created = _mngr.New<type::ProperType>(clss, finalTable);
 }
 
 void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
@@ -193,7 +206,7 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
 void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos) {
     std::vector<sym::TypeSymbol*> typeSyms;
     for (const auto& symData : symbolic->getSymbolDatas()) {
-        if (symData.symbol->getSymbolType() == sym::SYM_TPE) {
+        if (symData.symbol && symData.symbol->getSymbolType() == sym::SYM_TPE) {
             typeSyms.push_back(static_cast<sym::TypeSymbol*>(symData.symbol));
         }
     }
@@ -225,10 +238,10 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic
 
 type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParametrizable(type::TypeParametrizable* param) {
     type::SubstitutionTable table;
-    const std::vector<sym::TypeSymbol*>& syms(param->getDependencies());
+    const std::vector<type::TypeParametrizable::Parameter>& syms(param->getDependencies());
 
-    for (sym::TypeSymbol* ts : syms) {
-        table.insert(std::make_pair(ts->type(), ts->type()));
+    for (type::TypeParametrizable::Parameter ts : syms) {
+        table.insert(type::SubstitutionTable::Substitution(ts.varianceType, ts.symbol->type(), ts.symbol->type()));
     }
 
     return table;
@@ -238,8 +251,8 @@ type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParameterI
         std::vector<TypeExpression*> params, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx) {
 
     for (TypeExpression*& param : params) {
-        if (isNodeOfType<KindSpecifier>(param, ctx)) {
-            param = static_cast<KindSpecifier*>(param)->getSpecified();
+        if (isNodeOfType<TypeParameter>(param, ctx)) {
+            param = static_cast<TypeParameter*>(param)->getSpecified();
         }
     }
 

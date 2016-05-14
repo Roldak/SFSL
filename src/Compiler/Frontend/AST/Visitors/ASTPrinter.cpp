@@ -139,7 +139,9 @@ void ASTPrinter::visit(ProperTypeKindSpecifier*) {
 void ASTPrinter::visit(TypeConstructorKindSpecifier* tcks) {
     _ostream << "[";
     for (size_t i = 0; i < tcks->getArgs().size(); ++i) {
-        tcks->getArgs()[i]->onVisit(this);
+        TypeConstructorKindSpecifier::Parameter param = tcks->getArgs()[i];
+        _ostream << varianceTypeToString(param.varianceType, true);
+        param.kindExpr->onVisit(this);
         if (i != tcks->getArgs().size() - 1) {
             _ostream << ", ";
         }
@@ -216,10 +218,15 @@ void ASTPrinter::visit(TypeToBeInferred*) {
 
 }
 
-void ASTPrinter::visit(KindSpecifier* ks) {
-    ks->getSpecified()->onVisit(this);
+void ASTPrinter::visit(TypeParameter* tparam) {
+    switch (tparam->getVarianceType()) {
+    case common::VAR_T_IN:   _ostream << "in "; break;
+    case common::VAR_T_OUT:  _ostream << "out "; break;
+    case common::VAR_T_NONE: _ostream << ""; break;
+    }
+    tparam->getSpecified()->onVisit(this);
     _ostream << " : ";
-    ks->getKindNode()->onVisit(this);
+    tparam->getKindNode()->onVisit(this);
 }
 
 void ASTPrinter::visit(ExpressionStatement* exp) {

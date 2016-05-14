@@ -1,0 +1,27 @@
+module test {
+    type Box[T] => class {
+        x: T;
+        new() => {}
+    }
+    
+    type OutBox[out T] => class {
+        x: T;
+        new() => {}
+    }
+    
+    type InBox[in T] => class {
+        x: T;
+        new() => {}
+    }
+    
+    type A = class {}
+    type B = class : A {}
+    
+    def t1: Box[A] = Box[A]()
+    
+    def t2: InBox[A] = InBox[A]()
+    def t3: InBox[B] = InBox[A]()
+    
+    def t4: OutBox[A] = OutBox[A]()
+    def t5: OutBox[A] = OutBox[B]()
+}

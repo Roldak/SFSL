@@ -78,7 +78,7 @@ public:
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
     virtual void visit(TypeConstructorCall* tcall) override;
     virtual void visit(TypeIdentifier* tident) override;
-    virtual void visit(KindSpecifier* ks) override;
+    virtual void visit(TypeParameter* tparam) override;
 
     virtual void visit(ExpressionStatement* exp) override;
 

@@ -80,7 +80,7 @@ void ASTExplicitVisitor::visit(TypeToBeInferred*) {
 
 }
 
-void ASTExplicitVisitor::visit(KindSpecifier*) {
+void ASTExplicitVisitor::visit(TypeParameter*) {
 
 }
 

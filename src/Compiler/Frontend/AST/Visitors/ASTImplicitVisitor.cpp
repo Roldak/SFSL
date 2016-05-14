@@ -79,8 +79,8 @@ void ASTImplicitVisitor::visit(ProperTypeKindSpecifier* ptks) {
 }
 
 void ASTImplicitVisitor::visit(TypeConstructorKindSpecifier* tcks) {
-    for (KindSpecifyingExpression* arg : tcks->getArgs()) {
-        arg->onVisit(this);
+    for (TypeConstructorKindSpecifier::Parameter arg : tcks->getArgs()) {
+        arg.kindExpr->onVisit(this);
     }
     tcks->getRet()->onVisit(this);
 }
@@ -124,10 +124,9 @@ void ASTImplicitVisitor::visit(TypeIdentifier*) {
 void ASTImplicitVisitor::visit(TypeToBeInferred*) {
 
 }
-
-void ASTImplicitVisitor::visit(KindSpecifier* ks) {
-    ks->getSpecified()->onVisit(this);
-    ks->getKindNode()->onVisit(this);
+void ASTImplicitVisitor::visit(TypeParameter* tparam) {
+    tparam->getSpecified()->onVisit(this);
+    tparam->getKindNode()->onVisit(this);
 }
 
 void ASTImplicitVisitor::visit(ExpressionStatement* exp) {

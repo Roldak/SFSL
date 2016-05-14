@@ -18,6 +18,7 @@
 #include "../../Types/CanSubtype.h"
 
 #include "../Utils/Annotations.h"
+#include "../../Common/Miscellaneous.h"
 
 namespace sfsl {
 
@@ -310,27 +311,33 @@ public:
 };
 
 /**
- * @brief Represents a kind specifying expression, e.g `T: [*]->*`
+ * @brief Represents a type parameter (e.g. `in T: *->*`)
  */
-class KindSpecifier : public TypeExpression {
+class TypeParameter : public TypeExpression {
 public:
-    KindSpecifier(TypeIdentifier* specified, KindSpecifyingExpression* type);
-    virtual ~KindSpecifier();
+    TypeParameter(common::VARIANCE_TYPE varianceType, TypeIdentifier* specified, KindSpecifyingExpression* type);
+    virtual ~TypeParameter();
 
     SFSL_AST_ON_VISIT_H
 
     /**
-     * @return The specified part
+     * @return The variance annotation (`in`, `out`, or not specified)
+     */
+    common::VARIANCE_TYPE getVarianceType() const;
+
+    /**
+     * @return The specified part (e.g. `T`)
      */
     TypeIdentifier* getSpecified() const;
 
     /**
-     * @return The type part
+     * @return The kind part (e.g. `*->*`)
      */
     KindSpecifyingExpression* getKindNode() const;
 
 private:
 
+    common::VARIANCE_TYPE _varianceType;
     TypeIdentifier* _specified;
     KindSpecifyingExpression* _kind;
 };

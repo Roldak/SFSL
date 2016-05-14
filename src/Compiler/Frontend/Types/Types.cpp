@@ -57,6 +57,10 @@ Type::~Type() {
 
 }
 
+bool Type::equals(const Type* other) const {
+    return isSubTypeOf(other) && other->isSubTypeOf(this);
+}
+
 const static SubstitutionTable DefaultTable = {};
 
 Type* Type::apply(CompCtx_Ptr&) const {
@@ -72,7 +76,7 @@ std::string Type::toString() const {
     if (!_subTable.empty()) {
         toRet += "{";
         for (const auto& pair : _subTable) {
-            toRet += pair.first->toString() + "=>" + pair.second->toString() + ", ";
+            toRet += pair.key->toString() + "=>" + pair.value->toString() + ", ";
         }
         toRet = toRet.substr(0, toRet.size() - 2) + "}";
     }
@@ -91,17 +95,32 @@ Type* Type::findSubstitution(const SubstitutionTable& table, Type* toFind, bool*
         *matched = m;
     }
 
-    return m ? found->second : toFind;
+    return m ? found->value : toFind;
 }
 
 bool Type::applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to) {
     bool matched = false;
     for (auto& pair : to) {
         bool tmp;
-        pair.second = findSubstitution(env, pair.second, &tmp);
+        pair.value = findSubstitution(env, pair.value, &tmp);
         matched |= tmp;
     }
     return matched;
+}
+
+bool Type::substitutionsEquals(const SubstitutionTable& env1, const SubstitutionTable& env2) {
+    if (env1.size() != env2.size()) {
+        return false;
+    }
+
+    for (const SubstitutionTable::Substitution& sub1 : env1) {
+        const auto& sub2it = env2.find(sub1.key);
+        if (sub2it == env2.end() || !sub1.value->equals(sub2it->value)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 Type* Type::NotYetDefined() {
@@ -110,8 +129,8 @@ Type* Type::NotYetDefined() {
 }
 
 std::string Type::debugSubstitutionTableToString(const SubstitutionTable& table) {
-    return std::accumulate(table.begin(), table.end(), std::string("{"), [](const std::string& str, const std::pair<Type*, Type*>& pair) {
-        return str + pair.first->toString() + " => " + pair.second->toString() + " ; ";
+    return std::accumulate(table.begin(), table.end(), std::string("{"), [](const std::string& str, const SubstitutionTable::Substitution& sub) {
+        return str + common::varianceTypeToString(sub.varianceType, true) + sub.key->toString() + " => " + sub.value->toString() + " ; ";
     }) + "}";
 }
 
@@ -145,7 +164,7 @@ Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
     // check if already exists (not an optimization, but a needed operation)
 
     kind::Kind* tpeKind = tpe->kind();
-    type::Type* cachedType = nullptr;
+    type::Type* cachedType;
 
     if (holder->findCachedDefaultGeneric(tpeKind, &cachedType)) {
         return cachedType;
@@ -155,8 +174,8 @@ Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
 
     ast::KindSpecifyingExpression* kse;
 
-    if (ast::isNodeOfType<ast::KindSpecifier>(tpe, ctx)) {
-        kse = static_cast<ast::KindSpecifier*>(tpe)->getKindNode();
+    if (ast::isNodeOfType<ast::TypeParameter>(tpe, ctx)) {
+        kse = static_cast<ast::TypeParameter*>(tpe)->getKindNode();
     } else {
         kse = &proper;
     }
@@ -182,6 +201,10 @@ TYPE_KIND TypeToBeInferred::getTypeKind() const {
 
 bool TypeToBeInferred::isSubTypeOf(const Type*) const {
     return false;
+}
+
+bool TypeToBeInferred::equals(const Type* other) const {
+    return this == other;
 }
 
 Type* TypeToBeInferred::substitute(const SubstitutionTable&, CompCtx_Ptr&) const {
@@ -218,18 +241,38 @@ TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
 bool ProperType::isSubTypeOf(const Type* other) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
         if (_class->CanSubtypeClasses::extends(objother->_class)) {
-            const SubstitutionTable& osub = objother->getSubstitutionTable();
+            const SubstitutionTable& osubs = objother->getSubstitutionTable();
 
-            //std::cout << toString() << " : " << debugSubstitutionTableToString(getSubstitutionTable()) << std::endl;
-            //std::cout << other->toString() << " : " << debugSubstitutionTableToString(other->getSubstitutionTable()) << std::endl;
+            for (const SubstitutionTable::Substitution& osub : osubs) {
+                const auto& sub = _subTable.find(osub.key);
 
-            for (const auto& pair : _subTable) {
-                const auto& subpair = osub.find(pair.first);
-                if (subpair != osub.end() && !pair.second->isSubTypeOf(subpair->second)) { // TODO support contravariance maybe?
+                if (sub == _subTable.end()) {
                     return false;
+                } else switch (osub.varianceType) {
+                case common::VAR_T_IN:
+                    if (!osub.value->isSubTypeOf(sub->value))
+                        return false;
+                    break;
+                case common::VAR_T_OUT:
+                    if (!sub->value->isSubTypeOf(osub.value))
+                        return false;
+                    break;
+                default:
+                    if (!sub->value->equals(osub.value))
+                        return false;
+                    break;
                 }
             }
             return true;
+        }
+    }
+    return false;
+}
+
+bool ProperType::equals(const Type* other) const {
+    if (ProperType* objother = getIf<ProperType>(other)) {
+        if (_class == objother->getClass()) {
+            return substitutionsEquals(_subTable, other->getSubstitutionTable());
         }
     }
     return false;
@@ -296,6 +339,38 @@ bool FunctionType::isSubTypeOf(const Type* other) const {
         }
 
         return _retType->isSubTypeOf(oRetType);
+    }
+
+    return false;
+}
+
+bool FunctionType::equals(const Type* other) const {
+    if (FunctionType* f = getIf<FunctionType>(other)) {
+        const std::vector<ast::TypeExpression*>& oTypeArgs = f->getTypeArgs();
+        const std::vector<Type*>& oArgTypes = f->getArgTypes();
+        const Type* oRetType = f->getRetType();
+
+        if (_typeArgs.size() != oTypeArgs.size()) {
+            return false;
+        }
+
+        if (_argTypes.size() != oArgTypes.size()) {
+            return false;
+        }
+
+        for (size_t i = 0; i < _typeArgs.size(); ++i) {
+            if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind())) {
+                return false;
+            }
+        }
+
+        for (size_t i = 0; i < _argTypes.size(); ++i) {
+            if (!oArgTypes[i]->equals(_argTypes[i])) {
+                return false;
+            }
+        }
+
+        return _retType->equals(oRetType);
     }
 
     return false;
@@ -408,6 +483,39 @@ bool MethodType::isSubTypeOf(const Type* other) const {
     return false;
 }
 
+bool MethodType::equals(const Type* other) const {
+    if (MethodType* m = getIf<MethodType>(other)) {
+        const std::vector<ast::TypeExpression*>& oTypeArgs = m->getTypeArgs();
+        const std::vector<Type*>& oArgTypes = m->getArgTypes();
+        const Type* oRetType = m->getRetType();
+
+        if (_typeArgs.size() != oTypeArgs.size()) {
+            return false;
+        }
+
+
+        if (_argTypes.size() != oArgTypes.size()) {
+            return false;
+        }
+
+        for (size_t i = 0; i < _typeArgs.size(); ++i) {
+            if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind())) {
+                return false;
+            }
+        }
+
+        for (size_t i = 0; i < _argTypes.size(); ++i) {
+            if (!oArgTypes[i]->equals(_argTypes[i])) {
+                return false;
+            }
+        }
+
+        return _retType->equals(oRetType);
+    }
+
+    return false;
+}
+
 std::string MethodType::toString() const {
     std::string toRet = "([" + _owner->getName() + "]";
 
@@ -486,8 +594,13 @@ TYPE_KIND TypeConstructorType::getTypeKind() const {
 }
 
 bool TypeConstructorType::isSubTypeOf(const Type* other) const {
+    return equals(other);
+}
+
+bool TypeConstructorType::equals(const Type* other) const {
     if (TypeConstructorType* tc = getIf<TypeConstructorType>(other)) {
-        return _typeConstructor == tc->getTypeConstructor();
+        return _typeConstructor == tc->getTypeConstructor()
+            && substitutionsEquals(_subTable, other->getSubstitutionTable());
     }
     return false;
 }
