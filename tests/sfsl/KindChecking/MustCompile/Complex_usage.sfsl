@@ -1,0 +1,53 @@
+module test {
+	using sfsl.lang
+	
+    type Box[T] => class {
+        x: T;
+    }
+    
+    type Zero = [Z] => [F: *->*] => Z
+    type One = [Z] => [F: *->*] => F[Z]
+    type Add = [N1: *->[*->*]->*, N2: *->[*->*]->*] => [Z] => [F: *->*] => N1[N2[Z][F]][F]
+    type Mul = [N1: *->[*->*]->*, N2: *->[*->*]->*] => [Z] => [F: *->*] => N1[Z][[X] => N2[X][F]]
+    
+    type Two = Add[One, One]
+    type Three = Add[One, Two]
+    
+    type NilNumber = 
+        [Z: *->[*->*]->*] => 
+        [F: [*->[*->*]->*, 
+             *->[*->*]->*]->
+                *->[*->*]->*] => Z
+                
+    type ConsNumber = 
+        [A: *->[*->*]->*, 
+        B: [*->[*->*]->*]->[[*->[*->*]->*, *->[*->*]->*]->*->[*->*]->*]->*->[*->*]->*] => 
+            [Z: *->[*->*]->*] => 
+            [F: [*->[*->*]->*, 
+                 *->[*->*]->*]->
+                    *->[*->*]->*] => F[B[Z][F], A]
+    
+    type ListSum = [B: [*->[*->*]->*]->[[*->[*->*]->*, *->[*->*]->*]->*->[*->*]->*]->*->[*->*]->*] => 
+        B[Zero][Add]
+        
+    type ListProduct = [B: [*->[*->*]->*]->[[*->[*->*]->*, *->[*->*]->*]->*->[*->*]->*]->*->[*->*]->*] => 
+        B[One][Mul]
+        
+    type ListLength = [B: [*->[*->*]->*]->[[*->[*->*]->*, *->[*->*]->*]->*->[*->*]->*]->*->[*->*]->*] => 
+        B[Zero][[Count: *->[*->*]->*, E: *->[*->*]->*] => Add[Count, One]]
+    
+    type MyList = ConsNumber[One, ConsNumber[Three, ConsNumber[Three, NilNumber]]]
+    
+    def main() => {
+        x: Three[int][Box]; // Box[Box[Box[int]]]
+        y: Mul[Two, Three][int][Box]; // Box[Box[Box[Box[Box[Box[int]]]]]]
+        z: ListSum[MyList][int][Box]; // Box[Box[Box[Box[Box[Box[Box[int]]]]]]]
+        u: ListLength[MyList][int][Box]; // Box[Box[Box[int]]]
+        
+        test: int;
+        test = x.x.x.x;
+        test = y.x.x.x.x.x.x;
+        test = z.x.x.x.x.x.x.x;
+        test = u.x.x.x;
+    }
+}
