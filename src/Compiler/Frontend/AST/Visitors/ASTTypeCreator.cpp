@@ -32,7 +32,20 @@ void ASTTypeCreator::visit(ASTNode*) {
 }
 
 void ASTTypeCreator::visit(ClassDecl* clss) {
-    _created = _mngr.New<type::ProperType>(clss, buildSubstitutionTableFromTypeParametrizable(clss));
+    type::SubstitutionTable finalTable;
+
+    if (clss->getParent()) {
+        clss->getParent()->onVisit(this);
+        if (_created) {
+            if (type::ProperType* parent = type::getIf<type::ProperType>(_created->apply(_ctx))) {
+                finalTable = parent->getSubstitutionTable();
+            }
+        }
+    }
+    type::SubstitutionTable thisTable(buildSubstitutionTableFromTypeParametrizable(clss));
+    finalTable.insert(thisTable.begin(), thisTable.end());
+
+    _created = _mngr.New<type::ProperType>(clss, finalTable);
 }
 
 void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
@@ -193,7 +206,7 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
 void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos) {
     std::vector<sym::TypeSymbol*> typeSyms;
     for (const auto& symData : symbolic->getSymbolDatas()) {
-        if (symData.symbol->getSymbolType() == sym::SYM_TPE) {
+        if (symData.symbol && symData.symbol->getSymbolType() == sym::SYM_TPE) {
             typeSyms.push_back(static_cast<sym::TypeSymbol*>(symData.symbol));
         }
     }
