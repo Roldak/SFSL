@@ -57,6 +57,10 @@ Type::~Type() {
 
 }
 
+bool Type::equals(const Type* other) const {
+    return isSubTypeOf(other) && other->isSubTypeOf(this);
+}
+
 const static SubstitutionTable DefaultTable = {};
 
 Type* Type::apply(CompCtx_Ptr&) const {
@@ -102,6 +106,21 @@ bool Type::applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to) {
         matched |= tmp;
     }
     return matched;
+}
+
+bool Type::substitutionsEquals(const SubstitutionTable& env1, const SubstitutionTable& env2) {
+    if (env1.size() != env2.size()) {
+        return false;
+    }
+
+    for (const SubstitutionTable::Substitution& sub1 : env1) {
+        const auto& sub2it = env2.find(sub1.key);
+        if (sub2it == env2.end() || !sub1.value->equals(sub2it->value)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 Type* Type::NotYetDefined() {
@@ -184,6 +203,10 @@ bool TypeToBeInferred::isSubTypeOf(const Type*) const {
     return false;
 }
 
+bool TypeToBeInferred::equals(const Type* other) const {
+    return this == other;
+}
+
 Type* TypeToBeInferred::substitute(const SubstitutionTable&, CompCtx_Ptr&) const {
     return (Type*)this;
 }
@@ -220,9 +243,6 @@ bool ProperType::isSubTypeOf(const Type* other) const {
         if (_class->CanSubtypeClasses::extends(objother->_class)) {
             const SubstitutionTable& osubs = objother->getSubstitutionTable();
 
-            std::cout << toString() << " : " << debugSubstitutionTableToString(getSubstitutionTable()) << std::endl;
-            std::cout << other->toString() << " : " << debugSubstitutionTableToString(other->getSubstitutionTable()) << std::endl;
-
             for (const SubstitutionTable::Substitution& osub : osubs) {
                 const auto& sub = _subTable.find(osub.key);
 
@@ -238,12 +258,21 @@ bool ProperType::isSubTypeOf(const Type* other) const {
                         return false;
                     break;
                 default:
-                    if (!sub->value->isSubTypeOf(osub.value) || !osub.value->isSubTypeOf(sub->value))
+                    if (!sub->value->equals(osub.value))
                         return false;
                     break;
                 }
             }
             return true;
+        }
+    }
+    return false;
+}
+
+bool ProperType::equals(const Type* other) const {
+    if (ProperType* objother = getIf<ProperType>(other)) {
+        if (_class == objother->getClass()) {
+            return substitutionsEquals(_subTable, other->getSubstitutionTable());
         }
     }
     return false;
@@ -310,6 +339,38 @@ bool FunctionType::isSubTypeOf(const Type* other) const {
         }
 
         return _retType->isSubTypeOf(oRetType);
+    }
+
+    return false;
+}
+
+bool FunctionType::equals(const Type* other) const {
+    if (FunctionType* f = getIf<FunctionType>(other)) {
+        const std::vector<ast::TypeExpression*>& oTypeArgs = f->getTypeArgs();
+        const std::vector<Type*>& oArgTypes = f->getArgTypes();
+        const Type* oRetType = f->getRetType();
+
+        if (_typeArgs.size() != oTypeArgs.size()) {
+            return false;
+        }
+
+        if (_argTypes.size() != oArgTypes.size()) {
+            return false;
+        }
+
+        for (size_t i = 0; i < _typeArgs.size(); ++i) {
+            if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind())) {
+                return false;
+            }
+        }
+
+        for (size_t i = 0; i < _argTypes.size(); ++i) {
+            if (!oArgTypes[i]->equals(_argTypes[i])) {
+                return false;
+            }
+        }
+
+        return _retType->equals(oRetType);
     }
 
     return false;
@@ -422,6 +483,39 @@ bool MethodType::isSubTypeOf(const Type* other) const {
     return false;
 }
 
+bool MethodType::equals(const Type* other) const {
+    if (MethodType* m = getIf<MethodType>(other)) {
+        const std::vector<ast::TypeExpression*>& oTypeArgs = m->getTypeArgs();
+        const std::vector<Type*>& oArgTypes = m->getArgTypes();
+        const Type* oRetType = m->getRetType();
+
+        if (_typeArgs.size() != oTypeArgs.size()) {
+            return false;
+        }
+
+
+        if (_argTypes.size() != oArgTypes.size()) {
+            return false;
+        }
+
+        for (size_t i = 0; i < _typeArgs.size(); ++i) {
+            if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind())) {
+                return false;
+            }
+        }
+
+        for (size_t i = 0; i < _argTypes.size(); ++i) {
+            if (!oArgTypes[i]->equals(_argTypes[i])) {
+                return false;
+            }
+        }
+
+        return _retType->equals(oRetType);
+    }
+
+    return false;
+}
+
 std::string MethodType::toString() const {
     std::string toRet = "([" + _owner->getName() + "]";
 
@@ -500,8 +594,13 @@ TYPE_KIND TypeConstructorType::getTypeKind() const {
 }
 
 bool TypeConstructorType::isSubTypeOf(const Type* other) const {
+    return equals(other);
+}
+
+bool TypeConstructorType::equals(const Type* other) const {
     if (TypeConstructorType* tc = getIf<TypeConstructorType>(other)) {
-        return _typeConstructor == tc->getTypeConstructor();
+        return _typeConstructor == tc->getTypeConstructor()
+            && substitutionsEquals(_subTable, other->getSubstitutionTable());
     }
     return false;
 }

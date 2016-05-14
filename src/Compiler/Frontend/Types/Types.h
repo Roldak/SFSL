@@ -39,6 +39,7 @@ public:
 
     virtual TYPE_KIND getTypeKind() const = 0;
     virtual bool isSubTypeOf(const Type* other) const = 0;
+    virtual bool equals(const Type* other) const;
     virtual std::string toString() const = 0;
 
     virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const = 0;
@@ -49,6 +50,7 @@ public:
 
     static Type* findSubstitution(const SubstitutionTable& table, Type* toFind, bool* matched = nullptr);
     static bool applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to);
+    static bool substitutionsEquals(const SubstitutionTable& env1, const SubstitutionTable& env2);
 
     static Type* NotYetDefined();
 
@@ -69,6 +71,7 @@ public:
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type*) const override;
+    virtual bool equals(const Type *other) const override;
     virtual std::string toString() const override;
 
     virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
@@ -90,6 +93,7 @@ public:
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other) const override;
+    virtual bool equals(const Type *other) const override;
     virtual std::string toString() const override;
 
     virtual ProperType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
@@ -109,6 +113,7 @@ public:
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other) const override;
+    virtual bool equals(const Type *other) const override;
     virtual std::string toString() const override;
 
     virtual FunctionType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
@@ -133,6 +138,7 @@ public:
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type *other) const override;
+    virtual bool equals(const Type *other) const override;
     virtual std::string toString() const override;
 
     virtual MethodType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
@@ -161,6 +167,7 @@ public:
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other) const override;
+    virtual bool equals(const Type *other) const override;
     virtual std::string toString() const override;
 
     virtual TypeConstructorType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;

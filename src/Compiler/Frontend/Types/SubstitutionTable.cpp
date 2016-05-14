@@ -91,6 +91,10 @@ SubstitutionTable::const_iterator SubstitutionTable::end() const {
     return _subs.end();
 }
 
+size_t SubstitutionTable::size() const {
+    return _subs.size();
+}
+
 bool SubstitutionTable::SubstitutionComparator::operator ()(const SubstitutionTable::Substitution& a, const SubstitutionTable::Substitution& b) const {
     return a.key < b.key;
 }
