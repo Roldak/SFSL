@@ -386,10 +386,12 @@ size_t TypeDependencyFixation::pushTypeParameters(const std::vector<TypeExpressi
     size_t pushed = 0;
     for (TypeExpression* typeParam : typeParams) {
         TypeIdentifier* id;
+        common::VARIANCE_TYPE vt = common::VAR_T_NONE;
 
         if (isNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
             id = static_cast<TypeIdentifier*>(typeParam);
         } else if(isNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `x: kind`
+            vt = static_cast<TypeParameter*>(typeParam)->getVarianceType();
             id = static_cast<TypeParameter*>(typeParam)->getSpecified();
         } else {
             break; // Error already reported in scope generation
@@ -397,7 +399,7 @@ size_t TypeDependencyFixation::pushTypeParameters(const std::vector<TypeExpressi
         }
 
         if (id->getSymbol()->getSymbolType() == sym::SYM_TPE) {
-            _parameters.push_back(static_cast<sym::TypeSymbol*>(id->getSymbol()));
+            _parameters.push_back(Parameter(vt, static_cast<sym::TypeSymbol*>(id->getSymbol())));
             ++pushed;
         } else {
             _ctx->reporter().fatal(*typeParam, "Is supposed to be a TypeSymbol");

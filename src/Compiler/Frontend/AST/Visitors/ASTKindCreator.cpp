@@ -69,7 +69,7 @@ ASTDefaultTypeFromKindCreator::ASTDefaultTypeFromKindCreator(CompCtx_Ptr& ctx, c
 }
 
 ASTDefaultTypeFromKindCreator::ASTDefaultTypeFromKindCreator(CompCtx_Ptr& ctx, const std::string& name,
-                                                             const std::vector<sym::TypeSymbol*>& dependencies)
+                                                             const std::vector<Parameter>& dependencies)
     : ASTImplicitVisitor(ctx), _name(name), _parameters(dependencies) {
 
 }
@@ -98,7 +98,7 @@ void ASTDefaultTypeFromKindCreator::visit(ProperTypeKindSpecifier*) {
 
 void ASTDefaultTypeFromKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
     std::vector<TypeExpression*> args(tcks->getArgs().size());
-    std::vector<sym::TypeSymbol*> dependencies(tcks->getArgs().size());
+    std::vector<Parameter> dependencies(tcks->getArgs().size());
     TypeExpression* ret;
 
     for (size_t i = 0; i < args.size(); ++i) {
@@ -106,7 +106,8 @@ void ASTDefaultTypeFromKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
         TypeDecl* tdecl = createDefaultTypeFromKind(tcksParam.kindExpr, _name + "Arg" + utils::T_toString(i), _parameters, _ctx);
 
         args[i] = _mngr.New<TypeParameter>(tcksParam.varianceType, tdecl->getName(), tcksParam.kindExpr);
-        dependencies[i] = tdecl->getSymbol();
+        dependencies[i].varianceType = tcksParam.varianceType;
+        dependencies[i].symbol = tdecl->getSymbol();
     }
 
     pushTypeParameters(dependencies);
@@ -128,8 +129,8 @@ TypeExpression* ASTDefaultTypeFromKindCreator::getCreatedType() const {
     return _created;
 }
 
-void ASTDefaultTypeFromKindCreator::pushTypeParameters(const std::vector<sym::TypeSymbol*>& typeParams) {
-    for (sym::TypeSymbol* typeParam : typeParams) {
+void ASTDefaultTypeFromKindCreator::pushTypeParameters(const std::vector<Parameter>& typeParams) {
+    for (Parameter typeParam : typeParams) {
         _parameters.push_back(typeParam);
     }
 }
@@ -140,11 +141,11 @@ void ASTDefaultTypeFromKindCreator::popTypeParameters(size_t pushed) {
 
 
 TypeDecl* ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(ASTNode* node, const std::string& name, CompCtx_Ptr& ctx) {
-    return createDefaultTypeFromKind(node, name, std::vector<sym::TypeSymbol*>(), ctx);
+    return createDefaultTypeFromKind(node, name, std::vector<Parameter>(), ctx);
 }
 
 TypeDecl* ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(ASTNode* node, const std::string& name,
-                                               const std::vector<sym::TypeSymbol*>& dependencies, CompCtx_Ptr& ctx) {
+                                               const std::vector<Parameter>& dependencies, CompCtx_Ptr& ctx) {
     ASTDefaultTypeFromKindCreator creator(ctx, name, dependencies);
     node->onVisit(&creator);
     TypeExpression* expr = creator.getCreatedType();

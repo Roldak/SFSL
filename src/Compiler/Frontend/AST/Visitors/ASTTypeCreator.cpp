@@ -225,10 +225,10 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic
 
 type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParametrizable(type::TypeParametrizable* param) {
     type::SubstitutionTable table;
-    const std::vector<sym::TypeSymbol*>& syms(param->getDependencies());
+    const std::vector<type::TypeParametrizable::Parameter>& syms(param->getDependencies());
 
-    for (sym::TypeSymbol* ts : syms) {
-        table.insert(std::make_pair(ts->type(), ts->type()));
+    for (type::TypeParametrizable::Parameter ts : syms) {
+        table.insert(std::make_pair(ts.symbol->type(), ts.symbol->type()));
     }
 
     return table;

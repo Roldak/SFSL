@@ -12,6 +12,15 @@ namespace sfsl {
 
 namespace type {
 
+TypeParametrizable::Parameter::Parameter() : varianceType(common::VAR_T_NONE), symbol(nullptr) {
+
+}
+
+TypeParametrizable::Parameter::Parameter(common::VARIANCE_TYPE varianceType, sym::TypeSymbol* symbol)
+    : varianceType(varianceType), symbol(symbol) {
+
+}
+
 TypeParametrizable::TypeParametrizable() {
 
 }
@@ -20,11 +29,11 @@ TypeParametrizable::~TypeParametrizable() {
 
 }
 
-void TypeParametrizable::setDependencies(const std::vector<sym::TypeSymbol*>& types) {
+void TypeParametrizable::setDependencies(const std::vector<Parameter>& types) {
     _types = types;
 }
 
-const std::vector<sym::TypeSymbol*>& TypeParametrizable::getDependencies() const {
+const std::vector<TypeParametrizable::Parameter>& TypeParametrizable::getDependencies() const {
     return _types;
 }
 

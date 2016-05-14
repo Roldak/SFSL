@@ -103,17 +103,19 @@ public:
 
 protected:
 
-    ASTDefaultTypeFromKindCreator(CompCtx_Ptr& ctx, const std::string& name, const std::vector<sym::TypeSymbol*>& dependencies);
-    static TypeDecl* createDefaultTypeFromKind(ASTNode* node, const std::string& name,
-                                               const std::vector<sym::TypeSymbol*>& dependencies, CompCtx_Ptr& ctx);
+    typedef type::TypeParametrizable::Parameter Parameter;
 
-    void pushTypeParameters(const std::vector<sym::TypeSymbol*>& typeParams);
+    ASTDefaultTypeFromKindCreator(CompCtx_Ptr& ctx, const std::string& name, const std::vector<Parameter>& dependencies);
+    static TypeDecl* createDefaultTypeFromKind(ASTNode* node, const std::string& name,
+                                               const std::vector<Parameter>& dependencies, CompCtx_Ptr& ctx);
+
+    void pushTypeParameters(const std::vector<Parameter>& typeParams);
     void popTypeParameters(size_t pushed);
 
     TypeExpression* _created;
     const std::string& _name;
 
-    std::vector<sym::TypeSymbol*> _parameters;
+    std::vector<Parameter> _parameters;
 };
 
 }

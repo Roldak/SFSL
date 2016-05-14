@@ -10,6 +10,7 @@
 #define __SFSL__TypeParametrizable__
 
 #include <vector>
+#include "../Common/Miscellaneous.h"
 
 namespace sfsl {
 
@@ -25,22 +26,30 @@ namespace type {
  */
 class TypeParametrizable {
 public:
+    struct Parameter {
+        Parameter();
+        Parameter(common::VARIANCE_TYPE varianceType, sym::TypeSymbol* symbol);
+
+        common::VARIANCE_TYPE varianceType;
+        sym::TypeSymbol* symbol;
+    };
+
     TypeParametrizable();
     virtual ~TypeParametrizable();
 
     /**
      * @param type The dependencies of this object
      */
-    void setDependencies(const std::vector<sym::TypeSymbol*>& types);
+    void setDependencies(const std::vector<Parameter>& types);
 
     /**
      * @return All the types that this object depends on
      */
-    const std::vector<sym::TypeSymbol*>& getDependencies() const;
+    const std::vector<Parameter>& getDependencies() const;
 
 private:
 
-    std::vector<sym::TypeSymbol*> _types;
+    std::vector<Parameter> _types;
 };
 
 }
