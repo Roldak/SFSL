@@ -1,0 +1,15 @@
+module test {
+    type A = class {}
+    type B = class : A {}
+    
+    type C[in T] => class {
+        type D[out K] => class {
+        }
+    }
+    
+    def t1: C[A].D[B] = {
+        type Tmp = C[B].D[B];
+        x: Tmp;
+        x;
+    }
+}

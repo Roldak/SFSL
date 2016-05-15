@@ -1,0 +1,9 @@
+module test {
+    type T1 = class {}
+    type T2 = class : T1 {}
+            
+    type A[out T] => class { x: T; }
+    type B[T] => class : A[T] {new() => {}}
+    
+    def t4: B[T1] = B[T2]()
+}
