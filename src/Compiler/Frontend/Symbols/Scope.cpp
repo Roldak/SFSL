@@ -30,8 +30,11 @@ Symbol* Scope::addSymbol(Symbol* sym) {
     }
 }
 
-void Scope::copySymbolsFrom(const Scope* other, const type::SubstitutionTable& env) {
+void Scope::copySymbolsFrom(const Scope* other, const type::SubstitutionTable& env, const SymbolExcluder* excluder) {
     for (const std::pair<std::string, SymbolData>& entry : other->getAllSymbols()) {
+        if (excluder && excluder->exclude(entry.second)) {
+            continue;
+        }
         auto it = _symbols.insert(entry);
         type::Type::applyEnvHelper(env, it->second.env);
         it->second.env.insert(env.begin(), env.end());
@@ -129,6 +132,26 @@ bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& 
     }
 
     return false;
+}
+
+const Scope::SymbolExcluder* const Scope::ExcludeConstructors = new Scope::ByNameSymbolExcluder("new");
+const Scope::SymbolExcluder* const Scope::KeepAll = nullptr;
+
+Scope::SymbolExcluder::~SymbolExcluder() {
+
+}
+
+
+Scope::ByNameSymbolExcluder::ByNameSymbolExcluder(const std::string& name) : _name(name) {
+
+}
+
+Scope::ByNameSymbolExcluder::~ByNameSymbolExcluder() {
+
+}
+
+bool Scope::ByNameSymbolExcluder::exclude(const SymbolData s) const {
+    return s.symbol->getName() == _name;
 }
 
 }

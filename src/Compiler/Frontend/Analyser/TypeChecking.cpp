@@ -723,7 +723,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
         _redefs.push_back(funcDecl);
 
         if (type::ProperType* parentPT = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
-            funcClassScope->copySymbolsFrom(parentPT->getClass()->getScope(), parentPT->getSubstitutionTable());
+            funcClassScope->copySymbolsFrom(parentPT->getClass()->getScope(), parentPT->getSubstitutionTable(), sym::Scope::ExcludeConstructors);
         } else {
             _rep.fatal(*funcDecl, "Could not create type " + parentName);
         }

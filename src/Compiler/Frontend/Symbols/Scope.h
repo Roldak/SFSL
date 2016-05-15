@@ -22,6 +22,7 @@ namespace sym {
 
 class Scope final : public common::MemoryManageable {
 public:
+    struct SymbolExcluder;
 
     Scope(Scope* parent, bool isDefScope = false);
     virtual ~Scope();
@@ -39,7 +40,7 @@ public:
      * @brief Copies all the symbols from the given scope into this one
      * @param other The scope from which to copy the symbol
      */
-    void copySymbolsFrom(const Scope* other, const type::SubstitutionTable& env);
+    void copySymbolsFrom(const Scope* other, const type::SubstitutionTable& env, const SymbolExcluder* exluder);
 
     template<typename T>
     /**
@@ -85,6 +86,37 @@ public:
      * the paths to the "used" modules
      */
     void buildUsingsFromPaths(CompCtx_Ptr& ctx, const ast::CanUseModules& obj);
+
+    /**
+     * @brief Abstract symbol excluder
+     */
+    struct SymbolExcluder {
+        virtual ~SymbolExcluder();
+        virtual bool exclude(const SymbolData s) const = 0;
+    };
+
+    /**
+     * @brief Implementation of symbol excluder which excludes symbol based on the given name
+     */
+    struct ByNameSymbolExcluder : public SymbolExcluder {
+        ByNameSymbolExcluder(const std::string& name);
+        virtual ~ByNameSymbolExcluder();
+
+        virtual bool exclude(const SymbolData s) const override;
+
+    private:
+        std::string _name;
+    };
+
+    /**
+     * @brief Symbol excluder which excludes all constructors (symbols named "new")
+     */
+    static const SymbolExcluder* const ExcludeConstructors;
+
+    /**
+     * @brief Symbol excluder which doesn't exclude any symbol
+     */
+    static const SymbolExcluder* const KeepAll;
 
 private:
 

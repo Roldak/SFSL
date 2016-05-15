@@ -399,7 +399,7 @@ size_t TypeDependencyFixation::pushTypeParameters(const std::vector<TypeExpressi
             id = static_cast<TypeParameter*>(typeParam)->getSpecified();
         } else {
             break; // Error already reported in scope generation
-                    //  => compiler will stop before type dependency is even used
+                   //  => compiler will stop before type dependency is even used
         }
 
         if (id->getSymbol()->getSymbolType() == sym::SYM_TPE) {
@@ -592,7 +592,7 @@ void SymbolAssignation::visitParent(ClassDecl* clss) {
                     ClassDecl* parentClass = parent->getClass();
                     visitParent(parentClass);
 
-                    _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable());
+                    _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable(), sym::Scope::ExcludeConstructors);
 
                     addSubtypeRelations(clss, parentClass);
                 }
