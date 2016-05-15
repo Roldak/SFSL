@@ -1,0 +1,28 @@
+module test {
+    type Box[out T] => class { x: T; }
+    
+    type Test1[in F: [out *]->*] => class {}
+    type Test2[F: [in [out *]->*]->*] => class {}
+    type Test3[F: *->*] => class {}
+    type Test4[F: [*->*]->*] => class {}
+    
+    def t1 = {
+        x: Test1[Box];
+        x;
+    }
+    
+    def t2 = {
+        x: Test2[Test1];
+        x;
+    }
+    
+    def t3 = {
+        x: Test3[Box];
+        x;
+    }
+    
+    def t4 = {
+        x: Test4[Test1];
+        x;
+    }
+}

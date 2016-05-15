@@ -1,0 +1,10 @@
+module test {
+    type Box[T] => class { x: T; }
+    
+    type Test[F: [out *]->*] => class {}
+    
+    def t1 = {
+        x: Test[Box];
+        x;
+    }
+}

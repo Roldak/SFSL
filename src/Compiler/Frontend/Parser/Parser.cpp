@@ -838,6 +838,8 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
 
         if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
             toRet = _mngr.New<TypeConstructorKindSpecifier>(exprs, parseKindSpecifyingExpression());
+        } else if (arrowNecessary) {
+            break;
         }
 
         toRet->setPos(startPos);
