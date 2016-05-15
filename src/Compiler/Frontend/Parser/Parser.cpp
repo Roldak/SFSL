@@ -582,6 +582,8 @@ This* Parser::parseThis(const common::Positionnable& pos) {
 Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     Expression* res = nullptr;
 
+    SAVE_POS(fallbackPos)
+
     if (accept(tok::OPER_L_PAREN)) {
         res = _mngr.New<FunctionCall>(left, nullptr, parseTuple());
     } else if (accept(tok::OPER_L_BRACKET)) {
@@ -608,7 +610,7 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     } // no match is not an error
 
     if (res) {
-        res->setPos(*left);
+        res->setPos(left ? *left : fallbackPos);
         res->setEndPos(_lastTokenEndPos);
 
     }
