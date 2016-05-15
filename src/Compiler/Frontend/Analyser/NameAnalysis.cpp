@@ -179,7 +179,7 @@ void ScopeGeneration::visit(DefineDecl* def) {
 void ScopeGeneration::visit(FunctionTypeDecl* ftdecl) {
     pushScope(ftdecl);
 
-    generateTypeParametersSymbols(ftdecl->getTypeArgs());
+    generateTypeParametersSymbols(ftdecl->getTypeArgs(), false);
 
     for (TypeExpression* arg : ftdecl->getArgTypes()) {
         arg->onVisit(this);
@@ -202,7 +202,7 @@ void ScopeGeneration::visit(TypeConstructorCreation* tc) {
         args.push_back(expr);
     }
 
-    generateTypeParametersSymbols(args);
+    generateTypeParametersSymbols(args, true);
 
     tc->getBody()->onVisit(this);
 
@@ -228,7 +228,7 @@ void ScopeGeneration::visit(FunctionCreation* func) {
     pushScope(func);
 
     if (func->getTypeArgs()) {
-        generateTypeParametersSymbols(func->getTypeArgs()->getExpressions());
+        generateTypeParametersSymbols(func->getTypeArgs()->getExpressions(), false);
     }
 
     Expression* expr = func->getArgs();
@@ -286,15 +286,19 @@ void ScopeGeneration::popScope() {
     _curScope = _curScope->getParent();
 }
 
-void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams) {
+void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams, bool allowVarianceAnnotations) {
     for (TypeExpression* typeParam : typeParams) {
         if (isNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
             createProperType(static_cast<TypeIdentifier*>(typeParam),
                              ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
                                  _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(typeParam)->getValue(), _ctx));
         } else if(isNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `T: kind`
-            // The type var is already going to be created by the KindSpecifier Node
+            // The type var is already going to be created by the TypeParameter Node
             typeParam->onVisit(this);
+
+            if (!allowVarianceAnnotations && static_cast<TypeParameter*>(typeParam)->getVarianceType() != common::VAR_T_NONE) {
+                _ctx->reporter().error(*typeParam, "Variance annotation are not allowed in this context");
+            }
         } else {
             _ctx->reporter().error(*typeParam, "Type argument should be an identifier");
         }

@@ -121,7 +121,7 @@ private:
     ast::TypeExpression* createFunctionTypeDecl(const TypeTuple* typeParams, const std::vector<TypeExpression*>& args, TypeExpression* ret);
     ast::TypeTuple* parseTypeTuple();
 
-    ast::TypeTuple* parseTypeParameters(bool allowVarianceAnnotations);
+    ast::TypeTuple* parseTypeParameters();
 
         // kind expression
 

@@ -83,7 +83,7 @@ private:
     void pushScope(sym::Scoped* scoped = nullptr, bool isDefScope = false);
     void popScope();
 
-    void generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams);
+    void generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams, bool allowVarianceAnnotations);
 
     TypeExpression* _currentThis;
 };

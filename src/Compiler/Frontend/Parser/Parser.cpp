@@ -462,7 +462,7 @@ Expression* Parser::parsePrimary() {
 
             std::vector<Annotation*> annots(std::move(consumeAnnotations()));
 
-            TypeTuple* typeParams = parseTypeParameters(false);
+            TypeTuple* typeParams = parseTypeParameters();
 
             expect(tok::OPER_L_PAREN, "`(`");
             Tuple* args = parseTuple();
@@ -688,7 +688,7 @@ TypeTuple* Parser::parseTypeTuple() {
     return parseTuple<TypeTuple, tok::OPER_R_BRACKET, TypeExpression*>(exprs, [&](){return parseTypeExpression();});
 }
 
-TypeTuple* Parser::parseTypeParameters(bool allowVarianceAnnotations) {
+TypeTuple* Parser::parseTypeParameters() {
     std::vector<TypeExpression*> typeParameters;
 
     SAVE_POS(startPos)
@@ -707,10 +707,6 @@ TypeTuple* Parser::parseTypeParameters(bool allowVarianceAnnotations) {
                 vt = common::VAR_T_OUT;
             } else {
                 vt = common::VAR_T_NONE;
-            }
-
-            if (vt != common::VAR_T_NONE && !allowVarianceAnnotations) {
-                _ctx->reporter().error(tpStartPos, "Variance annotation are not allowed in this context");
             }
 
             ident = parseTypeIdentifier("Expected type name");
@@ -753,7 +749,7 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
 
     case tok::TOK_OPER:
         if (accept(tok::OPER_L_BRACKET)) {
-            exprs.push_back(parseTypeParameters(true));
+            exprs.push_back(parseTypeParameters());
             if (accept(tok::OPER_L_PAREN)) {
                 std::vector<TypeExpression*> args;
                 parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression*>(args, [&](){return parseTypeExpression();});
