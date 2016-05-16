@@ -633,7 +633,7 @@ TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence, bo
         tok::Operator* op = as<tok::Operator>();
         int newOpPrec = op->getPrecedence();
 
-        if (newOpPrec >= precedence && op->getOpType() != tok::OPER_EQ) {
+        if (newOpPrec >= precedence && op->getOpType() != tok::OPER_EQ && op->getOpType() != tok::OPER_LT) {
 
             TypeExpression* expr;
 
@@ -817,40 +817,43 @@ KindSpecifyingExpression* Parser::parseKindSpecifyingExpression() {
 
     SAVE_POS(startPos)
 
-    switch (_currentToken->getTokenType()) {
-    case tok::TOK_OPER:
-        if (accept(tok::OPER_TIMES)) {
-            toRet = _mngr.New<ProperTypeKindSpecifier>();
-            exprs.push_back(TypeConstructorKindSpecifier::Parameter(common::VAR_T_NONE, toRet));
-        } else if (accept(tok::OPER_L_BRACKET)) {
-            parseTuple<TypeConstructorKindSpecifier, tok::OPER_R_BRACKET, TypeConstructorKindSpecifier::Parameter>(
-                        exprs, [&](){return parseTypeConstructorKindSpecifierParameter();});
+    TypeExpression* lowerBound = nullptr;
+    TypeExpression* upperBound = nullptr;
 
-            arrowNecessary = true;
-        }
-        else {
-            _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
-            accept();
-            break;
-        }
-
-        if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
-            toRet = _mngr.New<TypeConstructorKindSpecifier>(exprs, parseKindSpecifyingExpression());
-        } else if (arrowNecessary) {
-            break;
-        }
-
-        toRet->setPos(startPos);
-        toRet->setEndPos(_lastTokenEndPos);
-        break;
-
-    default:
-        _ctx->reporter().error(*_currentToken,
-                               "Expected identifier | type tuple | class "
-                               "; got " + _currentToken->toString());
-        accept();
+    if (!isType(tok::TOK_OPER) ||
+            (as<tok::Operator>()->getOpType() != tok::OPER_TIMES &&
+             as<tok::Operator>()->getOpType() != tok::OPER_L_BRACKET)) {
+        lowerBound = parseTypeExpression(false);
+        expect(tok::OPER_LT, "`<`");
     }
 
+    if (accept(tok::OPER_TIMES)) {
+        if (accept(tok::OPER_LT)) {
+            upperBound = parseTypeExpression(false);
+        }
+
+        toRet = _mngr.New<ProperTypeKindSpecifier>(lowerBound, upperBound);
+        exprs.push_back(TypeConstructorKindSpecifier::Parameter(common::VAR_T_NONE, toRet));
+    } else if (accept(tok::OPER_L_BRACKET)) {
+        parseTuple<TypeConstructorKindSpecifier, tok::OPER_R_BRACKET, TypeConstructorKindSpecifier::Parameter>(
+                    exprs, [&](){return parseTypeConstructorKindSpecifierParameter();});
+
+        arrowNecessary = true;
+    }
+    else {
+        _ctx->reporter().error(*_currentToken, "Expected proper type or type constructor kind specifier; got `"+ _currentToken->toString() +"`");
+        accept();
+        return toRet;
+    }
+
+    if ((arrowNecessary && expect(tok::OPER_THIN_ARROW, "`->`")) || accept(tok::OPER_THIN_ARROW)) {
+        toRet = _mngr.New<TypeConstructorKindSpecifier>(exprs, parseKindSpecifyingExpression());
+    } else if (arrowNecessary) {
+        return toRet;
+    }
+
+    toRet->setPos(startPos);
+    toRet->setEndPos(_lastTokenEndPos);
     return toRet;
 }
 

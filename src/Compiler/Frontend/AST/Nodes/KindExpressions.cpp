@@ -23,12 +23,21 @@ SFSL_AST_ON_VISIT_CPP(KindSpecifyingExpression)
 
 // PROPER TYPE KIND SPECIFIER
 
-ProperTypeKindSpecifier::ProperTypeKindSpecifier() {
+ProperTypeKindSpecifier::ProperTypeKindSpecifier(TypeExpression* lowerBound, TypeExpression* upperBound)
+    : _lb(lowerBound), _ub(upperBound) {
 
 }
 
 ProperTypeKindSpecifier::~ProperTypeKindSpecifier() {
 
+}
+
+TypeExpression* ProperTypeKindSpecifier::getLowerBoundExpr() const {
+    return _lb;
+}
+
+TypeExpression* ProperTypeKindSpecifier::getUpperBoundExpr() const {
+    return _ub;
 }
 
 SFSL_AST_ON_VISIT_CPP(ProperTypeKindSpecifier)

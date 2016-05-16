@@ -20,6 +20,7 @@ namespace sfsl {
 
 namespace ast {
 
+class TypeExpression;
 class TypeIdentifier;
 
 /**
@@ -41,12 +42,18 @@ public:
 class ProperTypeKindSpecifier : public KindSpecifyingExpression {
 public:
 
-    ProperTypeKindSpecifier();
+    ProperTypeKindSpecifier(TypeExpression* lowerBound = nullptr, TypeExpression* upperBound = nullptr);
     virtual ~ProperTypeKindSpecifier();
 
     SFSL_AST_ON_VISIT_H
 
+    TypeExpression* getLowerBoundExpr() const;
+    TypeExpression* getUpperBoundExpr() const;
+
 private:
+
+    TypeExpression* _lb;
+    TypeExpression* _ub;
 };
 
 /**
