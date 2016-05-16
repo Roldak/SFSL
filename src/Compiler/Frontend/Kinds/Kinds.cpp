@@ -7,6 +7,7 @@
 //
 
 #include "Kinds.h"
+#include "../Types/Types.h"
 
 namespace sfsl {
 
@@ -47,7 +48,8 @@ Kind* Kind::NotYetDefined() {
 
 // TYPE KIND
 
-ProperKind::ProperKind() {
+ProperKind::ProperKind(type::ProperType* lowerBound, type::ProperType* upperBound)
+    : _lb(lowerBound), _ub(upperBound) {
 
 }
 
@@ -63,8 +65,20 @@ bool ProperKind::isSubKindOf(Kind* other) const {
     return other->getKindGenre() == KIND_PROPER;
 }
 
+const std::string lessThan = " < ";
+
 std::string ProperKind::toString() const {
-    return "*";
+    std::string lbStr = _lb ? _lb->toString() + lessThan : "";
+    std::string ubStr = _ub ? lessThan + _ub->toString() : "";
+    return lbStr + "*" + ubStr;
+}
+
+type::ProperType* ProperKind::getLowerBound() const {
+    return _lb;
+}
+
+type::ProperType* ProperKind::getUpperBound() const {
+    return _ub;
 }
 
 // no need to allocate a TypeKind everytime

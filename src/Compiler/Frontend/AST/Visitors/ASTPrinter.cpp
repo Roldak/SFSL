@@ -132,8 +132,18 @@ void ASTPrinter::visit(DefineDecl* decl) {
     }
 }
 
-void ASTPrinter::visit(ProperTypeKindSpecifier*) {
+void ASTPrinter::visit(ProperTypeKindSpecifier* ptks) {
+    if (ptks->getLowerBoundExpr()) {
+        ptks->getLowerBoundExpr()->onVisit(this);
+        _ostream << " < ";
+    }
+
     _ostream << "*";
+
+    if (ptks->getUpperBoundExpr()) {
+        _ostream << " < ";
+        ptks->getUpperBoundExpr()->onVisit(this);
+    }
 }
 
 void ASTPrinter::visit(TypeConstructorKindSpecifier* tcks) {

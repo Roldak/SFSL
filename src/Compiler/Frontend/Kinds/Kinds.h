@@ -16,11 +16,13 @@
 
 namespace sfsl {
 
+namespace type {
+class ProperType;
+}
+
 namespace kind {
 
 enum KIND_GENRE {KIND_NYD, KIND_PROPER, KIND_TYPE_CONSTRUCTOR};
-
-class Kind;
 
 class Kind : public common::MemoryManageable {
 public:
@@ -35,7 +37,7 @@ public:
 
 class ProperKind : public Kind {
 public:
-    ProperKind();
+    ProperKind(type::ProperType* lowerBound = nullptr, type::ProperType* upperBound = nullptr);
 
     virtual ~ProperKind();
 
@@ -43,7 +45,15 @@ public:
     virtual bool isSubKindOf(Kind* other) const override;
     virtual std::string toString() const override;
 
+    type::ProperType* getLowerBound() const;
+    type::ProperType* getUpperBound() const;
+
     static ProperKind* create();
+
+private:
+
+    type::ProperType* _lb;
+    type::ProperType* _ub;
 };
 
 class TypeConstructorKind : public Kind {

@@ -75,7 +75,12 @@ void ASTImplicitVisitor::visit(DefineDecl* decl) {
 }
 
 void ASTImplicitVisitor::visit(ProperTypeKindSpecifier* ptks) {
-
+    if (ptks->getLowerBoundExpr()) {
+        ptks->getLowerBoundExpr()->onVisit(this);
+    }
+    if (ptks->getUpperBoundExpr()) {
+        ptks->getUpperBoundExpr()->onVisit(this);
+    }
 }
 
 void ASTImplicitVisitor::visit(TypeConstructorKindSpecifier* tcks) {

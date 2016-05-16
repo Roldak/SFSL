@@ -30,7 +30,23 @@ void ASTKindCreator::visit(ASTNode* node) {
 }
 
 void ASTKindCreator::visit(ProperTypeKindSpecifier* ptks) {
-    _created = kind::ProperKind::create();
+    type::ProperType* lbType = nullptr;
+    type::ProperType* ubType = nullptr;
+
+    if (TypeExpression* lb = ptks->getLowerBoundExpr()) {
+        if (type::Type* tp = ASTTypeCreator::createType(lb, _ctx)) {
+            lbType = type::getIf<type::ProperType>(tp);
+        }
+    }
+
+    if (TypeExpression* ub = ptks->getUpperBoundExpr()) {
+        if (type::Type* tp = ASTTypeCreator::createType(ub, _ctx)) {
+            ubType = type::getIf<type::ProperType>(tp);
+        }
+    }
+
+    _created = (!lbType && !ubType) ? kind::ProperKind::create()
+                                    : _mngr.New<kind::ProperKind>(lbType, ubType);
 }
 
 void ASTKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
