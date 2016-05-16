@@ -21,11 +21,27 @@ namespace sfsl {
 
 class SFSL_API_PUBLIC TypeConstructorBuilder final {
 public:
+    struct SFSL_API_PUBLIC Parameter final {
+        enum V_TYPE {
+            V_IN,
+            V_OUT,
+            V_NONE
+        };
 
+        Parameter(const std::string& name, V_TYPE varType = V_NONE);
+
+        const std::string& getName() const;
+        V_TYPE getVarianceType() const;
+
+    private:
+
+        std::string _name;
+        V_TYPE _varType;
+    };
     ~TypeConstructorBuilder();
     operator bool() const;
 
-    TypeConstructorBuilder& setArgs(const std::vector<Type>& args);
+    TypeConstructorBuilder& setParams(const std::vector<Parameter>& args);
     TypeConstructorBuilder& setReturn(Type retExpr);
 
     Type build() const;

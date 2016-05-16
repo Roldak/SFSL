@@ -332,15 +332,8 @@ public:
 
     ~TCBUILDER_IMPL_NAME() { }
 
-    void setArgs(const std::vector<Type>& args) {
-        _args.clear();
-        for (Type arg : args) {
-            if (arg) {
-                _args.push_back(arg._impl->_type);
-            } else {
-                throw CompileError("A parameter of TypeConstructor was not valid");
-            }
-        }
+    void setParams(const std::vector<TypeConstructorBuilder::Parameter>& params) {
+        _params = params;
     }
 
     void setRetExpr(Type ret) {
@@ -352,7 +345,23 @@ public:
     }
 
     Type build() const {
-        ast::TypeTuple* tt = _mngr.New<ast::TypeTuple>(_args);
+        std::vector<ast::TypeExpression*> params(_params.size());
+
+        for (size_t i = 0; i < params.size(); ++i) {
+            common::VARIANCE_TYPE vt;
+            switch (_params[i].getVarianceType()) {
+            case TypeConstructorBuilder::Parameter::V_IN:   vt = common::VAR_T_IN; break;
+            case TypeConstructorBuilder::Parameter::V_OUT:  vt = common::VAR_T_OUT; break;
+            case TypeConstructorBuilder::Parameter::V_NONE: vt = common::VAR_T_NONE; break;
+            }
+
+            ast::TypeIdentifier* id = _mngr.New<ast::TypeIdentifier>(_params[i].getName());
+            ast::KindSpecifyingExpression* kd = _mngr.New<ast::ProperTypeKindSpecifier>();
+
+            params[i] = _mngr.New<ast::TypeParameter>(vt, id, kd);
+        }
+
+        ast::TypeTuple* tt = _mngr.New<ast::TypeTuple>(params);
         ast::TypeConstructorCreation* tc = _mngr.New<ast::TypeConstructorCreation>(_name, tt, _ret);
 
         if (tc) {
@@ -368,7 +377,7 @@ private:
 
     std::string _name;
 
-    std::vector<ast::TypeExpression*> _args;
+    std::vector<TypeConstructorBuilder::Parameter> _params;
     ast::TypeExpression* _ret;
 };
 
@@ -590,6 +599,21 @@ Type ClassBuilder::build() const {
     }
 }
 
+// TYPE PARAMETER
+
+TypeConstructorBuilder::Parameter::Parameter(const std::string& name, TypeConstructorBuilder::Parameter::V_TYPE varType)
+    : _name(name), _varType(varType) {
+
+}
+
+const std::string& TypeConstructorBuilder::Parameter::getName() const {
+    return _name;
+}
+
+TypeConstructorBuilder::Parameter::V_TYPE TypeConstructorBuilder::Parameter::getVarianceType() const {
+    return _varType;
+}
+
 // TYPE CONSTRUCTOR BUILDER
 
 TypeConstructorBuilder::TypeConstructorBuilder(TCBUILDER_IMPL_PTR impl) : _impl(impl) {
@@ -604,9 +628,9 @@ TypeConstructorBuilder::operator bool() const {
     return _impl != nullptr;
 }
 
-TypeConstructorBuilder& TypeConstructorBuilder::setArgs(const std::vector<Type>& args) {
+TypeConstructorBuilder& TypeConstructorBuilder::setParams(const std::vector<Parameter>& args) {
     if (_impl) {
-        _impl->setArgs(args);
+        _impl->setParams(args);
     }
     return *this;
 }

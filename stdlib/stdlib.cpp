@@ -9,7 +9,7 @@ void createFunctionClass(ProgramBuilder builder, Module dest, size_t nbArg) {
     std::string name = "Func";
     name += std::to_string(nbArg);
 
-    std::vector<Type> TCargs;
+    std::vector<TypeConstructorBuilder::Parameter> TCargs;
     std::string abstractDefTypeStr = "(";
     if (nbArg > 0) {
         for (size_t i = 0; i < nbArg - 1; ++i) {
@@ -17,19 +17,23 @@ void createFunctionClass(ProgramBuilder builder, Module dest, size_t nbArg) {
             argName += std::to_string(i);
 
             abstractDefTypeStr += argName + ", ";
-            TCargs.push_back(builder.parseType(argName));
+            TCargs.push_back({argName, TypeConstructorBuilder::Parameter::V_IN});
         }
-        abstractDefTypeStr += std::string("A") + std::to_string(nbArg - 1) + ")->R";
-        TCargs.push_back(builder.parseType(std::string("A") + std::to_string(nbArg - 1)));
-    } else {
-        abstractDefTypeStr += ")->R";
+
+        std::string argName = "A";
+        argName += std::to_string(nbArg - 1);
+
+        abstractDefTypeStr += argName;
+        TCargs.push_back({argName, TypeConstructorBuilder::Parameter::V_IN});
     }
 
-    TCargs.push_back(builder.parseType("R"));
+    abstractDefTypeStr += ")->R";
+
+    TCargs.push_back({"R", TypeConstructorBuilder::Parameter::V_OUT});
 
     Type abstractDefType = builder.parseType(abstractDefTypeStr);
     Type funcClass = builder.classBuilder(name).setAbstract(true).addAbstractDef("()", abstractDefType).build();
-    Type funcTC = builder.typeConstructorBuilder(name).setArgs(TCargs).setReturn(funcClass).build();
+    Type funcTC = builder.typeConstructorBuilder(name).setParams(TCargs).setReturn(funcClass).build();
 
     dest.typeDef(name, funcTC);
 }
