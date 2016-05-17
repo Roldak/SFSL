@@ -62,7 +62,29 @@ KIND_GENRE ProperKind::getKindGenre() const {
 }
 
 bool ProperKind::isSubKindOf(Kind* other) const {
-    return other->getKindGenre() == KIND_PROPER;
+    if (kind::ProperKind* opk = kind::getIf<kind::ProperKind>(other)) {
+        type::ProperType* otherLb = opk->getLowerBound();
+        type::ProperType* otherUb = opk->getUpperBound();
+
+        if (_lb && otherLb) {
+            if (!otherLb->isSubTypeOf(_lb)) {
+                return false;
+            }
+        } else if (otherLb) {
+            return false;
+        }
+
+        if (_ub && otherUb) {
+            if (!_ub->isSubTypeOf(otherUb)) {
+                return false;
+            }
+        } else if (otherUb) {
+            return false;
+        }
+
+        return true;
+    }
+    return false;
 }
 
 const std::string lessThan = " < ";
@@ -121,11 +143,10 @@ bool TypeConstructorKind::isSubKindOf(Kind* other) const {
             }
         }
 
-        return tck->getRetKind()->isSubKindOf(_ret);
+        return _ret->isSubKindOf(tck->getRetKind());
 
-    } else {
-        return false;
     }
+    return false;
 }
 
 TypeConstructorKind::~TypeConstructorKind() {

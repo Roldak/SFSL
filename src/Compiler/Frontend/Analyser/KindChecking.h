@@ -53,6 +53,8 @@ public:
 
 private:
 
+    kind::ProperKind* createProperKindWithBounds(TypeExpression* lb, TypeExpression* ub);
+
     void visitDeferredExpressions();
 
     template<typename T>

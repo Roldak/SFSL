@@ -49,7 +49,7 @@ void KindChecking::visit(TypeDecl* tdecl) {
 }
 
 void KindChecking::visit(ClassDecl* clss) {
-    clss->setKind(kind::ProperKind::create());
+    clss->setKind(createProperKindWithBounds(clss, clss));
 
     if (_mustDefer) {
         _deferredExpressions.emplace(clss);
@@ -89,7 +89,7 @@ void KindChecking::visit(FunctionTypeDecl* ftdecl) {
         _rep.error(*ftdecl->getRetType(), "Kind mismatch. Expected proper type, found type of kind " + ftdecl->getRetType()->kind()->toString());
     }
 
-    ftdecl->setKind(kind::ProperKind::create());
+    ftdecl->setKind(createProperKindWithBounds(ftdecl, ftdecl));
 }
 
 void KindChecking::visit(TypeMemberAccess* tdot) {
@@ -208,6 +208,26 @@ bool KindChecking::kindCheckArgumentSubstitution(const std::vector<kind::Kind*>&
     }
 
     return true;
+}
+
+kind::ProperKind* KindChecking::createProperKindWithBounds(TypeExpression* lb, TypeExpression* ub) {
+    type::ProperType* lbType = nullptr;
+    type::ProperType* ubType = nullptr;
+
+    if (lb) {
+        if (type::Type* tp = ASTTypeCreator::createType(lb, _ctx, true)) {
+            lbType = type::getIf<type::ProperType>(tp);
+        }
+    }
+
+    if (ub) {
+        if (type::Type* tp = ASTTypeCreator::createType(ub, _ctx, true)) {
+            ubType = type::getIf<type::ProperType>(tp);
+        }
+    }
+
+    return (!lbType && !ubType) ? kind::ProperKind::create()
+                                : _mngr.New<kind::ProperKind>(lbType, ubType);
 }
 
 void KindChecking::visitDeferredExpressions() {
