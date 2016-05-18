@@ -169,7 +169,10 @@ void KindChecking::visit(TypeToBeInferred* tbi) {
 
 void KindChecking::visit(TypeParameter* tparam) {
     ASTImplicitVisitor::visit(tparam);
-    kind::Kind* k = ASTKindCreator::createKind(tparam->getKindNode(), _ctx);
+    kind::Kind* k;
+    if (!(k = ASTKindCreator::createKind(tparam->getKindNode(), _ctx))) {
+        k = kind::Kind::NotYetDefined();
+    }
     tparam->getSpecified()->setKind(k);
     tparam->setKind(k);
 }

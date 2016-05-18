@@ -29,21 +29,25 @@ void ASTKindCreator::visit(ASTNode* node) {
     // do not throw an exception
 }
 
+type::ProperType* ASTKindCreator::computeBoundType(TypeExpression* b, bool* ok) {
+    if (b) {
+        if (type::Type* tp = ASTTypeCreator::createType(b, _ctx)) {
+            if (type::ProperType* pt = type::getIf<type::ProperType>(tp)) {
+                *ok = true;
+                return pt;
+            } else {
+                *ok = false;
+                _ctx->reporter().error(*b, "Proper kind can only have bounds of a proper type");
+            }
+        }
+    }
+    return nullptr;
+}
+
 void ASTKindCreator::visit(ProperTypeKindSpecifier* ptks) {
-    type::ProperType* lbType = nullptr;
-    type::ProperType* ubType = nullptr;
-
-    if (TypeExpression* lb = ptks->getLowerBoundExpr()) {
-        if (type::Type* tp = ASTTypeCreator::createType(lb, _ctx)) {
-            lbType = type::getIf<type::ProperType>(tp);
-        }
-    }
-
-    if (TypeExpression* ub = ptks->getUpperBoundExpr()) {
-        if (type::Type* tp = ASTTypeCreator::createType(ub, _ctx)) {
-            ubType = type::getIf<type::ProperType>(tp);
-        }
-    }
+    bool lbOk, ubOk;
+    type::ProperType* lbType = computeBoundType(ptks->getLowerBoundExpr(), &lbOk);
+    type::ProperType* ubType = computeBoundType(ptks->getUpperBoundExpr(), &ubOk);
 
     _created = (!lbType && !ubType) ? kind::ProperKind::create()
                                     : _mngr.New<kind::ProperKind>(lbType, ubType);
@@ -57,12 +61,19 @@ void ASTKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
         const TypeConstructorKindSpecifier::Parameter& tcParam(tcks->getArgs()[i]);
         tcParam.kindExpr->onVisit(this);
 
+        if (!_created) {
+            return;
+        }
+
         params[i].varianceType = tcParam.varianceType;
         params[i].kind = _created;
     }
 
     tcks->getRet()->onVisit(this);
-    ret = _created;
+
+    if (!(ret = _created)) {
+        return;
+    }
 
     _created = _mngr.New<kind::TypeConstructorKind>(params, ret);
 }
