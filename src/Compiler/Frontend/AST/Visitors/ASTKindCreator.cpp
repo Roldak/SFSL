@@ -29,14 +29,12 @@ void ASTKindCreator::visit(ASTNode* node) {
     // do not throw an exception
 }
 
-type::ProperType* ASTKindCreator::computeBoundType(TypeExpression* b, bool* ok) {
+type::ProperType* ASTKindCreator::computeBoundType(TypeExpression* b) {
     if (b) {
         if (type::Type* tp = ASTTypeCreator::createType(b, _ctx)) {
             if (type::ProperType* pt = type::getIf<type::ProperType>(tp)) {
-                *ok = true;
                 return pt;
             } else {
-                *ok = false;
                 _ctx->reporter().error(*b, "Proper kind can only have bounds of a proper type");
             }
         }
@@ -45,9 +43,8 @@ type::ProperType* ASTKindCreator::computeBoundType(TypeExpression* b, bool* ok) 
 }
 
 void ASTKindCreator::visit(ProperTypeKindSpecifier* ptks) {
-    bool lbOk, ubOk;
-    type::ProperType* lbType = computeBoundType(ptks->getLowerBoundExpr(), &lbOk);
-    type::ProperType* ubType = computeBoundType(ptks->getUpperBoundExpr(), &ubOk);
+    type::ProperType* lbType = computeBoundType(ptks->getLowerBoundExpr());
+    type::ProperType* ubType = computeBoundType(ptks->getUpperBoundExpr());
 
     _created = (!lbType && !ubType) ? kind::ProperKind::create()
                                     : _mngr.New<kind::ProperKind>(lbType, ubType);

@@ -53,7 +53,7 @@ public:
 
 protected:
 
-    type::ProperType* computeBoundType(TypeExpression* b, bool* ok);
+    type::ProperType* computeBoundType(TypeExpression* b);
 
     kind::Kind* _created;
 };
