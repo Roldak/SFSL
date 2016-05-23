@@ -32,7 +32,7 @@ void ASTKindCreator::visit(ASTNode* node) {
 type::ProperType* ASTKindCreator::computeBoundType(TypeExpression* b) {
     if (b) {
         if (type::Type* tp = ASTTypeCreator::createType(b, _ctx)) {
-            if (type::ProperType* pt = type::getIf<type::ProperType>(tp)) {
+            if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
                 return pt;
             } else {
                 _ctx->reporter().error(*b, "Proper kind can only have bounds of a proper type");
