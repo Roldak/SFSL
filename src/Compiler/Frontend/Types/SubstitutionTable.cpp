@@ -15,6 +15,8 @@ namespace type {
 
 namespace impl {
 
+SubstitutionTable SubstitutionTable::Empty = type::SubstitutionTable();
+
 SubstitutionTable::Substitution::Substitution()
     : varianceType(common::VAR_T_NONE), key(nullptr), value(nullptr) {
 

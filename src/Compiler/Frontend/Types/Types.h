@@ -87,7 +87,7 @@ private:
 
 class ProperType : public Type {
 public:
-    ProperType(ast::ClassDecl* clss, const SubstitutionTable& substitutionTable = {});
+    ProperType(ast::ClassDecl* clss, const SubstitutionTable& substitutionTable);
 
     virtual ~ProperType();
 
@@ -107,7 +107,7 @@ protected:
 
 class FunctionType : public ProperType {
 public:
-    FunctionType(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable = {});
+    FunctionType(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable);
 
     virtual ~FunctionType();
 
@@ -132,7 +132,7 @@ private:
 
 class MethodType : public Type {
 public:
-    MethodType(ast::ClassDecl* owner, const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable = {});
+    MethodType(ast::ClassDecl* owner, const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable);
 
     virtual ~MethodType();
 
@@ -161,7 +161,7 @@ private:
 
 class TypeConstructorType : public Type {
 public:
-    TypeConstructorType(ast::TypeConstructorCreation* typeConstructor, const SubstitutionTable& substitutionTable = {});
+    TypeConstructorType(ast::TypeConstructorCreation* typeConstructor, const SubstitutionTable& substitutionTable);
 
     virtual ~TypeConstructorType();
 
@@ -181,7 +181,7 @@ private:
 
 class ConstructorApplyType : public Type {
 public:
-    ConstructorApplyType(Type* callee, const std::vector<Type*>& args, const SubstitutionTable& substitutionTable = {});
+    ConstructorApplyType(Type* callee, const std::vector<Type*>& args);
 
     virtual ~ConstructorApplyType();
 

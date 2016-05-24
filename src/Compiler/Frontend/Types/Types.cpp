@@ -606,9 +606,8 @@ ast::TypeConstructorCreation* TypeConstructorType::getTypeConstructor() const {
 
 // CONSTRUCTOR APPLY TYPE
 
-ConstructorApplyType::ConstructorApplyType(Type* callee, const std::vector<Type*>& args,
-                                           const SubstitutionTable& substitutionTable)
-    : Type(substitutionTable), _callee(callee), _args(args) {
+ConstructorApplyType::ConstructorApplyType(Type* callee, const std::vector<Type*>& args)
+    : Type(type::SubstitutionTable::Empty), _callee(callee), _args(args) {
 
 }
 

@@ -61,6 +61,8 @@ public:
 
     size_t size() const;
 
+    static SubstitutionTable Empty;
+
 private:
 
     struct SubstitutionComparator final {

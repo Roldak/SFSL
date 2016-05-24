@@ -95,10 +95,20 @@ public:
     static type::SubstitutionTable buildSubstitutionTableFromTypeParameterInstantiation(
             const std::vector<TypeExpression*> params, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx);
 
+
+    /**
+     * @brief Creates an initial substitution table from a TypeParametrizable object.
+     * For example, for an object depending on type parameters {out T, K}, the resulting
+     * substitution table will be {(out, T->T), (none, K->K)}
+     *
+     * @param param The TypeParametrizable object
+     * @return The substitution table
+     */
+    static type::SubstitutionTable buildSubstitutionTableFromTypeParametrizable(type::TypeParametrizable* param);
+
 protected:
 
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
-    type::SubstitutionTable buildSubstitutionTableFromTypeParametrizable(type::TypeParametrizable* param);
 
     type::Type* _created;
 
