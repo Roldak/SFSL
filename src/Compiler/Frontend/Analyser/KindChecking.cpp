@@ -139,22 +139,50 @@ void KindChecking::visit(TypeConstructorCall* tcall) {
     ASTImplicitVisitor::visit(tcall);
 
     if (kind::TypeConstructorKind* k = kind::getIf<kind::TypeConstructorKind>(tcall->getCallee()->kind())) {
+        if (type::TypeConstructorType* ctrType = type::getIf<type::TypeConstructorType>(
+                    ASTTypeCreator::createType(tcall->getCallee(), _ctx)->applyTCCallsOnly(_ctx))) {
 
-        const std::vector<TypeExpression*>& callArgs = tcall->getArgs();
-        const std::vector<kind::TypeConstructorKind::Parameter>& params = k->getArgKinds();
+            // retrive the call arguments and their types
+            const std::vector<TypeExpression*>& callArgs = tcall->getArgs();
+            std::vector<type::Type*> callArgsTypes(callArgs.size());
 
-        std::vector<kind::Kind*> paramKinds(params.size());
-        for (size_t i = 0; i < params.size(); ++i) {
-            paramKinds[i] = params[i].kind;
-        }
+            for (size_t i = 0; i < callArgs.size(); ++i) {
+                callArgsTypes[i] = ASTTypeCreator::createType(callArgs[i], _ctx);
+            }
 
-        if (kindCheckArgumentSubstitution(paramKinds, callArgs, *tcall, _ctx)) {
-            tcall->setKind(k->getRetKind());
+            // retrieve parameters of the type constructor and their kinds
+            TypeExpression* paramsExpr = ctrType->getTypeConstructor()->getArgs();
+            std::vector<TypeExpression*> params;
+
+            if (isNodeOfType<TypeTuple>(paramsExpr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+                params = static_cast<TypeTuple*>(paramsExpr)->getExpressions();
+            } else { // form is `exp => ...` or `[exp] => ...`
+                params.push_back(paramsExpr);
+            }
+
+            std::vector<kind::Kind*> paramKinds(params.size());
+            for (size_t i = 0; i < params.size(); ++i) {
+                paramKinds[i] = params[i]->kind();
+            }
+
+            // build the substitution table of the type constructor being called
+
+            type::SubstitutionTable ctrEnv(ctrType->getSubstitutionTable());
+            type::SubstitutionTable callEnv(ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(params, callArgsTypes, _ctx));
+            ctrEnv.insert(callEnv.begin(), callEnv.end());
+
+            // kind check
+
+            if (kindCheckWithBoundsArgumentSubstitution(paramKinds, callArgs, callArgsTypes, *tcall, ctrEnv, _ctx)) {
+                tcall->setKind(k->getRetKind());
+            } else {
+                tcall->setKind(kind::Kind::NotYetDefined());
+            }
         } else {
-            tcall->setKind(kind::Kind::NotYetDefined());
+            _ctx->reporter().fatal(*tcall->getCallee(), "Callee was not a type constructor");
         }
-
-    } else {
+    }
+    else {
         _rep.error(*tcall->getCallee(), "Type expression " + tcall->getCallee()->kind()->toString() + " cannot be called.");
     }
 }
@@ -206,6 +234,28 @@ bool KindChecking::kindCheckArgumentSubstitution(const std::vector<kind::Kind*>&
         if (!arguments[i]->kind()->isSubKindOf(parametersKinds[i])) {
             ctx->reporter().error(*arguments[i], "Kind mismatch. Expected " + parametersKinds[i]->toString() +
                        ", found " + arguments[i]->kind()->toString());
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool KindChecking::kindCheckWithBoundsArgumentSubstitution(const std::vector<kind::Kind*>& parametersKinds,
+                                                           const std::vector<TypeExpression*>& arguments,
+                                                           const std::vector<type::Type*>& createdArguments,
+                                                           const common::Positionnable& callPos,
+                                                           const type::SubstitutionTable& env, CompCtx_Ptr& ctx) {
+    if (arguments.size() != parametersKinds.size()) {
+        ctx->reporter().error(callPos, "Wrong number of type arguments. Expected " +
+                   utils::T_toString(parametersKinds.size()) + ", found " + utils::T_toString(arguments.size()));
+        return false;
+    }
+
+    for (size_t i = 0; i < arguments.size(); ++i) {
+        if (!arguments[i]->kind()->isSubKindOfWithBounds(parametersKinds[i], createdArguments[i]->getSubstitutionTable(), env, ctx)) {
+            ctx->reporter().error(*arguments[i], "Kind mismatch. Expected " + parametersKinds[i]->toString(true) +
+                       ", found " + arguments[i]->kind()->toString(true));
             return false;
         }
     }

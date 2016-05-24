@@ -11,14 +11,12 @@
 
 #include <iostream>
 #include <vector>
+#include "../../Common/CompilationContext.h"
 #include "../../Common/MemoryManageable.h"
 #include "../Common/Miscellaneous.h"
+#include "../Types/SubstitutionTable.h"
 
 namespace sfsl {
-
-namespace type {
-class ProperType;
-}
 
 namespace kind {
 
@@ -29,31 +27,43 @@ public:
     virtual ~Kind();
 
     virtual KIND_GENRE getKindGenre() const = 0;
+    // Does not take type bounds around proper kinds into account
     virtual bool isSubKindOf(Kind* other) const = 0;
-    virtual std::string toString() const = 0;
+    // Takes type bounds around proper kinds into account
+    virtual bool isSubKindOfWithBounds(Kind* other,
+                                       const type::SubstitutionTable& thisEnv,
+                                       const type::SubstitutionTable& otherEnv,
+                                       CompCtx_Ptr& ctx) const;
+
+    virtual std::string toString(bool withBoundsInformations = false) const = 0;
+
 
     static Kind* NotYetDefined();
 };
 
 class ProperKind : public Kind {
 public:
-    ProperKind(type::ProperType* lowerBound = nullptr, type::ProperType* upperBound = nullptr);
+    ProperKind(type::Type* lowerBound = nullptr, type::Type* upperBound = nullptr);
 
     virtual ~ProperKind();
 
     virtual KIND_GENRE getKindGenre() const override;
     virtual bool isSubKindOf(Kind* other) const override;
-    virtual std::string toString() const override;
+    virtual bool isSubKindOfWithBounds(Kind* other,
+                                       const type::SubstitutionTable& thisEnv,
+                                       const type::SubstitutionTable& otherEnv,
+                                       CompCtx_Ptr& ctx) const override;
+    virtual std::string toString(bool withBoundsInformations = false) const override;
 
-    type::ProperType* getLowerBound() const;
-    type::ProperType* getUpperBound() const;
+    type::Type* getLowerBound() const;
+    type::Type* getUpperBound() const;
 
     static ProperKind* create();
 
 private:
 
-    type::ProperType* _lb;
-    type::ProperType* _ub;
+    type::Type* _lb;
+    type::Type* _ub;
 };
 
 class TypeConstructorKind : public Kind {
@@ -70,9 +80,13 @@ public:
 
     virtual KIND_GENRE getKindGenre() const override;
     virtual bool isSubKindOf(Kind* other) const override;
+    virtual bool isSubKindOfWithBounds(Kind* other,
+                                       const type::SubstitutionTable& thisEnv,
+                                       const type::SubstitutionTable& otherEnv,
+                                       CompCtx_Ptr& ctx) const override;
     virtual ~TypeConstructorKind();
 
-    virtual std::string toString() const override;
+    virtual std::string toString(bool withBoundsInformations = false) const override;
 
     const std::vector<Parameter>& getArgKinds() const;
     Kind* getRetKind() const;

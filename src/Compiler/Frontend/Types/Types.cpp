@@ -318,11 +318,7 @@ bool FunctionType::isSubTypeOf(const Type* other) const {
         const std::vector<Type*>& oArgTypes = f->getArgTypes();
         const Type* oRetType = f->getRetType();
 
-        if (_typeArgs.size() != oTypeArgs.size()) {
-            return false;
-        }
-
-        if (_argTypes.size() != oArgTypes.size()) {
+        if (_typeArgs.size() != oTypeArgs.size() || _argTypes.size() != oArgTypes.size()) {
             return false;
         }
 
@@ -350,11 +346,7 @@ bool FunctionType::equals(const Type* other) const {
         const std::vector<Type*>& oArgTypes = f->getArgTypes();
         const Type* oRetType = f->getRetType();
 
-        if (_typeArgs.size() != oTypeArgs.size()) {
-            return false;
-        }
-
-        if (_argTypes.size() != oArgTypes.size()) {
+        if (_typeArgs.size() != oTypeArgs.size() || _argTypes.size() != oArgTypes.size()) {
             return false;
         }
 
@@ -456,12 +448,7 @@ bool MethodType::isSubTypeOf(const Type* other) const {
         const std::vector<Type*>& oArgTypes = m->getArgTypes();
         const Type* oRetType = m->getRetType();
 
-        if (_typeArgs.size() != oTypeArgs.size()) {
-            return false;
-        }
-
-
-        if (_argTypes.size() != oArgTypes.size()) {
+        if (_typeArgs.size() != oTypeArgs.size() || _argTypes.size() != oArgTypes.size()) {
             return false;
         }
 
@@ -489,12 +476,7 @@ bool MethodType::equals(const Type* other) const {
         const std::vector<Type*>& oArgTypes = m->getArgTypes();
         const Type* oRetType = m->getRetType();
 
-        if (_typeArgs.size() != oTypeArgs.size()) {
-            return false;
-        }
-
-
-        if (_argTypes.size() != oArgTypes.size()) {
+        if (_typeArgs.size() != oTypeArgs.size() || _argTypes.size() != oArgTypes.size()) {
             return false;
         }
 

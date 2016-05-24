@@ -51,6 +51,12 @@ public:
                                               const std::vector<TypeExpression*>& arguments,
                                               const common::Positionnable& callPos, CompCtx_Ptr& ctx);
 
+    static bool kindCheckWithBoundsArgumentSubstitution(const std::vector<kind::Kind*>& parametersKinds,
+                                                        const std::vector<TypeExpression*>& arguments,
+                                                        const std::vector<type::Type*>& createdArguments,
+                                                        const common::Positionnable& callPos,
+                                                        const type::SubstitutionTable& env, CompCtx_Ptr& ctx);
+
 private:
 
     kind::ProperKind* createProperKindWithBounds(TypeExpression* lb, TypeExpression* ub);
