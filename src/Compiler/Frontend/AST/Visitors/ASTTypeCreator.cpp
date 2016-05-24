@@ -177,16 +177,9 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
         return type::Type::NotYetDefined();
     }
 
-
     std::vector<kind::Kind*> paramKinds;
     for (const TypeExpression* expr : typeParams) {
         paramKinds.push_back(expr->kind());
-    }
-
-    if (!KindChecking::kindCheckArgumentSubstitution(paramKinds, args, callPos, ctx)) {
-        return type::Type::NotYetDefined();
-    } else if (typeParams.size() == 0) {
-        return fc;
     }
 
     std::vector<type::Type*> argTypes(args.size());
@@ -196,9 +189,17 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
         }
     }
 
-    type::SubstitutionTable subs(buildSubstitutionTableFromTypeParameterInstantiation(typeParams, argTypes, ctx));
+    type::SubstitutionTable fnEnv(created->getSubstitutionTable());
+    type::SubstitutionTable callEnv(buildSubstitutionTableFromTypeParameterInstantiation(typeParams, argTypes, ctx));
+    fnEnv.insert(callEnv.begin(), callEnv.end());
 
-    created = created->substitute(subs, ctx);
+    if (!KindChecking::kindCheckWithBoundsArgumentSubstitution(paramKinds, args, argTypes, callPos, fnEnv, ctx)) {
+        return type::Type::NotYetDefined();
+    } else if (typeParams.size() == 0) {
+        return fc;
+    }
+
+    created = created->substitute(callEnv, ctx);
 
     return created;
 }
