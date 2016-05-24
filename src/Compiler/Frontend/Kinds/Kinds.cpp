@@ -185,7 +185,6 @@ bool TypeConstructorKind::isSubKindOf(Kind* other, bool checkBounds) const {
         }
 
         return _ret->isSubKindOf(tck->getRetKind(), checkBounds);
-
     }
     return false;
 }

@@ -1,0 +1,23 @@
+module test {
+    type A = class {}
+    type B = class : A {}
+    
+    type F[T] => class {
+        type G[K: * < T] => class {
+            
+        }
+    }
+    
+    type H[F: [*]->*] => A
+    type I[F: [* < A]->*] => A
+    type J[F: [* < A]->* < A] => A
+    
+    type Test1 = F[A].G[A]
+    type Test2 = F[A].G[B]
+    type Test3 = F[B].G[B]
+    
+    type Test4 = H[[X: * < A] => B]
+    type Test5 = H[F[A].G]
+    type Test6 = I[[X: * < B] => X]
+    type Test7 = J[[X: * < A] => A]
+}

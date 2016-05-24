@@ -1,0 +1,8 @@
+module test {
+    type A = class {}
+    type B = class : A {}
+    
+    type J[F: [* < B]->* < A] => A
+    
+    type Test1 = J[[X: * < A] => A]
+}

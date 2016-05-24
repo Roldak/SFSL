@@ -1,0 +1,35 @@
+module test {
+    using sfsl.lang
+    
+    type Transaction = class {
+        startTs: int;
+        commitTs: int;
+    }
+    
+    type Filterable[C: *->*] => class {
+        def filter[T](_: T->bool)->C[T] => x: C[T]
+    }
+    
+    type State = abstract class {
+        abstract def (): Transaction->bool
+        
+        def from[C: *->* < Filterable[C]](_: C[Transaction]) => {}
+    }
+    
+    def Committed = {
+        type CommittedType = class : State {
+            new() => {}
+            redef ()(_: Transaction) => true
+        };
+        CommittedType();
+    }
+    
+    type Array[T] => class : Filterable[Array] {
+        
+    }
+    
+    def main() => {
+        t: Array[Transaction];
+        Committed.from[Array](t);
+    }
+}

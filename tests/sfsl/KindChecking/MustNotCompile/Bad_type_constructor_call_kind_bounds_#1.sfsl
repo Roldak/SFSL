@@ -1,0 +1,12 @@
+module test {
+    type A = class {}
+    type B = class : A {}
+    
+    type F[T] => class {
+        type G[K: * < T] => class {
+            
+        }
+    }
+    
+    type Test1 = F[B].G[A]
+}
