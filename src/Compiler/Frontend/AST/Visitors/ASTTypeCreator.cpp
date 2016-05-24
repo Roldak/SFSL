@@ -251,6 +251,10 @@ type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParametriz
 type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(
         std::vector<TypeExpression*> params, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx) {
 
+    if (params.size() != args.size()) {
+        return type::SubstitutionTable::Empty;
+    }
+
     for (TypeExpression*& param : params) {
         if (isNodeOfType<TypeParameter>(param, ctx)) {
             param = static_cast<TypeParameter*>(param)->getSpecified();

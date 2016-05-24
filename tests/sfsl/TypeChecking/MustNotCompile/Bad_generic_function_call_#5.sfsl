@@ -1,0 +1,10 @@
+module test {	
+	using sfsl.lang
+	
+	type A = class {
+		new() => {}
+		def f[A, B]() => {}
+	}
+	
+	def test1: unit = A().f[int]()
+}
