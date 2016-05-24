@@ -50,11 +50,11 @@ public:
     virtual void visit(MethodCall* methcall) = 0;
     virtual void visit(Instantiation* inst) = 0;
 
-    virtual void visit(UnitLitteral* unitlit) = 0;
-    virtual void visit(BoolLitteral* boollit) = 0;
-    virtual void visit(IntLitteral* intlit) = 0;
-    virtual void visit(RealLitteral* reallit) = 0;
-    virtual void visit(StringLitteral* strlit) = 0;
+    virtual void visit(UnitLiteral* unitlit) = 0;
+    virtual void visit(BoolLiteral* boollit) = 0;
+    virtual void visit(IntLiteral* intlit) = 0;
+    virtual void visit(RealLiteral* reallit) = 0;
+    virtual void visit(StringLiteral* strlit) = 0;
 
 
 protected:

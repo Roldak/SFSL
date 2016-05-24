@@ -77,7 +77,7 @@ void Lexer::produceNext() {
         }
         else {
             if (strKind == STR_STRING_LIT) {
-                handleStringLitteral(soFar);
+                handleStringLiteral(soFar);
                 _lastChar.kind = CHR_EMPTY;
             }
 
@@ -109,9 +109,9 @@ Token* Lexer::buildToken(STR_KIND kind, const std::string& soFar) const {
     switch (kind) {
     case STR_SYMBOL:        return _ctx->memoryManager().New<Operator>(Operator::OperTypeFromString(soFar));
     case STR_ID:            return getRightTokenFromIdentifier(soFar);
-    case STR_INT_LIT:       return _ctx->memoryManager().New<IntLitteral>(utils::String_toT<sfsl_int_t>(soFar));
-    case STR_REAL_LIT:      return _ctx->memoryManager().New<RealLitteral>(utils::String_toT<sfsl_real_t>(soFar));
-    case STR_STRING_LIT:    return _ctx->memoryManager().New<StringLitteral>(soFar);
+    case STR_INT_LIT:       return _ctx->memoryManager().New<IntLiteral>(utils::String_toT<sfsl_int_t>(soFar));
+    case STR_REAL_LIT:      return _ctx->memoryManager().New<RealLiteral>(utils::String_toT<sfsl_real_t>(soFar));
+    case STR_STRING_LIT:    return _ctx->memoryManager().New<StringLiteral>(soFar);
     default:                return _ctx->memoryManager().New<BadToken>(soFar);
     }
 }
@@ -122,15 +122,15 @@ Token* Lexer::getRightTokenFromIdentifier(const std::string& str) const{
     } else if (Operator::OperTypeFromIdentifierString(str) != OPER_UNKNOWN) {
         return _ctx->memoryManager().New<Operator>(Operator::OperTypeFromString(str));
     } else if (str == "true") {
-        return _ctx->memoryManager().New<BoolLitteral>(true);
+        return _ctx->memoryManager().New<BoolLiteral>(true);
     } else if (str == "false") {
-        return _ctx->memoryManager().New<BoolLitteral>(false);
+        return _ctx->memoryManager().New<BoolLiteral>(false);
     } else {
         return _ctx->memoryManager().New<Identifier>(str);
     }
 }
 
-void Lexer::handleStringLitteral(std::string& soFar) {
+void Lexer::handleStringLiteral(std::string& soFar) {
     soFar = "";
     if (_lastChar.chr == '\"')
         return;
@@ -141,7 +141,7 @@ void Lexer::handleStringLitteral(std::string& soFar) {
 
     for(;;) {
         if (!_source.hasNext()) {
-            _ctx->reporter().fatal(_source.currentPos(), "Unfinished string litteral");
+            _ctx->reporter().fatal(_source.currentPos(), "Unfinished string Literal");
         }
 
         char c = _source.getNext();

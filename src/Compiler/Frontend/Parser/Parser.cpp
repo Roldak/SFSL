@@ -417,25 +417,25 @@ Expression* Parser::parsePrimary() {
 
     switch (_currentToken->getTokenType()) {
     case tok::TOK_BOOL_LIT:
-        toRet = _mngr.New<BoolLitteral>(as<tok::BoolLitteral>()->getValue());
+        toRet = _mngr.New<BoolLiteral>(as<tok::BoolLiteral>()->getValue());
         toRet->setPos(*_currentToken);
         accept();
         break;
 
     case tok::TOK_INT_LIT:
-        toRet = _mngr.New<IntLitteral>(as<tok::IntLitteral>()->getValue());
+        toRet = _mngr.New<IntLiteral>(as<tok::IntLiteral>()->getValue());
         toRet->setPos(*_currentToken);
         accept();
         break;
 
     case tok::TOK_REAL_LIT:
-        toRet = _mngr.New<RealLitteral>(as<tok::RealLitteral>()->getValue());
+        toRet = _mngr.New<RealLiteral>(as<tok::RealLiteral>()->getValue());
         toRet->setPos(*_currentToken);
         accept();
         break;
 
     case tok::TOK_STR_LIT:
-        toRet = _mngr.New<StringLitteral>(as<tok::StringLitteral>()->getValue());
+        toRet = _mngr.New<StringLiteral>(as<tok::StringLiteral>()->getValue());
         toRet->setPos(*_currentToken);
         accept();
         break;
@@ -500,7 +500,7 @@ Expression* Parser::parsePrimary() {
 
     default:
         _ctx->reporter().error(*_currentToken,
-                               "Expected int litteral | real litteral | string litteral "
+                               "Expected int Literal | real Literal | string Literal "
                                "| identifier | keyword; got " + _currentToken->toString());
         accept();
     }
@@ -894,16 +894,16 @@ void Parser::parseAnnotations() {
     if (_currentToken->getStartPosition() == _lastTokenEndPos && accept(tok::OPER_L_PAREN)) {
         while (true) {
             if (isType(tok::TOK_BOOL_LIT)) {
-                args.push_back(Annotation::ArgumentValue(as<tok::BoolLitteral>()->getValue()));
+                args.push_back(Annotation::ArgumentValue(as<tok::BoolLiteral>()->getValue()));
             } else if (isType(tok::TOK_INT_LIT)) {
-                args.push_back(Annotation::ArgumentValue(as<tok::IntLitteral>()->getValue()));
+                args.push_back(Annotation::ArgumentValue(as<tok::IntLiteral>()->getValue()));
             } else if (isType(tok::TOK_REAL_LIT)) {
-                args.push_back(Annotation::ArgumentValue(as<tok::RealLitteral>()->getValue()));
+                args.push_back(Annotation::ArgumentValue(as<tok::RealLiteral>()->getValue()));
             } else if (isType(tok::TOK_STR_LIT)) {
-                args.push_back(Annotation::ArgumentValue(as<tok::StringLitteral>()->getValue()));
+                args.push_back(Annotation::ArgumentValue(as<tok::StringLiteral>()->getValue()));
             } else {
                 _ctx->reporter().error(*_currentToken,
-                                       "Expected bool | int | real | string litteral"
+                                       "Expected bool | int | real | string Literal"
                                        "; got " + _currentToken->toString());
                 break;
             }

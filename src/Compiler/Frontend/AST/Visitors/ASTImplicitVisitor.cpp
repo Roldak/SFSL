@@ -208,19 +208,19 @@ void ASTImplicitVisitor::visit(This*) {
 
 }
 
-void ASTImplicitVisitor::visit(BoolLitteral*) {
+void ASTImplicitVisitor::visit(BoolLiteral*) {
 
 }
 
-void ASTImplicitVisitor::visit(IntLitteral*) {
+void ASTImplicitVisitor::visit(IntLiteral*) {
 
 }
 
-void ASTImplicitVisitor::visit(RealLitteral*) {
+void ASTImplicitVisitor::visit(RealLiteral*) {
 
 }
 
-void ASTImplicitVisitor::visit(StringLitteral*) {
+void ASTImplicitVisitor::visit(StringLiteral*) {
 
 }
 

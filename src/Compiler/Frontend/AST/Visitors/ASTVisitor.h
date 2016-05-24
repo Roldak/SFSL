@@ -82,10 +82,10 @@ public:
     virtual void visit(Instantiation* inst) = 0;
     virtual void visit(Identifier* ident) = 0;
     virtual void visit(This* ths) = 0;
-    virtual void visit(BoolLitteral* boollit) = 0;
-    virtual void visit(IntLitteral* intlit) = 0;
-    virtual void visit(RealLitteral* reallit) = 0;
-    virtual void visit(StringLitteral* strlit) = 0;
+    virtual void visit(BoolLiteral* boollit) = 0;
+    virtual void visit(IntLiteral* intlit) = 0;
+    virtual void visit(RealLiteral* reallit) = 0;
+    virtual void visit(StringLiteral* strlit) = 0;
 
 protected:
 

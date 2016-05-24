@@ -308,79 +308,79 @@ DefIdentifier* Instantiation::getClassId() const {
     return _defId;
 }
 
-// UNIT LITTERAL
+// UNIT Literal
 
-UnitLitteral::UnitLitteral() {
-
-}
-
-UnitLitteral::~UnitLitteral() {
+UnitLiteral::UnitLiteral() {
 
 }
 
-SFSL_BAST_ON_VISIT_CPP(UnitLitteral)
-
-// BOOL LITTERAL
-
-BoolLitteral::BoolLitteral(const sfsl_bool_t value) : _value(value) {
+UnitLiteral::~UnitLiteral() {
 
 }
 
-BoolLitteral::~BoolLitteral() {
+SFSL_BAST_ON_VISIT_CPP(UnitLiteral)
+
+// BOOL Literal
+
+BoolLiteral::BoolLiteral(const sfsl_bool_t value) : _value(value) {
 
 }
 
-SFSL_BAST_ON_VISIT_CPP(BoolLitteral)
+BoolLiteral::~BoolLiteral() {
 
-sfsl_bool_t BoolLitteral::getValue() const {
+}
+
+SFSL_BAST_ON_VISIT_CPP(BoolLiteral)
+
+sfsl_bool_t BoolLiteral::getValue() const {
     return _value;
 }
 
-// INT LITTERAL
+// INT Literal
 
-IntLitteral::IntLitteral(const sfsl_int_t value) : _value(value) {
-
-}
-
-IntLitteral::~IntLitteral() {
+IntLiteral::IntLiteral(const sfsl_int_t value) : _value(value) {
 
 }
 
-sfsl_int_t IntLitteral::getValue() const {
+IntLiteral::~IntLiteral() {
+
+}
+
+sfsl_int_t IntLiteral::getValue() const {
     return _value;
 }
 
-SFSL_BAST_ON_VISIT_CPP(IntLitteral)
+SFSL_BAST_ON_VISIT_CPP(IntLiteral)
 
-// REAL LITTERAL
+// REAL Literal
 
-RealLitteral::RealLitteral(const sfsl_real_t value) : _value(value) {
-
-}
-
-RealLitteral::~RealLitteral() {
+RealLiteral::RealLiteral(const sfsl_real_t value) : _value(value) {
 
 }
 
-SFSL_BAST_ON_VISIT_CPP(RealLitteral)
+RealLiteral::~RealLiteral() {
 
-sfsl_real_t RealLitteral::getValue() const {
+}
+
+SFSL_BAST_ON_VISIT_CPP(RealLiteral)
+
+sfsl_real_t RealLiteral::getValue() const {
     return _value;
 }
 
-// STRING LITTERAL
+// STRING Literal
 
-StringLitteral::StringLitteral(const std::string& value) : _value(value) {
-
-}
-
-StringLitteral::~StringLitteral() {
+StringLiteral::StringLiteral(const std::string& value) : _value(value) {
 
 }
 
-SFSL_BAST_ON_VISIT_CPP(StringLitteral)
+StringLiteral::~StringLiteral() {
 
-const std::string& StringLitteral::getValue() const {
+}
+
+SFSL_BAST_ON_VISIT_CPP(StringLiteral)
+
+const std::string& StringLiteral::getValue() const {
     return _value;
 }
 

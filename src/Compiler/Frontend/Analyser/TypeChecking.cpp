@@ -540,19 +540,19 @@ void TypeChecking::visit(This* ths) {
     }
 }
 
-void TypeChecking::visit(BoolLitteral* boollit) {
+void TypeChecking::visit(BoolLiteral* boollit) {
     boollit->setType(_res.Bool());
 }
 
-void TypeChecking::visit(IntLitteral* intlit) {
+void TypeChecking::visit(IntLiteral* intlit) {
     intlit->setType(_res.Int());
 }
 
-void TypeChecking::visit(RealLitteral* reallit) {
+void TypeChecking::visit(RealLiteral* reallit) {
     reallit->setType(_res.Real());
 }
 
-void TypeChecking::visit(StringLitteral* strlit) {
+void TypeChecking::visit(StringLiteral* strlit) {
     strlit->setType(_res.String());
 }
 

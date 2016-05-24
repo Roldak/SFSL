@@ -68,7 +68,7 @@ private:
     tok::Token* buildToken(STR_KIND kind, const std::string& soFar) const;
     tok::Token* getRightTokenFromIdentifier(const std::string& str) const;
 
-    void handleStringLitteral(std::string& soFar);
+    void handleStringLiteral(std::string& soFar);
     bool tryHandleComments(const std::string& soFar, char next);
     void handleMultiLineComment();
     void handleSingleLineComment();

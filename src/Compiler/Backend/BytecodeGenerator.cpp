@@ -362,15 +362,15 @@ void DefaultBytecodeGenerator::visit(This* ths) {
     Emit<LoadStack>(*ths, 0);
 }
 
-void DefaultBytecodeGenerator::visit(BoolLitteral* boollit) {
+void DefaultBytecodeGenerator::visit(BoolLiteral* boollit) {
     Emit<PushConstBool>(*boollit, boollit->getValue());
 }
 
-void DefaultBytecodeGenerator::visit(IntLitteral* intlit) {
+void DefaultBytecodeGenerator::visit(IntLiteral* intlit) {
     Emit<PushConstInt>(*intlit, intlit->getValue());
 }
 
-void DefaultBytecodeGenerator::visit(RealLitteral* reallit) {
+void DefaultBytecodeGenerator::visit(RealLiteral* reallit) {
     Emit<PushConstReal>(*reallit, reallit->getValue());
 }
 

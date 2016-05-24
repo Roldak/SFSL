@@ -41,11 +41,11 @@ public:
     virtual void visit(MethodCall* methcall) override;
     virtual void visit(Instantiation* inst) override;
 
-    virtual void visit(UnitLitteral* unitlit) override;
-    virtual void visit(BoolLitteral* boollit) override;
-    virtual void visit(IntLitteral* intlit) override;
-    virtual void visit(RealLitteral* reallit) override;
-    virtual void visit(StringLitteral* strlit) override;
+    virtual void visit(UnitLiteral* unitlit) override;
+    virtual void visit(BoolLiteral* boollit) override;
+    virtual void visit(IntLiteral* intlit) override;
+    virtual void visit(RealLiteral* reallit) override;
+    virtual void visit(StringLiteral* strlit) override;
 
 private:
     void printIndents();

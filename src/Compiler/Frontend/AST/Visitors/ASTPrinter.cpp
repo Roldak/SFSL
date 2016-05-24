@@ -352,19 +352,19 @@ void ASTPrinter::visit(This*) {
     _ostream << "this";
 }
 
-void ASTPrinter::visit(BoolLitteral* boollit) {
+void ASTPrinter::visit(BoolLiteral* boollit) {
     _ostream << (boollit->getValue() ? "true" : "false");
 }
 
-void ASTPrinter::visit(IntLitteral* intlit) {
+void ASTPrinter::visit(IntLiteral* intlit) {
     _ostream << intlit->getValue();
 }
 
-void ASTPrinter::visit(RealLitteral* reallit) {
+void ASTPrinter::visit(RealLiteral* reallit) {
     _ostream << reallit->getValue();
 }
 
-void ASTPrinter::visit(StringLitteral* strlit) {
+void ASTPrinter::visit(StringLiteral* strlit) {
     _ostream << "\"" << strlit->getValue() << "\"";
 }
 

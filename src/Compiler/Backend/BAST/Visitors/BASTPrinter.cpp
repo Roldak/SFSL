@@ -167,23 +167,23 @@ void BASTPrinter::visit(Instantiation* inst) {
     _ostream << "new " << inst->getClassId()->getValue();
 }
 
-void BASTPrinter::visit(UnitLitteral* unitlit) {
+void BASTPrinter::visit(UnitLiteral* unitlit) {
     _ostream << "()";
 }
 
-void BASTPrinter::visit(BoolLitteral* boollit) {
+void BASTPrinter::visit(BoolLiteral* boollit) {
     _ostream << (boollit->getValue() ? "true" : "false");
 }
 
-void BASTPrinter::visit(IntLitteral* intlit) {
+void BASTPrinter::visit(IntLiteral* intlit) {
     _ostream << intlit->getValue();
 }
 
-void BASTPrinter::visit(RealLitteral* reallit) {
+void BASTPrinter::visit(RealLiteral* reallit) {
     _ostream << reallit->getValue();
 }
 
-void BASTPrinter::visit(StringLitteral* strlit) {
+void BASTPrinter::visit(StringLiteral* strlit) {
     _ostream << "\"" << strlit->getValue() << "\"";
 }
 

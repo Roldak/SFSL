@@ -31,9 +31,9 @@ std::string Token::TokenTypeToString(TOK_TYPE type) {
     case TOK_OPER:      return "OPERATOR";
     case TOK_KW:        return "KEYWORD";
     case TOK_ID:        return "IDENTIFIER";
-    case TOK_INT_LIT:   return "INT LITTERAL";
-    case TOK_REAL_LIT:  return "REAL LITTERAL";
-    case TOK_STR_LIT:   return "STRING LITTERAL";
+    case TOK_INT_LIT:   return "INT Literal";
+    case TOK_REAL_LIT:  return "REAL Literal";
+    case TOK_STR_LIT:   return "STRING Literal";
     case TOK_EOF:       return "EOF";
     case TOK_BAD:       return "BAD";
 
@@ -138,89 +138,89 @@ KW_TYPE Keyword::KeywordTypeFromString(const std::string& str) {
 
 // BOOLS
 
-BoolLitteral::BoolLitteral(sfsl_bool_t value) : _value(value) {
+BoolLiteral::BoolLiteral(sfsl_bool_t value) : _value(value) {
 
 }
 
-BoolLitteral::~BoolLitteral() {
+BoolLiteral::~BoolLiteral() {
 
 }
 
-TOK_TYPE BoolLitteral::getTokenType() const {
+TOK_TYPE BoolLiteral::getTokenType() const {
     return TOK_BOOL_LIT;
 }
 
-std::string BoolLitteral::toString() const {
+std::string BoolLiteral::toString() const {
     return _value ? "true" : "false";
 }
 
-sfsl_bool_t BoolLitteral::getValue() const {
+sfsl_bool_t BoolLiteral::getValue() const {
     return _value;
 }
 
 // INTS
 
-IntLitteral::IntLitteral(sfsl_int_t value)  : _value(value) {
+IntLiteral::IntLiteral(sfsl_int_t value)  : _value(value) {
 
 }
 
-IntLitteral::~IntLitteral() {
+IntLiteral::~IntLiteral() {
 
 }
 
-TOK_TYPE IntLitteral::getTokenType() const {
+TOK_TYPE IntLiteral::getTokenType() const {
     return TOK_INT_LIT;
 }
 
-std::string IntLitteral::toString() const {
+std::string IntLiteral::toString() const {
     return utils::T_toString(_value);
 }
 
-sfsl_int_t IntLitteral::getValue() const {
+sfsl_int_t IntLiteral::getValue() const {
     return _value;
 }
 
 // REALS
 
-RealLitteral::RealLitteral(sfsl_real_t value) : _value(value) {
+RealLiteral::RealLiteral(sfsl_real_t value) : _value(value) {
 
 }
 
-RealLitteral::~RealLitteral() {
+RealLiteral::~RealLiteral() {
 
 }
 
-TOK_TYPE RealLitteral::getTokenType() const {
+TOK_TYPE RealLiteral::getTokenType() const {
     return TOK_REAL_LIT;
 }
 
-std::string RealLitteral::toString() const {
+std::string RealLiteral::toString() const {
     return utils::T_toString(_value);
 }
 
-sfsl_real_t RealLitteral::getValue() const {
+sfsl_real_t RealLiteral::getValue() const {
     return _value;
 }
 
 // STRS
 
-StringLitteral::StringLitteral(const std::string &value) : _value(value) {
+StringLiteral::StringLiteral(const std::string &value) : _value(value) {
 
 }
 
-StringLitteral::~StringLitteral() {
+StringLiteral::~StringLiteral() {
 
 }
 
-TOK_TYPE StringLitteral::getTokenType() const {
+TOK_TYPE StringLiteral::getTokenType() const {
     return TOK_STR_LIT;
 }
 
-std::string StringLitteral::toString() const {
+std::string StringLiteral::toString() const {
     return "\"" + _value + "\"";
 }
 
-std::string StringLitteral::getValue() const {
+std::string StringLiteral::getValue() const {
     return _value;
 }
 

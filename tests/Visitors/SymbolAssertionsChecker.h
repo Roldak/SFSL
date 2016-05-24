@@ -39,7 +39,7 @@ private:
     void performTests();
 
     std::map<std::string, sym::Symbol*> _symbols;
-    std::vector<std::pair<ast::StringLitteral*, sym::Symbol*>> _tests;
+    std::vector<std::pair<ast::StringLiteral*, sym::Symbol*>> _tests;
 };
 
 }

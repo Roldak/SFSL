@@ -254,20 +254,20 @@ void AST2BAST::visit(ast::This*) {
     make<VarIdentifier>(0);
 }
 
-void AST2BAST::visit(ast::BoolLitteral* boollit) {
-    make<BoolLitteral>(boollit->getValue());
+void AST2BAST::visit(ast::BoolLiteral* boollit) {
+    make<BoolLiteral>(boollit->getValue());
 }
 
-void AST2BAST::visit(ast::IntLitteral* intlit) {
-    make<IntLitteral>(intlit->getValue());
+void AST2BAST::visit(ast::IntLiteral* intlit) {
+    make<IntLiteral>(intlit->getValue());
 }
 
-void AST2BAST::visit(ast::RealLitteral* reallit) {
-    make<RealLitteral>(reallit->getValue());
+void AST2BAST::visit(ast::RealLiteral* reallit) {
+    make<RealLiteral>(reallit->getValue());
 }
 
-void AST2BAST::visit(ast::StringLitteral* strlit) {
-    make<StringLitteral>(strlit->getValue());
+void AST2BAST::visit(ast::StringLiteral* strlit) {
+    make<StringLiteral>(strlit->getValue());
 }
 
 Program* AST2BAST::transform(ast::Program* node) {
@@ -367,7 +367,7 @@ bool AST2BAST::isVariableAttribute(sym::VariableSymbol* var) {
 }
 
 Expression* AST2BAST::makeUnit() {
-    return make<UnitLitteral>();
+    return make<UnitLiteral>();
 }
 
 template<typename T, typename... Args>

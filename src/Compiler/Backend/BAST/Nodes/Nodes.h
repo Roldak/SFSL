@@ -356,13 +356,13 @@ private:
 };
 
 /**
- * @brief Represents a unit litteral
+ * @brief Represents a unit Literal
  */
-class UnitLitteral : public Expression {
+class UnitLiteral : public Expression {
 public:
 
-    UnitLitteral();
-    virtual ~UnitLitteral();
+    UnitLiteral();
+    virtual ~UnitLiteral();
 
     SFSL_BAST_ON_VISIT_H
 
@@ -370,13 +370,13 @@ private:
 };
 
 /**
- * @brief Represents a boolean litteral
+ * @brief Represents a boolean Literal
  */
-class BoolLitteral : public Expression {
+class BoolLiteral : public Expression {
 public:
 
-    BoolLitteral(const sfsl_bool_t value);
-    virtual ~BoolLitteral();
+    BoolLiteral(const sfsl_bool_t value);
+    virtual ~BoolLiteral();
 
     SFSL_BAST_ON_VISIT_H
 
@@ -388,18 +388,18 @@ private:
 };
 
 /**
- * @brief Represents an Integer litteral.
+ * @brief Represents an Integer Literal.
  */
-class IntLitteral : public Expression {
+class IntLiteral : public Expression {
 public:
 
-    IntLitteral(const sfsl_int_t value);
-    virtual ~IntLitteral();
+    IntLiteral(const sfsl_int_t value);
+    virtual ~IntLiteral();
 
     SFSL_BAST_ON_VISIT_H
 
     /**
-     * @return The value of the litteral
+     * @return The value of the Literal
      */
     sfsl_int_t getValue() const;
 
@@ -409,18 +409,18 @@ private:
 };
 
 /**
- * @brief Represents a Real litteral
+ * @brief Represents a Real Literal
  */
-class RealLitteral : public Expression {
+class RealLiteral : public Expression {
 public:
 
-    RealLitteral(const sfsl_real_t value);
-    virtual ~RealLitteral();
+    RealLiteral(const sfsl_real_t value);
+    virtual ~RealLiteral();
 
     SFSL_BAST_ON_VISIT_H
 
     /**
-     * @return The value of the litteral
+     * @return The value of the Literal
      */
     sfsl_real_t getValue() const;
 
@@ -430,18 +430,18 @@ private:
 };
 
 /**
- * @brief Represents a String litteral
+ * @brief Represents a String Literal
  */
-class StringLitteral : public Expression {
+class StringLiteral : public Expression {
 public:
 
-    StringLitteral(const std::string& value);
-    virtual ~StringLitteral();
+    StringLiteral(const std::string& value);
+    virtual ~StringLiteral();
 
     SFSL_BAST_ON_VISIT_H
 
     /**
-     * @return The value of the litteral
+     * @return The value of the Literal
      */
     const std::string& getValue() const;
 

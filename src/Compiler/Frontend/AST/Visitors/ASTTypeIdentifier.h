@@ -143,20 +143,20 @@ public:
         setIfSame<This>();
     }
 
-    virtual void visit(BoolLitteral*) override {
-        setIfSame<BoolLitteral>();
+    virtual void visit(BoolLiteral*) override {
+        setIfSame<BoolLiteral>();
     }
 
-    virtual void visit(IntLitteral*) override {
-        setIfSame<IntLitteral>();
+    virtual void visit(IntLiteral*) override {
+        setIfSame<IntLiteral>();
     }
 
-    virtual void visit(RealLitteral*) override {
-        setIfSame<RealLitteral>();
+    virtual void visit(RealLiteral*) override {
+        setIfSame<RealLiteral>();
     }
 
-    virtual void visit(StringLitteral*) override {
-        setIfSame<StringLitteral>();
+    virtual void visit(StringLiteral*) override {
+        setIfSame<StringLiteral>();
     }
 
     /**

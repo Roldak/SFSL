@@ -57,15 +57,15 @@ void SymbolAssertionsChecker::visit(ast::FunctionCall* call) {
                 return;
             }
 
-            if (ast::isNodeOfType<ast::StringLitteral>(args[0], _ctx)) {
+            if (ast::isNodeOfType<ast::StringLiteral>(args[0], _ctx)) {
                 if (sym::Symbol* s = ast::ASTSymbolExtractor::extractSymbol(args[1], _ctx)) {
-                    _tests.push_back(std::make_pair(static_cast<ast::StringLitteral*>(args[0]), s));
+                    _tests.push_back(std::make_pair(static_cast<ast::StringLiteral*>(args[0]), s));
                 } else {
                     _ctx->reporter().error(*(args[1]), "No symbol was assigned");
                 }
 
             } else {
-                _ctx->reporter().fatal(*(args[0]), "Expected string litteral");
+                _ctx->reporter().fatal(*(args[0]), "Expected string Literal");
             }
             return;
         }
@@ -93,7 +93,7 @@ void SymbolAssertionsChecker::tryAddTestSymbol(sym::Symbol* s) {
 }
 
 void SymbolAssertionsChecker::performTests() {
-    for (const std::pair<ast::StringLitteral*, sym::Symbol*>& test : _tests) {
+    for (const std::pair<ast::StringLiteral*, sym::Symbol*>& test : _tests) {
         const std::string& str(test.first->getValue());
         auto it = _symbols.find(str);
         if (it == _symbols.end()) {

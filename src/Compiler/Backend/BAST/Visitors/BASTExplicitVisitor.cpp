@@ -84,23 +84,23 @@ void BASTExplicitVisitor::visit(Instantiation* inst) {
 
 }
 
-void BASTExplicitVisitor::visit(UnitLitteral* unitlit) {
+void BASTExplicitVisitor::visit(UnitLiteral* unitlit) {
 
 }
 
-void BASTExplicitVisitor::visit(BoolLitteral* boollit) {
+void BASTExplicitVisitor::visit(BoolLiteral* boollit) {
 
 }
 
-void BASTExplicitVisitor::visit(IntLitteral* intlit) {
+void BASTExplicitVisitor::visit(IntLiteral* intlit) {
 
 }
 
-void BASTExplicitVisitor::visit(RealLitteral* reallit) {
+void BASTExplicitVisitor::visit(RealLiteral* reallit) {
 
 }
 
-void BASTExplicitVisitor::visit(StringLitteral* strlit) {
+void BASTExplicitVisitor::visit(StringLiteral* strlit) {
 
 }
 

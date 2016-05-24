@@ -106,23 +106,23 @@ void BASTImplicitVisitor::visit(Instantiation* inst) {
     inst->getClassId()->onVisit(this);
 }
 
-void BASTImplicitVisitor::visit(UnitLitteral* unitlit) {
+void BASTImplicitVisitor::visit(UnitLiteral* unitlit) {
 
 }
 
-void BASTImplicitVisitor::visit(BoolLitteral* boollit) {
+void BASTImplicitVisitor::visit(BoolLiteral* boollit) {
 
 }
 
-void BASTImplicitVisitor::visit(IntLitteral* intlit) {
+void BASTImplicitVisitor::visit(IntLiteral* intlit) {
 
 }
 
-void BASTImplicitVisitor::visit(RealLitteral* reallit) {
+void BASTImplicitVisitor::visit(RealLiteral* reallit) {
 
 }
 
-void BASTImplicitVisitor::visit(StringLitteral* strlit) {
+void BASTImplicitVisitor::visit(StringLiteral* strlit) {
 
 }
 

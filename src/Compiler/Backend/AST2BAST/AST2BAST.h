@@ -62,10 +62,10 @@ public:
     virtual void visit(ast::Instantiation* inst) override;
     virtual void visit(ast::Identifier* ident) override;
     virtual void visit(ast::This* ths) override;
-    virtual void visit(ast::BoolLitteral* boollit) override;
-    virtual void visit(ast::IntLitteral* intlit) override;
-    virtual void visit(ast::RealLitteral* reallit) override;
-    virtual void visit(ast::StringLitteral* strlit) override;
+    virtual void visit(ast::BoolLiteral* boollit) override;
+    virtual void visit(ast::IntLiteral* intlit) override;
+    virtual void visit(ast::RealLiteral* reallit) override;
+    virtual void visit(ast::StringLiteral* strlit) override;
 
     Program* transform(ast::Program* node);
 

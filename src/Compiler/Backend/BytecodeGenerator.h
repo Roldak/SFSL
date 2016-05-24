@@ -93,9 +93,9 @@ public:
     virtual void visit(Instantiation* inst) override;
     virtual void visit(Identifier* ident) override;
     virtual void visit(This* ths) override;
-    virtual void visit(BoolLitteral* boollit) override;
-    virtual void visit(IntLitteral* intlit) override;
-    virtual void visit(RealLitteral* reallit) override;
+    virtual void visit(BoolLiteral* boollit) override;
+    virtual void visit(IntLiteral* intlit) override;
+    virtual void visit(RealLiteral* reallit) override;
 
 private:
 

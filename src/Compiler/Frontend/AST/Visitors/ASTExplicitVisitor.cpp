@@ -132,19 +132,19 @@ void ASTExplicitVisitor::visit(This*) {
 
 }
 
-void ASTExplicitVisitor::visit(BoolLitteral*) {
+void ASTExplicitVisitor::visit(BoolLiteral*) {
 
 }
 
-void ASTExplicitVisitor::visit(IntLitteral*) {
+void ASTExplicitVisitor::visit(IntLiteral*) {
 
 }
 
-void ASTExplicitVisitor::visit(RealLitteral*) {
+void ASTExplicitVisitor::visit(RealLiteral*) {
 
 }
 
-void ASTExplicitVisitor::visit(StringLitteral*) {
+void ASTExplicitVisitor::visit(StringLiteral*) {
 
 }
 
