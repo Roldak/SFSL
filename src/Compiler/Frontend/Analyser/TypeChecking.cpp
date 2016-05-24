@@ -125,7 +125,7 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
         if (func->getTypeArgs()) {
             typeArgs = func->getTypeArgs()->getExpressions();
         }
-        func->setType(_mngr.New<type::FunctionType>(typeArgs, argTypes, type::Type::NotYetDefined(), nullptr));
+        func->setType(_mngr.New<type::FunctionType>(typeArgs, argTypes, type::Type::NotYetDefined(), nullptr, type::SubstitutionTable::Empty));
     }
 
     ASTImplicitVisitor::visit(func);
@@ -422,7 +422,7 @@ void TypeChecking::visit(FunctionCreation* func) {
         if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
             func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis),
                                                       func->getTypeArgs() ? func->getTypeArgs()->getExpressions() : std::vector<TypeExpression*>(),
-                                                      argTypes, retType));
+                                                      argTypes, retType, ASTTypeCreator::buildSubstitutionTableFromTypeParametrizable(func)));
         } else {
             _rep.fatal(*func, "Unknown type of `this`");
         }
@@ -694,13 +694,15 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
     DefineDecl* funcDecl;
     sym::Scope* funcClassScope = _mngr.New<sym::Scope>(func->getScope()->getParent(), true);
 
+    type::SubstitutionTable env(ASTTypeCreator::buildSubstitutionTableFromTypeParametrizable(func));
+
     if (func->getTypeArgs()) {
         typeArgs = func->getTypeArgs()->getExpressions();
         funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, false, false, false);
         funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr, std::vector<TypeDecl*>(),
                                                           std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
 
-        funcType = _mngr.New<type::ProperType>(funcClass);
+        funcType = _mngr.New<type::ProperType>(funcClass, env);
     } else {
         std::vector<type::Type*> parentTypeArgs = argTypes;
         parentTypeArgs.push_back(retType);
@@ -718,7 +720,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
         funcClass   = _mngr.New<ClassDecl>(func->getName(), parentExpr, std::vector<TypeDecl*>(),
                                                           std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
 
-        funcType = _mngr.New<type::FunctionType>(typeArgs, argTypes, retType, funcClass);
+        funcType = _mngr.New<type::FunctionType>(typeArgs, argTypes, retType, funcClass, env);
 
         _redefs.push_back(funcDecl);
 
@@ -729,7 +731,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
         }
     }
 
-    meth->setType(_mngr.New<type::MethodType>(funcClass, typeArgs, argTypes, retType));
+    meth->setType(_mngr.New<type::MethodType>(funcClass, typeArgs, argTypes, retType, env));
     meth->setPos(*func);
 
     sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", "", funcDecl, funcClass);
