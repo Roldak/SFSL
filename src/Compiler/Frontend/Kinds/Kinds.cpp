@@ -217,7 +217,7 @@ std::string TypeConstructorKind::toString(bool withBoundsInformations) const {
             toRet += ", ";
         }
     }
-    return toRet + "]->" + _ret->toString();
+    return toRet + "]->" + _ret->toString(withBoundsInformations);
 }
 
 const std::vector<TypeConstructorKind::Parameter>& TypeConstructorKind::getArgKinds() const {
