@@ -355,6 +355,41 @@ bool ValueConstructorType::equalsValueConstructor(const ValueConstructorType* ot
     return _retType->equals(oRetType);
 }
 
+ValueConstructorType* ValueConstructorType::substituteValueConstructor(const SubstitutionTable& substitutions, CompCtx_Ptr& ctx) const {
+    SubstitutionTable currentEnvCopy(getValueConstructorSubstitutionTable());
+    Type::applyEnvHelper(substitutions, currentEnvCopy);
+
+    std::vector<Type*> substitued(_argTypes.size());
+    for (size_t i = 0; i < _argTypes.size(); ++i) {
+        substitued[i] = Type::findSubstitution(substitutions, _argTypes[i])->substitute(substitutions, ctx);
+    }
+
+    return rebuildValueConstructor(
+                _typeArgs, substitued,
+                Type::findSubstitution(substitutions, _retType)->substitute(substitutions, ctx),
+                currentEnvCopy, ctx);
+}
+
+ValueConstructorType* ValueConstructorType::applyValueConstructor(CompCtx_Ptr& ctx) const {
+    const ValueConstructorType* self = this;
+
+    if (_typeArgs.size() > 0) {
+        std::vector<Type*> defaultTypes(_typeArgs.size());
+        for (size_t i = 0; i < defaultTypes.size(); ++i) {
+            defaultTypes[i] = Type::DefaultGenericType(_typeArgs[i], ctx);
+        }
+        SubstitutionTable sub = ast::ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(_typeArgs, defaultTypes, ctx);
+        self = self->substituteValueConstructor(sub, ctx);
+    }
+
+    std::vector<Type*> applied(self->_argTypes.size());
+    for (size_t i = 0; i < self->_argTypes.size(); ++i) {
+        applied[i] = self->_argTypes[i]->apply(ctx);
+    }
+
+    return rebuildValueConstructor(self->_typeArgs, applied, self->_retType->apply(ctx), self->getValueConstructorSubstitutionTable(), ctx);
+}
+
 const std::vector<ast::TypeExpression*>& ValueConstructorType::getTypeArgs() const {
     return _typeArgs;
 }
@@ -414,35 +449,23 @@ std::string FunctionType::toString() const {
 }
 
 FunctionType* FunctionType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    SubstitutionTable copy = _subTable;
-    applyEnvHelper(table, copy);
-
-    std::vector<Type*> substitued(_argTypes.size());
-    for (size_t i = 0; i < _argTypes.size(); ++i) {
-        substitued[i] = findSubstitution(table, _argTypes[i])->substitute(table, ctx);
-    }
-
-    return ctx->memoryManager().New<FunctionType>(_typeArgs, substitued, findSubstitution(table, _retType)->substitute(table, ctx), _class, copy);
+    return static_cast<FunctionType*>(substituteValueConstructor(table, ctx));
 }
 
 FunctionType* FunctionType::apply(CompCtx_Ptr& ctx) const {
-    const FunctionType* self = this;
+    return static_cast<FunctionType*>(applyValueConstructor(ctx));
+}
 
-    if (_typeArgs.size() > 0) {
-        std::vector<Type*> defaultTypes(_typeArgs.size());
-        for (size_t i = 0; i < defaultTypes.size(); ++i) {
-            defaultTypes[i] = Type::DefaultGenericType(_typeArgs[i], ctx);
-        }
-        SubstitutionTable sub = ast::ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(_typeArgs, defaultTypes, ctx);
-        self = self->substitute(sub, ctx);
-    }
+FunctionType* FunctionType::rebuildValueConstructor(
+        const std::vector<ast::TypeExpression*>& typeArgs,
+        const std::vector<Type*>& argTypes, Type* retType,
+        const SubstitutionTable& substitutionTable,
+        CompCtx_Ptr& ctx) const {
+    return ctx->memoryManager().New<FunctionType>(typeArgs, argTypes, retType, _class, substitutionTable);
+}
 
-    std::vector<Type*> applied(self->_argTypes.size());
-    for (size_t i = 0; i < self->_argTypes.size(); ++i) {
-        applied[i] = self->_argTypes[i]->apply(ctx);
-    }
-
-    return ctx->memoryManager().New<FunctionType>(self->_typeArgs, applied, self->_retType->apply(ctx), self->_class, self->_subTable);
+const SubstitutionTable& FunctionType::getValueConstructorSubstitutionTable() const {
+    return _subTable;
 }
 
 // METHOD TYPE
@@ -489,35 +512,19 @@ std::string MethodType::toString() const {
 }
 
 MethodType* MethodType::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    SubstitutionTable copy = _subTable;
-    applyEnvHelper(table, copy);
-
-    std::vector<Type*> substitued(_argTypes.size());
-    for (size_t i = 0; i < _argTypes.size(); ++i) {
-        substitued[i] = findSubstitution(table, _argTypes[i])->substitute(table, ctx);
-    }
-
-    return ctx->memoryManager().New<MethodType>(_owner, _typeArgs, substitued, findSubstitution(table, _retType)->substitute(table, ctx), copy);
+    return static_cast<MethodType*>(substituteValueConstructor(table, ctx));
 }
 
 MethodType* MethodType::apply(CompCtx_Ptr& ctx) const {
-    const MethodType* self = this;
+    return static_cast<MethodType*>(applyValueConstructor(ctx));
+}
 
-    if (_typeArgs.size() > 0) {
-        std::vector<Type*> defaultTypes(_typeArgs.size());
-        for (size_t i = 0; i < defaultTypes.size(); ++i) {
-            defaultTypes[i] = Type::DefaultGenericType(_typeArgs[i], ctx);
-        }
-        SubstitutionTable sub = ast::ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(_typeArgs, defaultTypes, ctx);
-        self = self->substitute(sub, ctx);
-    }
-
-    std::vector<Type*> applied(self->_argTypes.size());
-    for (size_t i = 0; i < self->_argTypes.size(); ++i) {
-        applied[i] = self->_argTypes[i]->apply(ctx);
-    }
-
-    return ctx->memoryManager().New<MethodType>(self->_owner, self->_typeArgs, applied, self->_retType->apply(ctx), self->_subTable);
+MethodType* MethodType::rebuildValueConstructor(
+        const std::vector<ast::TypeExpression*>& typeArgs,
+        const std::vector<Type*>& argTypes, Type* retType,
+        const SubstitutionTable& substitutionTable,
+        CompCtx_Ptr& ctx) const {
+    return ctx->memoryManager().New<MethodType>(_owner, typeArgs, argTypes, retType, substitutionTable);
 }
 
 ast::ClassDecl* MethodType::getOwner() const {
@@ -526,6 +533,10 @@ ast::ClassDecl* MethodType::getOwner() const {
 
 MethodType* MethodType::fromFunctionType(const FunctionType* ft, ast::ClassDecl* owner, CompCtx_Ptr& ctx) {
     return ctx->memoryManager().New<MethodType>(owner, ft->getTypeArgs(), ft->getArgTypes(), ft->getRetType(), ft->getSubstitutionTable());
+}
+
+const SubstitutionTable& MethodType::getValueConstructorSubstitutionTable() const {
+    return _subTable;
 }
 
 // TYPE CONSTRUCTOR

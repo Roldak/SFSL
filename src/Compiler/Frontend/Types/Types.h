@@ -57,6 +57,7 @@ public:
     static std::string debugSubstitutionTableToString(const SubstitutionTable& table);
 
 protected:
+    friend class ValueConstructorType;
 
     static Type* DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx);
 
@@ -116,8 +117,20 @@ public:
     const std::vector<Type*>& getArgTypes() const;
     Type* getRetType() const;
 
+    ValueConstructorType* substituteValueConstructor(const SubstitutionTable& substitutions, CompCtx_Ptr& ctx) const;
+
+    ValueConstructorType* applyValueConstructor(CompCtx_Ptr& ctx) const;
+
+    virtual ValueConstructorType* rebuildValueConstructor(
+            const std::vector<ast::TypeExpression*>& typeArgs,
+            const std::vector<Type*>& argTypes, Type* retType,
+            const SubstitutionTable& substitutionTable,
+            CompCtx_Ptr& ctx) const = 0;
+
 protected:
     ValueConstructorType(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType);
+
+    virtual const SubstitutionTable& getValueConstructorSubstitutionTable() const = 0;
 
     std::vector<ast::TypeExpression*> _typeArgs;
     std::vector<Type*> _argTypes;
@@ -137,6 +150,15 @@ public:
 
     virtual FunctionType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
     virtual FunctionType* apply(CompCtx_Ptr& ctx) const override;
+
+    virtual FunctionType* rebuildValueConstructor(
+            const std::vector<ast::TypeExpression*>& typeArgs,
+            const std::vector<Type*>& argTypes, Type* retType,
+            const SubstitutionTable& substitutionTable,
+            CompCtx_Ptr& ctx) const override;
+
+protected:
+    const SubstitutionTable& getValueConstructorSubstitutionTable() const override;
 };
 
 class MethodType : public Type, public ValueConstructorType {
@@ -153,12 +175,20 @@ public:
     virtual MethodType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
     virtual MethodType* apply(CompCtx_Ptr &ctx) const override;
 
+    virtual MethodType* rebuildValueConstructor(
+            const std::vector<ast::TypeExpression*>& typeArgs,
+            const std::vector<Type*>& argTypes, Type* retType,
+            const SubstitutionTable& substitutionTable,
+            CompCtx_Ptr& ctx) const override;
+
     ast::ClassDecl* getOwner() const;
 
     static MethodType* fromFunctionType(const FunctionType* ft, ast::ClassDecl* owner, CompCtx_Ptr& ctx);
 
-private:
+protected:
+    const SubstitutionTable& getValueConstructorSubstitutionTable() const override;
 
+private:
     ast::ClassDecl* _owner;
 };
 
