@@ -139,7 +139,7 @@ struct DefaultGenericTypeHolder : public common::MemoryManageable {
 
     bool findCachedDefaultGeneric(kind::Kind* ofkind, type::Type** out) const {
         for (const std::pair<kind::Kind*, type::Type*>& defGen : _cachedDefaultGenerics) {
-            if (defGen.first->isSubKindOf(ofkind)) {
+            if (defGen.first->isSubKindOf(ofkind, false)) {
                 *out = defGen.second;
                 return true;
             }
@@ -295,12 +295,84 @@ ast::ClassDecl* ProperType::getClass() const {
     return _class;
 }
 
+// VALUE CONSTRUCTOR TYPE
+
+ValueConstructorType::ValueConstructorType(const std::vector<ast::TypeExpression*>& typeArgs,
+                                           const std::vector<Type*>& argTypes, Type* retType)
+    : _typeArgs(typeArgs), _argTypes(argTypes), _retType(retType) {
+
+}
+
+ValueConstructorType::~ValueConstructorType() {
+
+}
+
+bool ValueConstructorType::isSubTypeOfValueConstructor(const ValueConstructorType* other) const {
+    const std::vector<ast::TypeExpression*>& oTypeArgs = other->getTypeArgs();
+    const std::vector<Type*>& oArgTypes = other->getArgTypes();
+    const Type* oRetType = other->getRetType();
+
+    if (_typeArgs.size() != oTypeArgs.size() || _argTypes.size() != oArgTypes.size()) {
+        return false;
+    }
+
+    for (size_t i = 0; i < _typeArgs.size(); ++i) {
+        if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind(), true)) {
+            return false;
+        }
+    }
+
+    for (size_t i = 0; i < _argTypes.size(); ++i) {
+        if (!oArgTypes[i]->isSubTypeOf(_argTypes[i])) {
+            return false;
+        }
+    }
+
+    return _retType->isSubTypeOf(oRetType);
+}
+
+bool ValueConstructorType::equalsValueConstructor(const ValueConstructorType* other) const {
+    const std::vector<ast::TypeExpression*>& oTypeArgs = other->getTypeArgs();
+    const std::vector<Type*>& oArgTypes = other->getArgTypes();
+    const Type* oRetType = other->getRetType();
+
+    if (_typeArgs.size() != oTypeArgs.size() || _argTypes.size() != oArgTypes.size()) {
+        return false;
+    }
+
+    for (size_t i = 0; i < _typeArgs.size(); ++i) {
+        if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind(), true)) {
+            return false;
+        }
+    }
+
+    for (size_t i = 0; i < _argTypes.size(); ++i) {
+        if (!oArgTypes[i]->equals(_argTypes[i])) {
+            return false;
+        }
+    }
+
+    return _retType->equals(oRetType);
+}
+
+const std::vector<ast::TypeExpression*>& ValueConstructorType::getTypeArgs() const {
+    return _typeArgs;
+}
+
+const std::vector<Type*>& ValueConstructorType::getArgTypes() const {
+    return _argTypes;
+}
+
+Type* ValueConstructorType::getRetType() const {
+    return _retType;
+}
+
 // FUNCTION TYPE
 
 FunctionType::FunctionType(
         const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType,
         ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
-    : ProperType(clss, substitutionTable), _typeArgs(typeArgs), _argTypes(argTypes), _retType(retType) {
+    : ProperType(clss, substitutionTable), ValueConstructorType(typeArgs, argTypes, retType) {
 
 }
 
@@ -314,27 +386,7 @@ TYPE_KIND FunctionType::getTypeKind() const {
 
 bool FunctionType::isSubTypeOf(const Type* other) const {
     if (FunctionType* f = getIf<FunctionType>(other)) {
-        const std::vector<ast::TypeExpression*>& oTypeArgs = f->getTypeArgs();
-        const std::vector<Type*>& oArgTypes = f->getArgTypes();
-        const Type* oRetType = f->getRetType();
-
-        if (_typeArgs.size() != oTypeArgs.size() || _argTypes.size() != oArgTypes.size()) {
-            return false;
-        }
-
-        for (size_t i = 0; i < _typeArgs.size(); ++i) {
-            if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind())) {
-                return false;
-            }
-        }
-
-        for (size_t i = 0; i < _argTypes.size(); ++i) {
-            if (!oArgTypes[i]->isSubTypeOf(_argTypes[i])) {
-                return false;
-            }
-        }
-
-        return _retType->isSubTypeOf(oRetType);
+        return isSubTypeOfValueConstructor(f);
     }
 
     return false;
@@ -342,27 +394,7 @@ bool FunctionType::isSubTypeOf(const Type* other) const {
 
 bool FunctionType::equals(const Type* other) const {
     if (FunctionType* f = getIf<FunctionType>(other)) {
-        const std::vector<ast::TypeExpression*>& oTypeArgs = f->getTypeArgs();
-        const std::vector<Type*>& oArgTypes = f->getArgTypes();
-        const Type* oRetType = f->getRetType();
-
-        if (_typeArgs.size() != oTypeArgs.size() || _argTypes.size() != oArgTypes.size()) {
-            return false;
-        }
-
-        for (size_t i = 0; i < _typeArgs.size(); ++i) {
-            if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind())) {
-                return false;
-            }
-        }
-
-        for (size_t i = 0; i < _argTypes.size(); ++i) {
-            if (!oArgTypes[i]->equals(_argTypes[i])) {
-                return false;
-            }
-        }
-
-        return _retType->equals(oRetType);
+        return equalsValueConstructor(f);
     }
 
     return false;
@@ -413,24 +445,12 @@ FunctionType* FunctionType::apply(CompCtx_Ptr& ctx) const {
     return ctx->memoryManager().New<FunctionType>(self->_typeArgs, applied, self->_retType->apply(ctx), self->_class, self->_subTable);
 }
 
-const std::vector<ast::TypeExpression*>& FunctionType::getTypeArgs() const {
-    return _typeArgs;
-}
-
-const std::vector<Type*>& FunctionType::getArgTypes() const {
-    return _argTypes;
-}
-
-Type* FunctionType::getRetType() const {
-    return _retType;
-}
-
 // METHOD TYPE
 
 MethodType::MethodType(ast::ClassDecl* owner,
                        const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType,
                        const SubstitutionTable& substitutionTable)
-    : Type(substitutionTable), _owner(owner), _typeArgs(typeArgs), _argTypes(argTypes), _retType(retType) {
+    : Type(substitutionTable), ValueConstructorType(typeArgs, argTypes, retType), _owner(owner) {
 
 }
 
@@ -444,27 +464,7 @@ TYPE_KIND MethodType::getTypeKind() const {
 
 bool MethodType::isSubTypeOf(const Type* other) const {
     if (MethodType* m = getIf<MethodType>(other)) {
-        const std::vector<ast::TypeExpression*>& oTypeArgs = m->getTypeArgs();
-        const std::vector<Type*>& oArgTypes = m->getArgTypes();
-        const Type* oRetType = m->getRetType();
-
-        if (_typeArgs.size() != oTypeArgs.size() || _argTypes.size() != oArgTypes.size()) {
-            return false;
-        }
-
-        for (size_t i = 0; i < _typeArgs.size(); ++i) {
-            if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind())) {
-                return false;
-            }
-        }
-
-        for (size_t i = 0; i < _argTypes.size(); ++i) {
-            if (!oArgTypes[i]->isSubTypeOf(_argTypes[i])) {
-                return false;
-            }
-        }
-
-        return _retType->isSubTypeOf(oRetType);
+        return isSubTypeOfValueConstructor(m);
     }
 
     return false;
@@ -472,27 +472,7 @@ bool MethodType::isSubTypeOf(const Type* other) const {
 
 bool MethodType::equals(const Type* other) const {
     if (MethodType* m = getIf<MethodType>(other)) {
-        const std::vector<ast::TypeExpression*>& oTypeArgs = m->getTypeArgs();
-        const std::vector<Type*>& oArgTypes = m->getArgTypes();
-        const Type* oRetType = m->getRetType();
-
-        if (_typeArgs.size() != oTypeArgs.size() || _argTypes.size() != oArgTypes.size()) {
-            return false;
-        }
-
-        for (size_t i = 0; i < _typeArgs.size(); ++i) {
-            if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind())) {
-                return false;
-            }
-        }
-
-        for (size_t i = 0; i < _argTypes.size(); ++i) {
-            if (!oArgTypes[i]->equals(_argTypes[i])) {
-                return false;
-            }
-        }
-
-        return _retType->equals(oRetType);
+        return equalsValueConstructor(m);
     }
 
     return false;
@@ -542,18 +522,6 @@ MethodType* MethodType::apply(CompCtx_Ptr& ctx) const {
 
 ast::ClassDecl* MethodType::getOwner() const {
     return _owner;
-}
-
-const std::vector<ast::TypeExpression*>& MethodType::getTypeArgs() const {
-    return _typeArgs;
-}
-
-const std::vector<Type*>& MethodType::getArgTypes() const {
-    return _argTypes;
-}
-
-Type* MethodType::getRetType() const {
-    return _retType;
 }
 
 MethodType* MethodType::fromFunctionType(const FunctionType* ft, ast::ClassDecl* owner, CompCtx_Ptr& ctx) {

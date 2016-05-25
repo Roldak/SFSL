@@ -105,7 +105,26 @@ protected:
     ast::ClassDecl* _class;
 };
 
-class FunctionType : public ProperType {
+class ValueConstructorType {
+public:
+    virtual ~ValueConstructorType();
+
+    bool isSubTypeOfValueConstructor(const ValueConstructorType *other) const;
+    bool equalsValueConstructor(const ValueConstructorType *other) const;
+
+    const std::vector<ast::TypeExpression*>& getTypeArgs() const;
+    const std::vector<Type*>& getArgTypes() const;
+    Type* getRetType() const;
+
+protected:
+    ValueConstructorType(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType);
+
+    std::vector<ast::TypeExpression*> _typeArgs;
+    std::vector<Type*> _argTypes;
+    Type* _retType;
+};
+
+class FunctionType : public ProperType, public ValueConstructorType {
 public:
     FunctionType(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable);
 
@@ -118,19 +137,9 @@ public:
 
     virtual FunctionType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
     virtual FunctionType* apply(CompCtx_Ptr& ctx) const override;
-
-    const std::vector<ast::TypeExpression*>& getTypeArgs() const;
-    const std::vector<Type*>& getArgTypes() const;
-    Type* getRetType() const;
-
-private:
-
-    std::vector<ast::TypeExpression*> _typeArgs;
-    std::vector<Type*> _argTypes;
-    Type* _retType;
 };
 
-class MethodType : public Type {
+class MethodType : public Type, public ValueConstructorType {
 public:
     MethodType(ast::ClassDecl* owner, const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable);
 
@@ -145,18 +154,12 @@ public:
     virtual MethodType* apply(CompCtx_Ptr &ctx) const override;
 
     ast::ClassDecl* getOwner() const;
-    const std::vector<ast::TypeExpression*>& getTypeArgs() const;
-    const std::vector<Type*>& getArgTypes() const;
-    Type* getRetType() const;
 
     static MethodType* fromFunctionType(const FunctionType* ft, ast::ClassDecl* owner, CompCtx_Ptr& ctx);
 
 private:
 
     ast::ClassDecl* _owner;
-    std::vector<ast::TypeExpression*> _typeArgs;
-    std::vector<Type*> _argTypes;
-    Type* _retType;
 };
 
 class TypeConstructorType : public Type {
@@ -245,8 +248,19 @@ inline FunctionType* getIf(const Type* t) {
 }
 
 template<>
-inline MethodType* getIf(const Type *t) {
+inline MethodType* getIf(const Type* t) {
     return t->getTypeKind() == TYPE_METHOD ? (MethodType*)t : nullptr;
+}
+
+template<>
+inline ValueConstructorType* getIf(const Type* t) {
+    if (FunctionType* ft = getIf<FunctionType>(t)) {
+        return ft;
+    } else if (MethodType* mt = getIf<MethodType>(t)) {
+        return mt;
+    } else {
+        return nullptr;
+    }
 }
 
 template<>
