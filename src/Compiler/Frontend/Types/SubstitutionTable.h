@@ -26,8 +26,6 @@ namespace impl {
  */
 class SubstitutionTable final {
 public:
-    //typedef std::pair<Type*, Type*> Substitution;
-
     struct Substitution {
         Substitution();
         Substitution(common::VARIANCE_TYPE vt, Type* k, Type* v);
@@ -43,6 +41,7 @@ public:
     SubstitutionTable();
     ~SubstitutionTable();
 
+    bool equals(const SubstitutionTable& other) const;
     bool empty() const;
 
     iterator insert(const Substitution& p);

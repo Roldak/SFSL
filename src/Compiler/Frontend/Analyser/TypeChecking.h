@@ -118,9 +118,6 @@ private:
     bool transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
                                    const std::vector<TypeExpression*>& typeArgs, const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType);
 
-    type::ProperType* applySubsitutions(type::ProperType* inner, type::ProperType* obj);
-    type::TypeConstructorType* applySubsitutions(type::TypeConstructorType* inner, type::ProperType* obj);
-
     sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);
 
     void assignFunctionType(FunctionCreation* func, const std::vector<type::Type*>& argTypes, type::Type* retType);

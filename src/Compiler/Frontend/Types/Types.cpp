@@ -108,21 +108,6 @@ bool Type::applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to) {
     return matched;
 }
 
-bool Type::substitutionsEquals(const SubstitutionTable& env1, const SubstitutionTable& env2) {
-    if (env1.size() != env2.size()) {
-        return false;
-    }
-
-    for (const SubstitutionTable::Substitution& sub1 : env1) {
-        const auto& sub2it = env2.find(sub1.key);
-        if (sub2it == env2.end() || !sub1.value->equals(sub2it->value)) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 Type* Type::NotYetDefined() {
     static TypeNotYetDefined nyd;
     return &nyd; // all we want is a unique memory area
@@ -272,7 +257,7 @@ bool ProperType::isSubTypeOf(const Type* other) const {
 bool ProperType::equals(const Type* other) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
         if (_class == objother->getClass()) {
-            return substitutionsEquals(_subTable, other->getSubstitutionTable());
+            return _subTable.equals(objother->getSubstitutionTable());
         }
     }
     return false;
@@ -561,7 +546,7 @@ bool TypeConstructorType::isSubTypeOf(const Type* other) const {
 bool TypeConstructorType::equals(const Type* other) const {
     if (TypeConstructorType* tc = getIf<TypeConstructorType>(other)) {
         return _typeConstructor == tc->getTypeConstructor()
-            && substitutionsEquals(_subTable, other->getSubstitutionTable());
+            && _subTable.equals(other->getSubstitutionTable());
     }
     return false;
 }

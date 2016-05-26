@@ -7,6 +7,7 @@
 //
 
 #include "SubstitutionTable.h"
+#include "Types.h"
 #include <algorithm>
 
 namespace sfsl {
@@ -35,6 +36,21 @@ SubstitutionTable::SubstitutionTable() {
 
 SubstitutionTable::~SubstitutionTable() {
 
+}
+
+bool SubstitutionTable::equals(const SubstitutionTable& other) const {
+    if (_subs.size() != other.size()) {
+        return false;
+    }
+
+    for (size_t i = 0; i < _subs.size(); ++i) {
+        if (_subs[i].key != other._subs[i].key ||
+                !_subs[i].value->equals(other._subs[i].value)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool SubstitutionTable::empty() const {

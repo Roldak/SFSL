@@ -50,7 +50,6 @@ public:
 
     static Type* findSubstitution(const SubstitutionTable& table, Type* toFind, bool* matched = nullptr);
     static bool applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to);
-    static bool substitutionsEquals(const SubstitutionTable& env1, const SubstitutionTable& env2);
 
     static Type* NotYetDefined();
 
