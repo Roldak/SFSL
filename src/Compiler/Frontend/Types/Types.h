@@ -42,7 +42,7 @@ public:
     virtual bool equals(const Type* other) const;
     virtual std::string toString() const = 0;
 
-    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const = 0;
+    Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const;
     virtual Type* apply(CompCtx_Ptr& ctx) const;
     virtual Type* applyTCCallsOnly(CompCtx_Ptr& ctx) const;
 
@@ -57,6 +57,8 @@ public:
 
 protected:
     friend class ValueConstructorType;
+
+    virtual Type* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const = 0;
 
     static Type* DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx);
 
@@ -74,13 +76,13 @@ public:
     virtual bool equals(const Type *other) const override;
     virtual std::string toString() const override;
 
-    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
-
     void assignInferredType(Type* t);
 
     static TypeToBeInferred* create(const std::vector<Typed*>& toBeInferred, CompCtx_Ptr& ctx);
 
-private:
+protected:
+
+    virtual TypeToBeInferred* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
 
     std::vector<Typed*> _associatedTyped;
 };
@@ -96,11 +98,11 @@ public:
     virtual bool equals(const Type *other) const override;
     virtual std::string toString() const override;
 
-    virtual ProperType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
-
     ast::ClassDecl* getClass() const;
 
 protected:
+
+    virtual ProperType* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
 
     ast::ClassDecl* _class;
 };
@@ -127,6 +129,7 @@ public:
             CompCtx_Ptr& ctx) const = 0;
 
 protected:
+
     ValueConstructorType(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType);
 
     virtual const SubstitutionTable& getValueConstructorSubstitutionTable() const = 0;
@@ -147,7 +150,6 @@ public:
     virtual bool equals(const Type *other) const override;
     virtual std::string toString() const override;
 
-    virtual FunctionType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
     virtual FunctionType* apply(CompCtx_Ptr& ctx) const override;
 
     virtual FunctionType* rebuildValueConstructor(
@@ -157,7 +159,9 @@ public:
             CompCtx_Ptr& ctx) const override;
 
 protected:
-    const SubstitutionTable& getValueConstructorSubstitutionTable() const override;
+
+    virtual FunctionType* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+    virtual const SubstitutionTable& getValueConstructorSubstitutionTable() const override;
 };
 
 class MethodType : public Type, public ValueConstructorType {
@@ -171,7 +175,6 @@ public:
     virtual bool equals(const Type *other) const override;
     virtual std::string toString() const override;
 
-    virtual MethodType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
     virtual MethodType* apply(CompCtx_Ptr &ctx) const override;
 
     virtual MethodType* rebuildValueConstructor(
@@ -185,9 +188,12 @@ public:
     static MethodType* fromFunctionType(const FunctionType* ft, ast::ClassDecl* owner, CompCtx_Ptr& ctx);
 
 protected:
-    const SubstitutionTable& getValueConstructorSubstitutionTable() const override;
+
+    virtual MethodType* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+    virtual const SubstitutionTable& getValueConstructorSubstitutionTable() const override;
 
 private:
+
     ast::ClassDecl* _owner;
 };
 
@@ -202,11 +208,11 @@ public:
     virtual bool equals(const Type *other) const override;
     virtual std::string toString() const override;
 
-    virtual TypeConstructorType* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
-
     ast::TypeConstructorCreation* getTypeConstructor() const;
 
-private:
+protected:
+
+    virtual TypeConstructorType* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
 
     ast::TypeConstructorCreation* _typeConstructor;
 };
@@ -221,11 +227,12 @@ public:
     virtual bool isSubTypeOf(const Type* other) const override;
     virtual std::string toString() const override;
 
-    virtual Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
     virtual Type* apply(CompCtx_Ptr& ctx) const override;
     virtual Type* applyTCCallsOnly(CompCtx_Ptr& ctx) const override;
 
-private:
+protected:
+
+    virtual ConstructorApplyType* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
 
     Type* _callee;
     const std::vector<Type*> _args;

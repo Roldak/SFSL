@@ -152,8 +152,7 @@ private:
             return;
         }
 
-        symType = type::Type::findSubstitution(data.env, symType)->substitute(data.env, _ctx);
-        symType = type::Type::findSubstitution(table, symType)->substitute(table, _ctx);
+        symType = symType->substitute(data.env, _ctx)->substitute(table, _ctx);
 
         std::cout << kindOfSym << ":" << data.symbol->getName() << ":" << symType->toString() << std::endl;
     }

@@ -34,7 +34,7 @@ T* applyEnvsHelper(T* t, const type::SubstitutionTable& subtable, const type::Su
         unionTable.insert(env->begin(), env->end());
     }
 
-    tmpT = type::Type::findSubstitution(unionTable, tmpT)->substitute(unionTable, ctx)->apply(ctx);
+    tmpT = tmpT->substitute(unionTable, ctx)->apply(ctx);
 
     return static_cast<T*>(tmpT);
 }
@@ -570,9 +570,9 @@ TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ASTNode* triggerer, ClassD
     if (data.symbol) {
         type::Type* t = tryGetTypeOfSymbol(data.symbol);
         if (data.env) {
-            t = type::Type::findSubstitution(*data.env, t)->substitute(*data.env, _ctx);
+            t = t->substitute(*data.env, _ctx);
         }
-        t = type::Type::findSubstitution(subtable, t)->substitute(subtable, _ctx);
+        t = t->substitute(subtable, _ctx);
 
         return {data.symbol, t};
     } else {
@@ -638,7 +638,7 @@ void TypeChecking::tryAssigningTypeToSymbolic(T* symbolic) {
     if (sym::Symbol* sym = data.symbol) {
         symbolic->setSymbol(sym);
         if (type::Type* t = tryGetTypeOfSymbol(sym)) {
-            symbolic->setType(data.env ? type::Type::findSubstitution(*data.env, t)->substitute(*data.env, _ctx) : t);
+            symbolic->setType(data.env ? t->substitute(*data.env, _ctx) : t);
         }
     }
 }

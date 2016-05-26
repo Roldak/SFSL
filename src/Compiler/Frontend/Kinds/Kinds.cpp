@@ -105,8 +105,8 @@ ProperKind* ProperKind::substitute(const type::SubstitutionTable& table, CompCtx
     if (!_lb && !_ub) {
         return this;
     } else {
-        type::Type* newLb = _lb ? type::Type::findSubstitution(table, _lb)->substitute(table, ctx) : nullptr;
-        type::Type* newUb = _ub ? type::Type::findSubstitution(table, _ub)->substitute(table, ctx) : nullptr;
+        type::Type* newLb = _lb ? _lb->substitute(table, ctx) : nullptr;
+        type::Type* newUb = _ub ? _ub->substitute(table, ctx) : nullptr;
         return ctx->memoryManager().New<ProperKind>(newLb, newUb);
     }
 }

@@ -153,8 +153,7 @@ type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, 
     type::Type* created = createType(ctr->getTypeConstructor()->getBody(), ctx);
     type::SubstitutionTable subs(buildSubstitutionTableFromTypeParameterInstantiation(params, args, ctx));
 
-    created = type::Type::findSubstitution(subs, created)->substitute(subs, ctx);
-    created = type::Type::findSubstitution(ctr->getSubstitutionTable(), created)->substitute(ctr->getSubstitutionTable(), ctx);
+    created = created->substitute(subs, ctx)->substitute(ctr->getSubstitutionTable(), ctx);
 
     return created;
 }
