@@ -36,7 +36,7 @@ void Scope::copySymbolsFrom(const Scope* other, const type::SubstitutionTable& e
             continue;
         }
         auto it = _symbols.insert(entry);
-        type::Type::applyEnvHelper(env, it->second.env);
+        it->second.env.substituteAll(env);
         it->second.env.insert(env.begin(), env.end());
     }
 }

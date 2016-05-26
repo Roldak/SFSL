@@ -75,7 +75,7 @@ std::string Type::toString() const {
 
 
 Type* Type::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    return findSubstitution(table, const_cast<Type*>(this))->substituteDeep(table, ctx);
+    return table.findSubstOrReturnMe(const_cast<Type*>(this))->substituteDeep(table, ctx);
 }
 
 Type* Type::apply(CompCtx_Ptr&) const {
@@ -90,36 +90,9 @@ const SubstitutionTable& Type::getSubstitutionTable() const {
     return _subTable;
 }
 
-Type* Type::findSubstitution(const SubstitutionTable& table, Type* toFind, bool* matched) {
-    auto found = table.find(toFind);
-    bool m = (found != table.end());
-
-    if (matched) {
-        *matched = m;
-    }
-
-    return m ? found->value : toFind;
-}
-
-bool Type::applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to) {
-    bool matched = false;
-    for (auto& pair : to) {
-        bool tmp;
-        pair.value = findSubstitution(env, pair.value, &tmp);
-        matched |= tmp;
-    }
-    return matched;
-}
-
 Type* Type::NotYetDefined() {
     static TypeNotYetDefined nyd;
     return &nyd; // all we want is a unique memory area
-}
-
-std::string Type::debugSubstitutionTableToString(const SubstitutionTable& table) {
-    return std::accumulate(table.begin(), table.end(), std::string("{"), [](const std::string& str, const SubstitutionTable::Substitution& sub) {
-        return str + common::varianceTypeToString(sub.varianceType, true) + sub.key->toString() + " => " + sub.value->toString() + " ; ";
-    }) + "}";
 }
 
 struct DefaultGenericTypeHolder : public common::MemoryManageable {
@@ -272,7 +245,7 @@ std::string ProperType::toString() const {
 
 ProperType* ProperType::substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
     SubstitutionTable copy = _subTable;
-    if (applyEnvHelper(table, copy)) {
+    if (copy.substituteAll(table)) {
         return ctx->memoryManager().New<ProperType>(_class, copy);
     } else {
         return const_cast<ProperType*>(this);
@@ -345,7 +318,7 @@ bool ValueConstructorType::equalsValueConstructor(const ValueConstructorType* ot
 
 ValueConstructorType* ValueConstructorType::substituteValueConstructor(const SubstitutionTable& substitutions, CompCtx_Ptr& ctx) const {
     SubstitutionTable currentEnvCopy(getValueConstructorSubstitutionTable());
-    Type::applyEnvHelper(substitutions, currentEnvCopy);
+    currentEnvCopy.substituteAll(substitutions);
 
     std::vector<Type*> substitued(_argTypes.size());
     for (size_t i = 0; i < _argTypes.size(); ++i) {
@@ -557,7 +530,7 @@ std::string TypeConstructorType::toString() const {
 
 TypeConstructorType* TypeConstructorType::substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
     SubstitutionTable copy = _subTable;
-    if (applyEnvHelper(table, copy)) {
+    if (copy.substituteAll(table)) {
         return ctx->memoryManager().New<TypeConstructorType>(_typeConstructor, copy);
     } else {
         return const_cast<TypeConstructorType*>(this);

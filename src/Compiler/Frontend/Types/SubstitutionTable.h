@@ -43,14 +43,10 @@ public:
 
     bool equals(const SubstitutionTable& other) const;
     bool empty() const;
+    size_t size() const;
 
     iterator insert(const Substitution& p);
     void insert(const_iterator b, const_iterator e);
-
-    Type*& operator [](Type* key);
-
-    iterator find(const Type* key);
-    const_iterator find(const Type* key) const;
 
     iterator begin();
     const_iterator begin() const;
@@ -58,7 +54,14 @@ public:
     iterator end();
     const_iterator end() const;
 
-    size_t size() const;
+    Type*& operator [](Type* key);
+    iterator find(const Type* key);
+    const_iterator find(const Type* key) const;
+    Type* findSubstOrReturnMe(Type* toFind, bool* found = nullptr) const;
+
+    bool substituteAll(const SubstitutionTable& env);
+
+    std::string toString() const;
 
     static SubstitutionTable Empty;
 

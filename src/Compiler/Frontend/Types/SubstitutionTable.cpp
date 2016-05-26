@@ -57,6 +57,10 @@ bool SubstitutionTable::empty() const {
     return _subs.empty();
 }
 
+size_t SubstitutionTable::size() const {
+    return _subs.size();
+}
+
 SubstitutionTable::iterator SubstitutionTable::insert(const SubstitutionTable::Substitution& p) {
     auto lb = std::lower_bound(begin(), end(), p, Comparator);
     return _subs.insert(lb, p);
@@ -64,6 +68,22 @@ SubstitutionTable::iterator SubstitutionTable::insert(const SubstitutionTable::S
 
 void SubstitutionTable::insert(SubstitutionTable::const_iterator b, SubstitutionTable::const_iterator e) {
     std::for_each(b, e, [=](const Substitution& p) { insert(p); });
+}
+
+SubstitutionTable::iterator SubstitutionTable::begin() {
+    return _subs.begin();
+}
+
+SubstitutionTable::const_iterator SubstitutionTable::begin() const {
+    return _subs.begin();
+}
+
+SubstitutionTable::iterator SubstitutionTable::end() {
+    return _subs.end();
+}
+
+SubstitutionTable::const_iterator SubstitutionTable::end() const {
+    return _subs.end();
 }
 
 Type*& SubstitutionTable::operator [](Type* key) {
@@ -93,24 +113,31 @@ SubstitutionTable::const_iterator SubstitutionTable::find(const Type* key) const
     return end();
 }
 
-SubstitutionTable::iterator SubstitutionTable::begin() {
-    return _subs.begin();
+Type* SubstitutionTable::findSubstOrReturnMe(Type* toFind, bool* found) const {
+    auto it = find(toFind);
+    bool didFound = (it != end());
+
+    if (found) {
+        *found = didFound;
+    }
+
+    return didFound ? it->value : toFind;
 }
 
-SubstitutionTable::const_iterator SubstitutionTable::begin() const {
-    return _subs.begin();
+bool SubstitutionTable::substituteAll(const SubstitutionTable& env) {
+    bool matched = false;
+    for (auto& pair : _subs) {
+        bool tmp;
+        pair.value = env.findSubstOrReturnMe(pair.value, &tmp);
+        matched |= tmp;
+    }
+    return matched;
 }
 
-SubstitutionTable::iterator SubstitutionTable::end() {
-    return _subs.end();
-}
-
-SubstitutionTable::const_iterator SubstitutionTable::end() const {
-    return _subs.end();
-}
-
-size_t SubstitutionTable::size() const {
-    return _subs.size();
+std::string SubstitutionTable::toString() const {
+    return std::accumulate(begin(), end(), std::string("{"), [](const std::string& str, const SubstitutionTable::Substitution& sub) {
+        return str + common::varianceTypeToString(sub.varianceType, true) + sub.key->toString() + " => " + sub.value->toString() + " ; ";
+    }) + "}";
 }
 
 bool SubstitutionTable::SubstitutionComparator::operator ()(const SubstitutionTable::Substitution& a, const SubstitutionTable::Substitution& b) const {

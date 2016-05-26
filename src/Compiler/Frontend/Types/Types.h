@@ -48,12 +48,7 @@ public:
 
     const SubstitutionTable& getSubstitutionTable() const;
 
-    static Type* findSubstitution(const SubstitutionTable& table, Type* toFind, bool* matched = nullptr);
-    static bool applyEnvHelper(const SubstitutionTable& env, SubstitutionTable& to);
-
     static Type* NotYetDefined();
-
-    static std::string debugSubstitutionTableToString(const SubstitutionTable& table);
 
 protected:
     friend class ValueConstructorType;
@@ -290,13 +285,7 @@ inline MethodType* getIf(const Type* t) {
 
 template<>
 inline ValueConstructorType* getIf(const Type* t) {
-    if (FunctionType* ft = getIf<FunctionType>(t)) {
-        return ft;
-    } else if (MethodType* mt = getIf<MethodType>(t)) {
-        return mt;
-    } else {
-        return nullptr;
-    }
+    return t->getTypeKind() == TYPE_FUNCTION || t->getTypeKind() == TYPE_METHOD ? (ValueConstructorType*)t : nullptr;
 }
 
 template<>
