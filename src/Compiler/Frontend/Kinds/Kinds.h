@@ -14,7 +14,7 @@
 #include "../../Common/CompilationContext.h"
 #include "../../Common/MemoryManageable.h"
 #include "../Common/Miscellaneous.h"
-#include "../Types/SubstitutionTable.h"
+#include "../Types/Environment.h"
 
 namespace sfsl {
 
@@ -29,7 +29,7 @@ public:
     virtual KIND_GENRE getKindGenre() const = 0;
     virtual bool isSubKindOf(Kind* other, bool checkBounds = false) const = 0;
 
-    virtual Kind* substitute(const type::SubstitutionTable& table, CompCtx_Ptr& ctx) = 0;
+    virtual Kind* substitute(const type::Environment& env, CompCtx_Ptr& ctx) = 0;
     virtual Kind* apply(CompCtx_Ptr& ctx) = 0;
 
     virtual std::string toString(bool withBoundsInformations = false) const = 0;
@@ -47,7 +47,7 @@ public:
     virtual KIND_GENRE getKindGenre() const override;
     virtual bool isSubKindOf(Kind* other, bool checkBounds = false) const override;
 
-    virtual ProperKind* substitute(const type::SubstitutionTable& table, CompCtx_Ptr& ctx) override;
+    virtual ProperKind* substitute(const type::Environment& env, CompCtx_Ptr& ctx) override;
     virtual ProperKind* apply(CompCtx_Ptr& ctx) override;
 
     virtual std::string toString(bool withBoundsInformations = false) const override;
@@ -79,7 +79,7 @@ public:
     virtual KIND_GENRE getKindGenre() const override;
     virtual bool isSubKindOf(Kind* other, bool checkBounds = false) const override;
 
-    virtual TypeConstructorKind* substitute(const type::SubstitutionTable& table, CompCtx_Ptr& ctx) override;
+    virtual TypeConstructorKind* substitute(const type::Environment& env, CompCtx_Ptr& ctx) override;
     virtual TypeConstructorKind* apply(CompCtx_Ptr& ctx) override;
 
     virtual std::string toString(bool withBoundsInformations = false) const override;

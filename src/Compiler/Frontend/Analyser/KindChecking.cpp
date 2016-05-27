@@ -165,10 +165,10 @@ void KindChecking::visit(TypeConstructorCall* tcall) {
                 paramKinds[i] = params[i]->kind();
             }
 
-            // build the substitution table of the type constructor being called
+            // build the environment of the type constructor being called
 
-            type::SubstitutionTable ctrEnv(ctrType->getSubstitutionTable());
-            type::SubstitutionTable callEnv(ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(params, callArgsTypes, _ctx));
+            type::Environment ctrEnv(ctrType->getSubstitutionTable());
+            type::Environment callEnv(ASTTypeCreator::buildEnvironmentFromTypeParameterInstantiation(params, callArgsTypes, _ctx));
             ctrEnv.insert(callEnv.begin(), callEnv.end());
 
             // kind check
@@ -245,7 +245,7 @@ bool KindChecking::kindCheckWithBoundsArgumentSubstitution(const std::vector<kin
                                                            const std::vector<TypeExpression*>& arguments,
                                                            const std::vector<type::Type*>& createdArguments,
                                                            const common::Positionnable& callPos,
-                                                           const type::SubstitutionTable& env, CompCtx_Ptr& ctx) {
+                                                           const type::Environment& env, CompCtx_Ptr& ctx) {
     if (arguments.size() != parametersKinds.size()) {
         ctx->reporter().error(callPos, "Wrong number of type arguments. Expected " +
                    utils::T_toString(parametersKinds.size()) + ", found " + utils::T_toString(arguments.size()));

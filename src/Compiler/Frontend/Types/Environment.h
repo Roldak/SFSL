@@ -19,12 +19,10 @@ namespace type {
 
 class Type;
 
-namespace impl {
-
 /**
  * @brief
  */
-class SubstitutionTable final {
+class Environment final {
 public:
     struct Substitution {
         Substitution();
@@ -38,10 +36,10 @@ public:
     typedef std::vector<Substitution>::iterator iterator;
     typedef std::vector<Substitution>::const_iterator const_iterator;
 
-    SubstitutionTable();
-    ~SubstitutionTable();
+    Environment();
+    ~Environment();
 
-    bool equals(const SubstitutionTable& other) const;
+    bool equals(const Environment& other) const;
     bool empty() const;
     size_t size() const;
 
@@ -59,11 +57,11 @@ public:
     const_iterator find(const Type* key) const;
     Type* findSubstOrReturnMe(Type* toFind, bool* found = nullptr) const;
 
-    bool substituteAll(const SubstitutionTable& env);
+    bool substituteAll(const Environment& env);
 
     std::string toString() const;
 
-    static SubstitutionTable Empty;
+    static Environment Empty;
 
 private:
 
@@ -75,11 +73,6 @@ private:
 
     std::vector<Substitution> _subs;
 };
-
-}
-
-//typedef std::map<Type*, Type*> SubstitutionTable;
-typedef impl::SubstitutionTable SubstitutionTable;
 
 }
 

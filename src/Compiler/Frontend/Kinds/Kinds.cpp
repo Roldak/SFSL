@@ -30,7 +30,7 @@ public:
         return false;
     }
 
-    virtual KindNotYetDefined* substitute(const type::SubstitutionTable&, CompCtx_Ptr&) override {
+    virtual KindNotYetDefined* substitute(const type::Environment&, CompCtx_Ptr&) override {
         return this;
     }
 
@@ -101,12 +101,12 @@ bool ProperKind::isSubKindOf(Kind* other, bool checkBounds) const {
     return false;
 }
 
-ProperKind* ProperKind::substitute(const type::SubstitutionTable& table, CompCtx_Ptr& ctx) {
+ProperKind* ProperKind::substitute(const type::Environment& env, CompCtx_Ptr& ctx) {
     if (!_lb && !_ub) {
         return this;
     } else {
-        type::Type* newLb = _lb ? _lb->substitute(table, ctx) : nullptr;
-        type::Type* newUb = _ub ? _ub->substitute(table, ctx) : nullptr;
+        type::Type* newLb = _lb ? _lb->substitute(env, ctx) : nullptr;
+        type::Type* newUb = _ub ? _ub->substitute(env, ctx) : nullptr;
         return ctx->memoryManager().New<ProperKind>(newLb, newUb);
     }
 }
@@ -189,13 +189,13 @@ bool TypeConstructorKind::isSubKindOf(Kind* other, bool checkBounds) const {
     return false;
 }
 
-TypeConstructorKind* TypeConstructorKind::substitute(const type::SubstitutionTable& table, CompCtx_Ptr& ctx) {
+TypeConstructorKind* TypeConstructorKind::substitute(const type::Environment& env, CompCtx_Ptr& ctx) {
     std::vector<Parameter> newParams(_args.size());
     for (size_t i = 0; i < _args.size(); ++i) {
         newParams[i].varianceType = _args[i].varianceType;
-        newParams[i].kind = _args[i].kind->substitute(table, ctx);
+        newParams[i].kind = _args[i].kind->substitute(env, ctx);
     }
-    return ctx->memoryManager().New<TypeConstructorKind>(newParams, _ret->substitute(table, ctx));
+    return ctx->memoryManager().New<TypeConstructorKind>(newParams, _ret->substitute(env, ctx));
 }
 
 TypeConstructorKind* TypeConstructorKind::apply(CompCtx_Ptr& ctx) {

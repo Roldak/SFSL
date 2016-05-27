@@ -131,7 +131,7 @@ public:
 
 private:
 
-    void outputFromSymbolData(const sym::SymbolData& data, const type::SubstitutionTable& table) {
+    void outputFromSymbolData(const sym::SymbolData& data, const type::Environment& env) {
         type::Type* symType = nullptr;
         char kindOfSym;
 
@@ -152,7 +152,7 @@ private:
             return;
         }
 
-        symType = symType->substitute(data.env, _ctx)->substitute(table, _ctx);
+        symType = symType->substitute(data.env, _ctx)->substitute(env, _ctx);
 
         std::cout << kindOfSym << ":" << data.symbol->getName() << ":" << symType->toString() << std::endl;
     }

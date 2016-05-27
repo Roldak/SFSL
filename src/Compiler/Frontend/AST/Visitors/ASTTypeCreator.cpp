@@ -32,7 +32,7 @@ void ASTTypeCreator::visit(ASTNode*) {
 }
 
 void ASTTypeCreator::visit(ClassDecl* clss) {
-    type::SubstitutionTable finalTable;
+    type::Environment finalTable;
 
     if (clss->getParent()) {
         clss->getParent()->onVisit(this);
@@ -42,7 +42,7 @@ void ASTTypeCreator::visit(ClassDecl* clss) {
             }
         }
     }
-    type::SubstitutionTable thisTable(buildSubstitutionTableFromTypeParametrizable(clss));
+    type::Environment thisTable(buildEnvironmentFromTypeParametrizable(clss));
     finalTable.insert(thisTable.begin(), thisTable.end());
 
     _created = _mngr.New<type::ProperType>(clss, finalTable);
@@ -59,12 +59,12 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
     }
 
     ClassDecl* functionClass = nullptr;
-    type::SubstitutionTable table;
+    type::Environment env;
 
     if (ftdecl->getTypeArgs().size() == 0) {
         if (type::ProperType* pt = type::getIf<type::ProperType>(createType(ftdecl->getClassEquivalent(), _ctx)->applyTCCallsOnly(_ctx))) {
             functionClass = pt->getClass();
-            table = pt->getSubstitutionTable();
+            env = pt->getSubstitutionTable();
         } else {
             _ctx->reporter().fatal(*ftdecl, "Could not create type of this function's class equivalent");
         }
@@ -72,14 +72,14 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
 
     if (!_allowFunctionConstructors && ftdecl->getTypeArgs().size() > 0) {
         _ctx->reporter().error(*ftdecl, "Function type cannot be declared generic in this context");
-        _created = _mngr.New<type::FunctionType>(std::vector<TypeExpression*>(), argTypes, retType, functionClass, table);
+        _created = _mngr.New<type::FunctionType>(std::vector<TypeExpression*>(), argTypes, retType, functionClass, env);
     } else {
-        _created = _mngr.New<type::FunctionType>(ftdecl->getTypeArgs(), argTypes, retType, functionClass, table);
+        _created = _mngr.New<type::FunctionType>(ftdecl->getTypeArgs(), argTypes, retType, functionClass, env);
     }
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
-    _created = _mngr.New<type::TypeConstructorType>(typeconstructor, buildSubstitutionTableFromTypeParametrizable(typeconstructor));
+    _created = _mngr.New<type::TypeConstructorType>(typeconstructor, buildEnvironmentFromTypeParametrizable(typeconstructor));
 }
 
 void ASTTypeCreator::visit(TypeConstructorCall* tcall) {
@@ -151,7 +151,7 @@ type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, 
     }
 
     type::Type* created = createType(ctr->getTypeConstructor()->getBody(), ctx);
-    type::SubstitutionTable subs(buildSubstitutionTableFromTypeParameterInstantiation(params, args, ctx));
+    type::Environment subs(buildEnvironmentFromTypeParameterInstantiation(params, args, ctx));
 
     created = created->substitute(subs, ctx)->substitute(ctr->getSubstitutionTable(), ctx);
 
@@ -188,8 +188,8 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
         }
     }
 
-    type::SubstitutionTable fnEnv(created->getSubstitutionTable());
-    type::SubstitutionTable callEnv(buildSubstitutionTableFromTypeParameterInstantiation(typeParams, argTypes, ctx));
+    type::Environment fnEnv(created->getSubstitutionTable());
+    type::Environment callEnv(buildEnvironmentFromTypeParameterInstantiation(typeParams, argTypes, ctx));
     fnEnv.insert(callEnv.begin(), callEnv.end());
 
     if (!KindChecking::kindCheckWithBoundsArgumentSubstitution(paramKinds, args, argTypes, callPos, fnEnv, ctx)) {
@@ -236,22 +236,22 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic
     }
 }
 
-type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParametrizable(type::TypeParametrizable* param) {
-    type::SubstitutionTable table;
+type::Environment ASTTypeCreator::buildEnvironmentFromTypeParametrizable(type::TypeParametrizable* param) {
+    type::Environment env;
     const std::vector<type::TypeParametrizable::Parameter>& syms(param->getDependencies());
 
     for (type::TypeParametrizable::Parameter ts : syms) {
-        table.insert(type::SubstitutionTable::Substitution(ts.varianceType, ts.symbol->type(), ts.symbol->type()));
+        env.insert(type::Environment::Substitution(ts.varianceType, ts.symbol->type(), ts.symbol->type()));
     }
 
-    return table;
+    return env;
 }
 
-type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(
+type::Environment ASTTypeCreator::buildEnvironmentFromTypeParameterInstantiation(
         std::vector<TypeExpression*> params, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx) {
 
     if (params.size() != args.size()) {
-        return type::SubstitutionTable::Empty;
+        return type::Environment::Empty;
     }
 
     for (TypeExpression*& param : params) {
@@ -260,7 +260,7 @@ type::SubstitutionTable ASTTypeCreator::buildSubstitutionTableFromTypeParameterI
         }
     }
 
-    type::SubstitutionTable subs;
+    type::Environment subs;
 
     for (size_t i = 0; i < params.size(); ++i) {
         // can only be a TypeSymbol

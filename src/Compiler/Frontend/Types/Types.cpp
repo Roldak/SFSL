@@ -38,7 +38,7 @@ public:
         return false;
     }
 
-    virtual Type* substituteDeep(const SubstitutionTable&, CompCtx_Ptr&) const override {
+    virtual Type* substituteDeep(const Environment&, CompCtx_Ptr&) const override {
         return (Type*)this;
     }
 
@@ -49,7 +49,7 @@ public:
 
 // TYPE
 
-Type::Type(const SubstitutionTable &substitutionTable) : _subTable(substitutionTable) {
+Type::Type(const Environment &substitutionTable) : _subTable(substitutionTable) {
 
 }
 
@@ -74,8 +74,8 @@ std::string Type::toString() const {
 }
 
 
-Type* Type::substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    return table.findSubstOrReturnMe(const_cast<Type*>(this))->substituteDeep(table, ctx);
+Type* Type::substitute(const Environment& env, CompCtx_Ptr& ctx) const {
+    return env.findSubstOrReturnMe(const_cast<Type*>(this))->substituteDeep(env, ctx);
 }
 
 Type* Type::apply(CompCtx_Ptr&) const {
@@ -86,7 +86,7 @@ Type* Type::applyTCCallsOnly(CompCtx_Ptr&) const {
     return const_cast<Type*>(this);
 }
 
-const SubstitutionTable& Type::getSubstitutionTable() const {
+const Environment& Type::getSubstitutionTable() const {
     return _subTable;
 }
 
@@ -168,7 +168,7 @@ bool TypeToBeInferred::equals(const Type* other) const {
     return this == other;
 }
 
-TypeToBeInferred* TypeToBeInferred::substituteDeep(const SubstitutionTable&, CompCtx_Ptr&) const {
+TypeToBeInferred* TypeToBeInferred::substituteDeep(const Environment&, CompCtx_Ptr&) const {
     return (TypeToBeInferred*)this;
 }
 
@@ -188,7 +188,7 @@ std::string TypeToBeInferred::toString() const {
 
 // PROPER TYPE
 
-ProperType::ProperType(ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
+ProperType::ProperType(ast::ClassDecl* clss, const Environment& substitutionTable)
     : Type(substitutionTable), _class(clss) {
 
 }
@@ -202,9 +202,9 @@ TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
 bool ProperType::isSubTypeOf(const Type* other) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
         if (_class->CanSubtypeClasses::extends(objother->_class)) {
-            const SubstitutionTable& osubs = objother->getSubstitutionTable();
+            const Environment& osubs = objother->getSubstitutionTable();
 
-            for (const SubstitutionTable::Substitution& osub : osubs) {
+            for (const Environment::Substitution& osub : osubs) {
                 const auto& sub = _subTable.find(osub.key);
 
                 if (sub == _subTable.end()) {
@@ -243,9 +243,9 @@ std::string ProperType::toString() const {
     return _class->getName() + Type::toString();
 }
 
-ProperType* ProperType::substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    SubstitutionTable copy = _subTable;
-    if (copy.substituteAll(table)) {
+ProperType* ProperType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
+    Environment copy = _subTable;
+    if (copy.substituteAll(env)) {
         return ctx->memoryManager().New<ProperType>(_class, copy);
     } else {
         return const_cast<ProperType*>(this);
@@ -316,8 +316,8 @@ bool ValueConstructorType::equalsValueConstructor(const ValueConstructorType* ot
     return _retType->equals(oRetType);
 }
 
-ValueConstructorType* ValueConstructorType::substituteValueConstructor(const SubstitutionTable& substitutions, CompCtx_Ptr& ctx) const {
-    SubstitutionTable currentEnvCopy(getValueConstructorSubstitutionTable());
+ValueConstructorType* ValueConstructorType::substituteValueConstructor(const Environment& substitutions, CompCtx_Ptr& ctx) const {
+    Environment currentEnvCopy(getValueConstructorSubstitutionTable());
     currentEnvCopy.substituteAll(substitutions);
 
     std::vector<Type*> substitued(_argTypes.size());
@@ -336,7 +336,7 @@ ValueConstructorType* ValueConstructorType::applyValueConstructor(CompCtx_Ptr& c
         for (size_t i = 0; i < defaultTypes.size(); ++i) {
             defaultTypes[i] = Type::DefaultGenericType(_typeArgs[i], ctx);
         }
-        SubstitutionTable sub = ast::ASTTypeCreator::buildSubstitutionTableFromTypeParameterInstantiation(_typeArgs, defaultTypes, ctx);
+        Environment sub = ast::ASTTypeCreator::buildEnvironmentFromTypeParameterInstantiation(_typeArgs, defaultTypes, ctx);
         self = self->substituteValueConstructor(sub, ctx);
     }
 
@@ -364,7 +364,7 @@ Type* ValueConstructorType::getRetType() const {
 
 FunctionType::FunctionType(
         const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType,
-        ast::ClassDecl* clss, const SubstitutionTable& substitutionTable)
+        ast::ClassDecl* clss, const Environment& substitutionTable)
     : ProperType(clss, substitutionTable), ValueConstructorType(typeArgs, argTypes, retType) {
 
 }
@@ -406,8 +406,8 @@ std::string FunctionType::toString() const {
     return toRet + ")->" + _retType->toString();
 }
 
-FunctionType* FunctionType::substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    return static_cast<FunctionType*>(substituteValueConstructor(table, ctx));
+FunctionType* FunctionType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
+    return static_cast<FunctionType*>(substituteValueConstructor(env, ctx));
 }
 
 FunctionType* FunctionType::apply(CompCtx_Ptr& ctx) const {
@@ -417,12 +417,12 @@ FunctionType* FunctionType::apply(CompCtx_Ptr& ctx) const {
 FunctionType* FunctionType::rebuildValueConstructor(
         const std::vector<ast::TypeExpression*>& typeArgs,
         const std::vector<Type*>& argTypes, Type* retType,
-        const SubstitutionTable& substitutionTable,
+        const Environment& substitutionTable,
         CompCtx_Ptr& ctx) const {
     return ctx->memoryManager().New<FunctionType>(typeArgs, argTypes, retType, _class, substitutionTable);
 }
 
-const SubstitutionTable& FunctionType::getValueConstructorSubstitutionTable() const {
+const Environment& FunctionType::getValueConstructorSubstitutionTable() const {
     return _subTable;
 }
 
@@ -430,7 +430,7 @@ const SubstitutionTable& FunctionType::getValueConstructorSubstitutionTable() co
 
 MethodType::MethodType(ast::ClassDecl* owner,
                        const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType,
-                       const SubstitutionTable& substitutionTable)
+                       const Environment& substitutionTable)
     : Type(substitutionTable), ValueConstructorType(typeArgs, argTypes, retType), _owner(owner) {
 
 }
@@ -469,8 +469,8 @@ std::string MethodType::toString() const {
     return toRet + ")->" + _retType->toString();
 }
 
-MethodType* MethodType::substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    return static_cast<MethodType*>(substituteValueConstructor(table, ctx));
+MethodType* MethodType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
+    return static_cast<MethodType*>(substituteValueConstructor(env, ctx));
 }
 
 MethodType* MethodType::apply(CompCtx_Ptr& ctx) const {
@@ -480,7 +480,7 @@ MethodType* MethodType::apply(CompCtx_Ptr& ctx) const {
 MethodType* MethodType::rebuildValueConstructor(
         const std::vector<ast::TypeExpression*>& typeArgs,
         const std::vector<Type*>& argTypes, Type* retType,
-        const SubstitutionTable& substitutionTable,
+        const Environment& substitutionTable,
         CompCtx_Ptr& ctx) const {
     return ctx->memoryManager().New<MethodType>(_owner, typeArgs, argTypes, retType, substitutionTable);
 }
@@ -493,13 +493,13 @@ MethodType* MethodType::fromFunctionType(const FunctionType* ft, ast::ClassDecl*
     return ctx->memoryManager().New<MethodType>(owner, ft->getTypeArgs(), ft->getArgTypes(), ft->getRetType(), ft->getSubstitutionTable());
 }
 
-const SubstitutionTable& MethodType::getValueConstructorSubstitutionTable() const {
+const Environment& MethodType::getValueConstructorSubstitutionTable() const {
     return _subTable;
 }
 
 // TYPE CONSTRUCTOR
 
-TypeConstructorType::TypeConstructorType(ast::TypeConstructorCreation*typeConstructor, const SubstitutionTable& substitutionTable)
+TypeConstructorType::TypeConstructorType(ast::TypeConstructorCreation*typeConstructor, const Environment& substitutionTable)
     : Type(substitutionTable), _typeConstructor(typeConstructor) {
 
 }
@@ -528,9 +528,9 @@ std::string TypeConstructorType::toString() const {
     return _typeConstructor->getName() + Type::toString();
 }
 
-TypeConstructorType* TypeConstructorType::substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    SubstitutionTable copy = _subTable;
-    if (copy.substituteAll(table)) {
+TypeConstructorType* TypeConstructorType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
+    Environment copy = _subTable;
+    if (copy.substituteAll(env)) {
         return ctx->memoryManager().New<TypeConstructorType>(_typeConstructor, copy);
     } else {
         return const_cast<TypeConstructorType*>(this);
@@ -544,7 +544,7 @@ ast::TypeConstructorCreation* TypeConstructorType::getTypeConstructor() const {
 // CONSTRUCTOR APPLY TYPE
 
 ConstructorApplyType::ConstructorApplyType(Type* callee, const std::vector<Type*>& args)
-    : Type(type::SubstitutionTable::Empty), _callee(callee), _args(args) {
+    : Type(type::Environment::Empty), _callee(callee), _args(args) {
 
 }
 
@@ -571,17 +571,17 @@ std::string ConstructorApplyType::toString() const {
     return toRet + "]" + Type::toString();
 }
 
-ConstructorApplyType* ConstructorApplyType::substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const {
-    if (table.empty()) {
+ConstructorApplyType* ConstructorApplyType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
+    if (env.empty()) {
         return const_cast<ConstructorApplyType*>(this);
     }
 
     std::vector<Type*> substitued(_args.size());
     for (size_t i = 0; i < _args.size(); ++i) {
-        substitued[i] = _args[i]->substitute(table, ctx);
+        substitued[i] = _args[i]->substitute(env, ctx);
     }
 
-    return ctx->memoryManager().New<ConstructorApplyType>(_callee->substitute(table, ctx), substitued);
+    return ctx->memoryManager().New<ConstructorApplyType>(_callee->substitute(env, ctx), substitued);
 }
 
 Type* ConstructorApplyType::apply(CompCtx_Ptr& ctx) const {

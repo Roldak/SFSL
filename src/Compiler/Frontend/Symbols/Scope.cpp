@@ -30,7 +30,7 @@ Symbol* Scope::addSymbol(Symbol* sym) {
     }
 }
 
-void Scope::copySymbolsFrom(const Scope* other, const type::SubstitutionTable& env, const SymbolExcluder* excluder) {
+void Scope::copySymbolsFrom(const Scope* other, const type::Environment& env, const SymbolExcluder* excluder) {
     for (const std::pair<std::string, SymbolData>& entry : other->getAllSymbols()) {
         if (excluder && excluder->exclude(entry.second)) {
             continue;

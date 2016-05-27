@@ -26,9 +26,9 @@ namespace ast {
 // HELPER
 
 template<typename T>
-T* applyEnvsHelper(T* t, const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx) {
+T* applyEnvsHelper(T* t, const type::Environment& subtable, const type::Environment* env, CompCtx_Ptr& ctx) {
     type::Type* tmpT = t;
-    type::SubstitutionTable unionTable = subtable;
+    type::Environment unionTable = subtable;
 
     if (env) {
         unionTable.insert(env->begin(), env->end());
@@ -125,7 +125,7 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
         if (func->getTypeArgs()) {
             typeArgs = func->getTypeArgs()->getExpressions();
         }
-        func->setType(_mngr.New<type::FunctionType>(typeArgs, argTypes, type::Type::NotYetDefined(), nullptr, type::SubstitutionTable::Empty));
+        func->setType(_mngr.New<type::FunctionType>(typeArgs, argTypes, type::Type::NotYetDefined(), nullptr, type::Environment::Empty));
     }
 
     ASTImplicitVisitor::visit(func);
@@ -351,7 +351,7 @@ void TypeChecking::visit(MemberAccess* dot) {
     if (type::Type* t = dot->getAccessed()->type()) {
         if (type::ProperType* obj = type::getIf<type::ProperType>(t->apply(_ctx))) {
             ClassDecl* clss = obj->getClass();
-            const type::SubstitutionTable& subtable = obj->getSubstitutionTable();
+            const type::Environment& subtable = obj->getSubstitutionTable();
 
             FieldInfo field = tryGetFieldInfo(dot, clss, dot->getMember()->getValue(), subtable);
 
@@ -422,7 +422,7 @@ void TypeChecking::visit(FunctionCreation* func) {
         if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
             func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis),
                                                       func->getTypeArgs() ? func->getTypeArgs()->getExpressions() : std::vector<TypeExpression*>(),
-                                                      argTypes, retType, ASTTypeCreator::buildSubstitutionTableFromTypeParametrizable(func)));
+                                                      argTypes, retType, ASTTypeCreator::buildEnvironmentFromTypeParametrizable(func)));
         } else {
             _rep.fatal(*func, "Unknown type of `this`");
         }
@@ -556,7 +556,7 @@ void TypeChecking::visit(StringLiteral* strlit) {
     strlit->setType(_res.String());
 }
 
-TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ASTNode* triggerer, ClassDecl* clss, const std::string& id, const type::SubstitutionTable& subtable) {
+TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ASTNode* triggerer, ClassDecl* clss, const std::string& id, const type::Environment& subtable) {
     const auto& it = clss->getScope()->getAllSymbols().equal_range(id);
 
     if (it.first == it.second) {
@@ -599,7 +599,7 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
 bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
                                              const std::vector<TypeExpression*>& typeArgs, const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType) {
     ClassDecl* clss = pt->getClass();
-    const type::SubstitutionTable& subtable = pt->getSubstitutionTable();
+    const type::Environment& subtable = pt->getSubstitutionTable();
 
     FieldInfo field = tryGetFieldInfo(newCallee, clss, member, subtable);
 
@@ -694,7 +694,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
     DefineDecl* funcDecl;
     sym::Scope* funcClassScope = _mngr.New<sym::Scope>(func->getScope()->getParent(), true);
 
-    type::SubstitutionTable env(ASTTypeCreator::buildSubstitutionTableFromTypeParametrizable(func));
+    type::Environment env(ASTTypeCreator::buildEnvironmentFromTypeParametrizable(func));
 
     if (func->getTypeArgs()) {
         typeArgs = func->getTypeArgs()->getExpressions();
@@ -758,7 +758,7 @@ public:
         return _symbol;
     }
 
-    const type::SubstitutionTable* env() const {
+    const type::Environment* env() const {
         return _env;
     }
 
@@ -783,7 +783,7 @@ public:
     }
 
     static void append(std::vector<OverloadedDefSymbolCandidate>& vec, sym::DefinitionSymbol* s, type::Type* t, size_t expectedArgCount,
-                       const type::SubstitutionTable& subtable, const type::SubstitutionTable* env, CompCtx_Ptr& ctx)
+                       const type::Environment& subtable, const type::Environment* env, CompCtx_Ptr& ctx)
     {
         if (type::FunctionType* ft = type::getIf<type::FunctionType>(t)) {
             if (ft->getArgTypes().size() == expectedArgCount) {
@@ -798,16 +798,16 @@ public:
 
 private:
 
-    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, const type::SubstitutionTable* env, type::FunctionType* ft)
+    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, const type::Environment* env, type::FunctionType* ft)
         : _symbol(s), _env(env), _args(&ft->getArgTypes()), _ret(ft->getRetType()), _score(0), _appliedType(ft)
     { }
 
-    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, const type::SubstitutionTable* env, type::MethodType* mt)
+    OverloadedDefSymbolCandidate(sym::DefinitionSymbol* s, const type::Environment* env, type::MethodType* mt)
         : _symbol(s), _env(env), _args(&mt->getArgTypes()), _ret(mt->getRetType()), _score(0), _appliedType(mt)
     { }
 
     sym::DefinitionSymbol* _symbol;
-    const type::SubstitutionTable* _env;
+    const type::Environment* _env;
 
     const std::vector<type::Type*>* _args;
     type::Type* _ret;
@@ -835,7 +835,7 @@ template<typename SymbolIterator>
 TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         ASTNode* triggerer,
         const SymbolIterator& begin, const SymbolIterator& end,
-        const type::SubstitutionTable& subtable)
+        const type::Environment& subtable)
 {
     if (std::distance(begin, end) == 1) {
         const auto& val = *begin;

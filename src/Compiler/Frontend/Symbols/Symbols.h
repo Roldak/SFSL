@@ -143,7 +143,7 @@ public:
 
 struct SymbolData final {
     sym::Symbol* symbol;
-    type::SubstitutionTable env;
+    type::Environment env;
 };
 
 }

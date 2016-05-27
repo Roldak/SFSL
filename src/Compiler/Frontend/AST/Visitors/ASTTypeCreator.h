@@ -86,25 +86,25 @@ public:
                                                const common::Positionnable& callPos, CompCtx_Ptr& ctx);
 
     /**
-     * @brief Creates a substitution table mapping the types of the parameters to the types of the arguments
+     * @brief Creates an environment mapping the types of the parameters to the types of the arguments
      * @param typeParameters The expressions representing the type parameters (for example, TypeIdentifiers or KindSpecifiers)
      * @param args The corresponding vector of type arguments
      * @param ctx The compilation context
-     * @return The substitution table that was created
+     * @return The environment that was created
      */
-    static type::SubstitutionTable buildSubstitutionTableFromTypeParameterInstantiation(
+    static type::Environment buildEnvironmentFromTypeParameterInstantiation(
             const std::vector<TypeExpression*> params, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx);
 
 
     /**
-     * @brief Creates an initial substitution table from a TypeParametrizable object.
+     * @brief Creates an initial environment from a TypeParametrizable object.
      * For example, for an object depending on type parameters {out T, K}, the resulting
-     * substitution table will be {(out, T->T), (none, K->K)}
+     * environment will be {(out, T->T), (none, K->K)}
      *
      * @param param The TypeParametrizable object
-     * @return The substitution table
+     * @return The environment
      */
-    static type::SubstitutionTable buildSubstitutionTableFromTypeParametrizable(type::TypeParametrizable* param);
+    static type::Environment buildEnvironmentFromTypeParametrizable(type::TypeParametrizable* param);
 
 protected:
 

@@ -12,7 +12,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include "SubstitutionTable.h"
+#include "Environment.h"
 #include "../../Common/MemoryManageable.h"
 #include "../../Common/CompilationContext.h"
 #include "../../Common/Positionnable.h"
@@ -33,7 +33,7 @@ class Typed;
 
 class Type : public common::MemoryManageable {
 public:
-    Type(const SubstitutionTable& substitutionTable = {});
+    Type(const Environment& substitutionTable = {});
 
     virtual ~Type();
 
@@ -42,22 +42,22 @@ public:
     virtual bool equals(const Type* other) const;
     virtual std::string toString() const = 0;
 
-    Type* substitute(const SubstitutionTable& table, CompCtx_Ptr& ctx) const;
+    Type* substitute(const Environment& env, CompCtx_Ptr& ctx) const;
     virtual Type* apply(CompCtx_Ptr& ctx) const;
     virtual Type* applyTCCallsOnly(CompCtx_Ptr& ctx) const;
 
-    const SubstitutionTable& getSubstitutionTable() const;
+    const Environment& getSubstitutionTable() const;
 
     static Type* NotYetDefined();
 
 protected:
     friend class ValueConstructorType;
 
-    virtual Type* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const = 0;
+    virtual Type* substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const = 0;
 
     static Type* DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx);
 
-    const SubstitutionTable _subTable;
+    const Environment _subTable;
 };
 
 class TypeToBeInferred : public Type {
@@ -77,14 +77,14 @@ public:
 
 protected:
 
-    virtual TypeToBeInferred* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+    virtual TypeToBeInferred* substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const override;
 
     std::vector<Typed*> _associatedTyped;
 };
 
 class ProperType : public Type {
 public:
-    ProperType(ast::ClassDecl* clss, const SubstitutionTable& substitutionTable);
+    ProperType(ast::ClassDecl* clss, const Environment& substitutionTable);
 
     virtual ~ProperType();
 
@@ -97,7 +97,7 @@ public:
 
 protected:
 
-    virtual ProperType* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+    virtual ProperType* substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const override;
 
     ast::ClassDecl* _class;
 };
@@ -113,21 +113,21 @@ public:
     const std::vector<Type*>& getArgTypes() const;
     Type* getRetType() const;
 
-    ValueConstructorType* substituteValueConstructor(const SubstitutionTable& substitutions, CompCtx_Ptr& ctx) const;
+    ValueConstructorType* substituteValueConstructor(const Environment& substitutions, CompCtx_Ptr& ctx) const;
 
     ValueConstructorType* applyValueConstructor(CompCtx_Ptr& ctx) const;
 
     virtual ValueConstructorType* rebuildValueConstructor(
             const std::vector<ast::TypeExpression*>& typeArgs,
             const std::vector<Type*>& argTypes, Type* retType,
-            const SubstitutionTable& substitutionTable,
+            const Environment& substitutionTable,
             CompCtx_Ptr& ctx) const = 0;
 
 protected:
 
     ValueConstructorType(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType);
 
-    virtual const SubstitutionTable& getValueConstructorSubstitutionTable() const = 0;
+    virtual const Environment& getValueConstructorSubstitutionTable() const = 0;
 
     std::vector<ast::TypeExpression*> _typeArgs;
     std::vector<Type*> _argTypes;
@@ -136,7 +136,7 @@ protected:
 
 class FunctionType : public ProperType, public ValueConstructorType {
 public:
-    FunctionType(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const SubstitutionTable& substitutionTable);
+    FunctionType(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, ast::ClassDecl* clss, const Environment& substitutionTable);
 
     virtual ~FunctionType();
 
@@ -150,18 +150,18 @@ public:
     virtual FunctionType* rebuildValueConstructor(
             const std::vector<ast::TypeExpression*>& typeArgs,
             const std::vector<Type*>& argTypes, Type* retType,
-            const SubstitutionTable& substitutionTable,
+            const Environment& substitutionTable,
             CompCtx_Ptr& ctx) const override;
 
 protected:
 
-    virtual FunctionType* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
-    virtual const SubstitutionTable& getValueConstructorSubstitutionTable() const override;
+    virtual FunctionType* substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const override;
+    virtual const Environment& getValueConstructorSubstitutionTable() const override;
 };
 
 class MethodType : public Type, public ValueConstructorType {
 public:
-    MethodType(ast::ClassDecl* owner, const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, const SubstitutionTable& substitutionTable);
+    MethodType(ast::ClassDecl* owner, const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType, const Environment& substitutionTable);
 
     virtual ~MethodType();
 
@@ -175,7 +175,7 @@ public:
     virtual MethodType* rebuildValueConstructor(
             const std::vector<ast::TypeExpression*>& typeArgs,
             const std::vector<Type*>& argTypes, Type* retType,
-            const SubstitutionTable& substitutionTable,
+            const Environment& substitutionTable,
             CompCtx_Ptr& ctx) const override;
 
     ast::ClassDecl* getOwner() const;
@@ -184,8 +184,8 @@ public:
 
 protected:
 
-    virtual MethodType* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
-    virtual const SubstitutionTable& getValueConstructorSubstitutionTable() const override;
+    virtual MethodType* substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const override;
+    virtual const Environment& getValueConstructorSubstitutionTable() const override;
 
 private:
 
@@ -194,7 +194,7 @@ private:
 
 class TypeConstructorType : public Type {
 public:
-    TypeConstructorType(ast::TypeConstructorCreation* typeConstructor, const SubstitutionTable& substitutionTable);
+    TypeConstructorType(ast::TypeConstructorCreation* typeConstructor, const Environment& substitutionTable);
 
     virtual ~TypeConstructorType();
 
@@ -207,7 +207,7 @@ public:
 
 protected:
 
-    virtual TypeConstructorType* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+    virtual TypeConstructorType* substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const override;
 
     ast::TypeConstructorCreation* _typeConstructor;
 };
@@ -227,7 +227,7 @@ public:
 
 protected:
 
-    virtual ConstructorApplyType* substituteDeep(const SubstitutionTable& table, CompCtx_Ptr& ctx) const override;
+    virtual ConstructorApplyType* substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const override;
 
     Type* _callee;
     const std::vector<Type*> _args;

@@ -11,7 +11,7 @@
 
 #include <vector>
 #include <map>
-#include "../Types/SubstitutionTable.h"
+#include "../Types/Environment.h"
 
 namespace sfsl {
 
@@ -34,14 +34,14 @@ class Symbolic {
         SymbolData()
             : symbol(nullptr), env(nullptr) { }
 
-        SymbolData(Symbol_Type* s, const type::SubstitutionTable& e)
+        SymbolData(Symbol_Type* s, const type::Environment& e)
             : symbol(s), env(&e) { }
 
-        SymbolData(Symbol_Type* s, const type::SubstitutionTable* e)
+        SymbolData(Symbol_Type* s, const type::Environment* e)
             : symbol(s), env(e) { }
 
         Symbol_Type* symbol;
-        const type::SubstitutionTable* env;
+        const type::Environment* env;
     };
 
 public:
@@ -69,7 +69,7 @@ public:
     /**
      * @return The environment associated to the symbol held by this Symbolic
      */
-    const type::SubstitutionTable* getEnv() const {
+    const type::Environment* getEnv() const {
         return _symbols[0].env;
     }
 

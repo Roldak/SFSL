@@ -40,7 +40,7 @@ public:
      * @brief Copies all the symbols from the given scope into this one
      * @param other The scope from which to copy the symbol
      */
-    void copySymbolsFrom(const Scope* other, const type::SubstitutionTable& env, const SymbolExcluder* exluder);
+    void copySymbolsFrom(const Scope* other, const type::Environment& env, const SymbolExcluder* exluder);
 
     template<typename T>
     /**
