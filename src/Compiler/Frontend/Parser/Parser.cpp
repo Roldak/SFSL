@@ -714,7 +714,10 @@ TypeTuple* Parser::parseTypeParameters() {
             if (accept(tok::OPER_COLON)) {
                 kindExpr = parseKindSpecifyingExpression();
             } else {
-                kindExpr = _mngr.New<ProperTypeKindSpecifier>();
+                TypeExpression* lb = accept(tok::OPER_GT) ? parseTypeExpression(false) : nullptr;
+                TypeExpression* ub = accept(tok::OPER_LT) ? parseTypeExpression(false) : nullptr;
+
+                kindExpr = _mngr.New<ProperTypeKindSpecifier>(lb, ub);
                 kindExpr->setPos(*_currentToken);
             }
 
