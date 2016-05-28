@@ -244,57 +244,57 @@ ClassDecl* Parser::parseClass(bool isAbstractClass) {
         parent = parseTypeExpression();
     }
 
-    expect(tok::OPER_L_BRACE, "`{`");
-
     std::vector<TypeDecl*> tdecls;
     std::vector<TypeSpecifier*> fields;
     std::vector<DefineDecl*> defs;
 
-    while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
-        parseAnnotations();
+    if (accept(tok::OPER_L_BRACE)) {
+        while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
+            parseAnnotations();
 
-        bool isExtern = accept(tok::KW_EXTERN);
-        bool isAbstract = accept(tok::KW_ABSTRACT);
+            bool isExtern = accept(tok::KW_EXTERN);
+            bool isAbstract = accept(tok::KW_ABSTRACT);
 
-        SAVE_POS(externElemPos);
+            SAVE_POS(externElemPos);
 
-        if (isExtern && isAbstract) {
-            _ctx->reporter().error(externElemPos, "`extern` and `abstract` flags are exclusive");
+            if (isExtern && isAbstract) {
+                _ctx->reporter().error(externElemPos, "`extern` and `abstract` flags are exclusive");
+            }
+
+            if (accept(tok::KW_TPE)) {
+                tdecls.push_back(parseType(false));
+            } else if (accept(tok::KW_NEW)) {
+                Identifier* id = _mngr.New<Identifier>("new");
+                id->setPos(externElemPos);
+                defs.push_back(parseDef(false, false, consumeBool(isExtern), false, id));
+            } else if (accept(tok::KW_DEF)) {
+                Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
+                defs.push_back(parseDef(false, false, consumeBool(isExtern), consumeBool(isAbstract), id));
+            } else if (accept(tok::KW_REDEF)) {
+                Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
+                defs.push_back(parseDef(false, true, consumeBool(isExtern), consumeBool(isAbstract), id));
+            } else {
+                Identifier* fieldName = parseIdentifier("Expected field name | def");
+                expect(tok::OPER_COLON, "`:`");
+                TypeExpression* type = parseTypeExpression();
+                expect(tok::OPER_SEMICOLON, "`;`");
+
+                TypeSpecifier* field = _mngr.New<TypeSpecifier>(fieldName, type);
+                field->setPos(*fieldName);
+                field->setEndPos(_lastTokenEndPos);
+
+                fields.push_back(field);
+            }
+
+            if (isExtern) {
+                _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared extern");
+            }
+            if (isAbstract) {
+                _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared abstract");
+            }
+
+            reportErroneousAnnotations();
         }
-
-        if (accept(tok::KW_TPE)) {
-            tdecls.push_back(parseType(false));
-        } else if (accept(tok::KW_NEW)) {
-            Identifier* id = _mngr.New<Identifier>("new");
-            id->setPos(externElemPos);
-            defs.push_back(parseDef(false, false, consumeBool(isExtern), false, id));
-        } else if (accept(tok::KW_DEF)) {
-            Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
-            defs.push_back(parseDef(false, false, consumeBool(isExtern), consumeBool(isAbstract), id));
-        } else if (accept(tok::KW_REDEF)) {
-            Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
-            defs.push_back(parseDef(false, true, consumeBool(isExtern), consumeBool(isAbstract), id));
-        } else {
-            Identifier* fieldName = parseIdentifier("Expected field name | def");
-            expect(tok::OPER_COLON, "`:`");
-            TypeExpression* type = parseTypeExpression();
-            expect(tok::OPER_SEMICOLON, "`;`");
-
-            TypeSpecifier* field = _mngr.New<TypeSpecifier>(fieldName, type);
-            field->setPos(*fieldName);
-            field->setEndPos(_lastTokenEndPos);
-
-            fields.push_back(field);
-        }
-
-        if (isExtern) {
-            _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared extern");
-        }
-        if (isAbstract) {
-            _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared abstract");
-        }
-
-        reportErroneousAnnotations();
     }
 
     ClassDecl* classDecl = _mngr.New<ClassDecl>(className, parent, tdecls, fields, defs, isAbstractClass);
@@ -888,6 +888,9 @@ void Parser::parseAnnotations() {
 
     if (isType(tok::TOK_ID)) {
         name = as<tok::Identifier>()->toString();
+        accept();
+    } else if (isType(tok::TOK_KW)) {
+        name = as<tok::Keyword>()->toString();
         accept();
     } else {
         _ctx->reporter().error(*_currentToken, "Expected identifier; got " + _currentToken->toString());
