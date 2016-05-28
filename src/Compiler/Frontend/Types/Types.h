@@ -57,7 +57,7 @@ protected:
 
     static Type* DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx);
 
-    const Environment _subTable;
+    const Environment _env;
 };
 
 class TypeToBeInferred : public Type {

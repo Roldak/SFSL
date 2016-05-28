@@ -26,15 +26,15 @@ namespace ast {
 // HELPER
 
 template<typename T>
-T* applyEnvsHelper(T* t, const type::Environment& subtable, const type::Environment* env, CompCtx_Ptr& ctx) {
+T* applyEnvsHelper(T* t, const type::Environment& env, const type::Environment* dataEnv, CompCtx_Ptr& ctx) {
     type::Type* tmpT = t;
-    type::Environment unionTable = subtable;
+    type::Environment unionEnv = env;
 
-    if (env) {
-        unionTable.insert(env->begin(), env->end());
+    if (dataEnv) {
+        unionEnv.insert(dataEnv->begin(), dataEnv->end());
     }
 
-    tmpT = tmpT->substitute(unionTable, ctx)->apply(ctx);
+    tmpT = tmpT->substitute(unionEnv, ctx)->apply(ctx);
 
     return static_cast<T*>(tmpT);
 }
@@ -351,9 +351,9 @@ void TypeChecking::visit(MemberAccess* dot) {
     if (type::Type* t = dot->getAccessed()->type()) {
         if (type::ProperType* obj = type::getIf<type::ProperType>(t->apply(_ctx))) {
             ClassDecl* clss = obj->getClass();
-            const type::Environment& subtable = obj->getSubstitutionTable();
+            const type::Environment& env = obj->getSubstitutionTable();
 
-            FieldInfo field = tryGetFieldInfo(dot, clss, dot->getMember()->getValue(), subtable);
+            FieldInfo field = tryGetFieldInfo(dot, clss, dot->getMember()->getValue(), env);
 
             if (field.isValid()) {
                 dot->setSymbol(field.s);
@@ -556,7 +556,7 @@ void TypeChecking::visit(StringLiteral* strlit) {
     strlit->setType(_res.String());
 }
 
-TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ASTNode* triggerer, ClassDecl* clss, const std::string& id, const type::Environment& subtable) {
+TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ASTNode* triggerer, ClassDecl* clss, const std::string& id, const type::Environment& env) {
     const auto& it = clss->getScope()->getAllSymbols().equal_range(id);
 
     if (it.first == it.second) {
@@ -565,14 +565,14 @@ TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ASTNode* triggerer, ClassD
 
     auto b = utils::TakeSecondIterator<decltype(it.first)>(it.first);
     auto e = utils::TakeSecondIterator<decltype(it.second)>(it.second);
-    const AnySymbolicData data = resolveOverload(triggerer, b, e, subtable);
+    const AnySymbolicData data = resolveOverload(triggerer, b, e, env);
 
     if (data.symbol) {
         type::Type* t = tryGetTypeOfSymbol(data.symbol);
         if (data.env) {
             t = t->substitute(*data.env, _ctx);
         }
-        t = t->substitute(subtable, _ctx);
+        t = t->substitute(env, _ctx);
 
         return {data.symbol, t};
     } else {
@@ -599,9 +599,9 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
 bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
                                              const std::vector<TypeExpression*>& typeArgs, const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType) {
     ClassDecl* clss = pt->getClass();
-    const type::Environment& subtable = pt->getSubstitutionTable();
+    const type::Environment& env = pt->getSubstitutionTable();
 
-    FieldInfo field = tryGetFieldInfo(newCallee, clss, member, subtable);
+    FieldInfo field = tryGetFieldInfo(newCallee, clss, member, env);
 
     if (field.isValid()) {
         type::Type* calleeT = ASTTypeCreator::evalFunctionConstructor(field.t->applyTCCallsOnly(_ctx), typeArgs, *call, _ctx);
@@ -783,15 +783,15 @@ public:
     }
 
     static void append(std::vector<OverloadedDefSymbolCandidate>& vec, sym::DefinitionSymbol* s, type::Type* t, size_t expectedArgCount,
-                       const type::Environment& subtable, const type::Environment* env, CompCtx_Ptr& ctx)
+                       const type::Environment& env, const type::Environment* dataEnv, CompCtx_Ptr& ctx)
     {
         if (type::FunctionType* ft = type::getIf<type::FunctionType>(t)) {
             if (ft->getArgTypes().size() == expectedArgCount) {
-                vec.push_back(OverloadedDefSymbolCandidate(s, env, applyEnvsHelper(ft, subtable, env, ctx)));
+                vec.push_back(OverloadedDefSymbolCandidate(s, dataEnv, applyEnvsHelper(ft, env, dataEnv, ctx)));
             }
         } else if (type::MethodType* mt = type::getIf<type::MethodType>(t)) {
             if (mt->getArgTypes().size() == expectedArgCount) {
-                vec.push_back(OverloadedDefSymbolCandidate(s, env, applyEnvsHelper(mt, subtable, env, ctx)));
+                vec.push_back(OverloadedDefSymbolCandidate(s, dataEnv, applyEnvsHelper(mt, env, dataEnv, ctx)));
             }
         }
     }
@@ -835,7 +835,7 @@ template<typename SymbolIterator>
 TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         ASTNode* triggerer,
         const SymbolIterator& begin, const SymbolIterator& end,
-        const type::Environment& subtable)
+        const type::Environment& env)
 {
     if (std::distance(begin, end) == 1) {
         const auto& val = *begin;
@@ -854,7 +854,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         if (data.symbol->getSymbolType() == sym::SYM_DEF) {
             sym::DefinitionSymbol* defsymbol = static_cast<sym::DefinitionSymbol*>(data.symbol);
             type::Type* deftype = ASTTypeCreator::evalFunctionConstructor(defsymbol->type(), *_expectedInfo.typeArgs, *triggerer, _ctx);
-            OverloadedDefSymbolCandidate::append(candidates, defsymbol, deftype, expectedArgCount, subtable, data.env, _ctx);
+            OverloadedDefSymbolCandidate::append(candidates, defsymbol, deftype, expectedArgCount, env, data.env, _ctx);
         }
     }
 

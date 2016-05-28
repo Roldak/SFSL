@@ -49,7 +49,7 @@ public:
 
 // TYPE
 
-Type::Type(const Environment &substitutionTable) : _subTable(substitutionTable) {
+Type::Type(const Environment &substitutionTable) : _env(substitutionTable) {
 
 }
 
@@ -63,9 +63,9 @@ bool Type::equals(const Type* other) const {
 
 std::string Type::toString() const {
     std::string toRet /*= utils::T_toString(this)*/;
-    if (!_subTable.empty()) {
+    if (!_env.empty()) {
         toRet += "{";
-        for (const auto& pair : _subTable) {
+        for (const auto& pair : _env) {
             toRet += pair.key->toString() + "=>" + pair.value->toString() + ", ";
         }
         toRet = toRet.substr(0, toRet.size() - 2) + "}";
@@ -87,7 +87,7 @@ Type* Type::applyTCCallsOnly(CompCtx_Ptr&) const {
 }
 
 const Environment& Type::getSubstitutionTable() const {
-    return _subTable;
+    return _env;
 }
 
 Type* Type::NotYetDefined() {
@@ -205,9 +205,9 @@ bool ProperType::isSubTypeOf(const Type* other) const {
             const Environment& osubs = objother->getSubstitutionTable();
 
             for (const Environment::Substitution& osub : osubs) {
-                const auto& sub = _subTable.find(osub.key);
+                const auto& sub = _env.find(osub.key);
 
-                if (sub == _subTable.end()) {
+                if (sub == _env.end()) {
                     return false;
                 } else switch (osub.varianceType) {
                 case common::VAR_T_IN:
@@ -233,7 +233,7 @@ bool ProperType::isSubTypeOf(const Type* other) const {
 bool ProperType::equals(const Type* other) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
         if (_class == objother->getClass()) {
-            return _subTable.equals(objother->getSubstitutionTable());
+            return _env.equals(objother->getSubstitutionTable());
         }
     }
     return false;
@@ -244,7 +244,7 @@ std::string ProperType::toString() const {
 }
 
 ProperType* ProperType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
-    Environment copy = _subTable;
+    Environment copy = _env;
     if (copy.substituteAll(env)) {
         return ctx->memoryManager().New<ProperType>(_class, copy);
     } else {
@@ -423,7 +423,7 @@ FunctionType* FunctionType::rebuildValueConstructor(
 }
 
 const Environment& FunctionType::getValueConstructorSubstitutionTable() const {
-    return _subTable;
+    return _env;
 }
 
 // METHOD TYPE
@@ -494,7 +494,7 @@ MethodType* MethodType::fromFunctionType(const FunctionType* ft, ast::ClassDecl*
 }
 
 const Environment& MethodType::getValueConstructorSubstitutionTable() const {
-    return _subTable;
+    return _env;
 }
 
 // TYPE CONSTRUCTOR
@@ -519,7 +519,7 @@ bool TypeConstructorType::isSubTypeOf(const Type* other) const {
 bool TypeConstructorType::equals(const Type* other) const {
     if (TypeConstructorType* tc = getIf<TypeConstructorType>(other)) {
         return _typeConstructor == tc->getTypeConstructor()
-            && _subTable.equals(other->getSubstitutionTable());
+            && _env.equals(other->getSubstitutionTable());
     }
     return false;
 }
@@ -529,7 +529,7 @@ std::string TypeConstructorType::toString() const {
 }
 
 TypeConstructorType* TypeConstructorType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
-    Environment copy = _subTable;
+    Environment copy = _env;
     if (copy.substituteAll(env)) {
         return ctx->memoryManager().New<TypeConstructorType>(_typeConstructor, copy);
     } else {

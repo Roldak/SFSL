@@ -108,7 +108,7 @@ private:
         ASTNode* node;
     };
 
-    FieldInfo tryGetFieldInfo(ASTNode* triggerer, ClassDecl* clss, const std::string& id, const type::Environment& subtable);
+    FieldInfo tryGetFieldInfo(ASTNode* triggerer, ClassDecl* clss, const std::string& id, const type::Environment& env);
 
     type::Type* tryGetTypeOfSymbol(sym::Symbol* sym);
 
@@ -124,7 +124,7 @@ private:
 
     template<typename SymbolIterator>
     AnySymbolicData resolveOverload(
-            ASTNode* triggerer, const SymbolIterator& begin, const SymbolIterator& end, const type::Environment& subtable);
+            ASTNode* triggerer, const SymbolIterator& begin, const SymbolIterator& end, const type::Environment& env);
 
     TypeExpression* _currentThis;
     Expression* _nextDef;
