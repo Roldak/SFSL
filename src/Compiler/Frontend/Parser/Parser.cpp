@@ -155,7 +155,7 @@ ModuleDecl* Parser::parseModule() {
 
     expect(tok::OPER_L_BRACE, "`{`");
 
-    while (!accept(tok::OPER_R_BRACE)) {
+    while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
         parseAnnotations();
 
         SAVE_POS(keywordPos)
