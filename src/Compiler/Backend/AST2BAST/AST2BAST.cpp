@@ -142,12 +142,10 @@ void AST2BAST::visit(ast::ExpressionStatement* exp) {
 }
 
 void AST2BAST::visit(ast::AssignmentExpression* aex) {
-    if (ast::isNodeOfType<ast::TypeSpecifier>(aex->getLhs(), _ctx)) {
-        ast::TypeSpecifier* tps = static_cast<ast::TypeSpecifier*>(aex->getLhs());
+    if (ast::TypeSpecifier* tps = ast::getIfNodeOfType<ast::TypeSpecifier>(aex->getLhs(), _ctx)) {
         assignIdentifier(tps->getSpecified(), aex->getRhs());
     }
-    else if (ast::isNodeOfType<ast::MemberAccess>(aex->getLhs(), _ctx)) {
-        ast::MemberAccess* mac = static_cast<ast::MemberAccess*>(aex->getLhs());
+    else if (ast::MemberAccess* mac = ast::getIfNodeOfType<ast::MemberAccess>(aex->getLhs(), _ctx)) {
         if (mac->getSymbol()->getSymbolType() == sym::SYM_VAR) {
             sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(mac->getSymbol());
             make<FieldAssignmentExpression>(transform(mac->getAccessed()), getVarLoc(var), transform(aex->getRhs()));
@@ -161,8 +159,8 @@ void AST2BAST::visit(ast::AssignmentExpression* aex) {
     else if (ast::isNodeOfType<ast::Tuple>(aex->getLhs(), _ctx)) {
         // TODO
     }
-    else if (ast::isNodeOfType<ast::Identifier>(aex->getLhs(), _ctx)) {
-        assignIdentifier(static_cast<ast::Identifier*>(aex->getLhs()), aex->getRhs());
+    else if (ast::Identifier* ident = ast::getIfNodeOfType<ast::Identifier>(aex->getLhs(), _ctx)) {
+        assignIdentifier(ident, aex->getRhs());
     } else {
         _rep.fatal(*aex, "Is not allowed");
     }
@@ -225,8 +223,7 @@ void AST2BAST::visit(ast::FunctionCall* call) {
         Expression* callee = nullptr;
         std::vector<Expression*> args;
 
-        if (ast::isNodeOfType<ast::MemberAccess>(call->getCallee(), _ctx)) {
-            ast::MemberAccess* dot = static_cast<ast::MemberAccess*>(call->getCallee());
+        if (ast::MemberAccess* dot = ast::getIfNodeOfType<ast::MemberAccess>(call->getCallee(), _ctx)) {
             callee = transform(dot->getAccessed());
         } else if (ast::isNodeOfType<ast::Identifier>(call->getCallee(), _ctx)) { // implicit this
             callee = make<VarIdentifier>(0);

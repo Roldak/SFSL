@@ -113,8 +113,8 @@ void KindChecking::visit(TypeConstructorCreation* tc) {
 
     std::vector<TypeExpression*> exprs;
 
-    if (isNodeOfType<TypeTuple>(tc->getArgs(), _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
-        exprs = static_cast<TypeTuple*>(tc->getArgs())->getExpressions();
+    if (TypeTuple* ttuple = getIfNodeOfType<TypeTuple>(tc->getArgs(), _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        exprs = ttuple->getExpressions();
     } else { // form is `exp => ...` or `[exp] => ...`
         exprs.push_back(tc->getArgs());
     }
@@ -124,8 +124,8 @@ void KindChecking::visit(TypeConstructorCreation* tc) {
 
     for (size_t i = 0; i < exprs.size(); ++i) {
         params[i].varianceType = common::VAR_T_NONE;
-        if (isNodeOfType<TypeParameter>(exprs[i], _ctx)) {
-            params[i].varianceType = static_cast<TypeParameter*>(exprs[i])->getVarianceType();
+        if (TypeParameter* tparam = getIfNodeOfType<TypeParameter>(exprs[i], _ctx)) {
+            params[i].varianceType = tparam->getVarianceType();
         }
         params[i].kind = exprs[i]->kind();
     }
@@ -154,8 +154,8 @@ void KindChecking::visit(TypeConstructorCall* tcall) {
             TypeExpression* paramsExpr = ctrType->getTypeConstructor()->getArgs();
             std::vector<TypeExpression*> params;
 
-            if (isNodeOfType<TypeTuple>(paramsExpr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
-                params = static_cast<TypeTuple*>(paramsExpr)->getExpressions();
+            if (TypeTuple* ttuple = getIfNodeOfType<TypeTuple>(paramsExpr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+                params = ttuple->getExpressions();
             } else { // form is `exp => ...` or `[exp] => ...`
                 params.push_back(paramsExpr);
             }

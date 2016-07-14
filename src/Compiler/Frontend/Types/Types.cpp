@@ -135,8 +135,8 @@ Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
 
     ast::KindSpecifyingExpression* kse;
 
-    if (ast::isNodeOfType<ast::TypeParameter>(tpe, ctx)) {
-        kse = static_cast<ast::TypeParameter*>(tpe)->getKindNode();
+    if (ast::TypeParameter* tparam = ast::getIfNodeOfType<ast::TypeParameter>(tpe, ctx)) {
+        kse = tparam->getKindNode();
     } else {
         kse = &proper;
     }

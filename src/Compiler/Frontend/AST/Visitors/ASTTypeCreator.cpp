@@ -140,8 +140,8 @@ type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, 
     TypeExpression* argsExpr = ctr->getTypeConstructor()->getArgs();
     std::vector<TypeExpression*> params;
 
-    if (isNodeOfType<TypeTuple>(argsExpr, ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
-        params = static_cast<TypeTuple*>(argsExpr)->getExpressions();
+    if (TypeTuple* ttuple = getIfNodeOfType<TypeTuple>(argsExpr, ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        params = ttuple->getExpressions();
     } else { // form is `exp => ...` or `[exp] => ...`
         params.push_back(argsExpr);
     }
@@ -255,8 +255,8 @@ type::Environment ASTTypeCreator::buildEnvironmentFromTypeParameterInstantiation
     }
 
     for (TypeExpression*& param : params) {
-        if (isNodeOfType<TypeParameter>(param, ctx)) {
-            param = static_cast<TypeParameter*>(param)->getSpecified();
+        if (TypeParameter* tparam = getIfNodeOfType<TypeParameter>(param, ctx)) {
+            param = tparam->getSpecified();
         }
     }
 

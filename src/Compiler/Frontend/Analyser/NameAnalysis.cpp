@@ -196,8 +196,8 @@ void ScopeGeneration::visit(TypeConstructorCreation* tc) {
     TypeExpression* expr = tc->getArgs();
     std::vector<TypeExpression*> args;
 
-    if (isNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
-        args = static_cast<TypeTuple*>(expr)->getExpressions();
+    if (TypeTuple* ttuple = getIfNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        args = ttuple->getExpressions();
     } else { // form is `exp => ...` or `[exp] => ...`
         args.push_back(expr);
     }
@@ -234,15 +234,15 @@ void ScopeGeneration::visit(FunctionCreation* func) {
     Expression* expr = func->getArgs();
     std::vector<Expression*> args;
 
-    if (isNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
-        args = static_cast<Tuple*>(expr)->getExpressions();
+    if (Tuple* tuple = getIfNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
+        args = tuple->getExpressions();
     } else { // form is `exp => ...` or `(exp) => ...`
         args.push_back(expr);
     }
 
     for (Expression* expr : args) {
-        if (isNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
-            createVar(static_cast<Identifier*>(expr));
+        if (Identifier* ident = getIfNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
+            createVar(ident);
         } else if(isNodeOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
             // The var is already going to be created by the TypeSpecifier Node
             expr->onVisit(this);
@@ -288,15 +288,14 @@ void ScopeGeneration::popScope() {
 
 void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams, bool allowVarianceAnnotations) {
     for (TypeExpression* typeParam : typeParams) {
-        if (isNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
-            createProperType(static_cast<TypeIdentifier*>(typeParam),
-                             ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
+        if (TypeIdentifier* tident = getIfNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
+            createProperType(tident, ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
                                  _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(typeParam)->getValue(), _ctx));
-        } else if(isNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `T: kind`
+        } else if(TypeParameter* tparam = getIfNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `T: kind`
             // The type var is already going to be created by the TypeParameter Node
             typeParam->onVisit(this);
 
-            if (!allowVarianceAnnotations && static_cast<TypeParameter*>(typeParam)->getVarianceType() != common::VAR_T_NONE) {
+            if (!allowVarianceAnnotations && tparam->getVarianceType() != common::VAR_T_NONE) {
                 _ctx->reporter().error(*typeParam, "Variance annotation are not allowed in this context");
             }
         } else {
@@ -344,8 +343,8 @@ void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
     TypeExpression* expr = tc->getArgs();
     std::vector<TypeExpression*> args;
 
-    if (isNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
-        args = static_cast<TypeTuple*>(expr)->getExpressions();
+    if (TypeTuple* ttuple = getIfNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
+        args = ttuple->getExpressions();
     } else { // form is `exp => ...` or `[exp] => ...`
         args.push_back(expr);
     }
@@ -392,11 +391,11 @@ size_t TypeDependencyFixation::pushTypeParameters(const std::vector<TypeExpressi
         TypeIdentifier* id;
         common::VARIANCE_TYPE vt = common::VAR_T_NONE;
 
-        if (isNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
-            id = static_cast<TypeIdentifier*>(typeParam);
-        } else if(isNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `x: kind`
-            vt = static_cast<TypeParameter*>(typeParam)->getVarianceType();
-            id = static_cast<TypeParameter*>(typeParam)->getSpecified();
+        if (TypeIdentifier* tident = getIfNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
+            id = tident;
+        } else if(TypeParameter* tparam = getIfNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `x: kind`
+            vt = tparam->getVarianceType();
+            id = tparam->getSpecified();
         } else {
             break; // Error already reported in scope generation
                    //  => compiler will stop before type dependency is even used

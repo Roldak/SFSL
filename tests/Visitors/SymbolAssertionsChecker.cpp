@@ -48,8 +48,7 @@ void SymbolAssertionsChecker::visit(ast::TypeParameter* tparam) {
 }
 
 void SymbolAssertionsChecker::visit(ast::FunctionCall* call) {
-    if (ast::isNodeOfType<ast::Identifier>(call->getCallee(), _ctx)) {
-        ast::Identifier* id = static_cast<ast::Identifier*>(call->getCallee());
+    if (ast::Identifier* id = ast::getIfNodeOfType<ast::Identifier>(call->getCallee(), _ctx)) {
         if (id->getValue() == ASSERT_SAME_SYM) {
             const std::vector<ast::Expression*>& args(call->getArgs());
             if (args.size() != 2) {
@@ -57,9 +56,9 @@ void SymbolAssertionsChecker::visit(ast::FunctionCall* call) {
                 return;
             }
 
-            if (ast::isNodeOfType<ast::StringLiteral>(args[0], _ctx)) {
+            if (ast::StringLiteral* strlit = ast::getIfNodeOfType<ast::StringLiteral>(args[0], _ctx)) {
                 if (sym::Symbol* s = ast::ASTSymbolExtractor::extractSymbol(args[1], _ctx)) {
-                    _tests.push_back(std::make_pair(static_cast<ast::StringLiteral*>(args[0]), s));
+                    _tests.push_back(std::make_pair(strlit, s));
                 } else {
                     _ctx->reporter().error(*(args[1]), "No symbol was assigned");
                 }

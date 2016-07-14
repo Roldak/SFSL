@@ -102,8 +102,8 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
         Expression* expr = func->getArgs();
         std::vector<Expression*> args;
 
-        if (isNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
-            args = static_cast<Tuple*>(expr)->getExpressions();
+        if (Tuple* tuple = getIfNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
+            args = tuple->getExpressions();
         } else { // form is `exp => ...` or `(exp) => ...`
             args.push_back(expr);
         }
@@ -111,8 +111,7 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
         std::vector<type::Type*> argTypes(args.size());
 
         for (size_t i = 0; i < args.size(); ++i) {
-            if (isNodeOfType<TypeSpecifier>(args[i], _ctx)) {
-                TypeSpecifier* tps = static_cast<TypeSpecifier*>(args[i]);
+            if (TypeSpecifier* tps = getIfNodeOfType<TypeSpecifier>(args[i], _ctx)) {
                 argTypes[i] = ASTTypeCreator::createType(tps->getTypeNode(), _ctx, true); // 'true' since errors for function constructors
                                                                                           // will be reported in typechecking
             } else {
@@ -391,8 +390,8 @@ void TypeChecking::visit(FunctionCreation* func) {
     Expression* expr = func->getArgs();
     std::vector<Expression*> args;
 
-    if (isNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
-        args = static_cast<Tuple*>(expr)->getExpressions();
+    if (Tuple* tuple = getIfNodeOfType<Tuple>(expr, _ctx)) { // form is `() => ...` or `(exp, exp) => ...`, ...
+        args = tuple->getExpressions();
     } else { // form is `exp => ...` or `(exp) => ...`
         args.push_back(expr);
     }
@@ -419,8 +418,8 @@ void TypeChecking::visit(FunctionCreation* func) {
     if (func == _nextDef && _currentThis) {
         // func is a method
 
-        if (isNodeOfType<ClassDecl>(_currentThis, _ctx)) {
-            func->setType(_mngr.New<type::MethodType>(static_cast<ClassDecl*>(_currentThis),
+        if (ClassDecl* clss = getIfNodeOfType<ClassDecl>(_currentThis, _ctx)) {
+            func->setType(_mngr.New<type::MethodType>(clss,
                                                       func->getTypeArgs() ? func->getTypeArgs()->getExpressions() : std::vector<TypeExpression*>(),
                                                       argTypes, retType, ASTTypeCreator::buildEnvironmentFromTypeParametrizable(func)));
         } else {
@@ -467,8 +466,7 @@ void TypeChecking::visit(FunctionCall* call) {
     const std::vector<type::Type*>* expectedArgTypes = nullptr;
     type::Type* retType = nullptr;
 
-    if (isNodeOfType<Instantiation>(call->getCallee(), _ctx)) {
-        Instantiation* inst = static_cast<Instantiation*>(call->getCallee());
+    if (Instantiation* inst = getIfNodeOfType<Instantiation>(call->getCallee(), _ctx)) {
         _expectedInfo.node = inst;
 
         if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
@@ -646,8 +644,8 @@ void TypeChecking::tryAssigningTypeToSymbolic(T* symbolic) {
 sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* def) {
     sym::Scoped* scoped;
 
-    if (isNodeOfType<ClassDecl>(def->getOwner(), _ctx)) {
-        scoped = static_cast<ClassDecl*>(def->getOwner());
+    if (ClassDecl* clss = getIfNodeOfType<ClassDecl>(def->getOwner(), _ctx)) {
+        scoped = clss;
     } else {
         _rep.fatal(*def, "Owner of " + def->getName() + " is unexpected");
         return nullptr;

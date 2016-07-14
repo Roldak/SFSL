@@ -296,8 +296,7 @@ void DefaultBytecodeGenerator::visit(FunctionCall* call) {
     if (call->getCallee()->type()->getTypeKind() == type::TYPE_METHOD) {
         bool isCallToConstructor = false;
 
-        if (isNodeOfType<MemberAccess>(call->getCallee(), _ctx)) {
-            MemberAccess* dot = static_cast<MemberAccess*>(call->getCallee());
+        if (MemberAccess* dot = getIfNodeOfType<MemberAccess>(call->getCallee(), _ctx)) {
             dot->getAccessed()->onVisit(this);
 
             if (isNodeOfType<Instantiation>(dot->getAccessed(), _ctx)) {

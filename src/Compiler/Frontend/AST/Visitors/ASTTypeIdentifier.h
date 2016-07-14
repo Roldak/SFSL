@@ -191,6 +191,24 @@ bool isNodeOfType(ASTNode* node, CompCtx_Ptr& ctx) {
     return identifier.matches();
 }
 
+template<typename T, typename K>
+/**
+ * @brief Utility function that can dynamically test the type of
+ * an AST node against the wanted type, and return itself as an instance
+ * of the wanted type if the test is successful
+ *
+ * @param node The node for which to test the type
+ * @param ctx The compilation context
+ * @return itself under the wanted type if matches, otherwise nullptr
+ */
+T* getIfNodeOfType(K* node, CompCtx_Ptr& ctx) {
+    if (isNodeOfType<T>(node, ctx)) {
+        return static_cast<T*>(node);
+    } else {
+        return nullptr;
+    }
+}
+
 }
 
 }
