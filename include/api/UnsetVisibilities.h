@@ -24,3 +24,5 @@
 #undef NAME_OF_IMPL
 
 #undef NEW_PRIV_IMPL
+
+#undef __SFSL__API_Set_Visibilities__

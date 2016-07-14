@@ -273,7 +273,7 @@ std::vector<PhasePtr> topologicalSort(std::vector<PhaseNode>& nodes) {
     return ordered;
 }
 
-std::vector<PhasePtr> sortPhases(std::set<std::shared_ptr<Phase>>& phases) {
+std::vector<PhasePtr> sortPhases(const std::set<std::shared_ptr<Phase>>& phases) {
     const std::vector<PhaseEdge>& edges(createEdges(phases));
     const std::map<PhasePtr, PhasePtr>& rels(findStrongRelations(edges));
 

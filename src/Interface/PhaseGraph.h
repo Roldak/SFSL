@@ -9,20 +9,22 @@
 #ifndef __SFSL__API_PhaseGraph__
 #define __SFSL__API_PhaseGraph__
 
-#include "../../include/api/Phase.h"
 #include <set>
 #include <memory>
 #include <stdexcept>
 
+#include "../../include/api/Phase.h"
+#include "../../include/api/SetVisibilities.h"
+
 namespace sfsl {
 
-class PhaseGraphResolutionError : public std::runtime_error {
+class SFSL_API_PUBLIC PhaseGraphResolutionError : public std::runtime_error {
 public:
     PhaseGraphResolutionError(const std::string& err);
     virtual ~PhaseGraphResolutionError();
 };
 
-std::vector<std::shared_ptr<Phase>> sortPhases(std::set<std::shared_ptr<Phase>>& phases);
+std::vector<std::shared_ptr<Phase>> SFSL_API_PUBLIC sortPhases(const std::set<std::shared_ptr<Phase>>& phases);
 
 }
 
