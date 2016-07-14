@@ -1,7 +1,7 @@
 #include "AbstractTestLogger.h"
 #include "FileSystemTestGenerator.h"
+#include "PhaseGraphTests.h"
 #include "sfsl.h"
-#include "../src/Interface/PhaseGraph.h"
 
 using namespace sfsl;
 
@@ -13,6 +13,8 @@ public:
     }
 
     virtual void testRunnerStart(const std::string& testRunnerStart) override {
+        _passed = 0;
+        _total = 0;
         std::cout << testRunnerStart << ":" << std::endl;
     }
 
@@ -48,13 +50,13 @@ private:
         return success ? "V" : "X";
     }
 
-    size_t _passed {0};
-    size_t _total {0};
-
+    size_t _passed;
+    size_t _total;
 };
 
 int main() {
     CoutLogger logger;
-    test::FileSystemTestGenerator gen("sfsl");
-    return gen.findAndGenerate()->run(logger);
+    test::FileSystemTestGenerator("sfsl").findAndGenerate()->run(logger);
+    test::buildPhaseGraphTests()->run(logger);
+    return 0;
 }
