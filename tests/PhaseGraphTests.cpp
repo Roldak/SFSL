@@ -252,15 +252,24 @@ TestRunner* buildPhaseGraphTests() {
     basic.addTest(new PhaseGraphTest("Basic2", true, {"C<--B<--A"}));
     basic.addTest(new PhaseGraphTest("Basic3", true, {"A->B<--C"}));
     basic.addTest(new PhaseGraphTest("Basic4", true, {"C-->B<--A"}));
+    basic.addTest(new PhaseGraphTest("Concrete1", true, {"NameAnalysis-->KindChecking-->TypeChecking-->PreTransform-->AST2BAST-->CodeGen"}));
+    basic.addTest(new PhaseGraphTest("Concrete2", true, {"CodeGen<--AST2BAST<--PreTransform<--TypeChecking<--KindChecking<--NameAnalysis"}));
 
     TestSuiteBuilder medium("Medium");
 
     medium.addTest(new PhaseGraphTest("Medium1", true, {"A-->C", "B-->C"}));
     medium.addTest(new PhaseGraphTest("Medium2", false, {"A->B", "B-->C", "A<--C"}));
     medium.addTest(new PhaseGraphTest("Medium3", true, {"A->B", "B-->C", "C<--A"}));
-    medium.addTest(new PhaseGraphTest("Medium4", true, {"A->C", "A-->B", "D-->C", "E-->C"}));
 
-    return new TestRunner("PhaseGraphTests", {basic.build(), medium.build()});
+    TestSuiteBuilder advanced("Advanced");
+
+    advanced.addTest(new PhaseGraphTest("Advanced1", true, {"A-->B-->C-->D", "X-->E-->C", "A-->X", "X-->D"}));
+    advanced.addTest(new PhaseGraphTest("Concrete", true, {
+                                            "CodeGen<--AST2BAST<--PreTransform<--TypeChecking<--KindChecking<--NameAnalysis",
+                                            "DivByZero<--TypeChecking",
+                                            "DivByZero-->PreTransform"}));
+
+    return new TestRunner("PhaseGraphTests", {basic.build(), medium.build(), advanced.build()});
 }
 
 }
