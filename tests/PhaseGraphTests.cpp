@@ -264,10 +264,15 @@ TestRunner* buildPhaseGraphTests() {
     TestSuiteBuilder advanced("Advanced");
 
     advanced.addTest(new PhaseGraphTest("Advanced1", true, {"A-->B-->C-->D", "X-->E-->C", "A-->X", "X-->D"}));
-    advanced.addTest(new PhaseGraphTest("Concrete", true, {
+    advanced.addTest(new PhaseGraphTest("Concrete1", true, {
                                             "CodeGen<--AST2BAST<--PreTransform<--TypeChecking<--KindChecking<--NameAnalysis",
                                             "DivByZero<--TypeChecking",
                                             "DivByZero-->PreTransform"}));
+
+    advanced.addTest(new PhaseGraphTest("Concrete2", true, {
+                                            "CodeGen<--AST2BAST<--PreTransform<--TypeChecking<--KindChecking<--NameAnalysis",
+                                            "StopRightBeforeCodeGen->CodeGen",
+                                            "DivByZero<-NameAnalysis"}));
 
     return new TestRunner("PhaseGraphTests", {basic.build(), medium.build(), advanced.build()});
 }

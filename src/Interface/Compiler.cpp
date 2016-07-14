@@ -261,7 +261,10 @@ public:
         if (openModulesCount()) {
             std::vector<ast::ModuleDecl*> modules(closeContainer(mngr));
             modules.insert(modules.end(), _prog->getModules().begin(), _prog->getModules().end());
-            return mngr.New<ast::Program>(modules);
+
+            ast::Program* updatedProg = mngr.New<ast::Program>(modules);
+            updatedProg->setPos(*_prog);
+            return updatedProg;
         } else {
             return _prog;
         }
@@ -463,6 +466,7 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
         std::vector<std::shared_ptr<Phase>> sortedPhases(sortPhases(phases));
 
         for (std::shared_ptr<Phase> phase : sortedPhases) {
+            std::cerr << phase->getName() << " -> ";
             if (!phase->run(pctx)) {
                 break;
             }
