@@ -146,6 +146,31 @@ struct SymbolData final {
     type::Environment env;
 };
 
+template<typename T>
+inline T* getIfSymbolOfType(Symbol* s) {
+    return nullptr;
+}
+
+template<>
+inline ModuleSymbol* getIfSymbolOfType(Symbol* s) {
+    return (s->getSymbolType() == SYM_MODULE) ? static_cast<ModuleSymbol*>(s) : nullptr;
+}
+
+template<>
+inline TypeSymbol* getIfSymbolOfType(Symbol* s) {
+    return (s->getSymbolType() == SYM_TPE) ? static_cast<TypeSymbol*>(s) : nullptr;
+}
+
+template<>
+inline DefinitionSymbol* getIfSymbolOfType(Symbol* s) {
+    return (s->getSymbolType() == SYM_DEF) ? static_cast<DefinitionSymbol*>(s) : nullptr;
+}
+
+template<>
+inline VariableSymbol* getIfSymbolOfType(Symbol* s) {
+    return (s->getSymbolType() == SYM_VAR) ? static_cast<VariableSymbol*>(s) : nullptr;
+}
+
 }
 
 }

@@ -106,8 +106,8 @@ type::Type* SymbolResolver::Func(size_t nbArgs) const {
 
 type::Type* SymbolResolver::createTypeFromSymbol(Symbol* sym) const {
     if (sym) {
-        if (sym->getSymbolType() == SYM_TPE) {
-            return ast::ASTTypeCreator::createType(static_cast<sym::TypeSymbol*>(sym)->getTypeDecl()->getExpression(), _ctx);
+        if (sym::TypeSymbol* tpesym = sym::getIfSymbolOfType<sym::TypeSymbol>(sym)) {
+            return ast::ASTTypeCreator::createType(tpesym->getTypeDecl()->getExpression(), _ctx);
             /*return _ctx->memoryManager().New<type::ProperType>(
                         ast::getClassDeclFromTypeSymbol(static_cast<sym::TypeSymbol*>(sym), _ctx));*/
         }

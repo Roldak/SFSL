@@ -169,9 +169,7 @@ void TypeChecking::visit(ClassDecl* clss) {
     int abstractOverRedef = 0;
 
     for (const std::pair<std::string, sym::SymbolData>& pair : clss->getScope()->getAllSymbols()) {
-        if (pair.second.symbol->getSymbolType() == sym::SYM_DEF) {
-            sym::DefinitionSymbol* defsym = static_cast<sym::DefinitionSymbol*>(pair.second.symbol);
-
+        if (sym::DefinitionSymbol* defsym = sym::getIfSymbolOfType<sym::DefinitionSymbol>(pair.second.symbol)) {
             if (defsym->getDef()->isAbstract()) {
                 ++abstractOverRedef;
             } else if (defsym->getDef()->isRedef()) {
@@ -286,10 +284,10 @@ void TypeChecking::visit(TypeSpecifier* tps) {
     Identifier* id = tps->getSpecified();
     type::Typed* tped = nullptr;
 
-    if (id->getSymbol()->getSymbolType() == sym::SYM_VAR) {
-        tped = static_cast<sym::VariableSymbol*>(id->getSymbol());
-    } else if (id->getSymbol()->getSymbolType() == sym::SYM_DEF) {
-        tped = static_cast<sym::DefinitionSymbol*>(id->getSymbol()); // for later
+    if (sym::VariableSymbol* varsym = sym::getIfSymbolOfType<sym::VariableSymbol>(id->getSymbol())) {
+        tped = varsym;
+    } else if (sym::DefinitionSymbol* defsym = sym::getIfSymbolOfType<sym::DefinitionSymbol>(id->getSymbol())) {
+        tped = defsym;
     }
 
     if (isNodeOfType<TypeToBeInferred>(tps->getTypeNode(), _ctx)) {
@@ -579,10 +577,9 @@ TypeChecking::FieldInfo TypeChecking::tryGetFieldInfo(ASTNode* triggerer, ClassD
 }
 
 type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
-    if (sym->getSymbolType() == sym::SYM_VAR) {
-        return static_cast<sym::VariableSymbol*>(sym)->type();
-    } else if (sym->getSymbolType() == sym::SYM_DEF) {
-        sym::DefinitionSymbol* defsym = static_cast<sym::DefinitionSymbol*>(sym);
+    if (sym::VariableSymbol* varsym = sym::getIfSymbolOfType<sym::VariableSymbol>(sym)) {
+        return varsym->type();
+    } else if (sym::DefinitionSymbol* defsym = sym::getIfSymbolOfType<sym::DefinitionSymbol>(sym)) {
         defsym->getDef()->onVisit(this);
 
         if (defsym->type() == type::Type::NotYetDefined()) {
@@ -657,18 +654,18 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
     for (auto it = itPair.first; it != itPair.second; ++it) {
         const sym::SymbolData& data = it->second;
 
-        if (data.symbol != def && data.symbol->getSymbolType() == sym::SYM_DEF) {
-            sym::DefinitionSymbol* potentialDef = static_cast<sym::DefinitionSymbol*>(data.symbol);
-
-            if (defType->isSubTypeOf(potentialDef->type()->substitute(data.env, _ctx)->apply(_ctx))) {
-                if (potentialDef->getDef()->isRedef()) {
-                    if (sym::DefinitionSymbol* alreadyOverriden = potentialDef->getOverridenSymbol()) {
-                        return alreadyOverriden;
+        if (data.symbol != def) {
+            if (sym::DefinitionSymbol* potentialDef = sym::getIfSymbolOfType<sym::DefinitionSymbol>(data.symbol)) {
+                if (defType->isSubTypeOf(potentialDef->type()->substitute(data.env, _ctx)->apply(_ctx))) {
+                    if (potentialDef->getDef()->isRedef()) {
+                        if (sym::DefinitionSymbol* alreadyOverriden = potentialDef->getOverridenSymbol()) {
+                            return alreadyOverriden;
+                        } else {
+                            continue; // for readability
+                        }
                     } else {
-                        continue; // for readability
+                        return potentialDef;
                     }
-                } else {
-                    return potentialDef;
                 }
             }
         }

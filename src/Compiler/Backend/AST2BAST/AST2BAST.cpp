@@ -146,8 +146,7 @@ void AST2BAST::visit(ast::AssignmentExpression* aex) {
         assignIdentifier(tps->getSpecified(), aex->getRhs());
     }
     else if (ast::MemberAccess* mac = ast::getIfNodeOfType<ast::MemberAccess>(aex->getLhs(), _ctx)) {
-        if (mac->getSymbol()->getSymbolType() == sym::SYM_VAR) {
-            sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(mac->getSymbol());
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(mac->getSymbol())) {
             make<FieldAssignmentExpression>(transform(mac->getAccessed()), getVarLoc(var), transform(aex->getRhs()));
         } else {
             _rep.fatal(*mac, "Shouldn't be able to assign non var member");
@@ -190,9 +189,8 @@ void AST2BAST::visit(ast::IfExpression* ifexpr) {
 }
 
 void AST2BAST::visit(ast::MemberAccess* dot) {
-    if (dot->getSymbol()->getSymbolType() == sym::SYM_VAR) {
-        size_t fieldLoc = getVarLoc(static_cast<sym::VariableSymbol*>(dot->getSymbol()));
-        make<FieldAccess>(transform(dot->getAccessed()), fieldLoc);
+    if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(dot->getSymbol())) {
+        make<FieldAccess>(transform(dot->getAccessed()), getVarLoc(var));
     } else {
         visitSymbolic(dot);
     }
@@ -309,8 +307,7 @@ void AST2BAST::assignIdentifier(ast::Identifier* ident, ast::Expression* val) {
     if (ident->getSymbolCount() != 1) {
         _rep.error(*ident, "Identifier refers to several symbols");
         makeBad();
-    } else if (ident->getSymbol()->getSymbolType() == sym::SYM_VAR) {
-        sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(ident->getSymbol());
+    } else if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
         if (isVariableAttribute(var)) {
             make<FieldAssignmentExpression>(make<VarIdentifier>(0), getVarLoc(var), transform(val));
         } else {

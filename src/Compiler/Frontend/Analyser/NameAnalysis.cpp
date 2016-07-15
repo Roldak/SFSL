@@ -74,8 +74,8 @@ void ScopePossessorVisitor::initCreated(T* id, S* s) {
 template<typename T>
 void ScopePossessorVisitor::setVariableSymbolicUsed(T* symbolic, bool val) {
     if (sym::Symbol* s = symbolic->getSymbol()) {
-        if (s->getSymbolType() == sym::SYM_VAR) {
-            static_cast<sym::VariableSymbol*>(s)->setUsed(val);
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(s)) {
+            var->setUsed(val);
         }
     }
 }
@@ -542,9 +542,7 @@ void SymbolAssignation::visit(FunctionCall* call) {
     ASTImplicitVisitor::visit(call);
 
     if (sym::Symbol* s = ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx)) {
-        if (s->getSymbolType() == sym::SYM_TPE) {
-            sym::TypeSymbol* tpsym = static_cast<sym::TypeSymbol*>(s);
-
+        if (sym::TypeSymbol* tpsym = sym::getIfSymbolOfType<sym::TypeSymbol>(s)) {
             TypeIdentifier* tid = _mngr.New<TypeIdentifier>(tpsym->getName());
             tid->setPos(*call->getCallee());
             tid->setSymbol(tpsym);
@@ -619,8 +617,8 @@ void SymbolAssignation::assignMemberAccess(T* mac) {
     mac->getAccessed()->onVisit(this);
 
     if (sym::Symbol* sym = ASTSymbolExtractor::extractSymbol(mac->getAccessed(), _ctx)) {
-        if (sym->getSymbolType() == sym::SYM_MODULE) {
-            assignFromStaticScope(mac, static_cast<sym::ModuleSymbol*>(sym), "module " + sym->getName());
+        if (sym::ModuleSymbol* modsym = sym::getIfSymbolOfType<sym::ModuleSymbol>(sym)) {
+            assignFromStaticScope(mac, modsym, "module " + sym->getName());
             return;
         }
     }

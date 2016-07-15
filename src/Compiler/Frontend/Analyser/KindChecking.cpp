@@ -316,8 +316,7 @@ void KindChecking::trySetKindOfSymbolic(T* symbolic) {
 }
 
 kind::Kind* KindChecking::tryGetKindOfSymbol(sym::Symbol* sym) {
-    if (sym->getSymbolType() == sym::SYM_TPE) {
-        sym::TypeSymbol* tpesym = static_cast<sym::TypeSymbol*>(sym);
+    if (sym::TypeSymbol* tpesym = sym::getIfSymbolOfType<sym::TypeSymbol>(sym)) {
         tpesym->getTypeDecl()->onVisit(this);
 
         if (tpesym->kind() == kind::Kind::NotYetDefined()) {

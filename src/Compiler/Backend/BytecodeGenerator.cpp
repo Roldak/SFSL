@@ -260,8 +260,8 @@ void DefaultBytecodeGenerator::visit(IfExpression* ifexpr) {
 void DefaultBytecodeGenerator::visit(MemberAccess* dot) {
     dot->getAccessed()->onVisit(this);
 
-    if (dot->getSymbol()->getSymbolType() == sym::SYM_VAR) {
-        Emit<LoadField>(*dot, getVarLoc(static_cast<sym::VariableSymbol*>(dot->getSymbol())));
+    if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(dot->getSymbol())) {
+        Emit<LoadField>(*dot, getVarLoc(var));
     }
 }
 
@@ -401,8 +401,8 @@ void DefaultBytecodeGenerator::AssignmentBytecodeGenerator::visit(MemberAccess* 
     DefaultBytecodeGenerator dbg(_ctx, _out, _constantPoolCursor);
     dot->getAccessed()->onVisit(&dbg);
 
-    if (dot->getSymbol()->getSymbolType() == sym::SYM_VAR) {
-        Emit<StoreField>(*dot, getVarLoc(static_cast<sym::VariableSymbol*>(dot->getSymbol())));
+    if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(dot->getSymbol())) {
+        Emit<StoreField>(*dot, getVarLoc(var));
     }
 }
 
