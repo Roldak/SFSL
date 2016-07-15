@@ -73,7 +73,7 @@ private:
 
     enum LINK_TYPE { RIGHT_AFTER, RIGHT_BEFORE, AFTER, BEFORE, UNKNOWN };
 
-    bool isSeparator(char c) {
+    static bool isSeparator(char c) {
         return c == ' ' || c == '-' || c == '<' || c == '>';
     }
 

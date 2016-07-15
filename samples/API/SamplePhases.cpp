@@ -47,3 +47,36 @@ public:
         return true;
     }
 };
+
+class PrintType : public Phase {
+public:
+    PrintType() : Phase("PrintType", "Handles 'printType' annotations") {}
+    virtual ~PrintType() {}
+
+    virtual std::vector<std::string> runsAfter() const override { return {"TypeChecking"}; }
+    virtual std::vector<std::string> runsBefore() const override { return {"PreTransform"}; }
+
+    virtual bool run(PhaseContext& pctx) override {
+        CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
+        ast::Program* prog = pctx.require<ast::Program>("prog");
+
+        class PrintTypeVisitor : public ast::ASTImplicitVisitor {
+        public:
+            PrintTypeVisitor(CompCtx_Ptr ctx) : ast::ASTImplicitVisitor(ctx) {}
+            virtual ~PrintTypeVisitor() {}
+
+            virtual void visit(ast::DefineDecl* decl) override {
+                decl->matchAnnotation<>("printType", [=](){
+                    _ctx->reporter().info(*decl, decl->getSymbol()->type()->toString());
+                });
+				
+				ast::ASTImplicitVisitor::visit(decl);
+            }
+
+        } printTypeVisitor(ctx);
+
+        prog->onVisit(&printTypeVisitor);
+
+        return true;
+    }
+};
