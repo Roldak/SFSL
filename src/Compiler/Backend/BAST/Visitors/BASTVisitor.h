@@ -25,9 +25,8 @@ public:
 
     /**
      * @brief Creates a BASTVisitor
-     * @param ctx the compilation context that will be used throughout the visits
      */
-    BASTVisitor(CompCtx_Ptr& ctx);
+    BASTVisitor();
 
     virtual ~BASTVisitor();
 
@@ -56,11 +55,6 @@ public:
     virtual void visit(RealLiteral* reallit) = 0;
     virtual void visit(StringLiteral* strlit) = 0;
 
-
-protected:
-
-    CompCtx_Ptr _ctx;
-    common::AbstractMemoryManager& _mngr;
 };
 
 }

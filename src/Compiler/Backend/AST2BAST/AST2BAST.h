@@ -113,7 +113,7 @@ private:
 class BASTSimplifier : public BASTImplicitVisitor {
 public:
 
-    BASTSimplifier(CompCtx_Ptr& ctx);
+    BASTSimplifier();
     virtual ~BASTSimplifier();
 
     virtual void visit(Program* prog) override;
@@ -122,7 +122,7 @@ private:
 
     class Analyser : public BASTExplicitVisitor {
     public:
-        Analyser(CompCtx_Ptr& ctx);
+        Analyser();
         virtual ~Analyser();
 
         virtual void visit(Program* prog) override;
@@ -150,7 +150,7 @@ private:
     class HiddenToAnyRenamer : public BASTImplicitVisitor {
     public:
 
-        HiddenToAnyRenamer(CompCtx_Ptr& ctx, const std::map<std::string, std::string>& map);
+        HiddenToAnyRenamer(const std::map<std::string, std::string>& map);
         virtual ~HiddenToAnyRenamer();
 
         virtual void visit(Program* prog) override;
@@ -164,7 +164,7 @@ private:
     class VisibleToHiddenRenamer : public BASTImplicitVisitor {
     public:
 
-        VisibleToHiddenRenamer(CompCtx_Ptr& ctx, const std::map<std::string, std::string>& map);
+        VisibleToHiddenRenamer(const std::map<std::string, std::string>& map);
         virtual ~VisibleToHiddenRenamer();
 
         virtual void visit(Program* prog) override;

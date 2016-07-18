@@ -254,6 +254,7 @@ ClassDecl* Parser::parseClass(bool isAbstractClass) {
 
             bool isExtern = accept(tok::KW_EXTERN);
             bool isAbstract = accept(tok::KW_ABSTRACT);
+            isExtern = isExtern || accept(tok::KW_EXTERN); // also handle `extern` being after `abstract`
 
             SAVE_POS(externElemPos);
 

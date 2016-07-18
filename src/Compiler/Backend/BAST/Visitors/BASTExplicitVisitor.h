@@ -18,7 +18,7 @@ namespace bast {
 class BASTExplicitVisitor : public BASTVisitor {
 public:
 
-    BASTExplicitVisitor(CompCtx_Ptr& ctx);
+    BASTExplicitVisitor();
 
     virtual ~BASTExplicitVisitor();
 

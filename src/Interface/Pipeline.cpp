@@ -118,8 +118,8 @@ public:
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
         bast::AST2BAST a2b(ctx);
-        bast::BASTSimplifier simplifier(ctx);
-        bast::BASTPrinter printer(ctx, std::cout);
+        bast::BASTSimplifier simplifier;
+        bast::BASTPrinter printer(std::cout);
 
         bast::Program* bprog = a2b.transform(prog);
         bprog->onVisit(&simplifier);

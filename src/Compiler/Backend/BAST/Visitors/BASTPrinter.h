@@ -18,7 +18,7 @@ namespace bast {
 class BASTPrinter : public BASTVisitor {
 public:
 
-    BASTPrinter(CompCtx_Ptr& ctx, std::ostream& ostream);
+    BASTPrinter(std::ostream& ostream);
 
     virtual ~BASTPrinter();
 

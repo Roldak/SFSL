@@ -41,6 +41,10 @@ MethodDef::MethodDef(const std::string& name, size_t varCount, BASTNode* body)
 
 }
 
+MethodDef::~MethodDef() {
+
+}
+
 SFSL_BAST_ON_VISIT_CPP(MethodDef)
 
 size_t MethodDef::getVarCount() const {

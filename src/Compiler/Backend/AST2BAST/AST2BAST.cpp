@@ -76,7 +76,11 @@ void AST2BAST::visit(ast::ClassDecl* clss) {
         std::vector<DefIdentifier*> methods;
 
         for (sym::DefinitionSymbol* def : classUD->getDefs()) {
-            methods.push_back(make<DefIdentifier>(getDefId(def)));
+            if (def->getDef()->isAbstract()) {
+                methods.push_back(make<DefIdentifier>("$ABSTRACT_METHOD$"));
+            } else {
+                methods.push_back(make<DefIdentifier>(getDefId(def)));
+            }
         }
 
         addDefinitionToProgram<ClassDef>(clss, classUD->getAttrCount(), parentId, methods);
@@ -395,7 +399,7 @@ std::string AST2BAST::freshName(const std::string& prefix) {
 
 // BAST SIMPLIFIER
 
-BASTSimplifier::BASTSimplifier(CompCtx_Ptr& ctx) : BASTImplicitVisitor(ctx) {
+BASTSimplifier::BASTSimplifier() {
 
 }
 
@@ -404,20 +408,19 @@ BASTSimplifier::~BASTSimplifier() {
 }
 
 void BASTSimplifier::visit(Program* prog) {
-    Analyser als(_ctx);
+    Analyser als;
     prog->onVisit(&als);
 
-    HiddenToAnyRenamer htar(_ctx, als.getHiddenToAnyMappings());
+    HiddenToAnyRenamer htar(als.getHiddenToAnyMappings());
     prog->onVisit(&htar);
 
-    VisibleToHiddenRenamer vthr(_ctx, als.getVisibleToHiddenMappings());
+    VisibleToHiddenRenamer vthr(als.getVisibleToHiddenMappings());
     prog->onVisit(&vthr);
 }
 
 // ANALYSER
 
-BASTSimplifier::Analyser::Analyser(CompCtx_Ptr& ctx)
-        : BASTExplicitVisitor(ctx), _processingVisibleNames(false), _name(nullptr) {
+BASTSimplifier::Analyser::Analyser() : _processingVisibleNames(false), _name(nullptr) {
 
 }
 
@@ -494,8 +497,7 @@ std::string BASTSimplifier::Analyser::findSubstitution(std::string name) const {
 
 // HIDDEN TO ANY RENAMER
 
-BASTSimplifier::HiddenToAnyRenamer::HiddenToAnyRenamer(CompCtx_Ptr& ctx, const std::map<std::string, std::string>& map)
-    : BASTImplicitVisitor(ctx), _map(map) {
+BASTSimplifier::HiddenToAnyRenamer::HiddenToAnyRenamer(const std::map<std::string, std::string>& map) : _map(map) {
 
 }
 
@@ -527,8 +529,7 @@ void BASTSimplifier::HiddenToAnyRenamer::visit(DefIdentifier* defid) {
 
 // VISIBLE TO HIDDEN RENAMER
 
-BASTSimplifier::VisibleToHiddenRenamer::VisibleToHiddenRenamer(CompCtx_Ptr& ctx, const std::map<std::string, std::string>& map)
-    : BASTImplicitVisitor(ctx), _map(map) {
+BASTSimplifier::VisibleToHiddenRenamer::VisibleToHiddenRenamer(const std::map<std::string, std::string>& map) : _map(map) {
 
 }
 

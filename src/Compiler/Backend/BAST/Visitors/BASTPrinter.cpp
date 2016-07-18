@@ -12,8 +12,7 @@ namespace sfsl {
 
 namespace bast {
 
-BASTPrinter::BASTPrinter(CompCtx_Ptr& ctx, std::ostream& ostream)
-    : BASTVisitor(ctx), _indentCount(0), _ostream(ostream) {
+BASTPrinter::BASTPrinter(std::ostream& ostream) : _indentCount(0), _ostream(ostream) {
 
 }
 

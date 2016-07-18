@@ -38,6 +38,7 @@ class MethodDef final : public Definition {
 public:
     MethodDef(const std::string& name, size_t varCount);
     MethodDef(const std::string& name, size_t varCount, BASTNode* body);
+    virtual ~MethodDef();
 
     SFSL_BAST_ON_VISIT_H
 

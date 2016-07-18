@@ -13,7 +13,7 @@ namespace sfsl {
 
 namespace bast {
 
-BASTVisitor::BASTVisitor(CompCtx_Ptr& ctx) : _ctx(ctx), _mngr(ctx.get()->memoryManager()) {
+BASTVisitor::BASTVisitor() {
 
 }
 

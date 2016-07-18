@@ -25,7 +25,7 @@ public:
      * @brief Creates a BASTImplicitVisitor
      * @param ctx the compilation context that will be used throughout the visits
      */
-    BASTImplicitVisitor(CompCtx_Ptr& ctx);
+    BASTImplicitVisitor();
 
     virtual ~BASTImplicitVisitor();
 

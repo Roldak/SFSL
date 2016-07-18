@@ -12,7 +12,7 @@ namespace sfsl {
 
 namespace bast {
 
-BASTExplicitVisitor::BASTExplicitVisitor(CompCtx_Ptr& ctx) : BASTVisitor(ctx) {
+BASTExplicitVisitor::BASTExplicitVisitor() {
 
 }
 
