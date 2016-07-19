@@ -133,7 +133,9 @@ SFSL_BAST_ON_VISIT_CPP(Expression)
 // BLOCK
 
 Block::Block(const std::vector<Expression*>& stats) : _stats(stats) {
-
+    if (stats.size() == 0) {
+        throw common::CompilationFatalError("Cannot create block containing zero statements");
+    }
 }
 
 Block::~Block() {

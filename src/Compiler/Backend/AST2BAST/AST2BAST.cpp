@@ -179,7 +179,11 @@ void AST2BAST::visit(ast::Block* block) {
     for (ast::Expression* expr : block->getStatements()) {
         bexprs.push_back(transform(expr));
     }
-    make<Block>(bexprs);
+    if (bexprs.size() > 0) {
+        make<Block>(bexprs);
+    } else {
+        makeUnit();
+    }
 }
 
 void AST2BAST::visit(ast::IfExpression* ifexpr) {
@@ -187,7 +191,7 @@ void AST2BAST::visit(ast::IfExpression* ifexpr) {
     Expression* then = transform(ifexpr->getThen());
     Expression* els = ifexpr->getElse()
             ? transform(ifexpr->getElse())
-            : make<Block>(std::vector<Expression*>());
+            : makeUnit();
 
     make<IfExpression>(cond, then, els);
 }
