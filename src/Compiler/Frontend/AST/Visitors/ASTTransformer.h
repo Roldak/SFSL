@@ -112,9 +112,10 @@ public:
         SAVE_TRAIT(Annotable, old)
         SAVE_TRAIT(TypeParametrizable, old)
         SAVE_TRAIT(UserData, old)
-        SAVE_TRAIT(Expression, old)
-        SAVE_TRAIT(TypeExpression, old)
-        SAVE_TRAIT(KindSpecifyingExpression, old)
+        SAVE_TRAIT(Typed, old)
+        SAVE_TRAIT(Kinded, old)
+        SAVE_TRAIT(Positionnable, old)
+        SAVE_TRAIT(Symbolic, old)
 
         *old = T(std::forward<Args>(args)...);
 
@@ -123,19 +124,28 @@ public:
         RESTORE_TRAIT(Annotable, old)
         RESTORE_TRAIT(TypeParametrizable, old)
         RESTORE_TRAIT(UserData, old)
-        RESTORE_TRAIT(Expression, old)
-        RESTORE_TRAIT(TypeExpression, old)
-        RESTORE_TRAIT(KindSpecifyingExpression, old)
+        RESTORE_TRAIT(Typed, old)
+        RESTORE_TRAIT(Kinded, old)
+        RESTORE_TRAIT(Positionnable, old)
+        RESTORE_TRAIT(Symbolic, old)
 
         _created = old;
         return old;
     }
 
 #define IMPL_TRAIT_SAVER_RESTORER(trait, type) \
-    inline type save##trait(void*) { return type(); } \
+    inline void* save##trait(void* node) { return node; } \
+    inline void restore##trait(void*, void*) { } \
     inline type save##trait(type* traited) { return *traited; } \
-    inline void restore##trait(void*, const type&) { } \
     inline void restore##trait(type* node, const type& savedTrait) { *node = savedTrait; }
+
+#define IMPL_TEMPLATED_TRAIT_SAVER_RESTORER(trait, type) \
+    inline void* save##trait(void* node) { return node; } \
+    inline void restore##trait(void*, void*) { } \
+    template<typename T> \
+    inline type<T> save##trait(type<T>* traited) { return *traited; } \
+    template<typename T> \
+    inline void restore##trait(type<T>* node, const type<T>& savedTrait) { *node = savedTrait; }
 
     IMPL_TRAIT_SAVER_RESTORER(Scoped, sym::Scoped)
     IMPL_TRAIT_SAVER_RESTORER(CanUseModules, ast::CanUseModules)
@@ -143,8 +153,10 @@ public:
     IMPL_TRAIT_SAVER_RESTORER(TypeParametrizable, type::TypeParametrizable)
     IMPL_TRAIT_SAVER_RESTORER(UserData, common::HasManageableUserdata)
     IMPL_TRAIT_SAVER_RESTORER(Expression, ast::Expression)
-    IMPL_TRAIT_SAVER_RESTORER(TypeExpression, ast::TypeExpression)
-    IMPL_TRAIT_SAVER_RESTORER(KindSpecifyingExpression, ast::KindSpecifyingExpression)
+    IMPL_TRAIT_SAVER_RESTORER(Typed, type::Typed)
+    IMPL_TRAIT_SAVER_RESTORER(Kinded, kind::Kinded)
+    IMPL_TRAIT_SAVER_RESTORER(Positionnable, common::Positionnable)
+    IMPL_TEMPLATED_TRAIT_SAVER_RESTORER(Symbolic, sym::Symbolic)
 
 protected:
 
