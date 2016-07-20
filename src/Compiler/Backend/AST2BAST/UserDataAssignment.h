@@ -41,6 +41,7 @@ private:
     bool visibilityFromAnnotable(Annotable* a);
 
     size_t _currentVarCount;
+    Expression* _nextConstructorExpr;
 
     std::set<ClassDecl*> _visitedClasses;
 };
@@ -105,14 +106,16 @@ private:
 
 class FuncUserData final : public DefUserData {
 public:
-    FuncUserData(const std::string& defId, bool isVisible, size_t varCount);
+    FuncUserData(const std::string& defId, bool isVisible, size_t varCount, bool isConstructorExpression);
     virtual ~FuncUserData();
 
     size_t getVarCount() const;
+    bool isConstructorExpression() const;
 
 private:
 
     size_t _varCount;
+    bool _isConstructorExpression;
 };
 
 class VarUserData final : public common::MemoryManageable {

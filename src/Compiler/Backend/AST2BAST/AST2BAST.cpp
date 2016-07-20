@@ -216,7 +216,16 @@ void AST2BAST::visit(ast::FunctionCreation* func) {
         // TODO: Call the constructor of the function's class
         make<Instantiation>(make<DefIdentifier>(getDefId(pt->getClass())));
     } else {
-        addDefinitionToProgram<MethodDef>(func, fUD->getVarCount(), transform(func->getBody()));
+        Expression* body = transform(func->getBody());
+
+        if (fUD->isConstructorExpression()) {
+            std::vector<Expression*> stmts(2);
+            stmts[0] = body;
+            stmts[1] = make<VarIdentifier>(0);
+            body = make<Block>(stmts);
+        }
+
+        addDefinitionToProgram<MethodDef>(func, fUD->getVarCount(), body);
         make<DefIdentifier>(getDefId(func));
     }
 }

@@ -16,7 +16,7 @@ namespace ast {
 // ASSIGN USER DATAS
 
 UserDataAssignment::UserDataAssignment(CompCtx_Ptr& ctx)
-    : ASTImplicitVisitor(ctx), _freshId(0), _currentVarCount(0) {
+    : ASTImplicitVisitor(ctx), _freshId(0), _currentVarCount(0), _nextConstructorExpr(nullptr) {
 
 }
 
@@ -88,6 +88,12 @@ void UserDataAssignment::visit(ClassDecl* clss) {
 }
 
 void UserDataAssignment::visit(DefineDecl* decl) {
+    SAVE_MEMBER(_nextConstructorExpr)
+
+    if (decl->getName()->getValue() == "new") {
+        _nextConstructorExpr = decl->getValue();
+    }
+
     ASTImplicitVisitor::visit(decl);
     sym::DefinitionSymbol* def = decl->getSymbol();
 
@@ -96,6 +102,8 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     } else {
         def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def), visibilityFromAnnotable(decl)));
     }
+
+    RESTORE_MEMBER(_nextConstructorExpr)
 }
 
 void UserDataAssignment::visit(TypeSpecifier* tps) {
@@ -113,7 +121,7 @@ void UserDataAssignment::visit(FunctionCreation* func) {
         pt->getClass()->onVisit(this);
     }
 
-    func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), false, _currentVarCount));
+    func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), false, _currentVarCount, _nextConstructorExpr == func));
 
     RESTORE_MEMBER(_currentVarCount)
 }
@@ -251,8 +259,8 @@ bool ClassUserData::isAbstract() const {
 
 // FUNCTION USER DATA
 
-FuncUserData::FuncUserData(const std::string& defId, bool isHidden, size_t varCount)
-    : DefUserData(defId, isHidden), _varCount(varCount) {
+FuncUserData::FuncUserData(const std::string& defId, bool isHidden, size_t varCount, bool isConstructorExpression)
+    : DefUserData(defId, isHidden), _varCount(varCount), _isConstructorExpression(isConstructorExpression) {
 
 }
 
@@ -262,6 +270,10 @@ FuncUserData::~FuncUserData() {
 
 size_t FuncUserData::getVarCount() const {
     return _varCount;
+}
+
+bool FuncUserData::isConstructorExpression() const {
+    return _isConstructorExpression;
 }
 
 // VARIABLE USER DATA
