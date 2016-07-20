@@ -168,6 +168,13 @@ void ScopeGeneration::visit(DefineDecl* def) {
 
     SAVE_MEMBER_AND_SET(_currentThis, nullptr)
 
+    // check that the RHS of a constructor definition is a function creation
+    if (def->getName()->getValue() == "new" &&
+        def->getValue() &&
+        !isNodeOfType<FunctionCreation>(def->getValue(), _ctx)) {
+        _ctx->reporter().error(*def, "Right-hand side of a constructor must be a function creation");
+    }
+
     ASTImplicitVisitor::visit(def);
 
     RESTORE_MEMBER(_currentThis)

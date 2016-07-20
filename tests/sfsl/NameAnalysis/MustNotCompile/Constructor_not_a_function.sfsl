@@ -1,0 +1,5 @@
+module test {
+	type Test = class {
+		new = 3
+	}
+}
