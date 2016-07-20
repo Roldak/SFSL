@@ -225,7 +225,7 @@ public:
 
 private:
 
-    const std::vector<Expression*> _exprs;
+    std::vector<Expression*> _exprs;
 
 };
 
@@ -362,8 +362,7 @@ public:
 
 private:
 
-    const std::string _name;
-
+    std::string _name;
 };
 
 /**
@@ -393,7 +392,7 @@ public:
 
 private:
 
-    const sfsl_bool_t _value;
+    sfsl_bool_t _value;
 };
 
 /**
@@ -414,7 +413,7 @@ public:
 
 private:
 
-    const sfsl_int_t _value;
+    sfsl_int_t _value;
 };
 
 /**
@@ -435,7 +434,7 @@ public:
 
 private:
 
-    const sfsl_real_t _value;
+    sfsl_real_t _value;
 };
 
 /**
@@ -456,7 +455,7 @@ public:
 
 private:
 
-    const std::string _value;
+    std::string _value;
 };
 
 }

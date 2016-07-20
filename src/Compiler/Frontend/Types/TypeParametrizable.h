@@ -34,7 +34,6 @@ public:
         sym::TypeSymbol* symbol;
     };
 
-    TypeParametrizable();
     virtual ~TypeParametrizable();
 
     /**

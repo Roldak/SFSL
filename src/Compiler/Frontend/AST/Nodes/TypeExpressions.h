@@ -205,7 +205,7 @@ public:
 
 private:
 
-    const std::vector<TypeExpression*> _exprs;
+    std::vector<TypeExpression*> _exprs;
 };
 
 /**
@@ -294,7 +294,7 @@ public:
 
 private:
 
-    const std::string _name;
+    std::string _name;
 };
 
 /**
