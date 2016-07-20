@@ -135,17 +135,14 @@ private:
         type::Type* symType = nullptr;
         char kindOfSym;
 
-        switch (data.symbol->getSymbolType()) {
-        case sym::SYM_VAR:
-            symType = static_cast<sym::VariableSymbol*>(data.symbol)->type();
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(data.symbol)) {
+            symType = var->type();
             kindOfSym = K_ATTRIBUTE_ID;
-            break;
-        case sym::SYM_DEF:
-            symType = static_cast<sym::DefinitionSymbol*>(data.symbol)->type();
-            kindOfSym = K_METHOD_ID;
-            break;
-        default:
-            break;
+        } else if (sym::DefinitionSymbol* def = sym::getIfSymbolOfType<sym::DefinitionSymbol>(data.symbol)) {
+            if (!def->getDef()->isRedef() && def->getName() != "new") {
+                symType = def->type();
+                kindOfSym = K_METHOD_ID;
+            }
         }
 
         if (!symType) {
