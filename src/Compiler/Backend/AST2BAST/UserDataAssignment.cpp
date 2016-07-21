@@ -113,17 +113,17 @@ void UserDataAssignment::visit(TypeSpecifier* tps) {
 }
 
 void UserDataAssignment::visit(FunctionCreation* func) {
-    SAVE_MEMBER_AND_SET(_currentVarCount, 1)
-
-    ASTImplicitVisitor::visit(func);
-
     if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
         pt->getClass()->onVisit(this);
+    } else {
+        SAVE_MEMBER_AND_SET(_currentVarCount, 1)
+
+        ASTImplicitVisitor::visit(func);
+
+        func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), false, _currentVarCount, _nextConstructorExpr == func));
+
+        RESTORE_MEMBER(_currentVarCount)
     }
-
-    func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), false, _currentVarCount, _nextConstructorExpr == func));
-
-    RESTORE_MEMBER(_currentVarCount)
 }
 
 std::string UserDataAssignment::freshName(const std::string& prefix) {

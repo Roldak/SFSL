@@ -209,13 +209,12 @@ void AST2BAST::visit(ast::Tuple* tuple) {
 }
 
 void AST2BAST::visit(ast::FunctionCreation* func) {
-    ast::FuncUserData* fUD = func->getUserdata<ast::FuncUserData>();
-
     if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
         transform(pt->getClass());
         // TODO: Call the constructor of the function's class
         make<Instantiation>(make<DefIdentifier>(getDefId(pt->getClass())));
     } else {
+        ast::FuncUserData* fUD = func->getUserdata<ast::FuncUserData>();
         Expression* body = transform(func->getBody());
 
         if (fUD->isConstructorExpression()) {
