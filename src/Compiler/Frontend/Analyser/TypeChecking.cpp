@@ -730,7 +730,10 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
     meth->setPos(*func);
 
     sym::DefinitionSymbol* funcSym = _mngr.New<sym::DefinitionSymbol>("()", "", funcDecl, funcClass);
+
     funcSym->setType(meth->type());
+    funcSym->setPos(*func);
+
     funcDecl->setSymbol(funcSym);
     funcDecl->setPos(*func);
 

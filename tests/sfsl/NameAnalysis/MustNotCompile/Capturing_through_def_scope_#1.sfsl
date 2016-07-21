@@ -1,0 +1,10 @@
+module test {
+    using sfsl.lang
+    
+    def test() => {
+        x := 2;
+        def inner() => {
+            x;
+        };
+    }
+}

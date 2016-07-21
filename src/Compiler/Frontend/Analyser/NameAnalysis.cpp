@@ -139,7 +139,7 @@ void ScopeGeneration::visit(ModuleDecl* module) {
 void ScopeGeneration::visit(TypeDecl* tdecl) {
     createSymbol(tdecl);
 
-    pushScope(tdecl->getSymbol(), true);
+    pushScope(tdecl->getSymbol());
 
     ASTImplicitVisitor::visit(tdecl);
 
@@ -147,7 +147,7 @@ void ScopeGeneration::visit(TypeDecl* tdecl) {
 }
 
 void ScopeGeneration::visit(ClassDecl* clss) {
-    pushScope(clss, true);
+    pushScope(clss);
 
     SAVE_MEMBER_AND_SET(_currentThis, clss)
     pushPathPart(clss->getName());
@@ -163,7 +163,7 @@ void ScopeGeneration::visit(ClassDecl* clss) {
 void ScopeGeneration::visit(DefineDecl* def) {
     createSymbol(def, _currentThis);
 
-    pushScope(def->getSymbol(), true);
+    pushScope(def->getSymbol(), _currentThis == nullptr);
     pushPathPart(def->getName()->getValue());
 
     SAVE_MEMBER_AND_SET(_currentThis, nullptr)

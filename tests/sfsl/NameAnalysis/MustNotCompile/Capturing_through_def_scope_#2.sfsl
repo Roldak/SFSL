@@ -1,0 +1,13 @@
+module test {
+    using sfsl.lang
+
+    type Test = class {
+        x: int;
+        
+        def test() => {
+            def inner() => {
+                x;
+            };
+        }
+    }
+}

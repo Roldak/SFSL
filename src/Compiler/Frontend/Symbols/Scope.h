@@ -122,7 +122,7 @@ private:
 
     Symbol* _getSymbol(const std::string& name, SYM_TYPE symType, bool recursive, bool searchUsings) const;
     bool _assignSymbolicPrologue(Symbolic<Symbol>& symbolic, const std::string& id, bool searchUsings) const;
-    bool _assignSymbolic(Symbolic<Symbol>& symbolic, const std::string& id, bool searchUsings) const;
+    bool _assignSymbolic(Symbolic<Symbol>& symbolic, const std::string& id, bool searchUsings, bool traversedDefScope) const;
 
     Scope* _parent;
     bool _isDefScope;

@@ -103,27 +103,29 @@ Symbol* Scope::_getSymbol(const std::string& name, SYM_TYPE symType, bool recurs
 
 bool Scope::_assignSymbolicPrologue(sym::Symbolic<Symbol>& symbolic, const std::string& id, bool searchUsings) const {
     symbolic._symbols.clear();
-    return _assignSymbolic(symbolic, id, searchUsings);
+    return _assignSymbolic(symbolic, id, searchUsings, false);
 }
 
-bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& id, bool searchUsings) const {
+bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& id, bool searchUsings, bool traversedDefScope) const {
     const auto& itPair = _symbols.equal_range(id);
 
     if (itPair.first != itPair.second) {
         for (auto it = itPair.first; it != itPair.second; ++it) {
             const SymbolData& data = it->second;
-            symbolic._symbols.push_back(Symbolic<Symbol>::SymbolData{.symbol = data.symbol, .env = &data.env});
+            if (!traversedDefScope || data.symbol->getSymbolType() != sym::SYM_VAR) {
+                symbolic._symbols.push_back(Symbolic<Symbol>::SymbolData{.symbol = data.symbol, .env = &data.env});
+            }
         }
-        return true;
+        return symbolic.getSymbolCount() > 0;
     } else if (searchUsings) {
         bool ok = false;
 
         for (const Scope* s : _usedScopes) {
-            ok = ok | s->_assignSymbolic(symbolic, id, false);
+            ok = ok | s->_assignSymbolic(symbolic, id, false, traversedDefScope);
         }
 
         if (!ok) { // couldn't find symbol in usings
-            if (!(_parent && _parent->_assignSymbolic(symbolic, id, searchUsings))) { // couldn't find symbol in parents
+            if (!(_parent && _parent->_assignSymbolic(symbolic, id, searchUsings, traversedDefScope | _isDefScope))) { // couldn't find symbol in parents
                 return false;
             }
         }
