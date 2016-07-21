@@ -308,10 +308,9 @@ void AST2BAST::visitSymbolic(T* symbolic) {
             make<DefIdentifier>(getDefId(static_cast<sym::DefinitionSymbol*>(symbolic->getSymbol())));
             break;
 
-        case sym::SYM_TPE: {
+        case sym::SYM_TPE:
             make<DefIdentifier>(getDefId(static_cast<sym::TypeSymbol*>(symbolic->getSymbol())));
             break;
-        }
 
         default:
             _rep.fatal(*symbolic, "Cannot generate expression for this kind of symbolic");

@@ -117,7 +117,7 @@ void ASTPrinter::visit(DefineDecl* decl) {
         _ostream << "abstract ";
     }
 
-    _ostream << "def ";
+    _ostream << (decl->isRedef() ? "redef " : "def ");
 
     decl->getName()->onVisit(this);
 

@@ -41,7 +41,7 @@ public:
                 ast::ASTImplicitVisitor::visit(call);
             }
         } checker(ctx);
-
+		
         prog->onVisit(&checker);
 
         return true;
@@ -76,6 +76,38 @@ public:
         } printTypeVisitor(ctx);
 
         prog->onVisit(&printTypeVisitor);
+
+        return true;
+    }
+};
+
+class FunctionCallNotification : public Phase {
+public:
+    FunctionCallNotification() : Phase("FunctionCallNotification", "Notifies when a function is called") {}
+    virtual ~FunctionCallNotification() {}
+
+    virtual std::string runsRightBefore() const override { return "NameAnalysis"; }
+
+    virtual bool run(PhaseContext& pctx) override {
+        CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
+        ast::Program* prog = pctx.require<ast::Program>("prog");
+
+        class FunctionCallNotifier : public ast::ASTTransformer {
+        public:
+            FunctionCallNotifier(CompCtx_Ptr ctx) : ast::ASTTransformer(ctx) {}
+            virtual ~FunctionCallNotifier() {}
+
+            virtual void visit(ast::FunctionCall* call) override {
+                std::vector<ast::Expression*> args {make<ast::StringLiteral>("FUNCTION CALL")};
+                std::vector<ast::Expression*> stmts {
+                    make<ast::FunctionCall>(make<ast::Identifier>("println"), nullptr, make<ast::Tuple>(args)),
+                    update(call, transform<ast::Expression>(call->getCallee()), call->getTypeArgsTuple(), transform<ast::Tuple>(call->getArgsTuple()))
+                };
+                make<ast::Block>(stmts);
+            }
+        } notifier(ctx);
+
+        prog = notifier.transform<ast::Program>(prog);
 
         return true;
     }

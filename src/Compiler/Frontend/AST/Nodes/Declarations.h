@@ -75,9 +75,9 @@ public:
 private:
 
     Identifier* _name;
-    const std::vector<ModuleDecl*> _mods;
-    const std::vector<TypeDecl*> _types;
-    const std::vector<DefineDecl*> _decls;
+    std::vector<ModuleDecl*> _mods;
+    std::vector<TypeDecl*> _types;
+    std::vector<DefineDecl*> _decls;
 };
 
 /**

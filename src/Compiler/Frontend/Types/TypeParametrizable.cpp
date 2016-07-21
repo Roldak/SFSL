@@ -21,10 +21,6 @@ TypeParametrizable::Parameter::Parameter(common::VARIANCE_TYPE varianceType, sym
 
 }
 
-TypeParametrizable::TypeParametrizable() {
-
-}
-
 TypeParametrizable::~TypeParametrizable() {
 
 }
