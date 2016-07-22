@@ -13,18 +13,11 @@
 #include <set>
 #include "../../Frontend/AST/Visitors/ASTImplicitVisitor.h"
 #include "../../Frontend/AST/Visitors/ASTTransformer.h"
+#include "../../Frontend/Symbols/SymbolResolver.h"
 
 namespace sfsl {
 
 namespace ast {
-
-struct Captures final : public common::MemoryManageable {
-    Captures();
-    virtual ~Captures();
-
-    Identifier* initalizerMeth;
-    std::vector<std::pair<Identifier*, Identifier*>> capturesData;
-};
 
 class CapturesAnalyzer : public ASTImplicitVisitor {
 public:
@@ -32,6 +25,7 @@ public:
     virtual ~CapturesAnalyzer();
 
     virtual void visit(ClassDecl* clss) override;
+    virtual void visit(AssignmentExpression* aex) override;
     virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(FunctionCreation* func) override;
     virtual void visit(Identifier* ident) override;
@@ -40,18 +34,31 @@ private:
 
     std::map<sym::VariableSymbol*, std::vector<Identifier*>> _usedVars;
     std::vector<sym::VariableSymbol*> _boundVars;
+    std::set<sym::VariableSymbol*> _mutatedVars;
 };
 
 class PreTransform : public ASTTransformer {
 public:
-    PreTransform(CompCtx_Ptr& ctx);
+    PreTransform(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer* namer, const sym::SymbolResolver& res);
     virtual ~PreTransform();
 
     virtual void visit(ClassDecl* clss) override;
+    virtual void visit(MemberAccess* dot) override;
     virtual void visit(FunctionCreation* func) override;
+    virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(Instantiation* inst) override;
+    virtual void visit(Identifier* ident) override;
 
 private:
+
+    type::ProperType* boxOf(type::Type* tp);
+    bool isMutableVar(const sym::Symbolic<sym::Symbol>* ident) const;
+    void makeAccessToBoxedValueOf(Expression* expr);
+
+    type::TypeConstructorType* _boxType;
+    sym::TypeSymbol* _boxSymbol;
+    sym::VariableSymbol* _boxValueFieldSym;
+    Identifier* _boxValueFieldIdent;
 };
 
 /**

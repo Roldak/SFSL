@@ -115,25 +115,25 @@ void BASTPrinter::visit(DefIdentifier* defid) {
 }
 
 void BASTPrinter::visit(VarIdentifier* varid) {
-    _ostream << "{" << varid->getLocalId() << "}";
+    _ostream << "$" << varid->getLocalId();
 }
 
 void BASTPrinter::visit(FieldAccess* fieldacc) {
     _ostream << "(";
     fieldacc->getAccessed()->onVisit(this);
-    _ostream << ").{" << fieldacc->getFieldId() << "}";
+    _ostream << ").$" << fieldacc->getFieldId();
 }
 
 void BASTPrinter::visit(FieldAssignmentExpression* fassign) {
     _ostream << "(";
     fassign->getAccessed()->onVisit(this);
-    _ostream << ").{" << fassign->getFieldId() << "} = (";
+    _ostream << ").$" << fassign->getFieldId() << " = (";
     fassign->getValue()->onVisit(this);
     _ostream << ")";
 }
 
 void BASTPrinter::visit(VarAssignmentExpression* vassign) {
-    _ostream << "{" << vassign->getAssignedVarLocalId() << "} = (";
+    _ostream << "$" << vassign->getAssignedVarLocalId() << " = (";
     vassign->getValue()->onVisit(this);
     _ostream << ")";
 }

@@ -22,6 +22,7 @@ SymbolResolver::SymbolResolver(const ast::Program* prog, const common::AbstractP
     _boolType   = createTypeFromSymbol(getSymbol(_namer->Bool()));
     _intType    = createTypeFromSymbol(getSymbol(_namer->Int()));
     _realType   = createTypeFromSymbol(getSymbol(_namer->Real()));
+    _boxType    = createTypeFromSymbol(getSymbol(_namer->Box()));
     _stringType = createTypeFromSymbol(getSymbol(_namer->String()));
 }
 
@@ -89,6 +90,13 @@ type::Type* SymbolResolver::String() const {
         throw common::CompilationFatalError("String type was not set");
     }
     return _stringType;
+}
+
+type::Type* SymbolResolver::Box() const {
+    if (!_boxType) {
+        throw common::CompilationFatalError("Box type was not set");
+    }
+    return _boxType;
 }
 
 type::Type* SymbolResolver::Func(size_t nbArgs) const {

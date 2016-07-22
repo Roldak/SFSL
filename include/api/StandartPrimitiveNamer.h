@@ -18,8 +18,9 @@ class SFSL_API_PUBLIC StandartPrimitiveNamer : public common::AbstractPrimitiveN
 public:
 
     StandartPrimitiveNamer(const std::string& commonPath, char delimiter,
-                             const std::string& unitTypeName, const std::string& boolTypeName, const std::string& intTypeName,
-                             const std::string& realTypeName, const std::string& stringTypeName, const std::string& funcTypeName);
+                           const std::string& unitTypeName, const std::string& boolTypeName, const std::string& intTypeName,
+                           const std::string& realTypeName, const std::string& stringTypeName, const std::string& boxTypeName,
+                           const std::string& funcTypeName);
 
     virtual ~StandartPrimitiveNamer();
 
@@ -28,6 +29,7 @@ public:
     virtual Path Int() const override;
     virtual Path Real() const override;
     virtual Path String() const override;
+    virtual Path Box() const override;
     virtual Path Func(size_t nbArgs) const override;
 
     static StandartPrimitiveNamer* const DefaultPrimitiveNamer;
@@ -39,6 +41,7 @@ private:
     Path _intTypePath;
     Path _realTypePath;
     Path _stringTypePath;
+    Path _boxTypePath;
     Path _funcTypePath;
 
 };

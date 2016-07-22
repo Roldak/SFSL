@@ -29,6 +29,7 @@ public:
     virtual Path Int() const = 0;
     virtual Path Real() const = 0;
     virtual Path String() const = 0;
+    virtual Path Box() const = 0;
     virtual Path Func(size_t nbArgs) const = 0;
 
 private:

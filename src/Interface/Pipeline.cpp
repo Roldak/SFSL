@@ -95,9 +95,12 @@ public:
     virtual bool run(PhaseContext& pctx) {
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
+        common::AbstractPrimitiveNamer* namer = pctx.require<common::AbstractPrimitiveNamer>("namer");
+
+        sym::SymbolResolver res(prog, namer, ctx);
 
         ast::CapturesAnalyzer caz(ctx);
-        ast::PreTransform cah(ctx);
+        ast::PreTransform cah(ctx, namer, res);
         ast::UserDataAssignment uda(ctx);
         ast::AnnotationUsageWarner auw(ctx);
 

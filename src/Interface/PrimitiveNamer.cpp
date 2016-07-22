@@ -12,18 +12,20 @@
 namespace sfsl {
 
 StandartPrimitiveNamer* const StandartPrimitiveNamer::DefaultPrimitiveNamer =
-        new StandartPrimitiveNamer("sfsl.lang", '.', "unit", "bool", "int", "real", "string", "Func");
+        new StandartPrimitiveNamer("sfsl.lang", '.', "unit", "bool", "int", "real", "string", "Box", "Func");
 
 StandartPrimitiveNamer::StandartPrimitiveNamer(const std::string& commonPath, char delimiter,
-                                                   const std::string& unitTypeName, const std::string& boolTypeName,
-                                                   const std::string& intTypeName, const std::string& realTypeName,
-                                                   const std::string& stringTypeName, const std::string& funcTypeName) {
+                                               const std::string& unitTypeName, const std::string& boolTypeName,
+                                               const std::string& intTypeName, const std::string& realTypeName,
+                                               const std::string& stringTypeName, const std::string& boxTypeName,
+                                               const std::string& funcTypeName) {
 
     utils::split(_unitTypePath,     commonPath + delimiter + unitTypeName, delimiter);
     utils::split(_boolTypePath,     commonPath + delimiter + boolTypeName, delimiter);
     utils::split(_intTypePath,      commonPath + delimiter + intTypeName, delimiter);
     utils::split(_realTypePath,     commonPath + delimiter + realTypeName, delimiter);
     utils::split(_stringTypePath,   commonPath + delimiter + stringTypeName, delimiter);
+    utils::split(_boxTypePath,      commonPath + delimiter + boxTypeName, delimiter);
     utils::split(_funcTypePath,     commonPath + delimiter + funcTypeName, delimiter);
 }
 
@@ -49,6 +51,10 @@ common::AbstractPrimitiveNamer::Path StandartPrimitiveNamer::Real() const {
 
 common::AbstractPrimitiveNamer::Path StandartPrimitiveNamer::String() const {
     return _stringTypePath;
+}
+
+common::AbstractPrimitiveNamer::Path StandartPrimitiveNamer::Box() const {
+    return _boxTypePath;
 }
 
 common::AbstractPrimitiveNamer::Path StandartPrimitiveNamer::Func(size_t nbArgs) const {

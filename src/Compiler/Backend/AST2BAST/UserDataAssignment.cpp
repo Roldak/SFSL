@@ -16,13 +16,20 @@ namespace ast {
 
 // CAPTURES
 
-Captures::Captures() : initalizerMeth(nullptr) {
+struct Captures final : public common::MemoryManageable {
+    Captures() : initalizerMeth(nullptr) {}
+    virtual ~Captures() {}
 
-}
+    Identifier* initalizerMeth;
+    std::vector<std::pair<Identifier*, Identifier*>> capturesData;
+};
 
-Captures::~Captures() {
+struct MutationInfo final : public common::MemoryManageable {
+    MutationInfo(bool isMutable) : isMutable(isMutable) {}
+    virtual ~MutationInfo() {}
 
-}
+    bool isMutable;
+};
 
 // CAPTURES ANALYZER
 
@@ -53,6 +60,7 @@ void CapturesAnalyzer::visit(ClassDecl* clss) {
 
     Captures* captures = _mngr.New<Captures>();
 
+    // if there are captures
     if (_usedVars.size() > 0) {
         const std::string initializerName = clss->getName() + "$init";
         std::vector<Expression*> initExprs;
@@ -80,6 +88,10 @@ void CapturesAnalyzer::visit(ClassDecl* clss) {
 
             initExprs.push_back(_mngr.New<AssignmentExpression>(newField, fieldArg));
             initArgs.push_back(_mngr.New<TypeSpecifier>(fieldArg, _mngr.New<TypeToBeInferred>()));
+
+            MutationInfo* info = _mngr.New<MutationInfo>(_mutatedVars.find(freeVar.first) != _mutatedVars.end());
+            freeVar.first->setUserdata(info);
+            captureSym->setUserdata(info);
         }
 
         initExprs.push_back(_mngr.New<This>());
@@ -106,11 +118,20 @@ void CapturesAnalyzer::visit(ClassDecl* clss) {
         captures->initalizerMeth = initIdent;
     }
 
-
     clss->setUserdata<Captures>(captures);
 
     RESTORE_MEMBER(_boundVars)
     RESTORE_MEMBER(_usedVars)
+}
+
+void CapturesAnalyzer::visit(AssignmentExpression* aex) {
+    ASTImplicitVisitor::visit(aex);
+
+    if (Identifier* ident = getIfNodeOfType<Identifier>(aex->getLhs(), _ctx)) {
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
+            _mutatedVars.insert(var);
+        }
+    }
 }
 
 void CapturesAnalyzer::visit(TypeSpecifier* tps) {
@@ -141,8 +162,25 @@ void CapturesAnalyzer::visit(Identifier* ident) {
 
 // HANDLE CAPTURES
 
-PreTransform::PreTransform(CompCtx_Ptr& ctx) : ASTTransformer(ctx) {
+PreTransform::PreTransform(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer* namer, const sym::SymbolResolver& res)
+    : ASTTransformer(ctx) {
 
+    if ((_boxSymbol = sym::getIfSymbolOfType<sym::TypeSymbol>(res.getSymbol(namer->Box()))) &&
+        (_boxType = type::getIf<type::TypeConstructorType>(res.Box())))
+    {
+        if (type::ProperType* pt = boxOf(res.Int() /*for example, not important*/)) {
+            if ((_boxValueFieldSym = pt->getClass()->getScope()->getSymbol<sym::VariableSymbol>("value", false))) {
+                _boxValueFieldIdent = _mngr.New<Identifier>("value");
+                _boxValueFieldIdent->setSymbol(_boxValueFieldSym);
+            } else {
+                _ctx->reporter().fatal(*pt->getClass(), "Class Box should contain a field `value`, but it does not");
+            }
+        } else {
+            _ctx->reporter().fatal(*_boxType->getTypeConstructor(), "Box[T] should be a proper type, but it is not");
+        }
+    } else {
+        _ctx->reporter().fatal(common::Positionnable(0, 0, src::InputSourceName()), "Box type was not found");
+    }
 }
 
 PreTransform::~PreTransform() {
@@ -168,6 +206,16 @@ void PreTransform::visit(ClassDecl* clss) {
     update(clss, clss->getName(), parent, types, fields, decls, clss->isAbstract());
 }
 
+void PreTransform::visit(MemberAccess* dot) {
+    update(dot,
+           transform<Expression>(dot->getAccessed()),
+           dot->getMember());
+
+    if (isMutableVar(dot)) {
+        makeAccessToBoxedValueOf(dot);
+    }
+}
+
 void PreTransform::visit(FunctionCreation* func) {
     if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
         Instantiation* inst = make<Instantiation>(pt->getClass());
@@ -176,6 +224,22 @@ void PreTransform::visit(FunctionCreation* func) {
         transform<Expression>(inst);
     } else {
         ASTTransformer::visit(func);
+    }
+}
+
+void PreTransform::visit(TypeSpecifier* tps) {
+    if (isMutableVar(tps->getSpecified())) {
+        update(tps, tps->getSpecified(), transform<TypeExpression>(tps->getTypeNode()));
+
+        type::ProperType* boxOfT = boxOf(tps->type());
+        TypeIdentifier* tid = make<TypeIdentifier>("Box");
+        tid->setSymbol(_boxSymbol);
+        Instantiation* inst = make<Instantiation>(tid);
+        inst->setType(boxOfT);
+
+        makeAccessToBoxedValueOf(make<AssignmentExpression>(tps, inst));
+    } else {
+        ASTTransformer::visit(tps);
     }
 }
 
@@ -199,6 +263,36 @@ void PreTransform::visit(Instantiation* inst) {
             call->setType(inst->type());
         }
     }
+}
+
+void PreTransform::visit(Identifier* ident) {
+    ASTTransformer::visit(ident);
+
+    if (isMutableVar(ident)) {
+        makeAccessToBoxedValueOf(ident);
+    }
+}
+
+type::ProperType* PreTransform::boxOf(type::Type* tp) {
+    type::ConstructorApplyType apply(_boxType, {tp});
+    return type::getIf<type::ProperType>(apply.apply(_ctx));
+}
+
+bool PreTransform::isMutableVar(const sym::Symbolic<sym::Symbol>* ident) const {
+    if (ident->getSymbol()) {
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
+            if (MutationInfo* info = var->getUserdata<MutationInfo>()) {
+                return info->isMutable;
+            }
+        }
+    }
+    return false;
+}
+
+void PreTransform::makeAccessToBoxedValueOf(Expression* expr) {
+    MemberAccess* dot = make<MemberAccess>(expr, _boxValueFieldIdent);
+    dot->setSymbol(_boxValueFieldSym);
+    dot->setType(expr->type());
 }
 
 // ASSIGN USER DATAS

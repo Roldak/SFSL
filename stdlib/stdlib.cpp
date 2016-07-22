@@ -46,6 +46,13 @@ COMPILE_PASS(ProgramBuilder builder, Pipeline&, const std::vector<std::string>& 
     slang.typeDef("real", builder.classBuilder("real").build());
     slang.typeDef("string", builder.classBuilder("string").build());
 
+    slang.typeDef("Box",
+      builder.typeConstructorBuilder("Box")
+        .setParams({TypeConstructorBuilder::Parameter("T")})
+        .setReturn(builder.classBuilder("Box")
+                    .addField("value", builder.parseType("T"))
+                    .build()).build());
+
     size_t funcClassToCreate = args.size() > 0 ? (size_t) std::atol(args[0].c_str()) : MAX_FUNCTION_CLASS_COUNT;
 
     for (size_t i = 0; i < std::min(funcClassToCreate, MAX_FUNCTION_CLASS_COUNT); ++i) {

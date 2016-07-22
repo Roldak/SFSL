@@ -66,6 +66,11 @@ public:
     type::Type* String() const;
 
     /**
+     * @return The Box type
+     */
+    type::Type* Box() const;
+
+    /**
      * @return The FuncX type, where X corresponds to the nbArgs argument passed
      */
     type::Type* Func(size_t nbArgs) const;
@@ -83,6 +88,7 @@ private:
     type::Type* _intType;
     type::Type* _realType;
     type::Type* _stringType;
+    type::Type* _boxType;
     mutable std::vector<type::Type*> _funcTypes;
 };
 
