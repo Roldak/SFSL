@@ -147,10 +147,10 @@ void ScopeGeneration::visit(TypeDecl* tdecl) {
 }
 
 void ScopeGeneration::visit(ClassDecl* clss) {
-    pushScope(clss);
+    pushScope(clss, _currentThis != nullptr);
+    pushPathPart(clss->getName());
 
     SAVE_MEMBER_AND_SET(_currentThis, clss)
-    pushPathPart(clss->getName());
 
     ASTImplicitVisitor::visit(clss);
 
