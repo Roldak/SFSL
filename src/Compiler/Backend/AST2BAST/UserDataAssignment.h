@@ -12,10 +12,47 @@
 #include <iostream>
 #include <set>
 #include "../../Frontend/AST/Visitors/ASTImplicitVisitor.h"
+#include "../../Frontend/AST/Visitors/ASTTransformer.h"
 
 namespace sfsl {
 
 namespace ast {
+
+struct Captures final : public common::MemoryManageable {
+    Captures();
+    virtual ~Captures();
+
+    Identifier* initalizerMeth;
+    std::vector<std::pair<Identifier*, Identifier*>> capturesData;
+};
+
+class CapturesAnalyzer : public ASTImplicitVisitor {
+public:
+    CapturesAnalyzer(CompCtx_Ptr& ctx);
+    virtual ~CapturesAnalyzer();
+
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(TypeSpecifier* tps) override;
+    virtual void visit(FunctionCreation* func) override;
+    virtual void visit(Identifier* ident) override;
+
+private:
+
+    std::map<sym::VariableSymbol*, std::vector<Identifier*>> _usedVars;
+    std::vector<sym::VariableSymbol*> _boundVars;
+};
+
+class PreTransform : public ASTTransformer {
+public:
+    PreTransform(CompCtx_Ptr& ctx);
+    virtual ~PreTransform();
+
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(FunctionCreation* func) override;
+    virtual void visit(Instantiation* inst) override;
+
+private:
+};
 
 /**
  * @brief

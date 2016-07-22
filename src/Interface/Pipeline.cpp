@@ -96,9 +96,13 @@ public:
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
+        ast::CapturesAnalyzer caz(ctx);
+        ast::PreTransform cah(ctx);
         ast::UserDataAssignment uda(ctx);
         ast::AnnotationUsageWarner auw(ctx);
 
+        prog->onVisit(&caz);
+        prog->onVisit(&cah);
         prog->onVisit(&uda);
         prog->onVisit(&auw);
 

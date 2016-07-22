@@ -62,6 +62,8 @@ public:
     virtual void visit(RealLiteral* reallit) override;
     virtual void visit(StringLiteral* strlit) override;
 
+protected:
+
     template<typename T>
     T* transform(ASTNode* node, bool canReturnNull = false) {
         if (!node) {
@@ -90,6 +92,10 @@ public:
             }
         }
         return newNodes;
+    }
+
+    void set(void* node) {
+        _created = node;
     }
 
     template<typename T, typename... Args>
@@ -157,8 +163,6 @@ public:
     IMPL_TRAIT_SAVER_RESTORER(Kinded, kind::Kinded)
     IMPL_TRAIT_SAVER_RESTORER(Positionnable, common::Positionnable)
     IMPL_TEMPLATED_TRAIT_SAVER_RESTORER(Symbolic, sym::Symbolic)
-
-protected:
 
     void* _created;
 };

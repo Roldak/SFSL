@@ -8,10 +8,198 @@
 
 #include "UserDataAssignment.h"
 #include "../../Frontend/AST/Visitors/ASTTypeCreator.h"
+#include "../../Frontend/Symbols/Scope.h"
 
 namespace sfsl {
 
 namespace ast {
+
+// CAPTURES
+
+Captures::Captures() : initalizerMeth(nullptr) {
+
+}
+
+Captures::~Captures() {
+
+}
+
+// CAPTURES ANALYZER
+
+CapturesAnalyzer::CapturesAnalyzer(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx) {
+
+}
+
+CapturesAnalyzer::~CapturesAnalyzer() {
+
+}
+
+void CapturesAnalyzer::visit(ClassDecl* clss) {
+    SAVE_MEMBER_AND_SET(_usedVars, {})
+    SAVE_MEMBER_AND_SET(_boundVars, {})
+
+    ASTImplicitVisitor::visit(clss);
+
+    for (sym::VariableSymbol* var : _boundVars) {
+        _usedVars.erase(var);
+    }
+
+    // to take into account inherited fields
+    for (const std::pair<std::string, sym::SymbolData>& data : clss->getScope()->getAllSymbols()) {
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(data.second.symbol)) {
+            _usedVars.erase(var);
+        }
+    }
+
+    Captures* captures = _mngr.New<Captures>();
+
+    if (_usedVars.size() > 0) {
+        const std::string initializerName = clss->getName() + "$init";
+        std::vector<Expression*> initExprs;
+        std::vector<Expression*> initArgs;
+
+        for (const std::pair<sym::VariableSymbol*, std::vector<Identifier*>>& freeVar : _usedVars) {
+            Identifier* newField = _mngr.New<Identifier>(freeVar.first->getName());
+            Identifier* fieldArg = _mngr.New<Identifier>(newField->getValue() + "$arg");
+
+            sym::VariableSymbol* captureSym = _mngr.New<sym::VariableSymbol>(newField->getValue(), "");
+            newField->setSymbol(captureSym);
+
+            sym::VariableSymbol* argSym = _mngr.New<sym::VariableSymbol>(fieldArg->getValue(), "");
+            fieldArg->setSymbol(argSym);
+
+            for (Identifier* ident : freeVar.second) {
+                ident->setSymbol(captureSym);
+            }
+
+            Identifier* instantiationArg = _mngr.New<Identifier>(newField->getValue());
+            instantiationArg->setSymbol(freeVar.first);
+            captures->capturesData.push_back(std::make_pair(newField, instantiationArg));
+
+            __old_usedVars[freeVar.first].push_back(instantiationArg);
+
+            initExprs.push_back(_mngr.New<AssignmentExpression>(newField, fieldArg));
+            initArgs.push_back(_mngr.New<TypeSpecifier>(fieldArg, _mngr.New<TypeToBeInferred>()));
+        }
+
+        initExprs.push_back(_mngr.New<This>());
+
+        FunctionCreation* func = _mngr.New<FunctionCreation>(
+                    initializerName, nullptr, _mngr.New<Tuple>(initArgs), _mngr.New<Block>(initExprs));
+
+        func->setType(_mngr.New<type::MethodType>(
+                          clss,
+                          std::vector<TypeExpression*>(),
+                          std::vector<type::Type*>(),
+                          nullptr, type::Environment::Empty));
+
+        Identifier* initIdent = _mngr.New<Identifier>(initializerName);
+        DefineDecl* initDef = _mngr.New<DefineDecl>(initIdent, nullptr, func, false, false, false);
+
+        sym::DefinitionSymbol* initSym = _mngr.New<sym::DefinitionSymbol>(initIdent->getValue(), "", initDef, clss);
+        initIdent->setSymbol(initSym);
+        initDef->setSymbol(initSym);
+
+        initIdent->setType(func->type());
+        initSym->setType(func->type());
+
+        captures->initalizerMeth = initIdent;
+    }
+
+
+    clss->setUserdata<Captures>(captures);
+
+    RESTORE_MEMBER(_boundVars)
+    RESTORE_MEMBER(_usedVars)
+}
+
+void CapturesAnalyzer::visit(TypeSpecifier* tps) {
+    if (tps->getSpecified()->getSymbol()) {
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(tps->getSpecified()->getSymbol())) {
+            _boundVars.push_back(var);
+        }
+    }
+
+    tps->getTypeNode()->onVisit(this);
+}
+
+void CapturesAnalyzer::visit(FunctionCreation* func) {
+    if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
+        pt->getClass()->onVisit(this);
+    } else {
+        ASTImplicitVisitor::visit(func);
+    }
+}
+
+void CapturesAnalyzer::visit(Identifier* ident) {
+    if (ident->getSymbol()) {
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
+            _usedVars[var].push_back(ident);
+        }
+    }
+}
+
+// HANDLE CAPTURES
+
+PreTransform::PreTransform(CompCtx_Ptr& ctx) : ASTTransformer(ctx) {
+
+}
+
+PreTransform::~PreTransform() {
+
+}
+
+void PreTransform::visit(ClassDecl* clss) {
+    Captures* captures = clss->getUserdata<Captures>();
+
+    TypeExpression* parent = transform<TypeExpression>(clss->getParent());
+    std::vector<TypeDecl*> types(transform<TypeDecl>(clss->getTypeDecls()));
+    std::vector<TypeSpecifier*> fields(transform<TypeSpecifier>(clss->getFields()));
+    std::vector<DefineDecl*> decls(transform<DefineDecl>(clss->getDefs()));
+
+    for (std::pair<Identifier*, Identifier*> capture : captures->capturesData) {
+        fields.push_back(make<TypeSpecifier>(capture.first, make<TypeToBeInferred>()));
+    }
+
+    if (Identifier* initMeth = captures->initalizerMeth) {
+        decls.push_back(static_cast<sym::DefinitionSymbol*>(initMeth->getSymbol())->getDef());
+    }
+
+    update(clss, clss->getName(), parent, types, fields, decls, clss->isAbstract());
+}
+
+void PreTransform::visit(FunctionCreation* func) {
+    if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
+        Instantiation* inst = make<Instantiation>(pt->getClass());
+        inst->setType(ASTTypeCreator::createType(inst->getInstantiatedExpression(), _ctx));
+
+        transform<Expression>(inst);
+    } else {
+        ASTTransformer::visit(func);
+    }
+}
+
+void PreTransform::visit(Instantiation* inst) {
+    ASTTransformer::visit(inst);
+
+    if (type::ProperType* tp = type::getIf<type::ProperType>(inst->type()->applyTCCallsOnly(_ctx))) {
+        Captures* captures = tp->getClass()->getUserdata<Captures>();
+
+        if (Identifier* initMeth = captures->initalizerMeth) {
+            MemberAccess* dot = make<MemberAccess>(inst, initMeth);
+            dot->setSymbol(initMeth->getSymbol());
+            dot->setType(initMeth->type());
+
+            std::vector<Expression*> args;
+            for (std::pair<Identifier*, Identifier*> capture : captures->capturesData) {
+                args.push_back(capture.second);
+            }
+
+            FunctionCall* call = make<FunctionCall>(dot, nullptr, make<Tuple>(args));
+            call->setType(inst->type());
+        }
+    }
+}
 
 // ASSIGN USER DATAS
 
@@ -113,17 +301,13 @@ void UserDataAssignment::visit(TypeSpecifier* tps) {
 }
 
 void UserDataAssignment::visit(FunctionCreation* func) {
-    if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
-        pt->getClass()->onVisit(this);
-    } else {
-        SAVE_MEMBER_AND_SET(_currentVarCount, 1)
+    SAVE_MEMBER_AND_SET(_currentVarCount, 1)
 
-        ASTImplicitVisitor::visit(func);
+    ASTImplicitVisitor::visit(func);
 
-        func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), false, _currentVarCount, _nextConstructorExpr == func));
+    func->setUserdata(_mngr.New<FuncUserData>(freshName(func->getName()), false, _currentVarCount, _nextConstructorExpr == func));
 
-        RESTORE_MEMBER(_currentVarCount)
-    }
+    RESTORE_MEMBER(_currentVarCount)
 }
 
 std::string UserDataAssignment::freshName(const std::string& prefix) {

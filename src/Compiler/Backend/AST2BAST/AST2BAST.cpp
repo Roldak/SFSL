@@ -209,24 +209,18 @@ void AST2BAST::visit(ast::Tuple* tuple) {
 }
 
 void AST2BAST::visit(ast::FunctionCreation* func) {
-    if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
-        transform(pt->getClass());
-        // TODO: Call the constructor of the function's class
-        make<Instantiation>(make<DefIdentifier>(getDefId(pt->getClass())));
-    } else {
-        ast::FuncUserData* fUD = func->getUserdata<ast::FuncUserData>();
-        Expression* body = transform(func->getBody());
+    ast::FuncUserData* fUD = func->getUserdata<ast::FuncUserData>();
+    Expression* body = transform(func->getBody());
 
-        if (fUD->isConstructorExpression()) {
-            std::vector<Expression*> stmts(2);
-            stmts[0] = body;
-            stmts[1] = make<VarIdentifier>(0);
-            body = make<Block>(stmts);
-        }
-
-        addDefinitionToProgram<MethodDef>(func, fUD->getVarCount(), body);
-        make<DefIdentifier>(getDefId(func));
+    if (fUD->isConstructorExpression()) {
+        std::vector<Expression*> stmts(2);
+        stmts[0] = body;
+        stmts[1] = make<VarIdentifier>(0);
+        body = make<Block>(stmts);
     }
+
+    addDefinitionToProgram<MethodDef>(func, fUD->getVarCount(), body);
+    make<DefIdentifier>(getDefId(func));
 }
 
 void AST2BAST::visit(ast::FunctionCall* call) {
@@ -248,6 +242,9 @@ void AST2BAST::visit(ast::FunctionCall* call) {
         }
 
         make<MethodCall>(callee, virtualLoc, args);
+    } else {
+        _rep.fatal(*call->getCallee(), "At this stage, only methods are supposed to be called");
+        makeBad();
     }
 }
 

@@ -107,11 +107,11 @@ void ASTTransformer::visit(TypeConstructorCall* tcall) {
 }
 
 void ASTTransformer::visit(TypeIdentifier* tident) {
-    update(tident, tident->getValue());
+    set(tident);
 }
 
 void ASTTransformer::visit(TypeToBeInferred* tbi) {
-    update(tbi);
+    set(tbi);
 }
 
 void ASTTransformer::visit(TypeParameter* tparam) {
@@ -177,27 +177,27 @@ void ASTTransformer::visit(Instantiation* inst) {
 }
 
 void ASTTransformer::visit(Identifier* ident) {
-    update(ident, ident->getValue());
+    set(ident);
 }
 
 void ASTTransformer::visit(This* ths) {
-    update(ths);
+    set(ths);
 }
 
 void ASTTransformer::visit(BoolLiteral* boollit) {
-    update(boollit, boollit->getValue());
+    set(boollit);
 }
 
 void ASTTransformer::visit(IntLiteral* intlit) {
-    update(intlit, intlit->getValue());
+    set(intlit);
 }
 
 void ASTTransformer::visit(RealLiteral* reallit) {
-    update(reallit, reallit->getValue());
+    set(reallit);
 }
 
 void ASTTransformer::visit(StringLiteral* stringlit) {
-    update(stringlit, stringlit->getValue());
+    set(stringlit);
 }
 
 }
