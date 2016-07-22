@@ -187,11 +187,12 @@ void CapturesAnalyzer::visit(Identifier* ident) {
 
 // PRETRANSFORM
 
-PreTransform::PreTransform(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer* namer, const sym::SymbolResolver& res)
+PreTransform::PreTransform(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res)
     : ASTTransformer(ctx) {
 
-    if ((_boxSymbol = sym::getIfSymbolOfType<sym::TypeSymbol>(res.getSymbol(namer->Box()))) &&
-        (_boxType = type::getIf<type::TypeConstructorType>(res.Box())))
+    if (
+            (_boxSymbol = sym::getIfSymbolOfType<sym::TypeSymbol>(res.getSymbol(namer.Box()))) &&
+            (_boxType = type::getIf<type::TypeConstructorType>(res.Box())))
     {
         if (type::ProperType* pt = boxOf(res.Int() /*for example, not important*/)) {
             if ((_boxValueFieldSym = pt->getClass()->getScope()->getSymbol<sym::VariableSymbol>("value", false))) {

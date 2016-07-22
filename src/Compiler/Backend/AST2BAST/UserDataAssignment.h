@@ -39,7 +39,7 @@ private:
 
 class PreTransform : public ASTTransformer {
 public:
-    PreTransform(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer* namer, const sym::SymbolResolver& res);
+    PreTransform(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res);
     virtual ~PreTransform();
 
     virtual void visit(ClassDecl* clss) override;

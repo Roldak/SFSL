@@ -79,16 +79,16 @@ private:
 
     type::Type* createTypeFromSymbol(Symbol* sym) const;
 
-    Scope* _scope;
+    const ast::Program* _prog;
     const common::AbstractPrimitiveNamer* _namer;
     mutable CompCtx_Ptr _ctx;
 
-    type::Type* _unitType;
-    type::Type* _boolType;
-    type::Type* _intType;
-    type::Type* _realType;
-    type::Type* _stringType;
-    type::Type* _boxType;
+    mutable type::Type* _unitType;
+    mutable type::Type* _boolType;
+    mutable type::Type* _intType;
+    mutable type::Type* _realType;
+    mutable type::Type* _stringType;
+    mutable type::Type* _boxType;
     mutable std::vector<type::Type*> _funcTypes;
 };
 

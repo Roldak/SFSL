@@ -16,14 +16,9 @@ namespace sfsl {
 namespace sym {
 
 SymbolResolver::SymbolResolver(const ast::Program* prog, const common::AbstractPrimitiveNamer* namer, const CompCtx_Ptr& ctx)
-    : _scope(prog->getScope()), _namer(namer), _ctx(ctx) {
+    : _prog(prog), _namer(namer), _ctx(ctx),
+      _unitType(nullptr), _boolType(nullptr), _intType(nullptr), _realType(nullptr), _stringType(nullptr), _boxType(nullptr) {
 
-    _unitType   = createTypeFromSymbol(getSymbol(_namer->Unit()));
-    _boolType   = createTypeFromSymbol(getSymbol(_namer->Bool()));
-    _intType    = createTypeFromSymbol(getSymbol(_namer->Int()));
-    _realType   = createTypeFromSymbol(getSymbol(_namer->Real()));
-    _boxType    = createTypeFromSymbol(getSymbol(_namer->Box()));
-    _stringType = createTypeFromSymbol(getSymbol(_namer->String()));
 }
 
 SymbolResolver::~SymbolResolver() {
@@ -31,7 +26,7 @@ SymbolResolver::~SymbolResolver() {
 }
 
 Symbol* SymbolResolver::getSymbol(const std::vector<std::string>& fullPath) const {
-    Scope* scope = _scope;
+    Scope* scope = _prog->getScope();
     Symbol* lastSym = nullptr;
 
     for (const std::string& part : fullPath) {
@@ -59,42 +54,54 @@ Symbol* SymbolResolver::getSymbol(const std::vector<std::string>& fullPath) cons
 
 type::Type* SymbolResolver::Unit() const {
     if (!_unitType) {
-        throw common::CompilationFatalError("Unit type was not set");
+        if (!(_unitType = createTypeFromSymbol(getSymbol(_namer->Unit())))) {
+            throw common::CompilationFatalError("Unit type was not set");
+        }
     }
     return _unitType;
 }
 
 type::Type* SymbolResolver::Bool() const {
     if (!_boolType) {
-        throw common::CompilationFatalError("Bool type was not set");
+        if (!(_boolType = createTypeFromSymbol(getSymbol(_namer->Bool())))) {
+            throw common::CompilationFatalError("Bool type was not set");
+        }
     }
     return _boolType;
 }
 
 type::Type* SymbolResolver::Int() const {
     if (!_intType) {
-        throw common::CompilationFatalError("Int type was not set");
+        if (!(_intType = createTypeFromSymbol(getSymbol(_namer->Int())))) {
+            throw common::CompilationFatalError("Int type was not set");
+        }
     }
     return _intType;
 }
 
 type::Type* SymbolResolver::Real() const {
     if (!_realType) {
-        throw common::CompilationFatalError("Real type was not set");
+        if (!(_realType = createTypeFromSymbol(getSymbol(_namer->Real())))) {
+            throw common::CompilationFatalError("Real type was not set");
+        }
     }
     return _realType;
 }
 
 type::Type* SymbolResolver::String() const {
     if (!_stringType) {
-        throw common::CompilationFatalError("String type was not set");
+        if (!(_stringType = createTypeFromSymbol(getSymbol(_namer->String())))) {
+            throw common::CompilationFatalError("String type was not set");
+        }
     }
     return _stringType;
 }
 
 type::Type* SymbolResolver::Box() const {
     if (!_boxType) {
-        throw common::CompilationFatalError("Box type was not set");
+        if (!(_boxType = createTypeFromSymbol(getSymbol(_namer->Box())))) {
+            throw common::CompilationFatalError("Box type was not set");
+        }
     }
     return _boxType;
 }

@@ -453,10 +453,12 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
     CompCtx_Ptr ctx = _impl->ctx;
     ast::Program* prog = progBuilder._impl->createUpdatedProgram();
     common::AbstractPrimitiveNamer* namer = _impl->namer;
+    sym::SymbolResolver res(prog, namer, ctx);
 
     pctx.output("ctx", &ctx);
     pctx.output("prog", prog);
     pctx.output("namer", namer);
+    pctx.output("res", &res);
 
     // make the program builder invalid so that it can't be compiled again
     progBuilder._impl = nullptr;
