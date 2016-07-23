@@ -19,10 +19,10 @@ namespace sfsl {
 
 namespace ast {
 
-class CapturesAnalyzer : public ASTImplicitVisitor {
+class PreTransformAnalysis : public ASTImplicitVisitor {
 public:
-    CapturesAnalyzer(CompCtx_Ptr& ctx);
-    virtual ~CapturesAnalyzer();
+    PreTransformAnalysis(CompCtx_Ptr& ctx);
+    virtual ~PreTransformAnalysis();
 
     virtual void visit(ClassDecl* clss) override;
     virtual void visit(AssignmentExpression* aex) override;
@@ -37,10 +37,10 @@ private:
     std::set<sym::VariableSymbol*> _mutatedVars;
 };
 
-class PreTransform : public ASTTransformer {
+class PreTransformImplementation : public ASTTransformer {
 public:
-    PreTransform(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res);
-    virtual ~PreTransform();
+    PreTransformImplementation(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res);
+    virtual ~PreTransformImplementation();
 
     virtual void visit(ClassDecl* clss) override;
     virtual void visit(MemberAccess* dot) override;

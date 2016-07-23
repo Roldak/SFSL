@@ -48,7 +48,7 @@ public:
     KindCheckingPhase() : Phase("KindChecking", "Assigns kinds to every kinded nodes, and reports any kind check errors") { }
     virtual ~KindCheckingPhase() { }
 
-    virtual std::vector<std::string> runsAfter() const { return {"NameAnalysis"}; }
+    virtual std::vector<std::string> runsAfter() const override { return {"NameAnalysis"}; }
 
     virtual bool run(PhaseContext &pctx) {
         ast::Program* prog = pctx.require<ast::Program>("prog");
@@ -66,7 +66,7 @@ public:
     TypeCheckingPhase() : Phase("TypeChecking", "Assigns types to every typed nodes, and reports any type check errors") { }
     virtual ~TypeCheckingPhase() { }
 
-    virtual std::vector<std::string> runsAfter() const { return {"KindChecking"}; }
+    virtual std::vector<std::string> runsAfter() const override { return {"KindChecking"}; }
 
     virtual bool run(PhaseContext& pctx) {
         ast::Program* prog = pctx.require<ast::Program>("prog");
@@ -89,7 +89,7 @@ public:
     PreTransformPhase() : Phase("PreTransform", "Assigns useful informations to node and performs last minute operations") { }
     virtual ~PreTransformPhase() { }
 
-    virtual std::vector<std::string> runsAfter() const { return {"TypeChecking"}; }
+    virtual std::vector<std::string> runsAfter() const override { return {"TypeChecking"}; }
 
     virtual bool run(PhaseContext& pctx) {
         ast::Program* prog = pctx.require<ast::Program>("prog");
@@ -97,15 +97,15 @@ public:
         common::AbstractPrimitiveNamer* namer = pctx.require<common::AbstractPrimitiveNamer>("namer");
         sym::SymbolResolver* res = pctx.require<sym::SymbolResolver>("res");
 
-        ast::CapturesAnalyzer caz(ctx);
-        ast::PreTransform cah(ctx, *namer, *res);
-        ast::UserDataAssignment uda(ctx);
-        ast::AnnotationUsageWarner auw(ctx);
+        ast::PreTransformAnalysis ptanalysis(ctx);
+        ast::PreTransformImplementation ptimpl(ctx, *namer, *res);
+        ast::UserDataAssignment udassignment(ctx);
+        ast::AnnotationUsageWarner auwarner(ctx);
 
-        prog->onVisit(&caz);
-        prog->onVisit(&cah);
-        prog->onVisit(&uda);
-        prog->onVisit(&auw);
+        prog->onVisit(&ptanalysis);
+        prog->onVisit(&ptimpl);
+        prog->onVisit(&udassignment);
+        prog->onVisit(&auwarner);
 
         return ctx->reporter().getErrorCount() == 0;
     }
@@ -116,7 +116,7 @@ public:
     AST2BASTPhase() : Phase("AST2BAST", "Transforms the frontent AST into the backend AST") { }
     virtual ~AST2BASTPhase() { }
 
-    virtual std::vector<std::string> runsAfter() const { return {"PreTransform"}; }
+    virtual std::vector<std::string> runsAfter() const override { return {"PreTransform"}; }
 
     virtual bool run(PhaseContext& pctx) {
         ast::Program* prog = pctx.require<ast::Program>("prog");
@@ -143,7 +143,7 @@ public:
         cleanup();
     }
 
-    virtual std::vector<std::string> runsAfter() const { return {"AST2BAST"}; }
+    virtual std::vector<std::string> runsAfter() const override { return {"AST2BAST"}; }
 
     virtual bool run(PhaseContext& pctx) {
         ast::Program* prog = pctx.require<ast::Program>("prog");

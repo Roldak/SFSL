@@ -34,15 +34,15 @@ struct MutationInfo final : public common::MemoryManageable {
 
 // CAPTURES ANALYZER
 
-CapturesAnalyzer::CapturesAnalyzer(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx) {
+PreTransformAnalysis::PreTransformAnalysis(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx) {
 
 }
 
-CapturesAnalyzer::~CapturesAnalyzer() {
+PreTransformAnalysis::~PreTransformAnalysis() {
 
 }
 
-void CapturesAnalyzer::visit(ClassDecl* clss) {
+void PreTransformAnalysis::visit(ClassDecl* clss) {
     SAVE_MEMBER_AND_SET(_usedVars, {})
     SAVE_MEMBER_AND_SET(_boundVars, {})
 
@@ -74,6 +74,7 @@ void CapturesAnalyzer::visit(ClassDecl* clss) {
                     /* This will modify all the VariableSymbols associated to a capture,
                      * because they all share the same MutationInfo object. */
                     info->classFieldCapture = var;
+                    info->isMutable = true;
                     MutationInfo* newInfo = _mngr.New<MutationInfo>(false);
                     newInfo->classFieldCapture = var;
 
@@ -149,7 +150,7 @@ void CapturesAnalyzer::visit(ClassDecl* clss) {
     RESTORE_MEMBER(_usedVars)
 }
 
-void CapturesAnalyzer::visit(AssignmentExpression* aex) {
+void PreTransformAnalysis::visit(AssignmentExpression* aex) {
     ASTImplicitVisitor::visit(aex);
 
     if (Identifier* ident = getIfNodeOfType<Identifier>(aex->getLhs(), _ctx)) {
@@ -159,7 +160,7 @@ void CapturesAnalyzer::visit(AssignmentExpression* aex) {
     }
 }
 
-void CapturesAnalyzer::visit(TypeSpecifier* tps) {
+void PreTransformAnalysis::visit(TypeSpecifier* tps) {
     if (tps->getSpecified()->getSymbol()) {
         if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(tps->getSpecified()->getSymbol())) {
             _boundVars.push_back(var);
@@ -169,7 +170,7 @@ void CapturesAnalyzer::visit(TypeSpecifier* tps) {
     tps->getTypeNode()->onVisit(this);
 }
 
-void CapturesAnalyzer::visit(FunctionCreation* func) {
+void PreTransformAnalysis::visit(FunctionCreation* func) {
     if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
         pt->getClass()->onVisit(this);
     } else {
@@ -177,7 +178,7 @@ void CapturesAnalyzer::visit(FunctionCreation* func) {
     }
 }
 
-void CapturesAnalyzer::visit(Identifier* ident) {
+void PreTransformAnalysis::visit(Identifier* ident) {
     if (ident->getSymbol()) {
         if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
             _usedVars[var].push_back(ident);
@@ -187,7 +188,9 @@ void CapturesAnalyzer::visit(Identifier* ident) {
 
 // PRETRANSFORM
 
-PreTransform::PreTransform(CompCtx_Ptr& ctx, const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res)
+PreTransformImplementation::PreTransformImplementation(
+        CompCtx_Ptr& ctx,
+        const common::AbstractPrimitiveNamer& namer, const sym::SymbolResolver& res)
     : ASTTransformer(ctx) {
 
     if (
@@ -209,11 +212,11 @@ PreTransform::PreTransform(CompCtx_Ptr& ctx, const common::AbstractPrimitiveName
     }
 }
 
-PreTransform::~PreTransform() {
+PreTransformImplementation::~PreTransformImplementation() {
 
 }
 
-void PreTransform::visit(ClassDecl* clss) {
+void PreTransformImplementation::visit(ClassDecl* clss) {
     Captures* captures = clss->getUserdata<Captures>();
 
     TypeExpression* parent = transform<TypeExpression>(clss->getParent());
@@ -232,7 +235,7 @@ void PreTransform::visit(ClassDecl* clss) {
     update(clss, clss->getName(), parent, types, fields, decls, clss->isAbstract());
 }
 
-void PreTransform::visit(MemberAccess* dot) {
+void PreTransformImplementation::visit(MemberAccess* dot) {
     update(dot,
            transform<Expression>(dot->getAccessed()),
            dot->getMember());
@@ -244,7 +247,7 @@ void PreTransform::visit(MemberAccess* dot) {
     }
 }
 
-void PreTransform::visit(FunctionCreation* func) {
+void PreTransformImplementation::visit(FunctionCreation* func) {
     if (type::ProperType* pt = type::getIf<type::ProperType>(func->type())) {
         Instantiation* inst = make<Instantiation>(pt->getClass());
         inst->setType(ASTTypeCreator::createType(inst->getInstantiatedExpression(), _ctx));
@@ -255,7 +258,7 @@ void PreTransform::visit(FunctionCreation* func) {
     }
 }
 
-void PreTransform::visit(TypeSpecifier* tps) {
+void PreTransformImplementation::visit(TypeSpecifier* tps) {
     update(tps, tps->getSpecified(), transform<TypeExpression>(tps->getTypeNode()));
 
     if (isLocalMutableVar(tps->getSpecified())) {
@@ -269,7 +272,7 @@ void PreTransform::visit(TypeSpecifier* tps) {
     }
 }
 
-void PreTransform::visit(Instantiation* inst) {
+void PreTransformImplementation::visit(Instantiation* inst) {
     ASTTransformer::visit(inst);
 
     if (type::ProperType* tp = type::getIf<type::ProperType>(inst->type()->applyTCCallsOnly(_ctx))) {
@@ -295,7 +298,7 @@ void PreTransform::visit(Instantiation* inst) {
     }
 }
 
-void PreTransform::visit(Identifier* ident) {
+void PreTransformImplementation::visit(Identifier* ident) {
     ASTTransformer::visit(ident);
 
     if (isLocalMutableVar(ident)) {
@@ -305,12 +308,12 @@ void PreTransform::visit(Identifier* ident) {
     }
 }
 
-type::ProperType* PreTransform::boxOf(type::Type* tp) {
+type::ProperType* PreTransformImplementation::boxOf(type::Type* tp) {
     type::ConstructorApplyType apply(_boxType, {tp});
     return type::getIf<type::ProperType>(apply.apply(_ctx));
 }
 
-bool PreTransform::isLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const {
+bool PreTransformImplementation::isLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const {
     if (symbolic->getSymbol()) {
         if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(symbolic->getSymbol())) {
             if (MutationInfo* info = var->getUserdata<MutationInfo>()) {
@@ -321,7 +324,7 @@ bool PreTransform::isLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic)
     return false;
 }
 
-sym::VariableSymbol* PreTransform::isMutableClassField(const sym::Symbolic<sym::Symbol>* symbolic) const {
+sym::VariableSymbol* PreTransformImplementation::isMutableClassField(const sym::Symbolic<sym::Symbol>* symbolic) const {
     if (symbolic->getSymbol()) {
         if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(symbolic->getSymbol())) {
             if (MutationInfo* info = var->getUserdata<MutationInfo>()) {
@@ -334,7 +337,7 @@ sym::VariableSymbol* PreTransform::isMutableClassField(const sym::Symbolic<sym::
     return nullptr;
 }
 
-bool PreTransform::isArgumentToMutableClassField(const sym::Symbolic<sym::Symbol>* symbolic) const {
+bool PreTransformImplementation::isArgumentToMutableClassField(const sym::Symbolic<sym::Symbol>* symbolic) const {
     if (symbolic->getSymbol()) {
         if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(symbolic->getSymbol())) {
             if (MutationInfo* info = var->getUserdata<MutationInfo>()) {
@@ -347,13 +350,13 @@ bool PreTransform::isArgumentToMutableClassField(const sym::Symbolic<sym::Symbol
     return false;
 }
 
-void PreTransform::makeAccessToBoxedValueOf(Expression* expr) {
+void PreTransformImplementation::makeAccessToBoxedValueOf(Expression* expr) {
     MemberAccess* dot = make<MemberAccess>(expr, _boxValueFieldIdent);
     dot->setSymbol(_boxValueFieldSym);
     dot->setType(expr->type());
 }
 
-void PreTransform::makeAccessToClassField(Expression* expr, sym::VariableSymbol* field) {
+void PreTransformImplementation::makeAccessToClassField(Expression* expr, sym::VariableSymbol* field) {
     Identifier* ident = make<Identifier>(field->getName());
     MemberAccess* dot = make<MemberAccess>(expr, ident);
     dot->setSymbol(field);
