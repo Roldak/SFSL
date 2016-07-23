@@ -19,7 +19,7 @@
 #include "Compiler/Frontend/Analyser/KindChecking.h"
 #include "Compiler/Frontend/Analyser/TypeChecking.h"
 #include "Compiler/Frontend/Symbols/SymbolResolver.h"
-#include "Compiler/Backend/AST2BAST/UserDataAssignment.h"
+#include "Compiler/Backend/AST2BAST/PreTransform.h"
 #include "Compiler/Backend/BytecodeGenerator.h"
 
 #include "Compiler/Frontend/Symbols/Scope.h"
@@ -179,11 +179,11 @@ public:
     }
 
     void compilePass(ProgramBuilder, Pipeline&) {
-        throwPluginNotSupportedError();
+
     }
 
     void unloadPlugins() {
-        throwPluginNotSupportedError();
+
     }
 
 #endif
