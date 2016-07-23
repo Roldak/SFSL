@@ -31,6 +31,7 @@ public:
     virtual void visit(Identifier* ident) override;
 
 private:
+    void visitClassDecl(ClassDecl* clss);
 
     std::map<sym::VariableSymbol*, std::vector<Identifier*>> _usedVars;
     std::vector<sym::VariableSymbol*> _boundVars;

@@ -257,10 +257,7 @@ PreTransformAnalysis::~PreTransformAnalysis() {
 
 }
 
-void PreTransformAnalysis::visit(ClassDecl* clss) {
-    SAVE_MEMBER_AND_SET(_usedVars, {})
-    SAVE_MEMBER_AND_SET(_boundVars, {})
-
+void PreTransformAnalysis::visitClassDecl(ClassDecl* clss) {
     /* Do as ASTImplicitVisitor::visit(clss), but don't visit TypeSpecifiers' Identifiers,
      * so that they are dealt with in the following for loop.
      */
@@ -276,6 +273,21 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
     for (DefineDecl* def : clss->getDefs()) {
         def->onVisit(this);
     }
+
+    for (const auto& pair : clss->getScope()->getAllSymbols()) {
+        if (sym::Symbol* s = pair.second.symbol) {
+            if (!getVariableInfo(s)) {
+                setVariableInfo(s, _mngr.New<FieldInfo>(SymbolInfo::make()));
+            }
+        }
+    }
+}
+
+void PreTransformAnalysis::visit(ClassDecl* clss) {
+    SAVE_MEMBER_AND_SET(_usedVars, {})
+    SAVE_MEMBER_AND_SET(_boundVars, {})
+
+    visitClassDecl(clss);
 
     for (sym::VariableSymbol* var : _boundVars) {
         _usedVars.erase(var);
@@ -337,12 +349,14 @@ void PreTransformAnalysis::visit(FunctionCreation* func) {
 }
 
 void PreTransformAnalysis::visit(Identifier* ident) {
-    VariableInfo* info = getVariableInfo(ident->getSymbol());
-    if (!info) {
-        info = setVariableInfo(ident->getSymbol(), _mngr.New<LocalInfo>(SymbolInfo::make()));
-    }
-    if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
-        _usedVars[var].push_back(ident);
+    if (ident->getSymbol()) {
+        VariableInfo* info = getVariableInfo(ident->getSymbol());
+        if (!info) {
+            info = setVariableInfo(ident->getSymbol(), _mngr.New<LocalInfo>(SymbolInfo::make()));
+        }
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
+            _usedVars[var].push_back(ident);
+        }
     }
 }
 
@@ -476,8 +490,12 @@ type::ProperType* PreTransformImplementation::boxOf(type::Type* tp) {
 }
 
 bool PreTransformImplementation::isLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const {
-    VariableInfo* info = getVariableInfo(symbolic->getSymbol());
-    return info->type() == LOCAL && info->isMutable();
+    if (symbolic->getSymbol()) {
+        if (VariableInfo* info = getVariableInfo(symbolic->getSymbol())) {
+            return info->type() == LOCAL && info->isMutable();
+        }
+    }
+    return false;
 }
 
 sym::VariableSymbol* PreTransformImplementation::isMutableClassField(const sym::Symbolic<sym::Symbol>* symbolic) const {
