@@ -34,7 +34,6 @@ private:
 
     std::map<sym::VariableSymbol*, std::vector<Identifier*>> _usedVars;
     std::vector<sym::VariableSymbol*> _boundVars;
-    std::set<sym::VariableSymbol*> _mutatedVars;
 };
 
 class PreTransformImplementation : public ASTTransformer {

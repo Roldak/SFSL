@@ -14,22 +14,237 @@ namespace sfsl {
 
 namespace ast {
 
-// CAPTURES
+/*
+ * VARIABLE INFOS
+ */
 
-struct Captures final : public common::MemoryManageable {
-    Captures() : initalizerMeth(nullptr) {}
-    virtual ~Captures() {}
+struct SymbolInfo;
 
-    Identifier* initalizerMeth;
-    std::vector<std::pair<Identifier*, Identifier*>> capturesData;
-};
+typedef std::shared_ptr<SymbolInfo> SymbolInfoPtr;
 
-struct MutationInfo final : public common::MemoryManageable {
-    MutationInfo(bool isMutable) : isMutable(isMutable), classFieldCapture(nullptr) {}
-    virtual ~MutationInfo() {}
+/**
+ * @brief A SymbolInfo is shared among several VariableInfo.
+ * For example, when capturing some local variable x inside a class A, two VariableSymbol
+ * (and therefore two VariableInfo) will represent the same original variable x. The one that is used
+ * inside the local scope, and the one that is used in the class A. Basically, a SymbolInfo is a way to
+ * link all the VariableInfos that share the same original symbol. (In the example, the two VariableInfo
+ * will have the same SymbolInfo which refers to the original local variable x).
+ */
+struct SymbolInfo final {
+    SymbolInfo() : isMutable(false) {}
+
+    static SymbolInfoPtr make() {
+        return std::make_shared<SymbolInfo>();
+    }
 
     bool isMutable;
-    sym::VariableSymbol* classFieldCapture;
+};
+
+enum VARIABLE_TYPE { LOCAL, FIELD };
+
+/**
+ * @brief Base class for VariableInfos
+ */
+struct VariableInfo : public common::MemoryManageable {
+    virtual ~VariableInfo() {}
+
+    virtual VariableInfo* copy(CompCtx_Ptr ctx) const = 0;
+    virtual VARIABLE_TYPE type() const = 0;
+
+    bool isMutable() const {
+        return symInfo->isMutable;
+    }
+    void setMutable() {
+        symInfo->isMutable = true;
+    }
+
+    SymbolInfoPtr symInfo;
+
+protected:
+    VariableInfo(SymbolInfoPtr symInfo) : symInfo(symInfo) {}
+};
+
+/**
+ * @brief Represents a local variable
+ */
+struct LocalInfo final : public VariableInfo {
+    LocalInfo(SymbolInfoPtr symInfo) : VariableInfo(symInfo) {}
+    virtual ~LocalInfo() {}
+
+    VariableInfo* copy(CompCtx_Ptr ctx) const override {
+        return ctx->memoryManager().New<LocalInfo>(symInfo);
+    }
+
+    VARIABLE_TYPE type() const override {
+        return LOCAL;
+    }
+};
+
+/**
+ * @brief Represents a field of a class
+ */
+struct FieldInfo final : public VariableInfo {
+    FieldInfo(SymbolInfoPtr symInfo) : VariableInfo(symInfo) {}
+    virtual ~FieldInfo() {}
+
+    VariableInfo* copy(CompCtx_Ptr ctx) const override {
+        return ctx->memoryManager().New<FieldInfo>(symInfo);
+    }
+
+    VARIABLE_TYPE type() const override {
+        return FIELD;
+    }
+};
+
+inline VariableInfo* getVariableInfo(sym::Symbol* symbol) {
+    common::HasManageableUserdata* holder = nullptr;
+    if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(symbol)) {
+        holder = var;
+    } else if (sym::DefinitionSymbol* def = sym::getIfSymbolOfType<sym::DefinitionSymbol>(symbol)) {
+        holder = def;
+    }
+    if (holder) {
+        return holder->getUserdata<VariableInfo>();
+    }
+    return nullptr;
+}
+
+inline VariableInfo* setVariableInfo(sym::Symbol* symbol, VariableInfo* info) {
+    common::HasManageableUserdata* holder = nullptr;
+    if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(symbol)) {
+        holder = var;
+    } else if (sym::DefinitionSymbol* def = sym::getIfSymbolOfType<sym::DefinitionSymbol>(symbol)) {
+        holder = def;
+    }
+    if (holder) {
+        holder->setUserdata(info);
+        return info;
+    }
+    return nullptr;
+}
+
+/*
+ * BUILDERS
+ */
+
+struct InitializerBuilder final {
+    InitializerBuilder(ClassDecl* clss, CompCtx_Ptr ctx)
+        : _clss(clss), _ctx(ctx), _mngr(_ctx->memoryManager()) { }
+
+    void addInitializationOf(Identifier* field) {
+        Identifier* arg = _mngr.New<Identifier>(field->getValue() + "$arg");
+        sym::VariableSymbol* argSym = _mngr.New<sym::VariableSymbol>(arg->getValue(), "");
+        arg->setSymbol(argSym);
+
+        _params.push_back(_mngr.New<TypeSpecifier>(arg, _mngr.New<TypeToBeInferred>()));
+        _body.push_back(_mngr.New<AssignmentExpression>(field, arg));
+    }
+
+    Identifier* build() {
+        if (_body.size() == 0) {
+            return nullptr;
+        }
+
+        _body.push_back(_mngr.New<This>());
+
+        std::string name = _clss->getName() + "$init";
+
+        FunctionCreation* func = _mngr.New<FunctionCreation>(
+                    name, nullptr, _mngr.New<Tuple>(_params), _mngr.New<Block>(_body));
+
+        func->setType(_mngr.New<type::MethodType>(
+                          _clss,
+                          std::vector<TypeExpression*>(),
+                          std::vector<type::Type*>(),
+                          nullptr, type::Environment::Empty));
+
+        Identifier* initIdent = _mngr.New<Identifier>(name);
+        DefineDecl* initDef = _mngr.New<DefineDecl>(initIdent, nullptr, func, false, false, false);
+
+        sym::DefinitionSymbol* initSym = _mngr.New<sym::DefinitionSymbol>(initIdent->getValue(), "", initDef, _clss);
+        initIdent->setSymbol(initSym);
+        initDef->setSymbol(initSym);
+
+        initIdent->setType(func->type());
+        initSym->setType(func->type());
+
+        return initIdent;
+    }
+
+private:
+
+    ClassDecl* _clss;
+    std::vector<Expression*> _params;
+    std::vector<Expression*> _body;
+
+    CompCtx_Ptr _ctx;
+    common::AbstractMemoryManager& _mngr;
+};
+
+struct Change {
+    Change(Identifier* nf, Identifier* ia) : newField(nf), initializerArg(ia) {}
+
+    sym::VariableSymbol* getNewFieldSymbol() const {
+        return sym::getIfSymbolOfType<sym::VariableSymbol>(newField->getSymbol());
+    }
+
+    Identifier* newField;
+    Identifier* initializerArg;
+};
+
+struct ClassPatch final : public common::MemoryManageable {
+    ClassPatch(Identifier* initializer, const std::vector<Change>& changes)
+        : _initalizer(initializer), _changes(changes) {}
+    virtual ~ClassPatch() {}
+
+    Identifier* getInitializer() const {
+        return _initalizer;
+    }
+
+    const std::vector<Change>& getChanges() const {
+        return _changes;
+    }
+
+private:
+
+    Identifier* _initalizer;
+    std::vector<Change> _changes;
+};
+
+struct ClassPatcher final {
+    ClassPatcher(ClassDecl* clss, CompCtx_Ptr& ctx)
+        : _clss(clss), _initBuilder(clss, ctx), _ctx(ctx), _mngr(_ctx->memoryManager()) {}
+
+    Change addNewField(const std::string& name) {
+        // Make new field
+        Identifier* newField = _mngr.New<Identifier>(name);
+        sym::VariableSymbol* newFieldSym = _mngr.New<sym::VariableSymbol>(name, "");
+        newField->setSymbol(newFieldSym);
+
+        // Add entry to initializer
+        _initBuilder.addInitializationOf(newField);
+
+        // Create the argument that will be passed to the initializer
+        Identifier* initializerArg = _mngr.New<Identifier>(name);
+
+        // Create the change representation
+        Change change(newField, initializerArg);
+        _changes.push_back(change);
+        return change;
+    }
+
+    ClassPatch* buildPatch() {
+        return _mngr.New<ClassPatch>(_initBuilder.build(), _changes);
+    }
+
+private:
+
+    ClassDecl* _clss;
+    InitializerBuilder _initBuilder;
+    std::vector<Change> _changes;
+
+    CompCtx_Ptr _ctx;
+    common::AbstractMemoryManager& _mngr;
 };
 
 // CAPTURES ANALYZER
@@ -66,85 +281,30 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
         _usedVars.erase(var);
     }
 
-    // Take into account this class's fields + inherited fields
-    for (const std::pair<std::string, sym::SymbolData>& data : clss->getScope()->getAllSymbols()) {
-        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(data.second.symbol)) {
-            if (_usedVars.erase(var) > 0) {
-                if (MutationInfo* info = var->getUserdata<MutationInfo>()) {
-                    /* This will modify all the VariableSymbols associated to a capture,
-                     * because they all share the same MutationInfo object. */
-                    info->classFieldCapture = var;
-                    info->isMutable = true;
-                    MutationInfo* newInfo = _mngr.New<MutationInfo>(false);
-                    newInfo->classFieldCapture = var;
+    ClassPatcher classPatcher(clss, _ctx);
 
-                    var->setUserdata(newInfo);
-                }
-            }
-        }
-    }
+    // For all the captures
+    for (const auto& freeVar : _usedVars) {
+        sym::VariableSymbol* capturedSymbol(freeVar.first);
+        const std::vector<Identifier*>& referringCapturedSymbol(freeVar.second);
 
-    Captures* captures = _mngr.New<Captures>();
+        // Add a new field to the class, which has the name of the captured variable.
+        Change change = classPatcher.addNewField(capturedSymbol->getName());
+        // Make that new field has the same variable infos
+        setVariableInfo(change.getNewFieldSymbol(), getVariableInfo(capturedSymbol)->copy(_ctx));
 
-    // If there are captures
-    if (_usedVars.size() > 0) {
-        const std::string initializerName = clss->getName() + "$init";
-        std::vector<Expression*> initExprs;
-        std::vector<Expression*> initArgs;
-
-        for (const std::pair<sym::VariableSymbol*, std::vector<Identifier*>>& freeVar : _usedVars) {
-            Identifier* newField = _mngr.New<Identifier>(freeVar.first->getName());
-            Identifier* fieldArg = _mngr.New<Identifier>(newField->getValue() + "$arg");
-
-            sym::VariableSymbol* captureSym = _mngr.New<sym::VariableSymbol>(newField->getValue(), "");
-            newField->setSymbol(captureSym);
-
-            sym::VariableSymbol* argSym = _mngr.New<sym::VariableSymbol>(fieldArg->getValue(), "");
-            fieldArg->setSymbol(argSym);
-
-            for (Identifier* ident : freeVar.second) {
-                ident->setSymbol(captureSym);
-            }
-
-            Identifier* instantiationArg = _mngr.New<Identifier>(newField->getValue());
-            instantiationArg->setSymbol(freeVar.first);
-            captures->capturesData.push_back(std::make_pair(newField, instantiationArg));
-
-            __old_usedVars[freeVar.first].push_back(instantiationArg);
-
-            initExprs.push_back(_mngr.New<AssignmentExpression>(newField, fieldArg));
-            initArgs.push_back(_mngr.New<TypeSpecifier>(fieldArg, _mngr.New<TypeToBeInferred>()));
-
-            MutationInfo* info = _mngr.New<MutationInfo>(_mutatedVars.find(freeVar.first) != _mutatedVars.end());
-            freeVar.first->setUserdata(info);
-            captureSym->setUserdata(info);
+        // For all identifiers that refer to this capture,
+        // make them refer to the new class field instead.
+        for (Identifier* ident : referringCapturedSymbol) {
+            ident->setSymbol(change.getNewFieldSymbol());
         }
 
-        initExprs.push_back(_mngr.New<This>());
-
-        FunctionCreation* func = _mngr.New<FunctionCreation>(
-                    initializerName, nullptr, _mngr.New<Tuple>(initArgs), _mngr.New<Block>(initExprs));
-
-        func->setType(_mngr.New<type::MethodType>(
-                          clss,
-                          std::vector<TypeExpression*>(),
-                          std::vector<type::Type*>(),
-                          nullptr, type::Environment::Empty));
-
-        Identifier* initIdent = _mngr.New<Identifier>(initializerName);
-        DefineDecl* initDef = _mngr.New<DefineDecl>(initIdent, nullptr, func, false, false, false);
-
-        sym::DefinitionSymbol* initSym = _mngr.New<sym::DefinitionSymbol>(initIdent->getValue(), "", initDef, clss);
-        initIdent->setSymbol(initSym);
-        initDef->setSymbol(initSym);
-
-        initIdent->setType(func->type());
-        initSym->setType(func->type());
-
-        captures->initalizerMeth = initIdent;
+        // But make the initializer argument refer to the captured variable.
+        change.initializerArg->setSymbol(capturedSymbol);
+        OLD(_usedVars)[capturedSymbol].push_back(change.initializerArg);
     }
 
-    clss->setUserdata<Captures>(captures);
+    clss->setUserdata<ClassPatch>(classPatcher.buildPatch());
 
     RESTORE_MEMBER(_boundVars)
     RESTORE_MEMBER(_usedVars)
@@ -154,9 +314,7 @@ void PreTransformAnalysis::visit(AssignmentExpression* aex) {
     ASTImplicitVisitor::visit(aex);
 
     if (Identifier* ident = getIfNodeOfType<Identifier>(aex->getLhs(), _ctx)) {
-        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
-            _mutatedVars.insert(var);
-        }
+        getVariableInfo(ident->getSymbol())->setMutable();
     }
 }
 
@@ -179,10 +337,12 @@ void PreTransformAnalysis::visit(FunctionCreation* func) {
 }
 
 void PreTransformAnalysis::visit(Identifier* ident) {
-    if (ident->getSymbol()) {
-        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
-            _usedVars[var].push_back(ident);
-        }
+    VariableInfo* info = getVariableInfo(ident->getSymbol());
+    if (!info) {
+        info = setVariableInfo(ident->getSymbol(), _mngr.New<LocalInfo>(SymbolInfo::make()));
+    }
+    if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
+        _usedVars[var].push_back(ident);
     }
 }
 
@@ -217,19 +377,21 @@ PreTransformImplementation::~PreTransformImplementation() {
 }
 
 void PreTransformImplementation::visit(ClassDecl* clss) {
-    Captures* captures = clss->getUserdata<Captures>();
+    ClassPatch* classPatch = clss->getUserdata<ClassPatch>();
 
     TypeExpression* parent = transform<TypeExpression>(clss->getParent());
     std::vector<TypeDecl*> types(transform<TypeDecl>(clss->getTypeDecls()));
     std::vector<TypeSpecifier*> fields(transform<TypeSpecifier>(clss->getFields()));
     std::vector<DefineDecl*> decls(transform<DefineDecl>(clss->getDefs()));
 
-    for (std::pair<Identifier*, Identifier*> capture : captures->capturesData) {
-        fields.push_back(make<TypeSpecifier>(capture.first, make<TypeToBeInferred>()));
+    // Actually add the new field
+    for (Change change : classPatch->getChanges()) {
+        fields.push_back(make<TypeSpecifier>(change.newField, make<TypeToBeInferred>()));
     }
 
-    if (Identifier* initMeth = captures->initalizerMeth) {
-        decls.push_back(static_cast<sym::DefinitionSymbol*>(initMeth->getSymbol())->getDef());
+    // As well as the initializer
+    if (Identifier* initializer = classPatch->getInitializer()) {
+        decls.push_back(static_cast<sym::DefinitionSymbol*>(initializer->getSymbol())->getDef());
     }
 
     update(clss, clss->getName(), parent, types, fields, decls, clss->isAbstract());
@@ -276,19 +438,19 @@ void PreTransformImplementation::visit(Instantiation* inst) {
     ASTTransformer::visit(inst);
 
     if (type::ProperType* tp = type::getIf<type::ProperType>(inst->type()->applyTCCallsOnly(_ctx))) {
-        Captures* captures = tp->getClass()->getUserdata<Captures>();
+        ClassPatch* classPatch = tp->getClass()->getUserdata<ClassPatch>();
 
-        if (Identifier* initMeth = captures->initalizerMeth) {
-            MemberAccess* dot = make<MemberAccess>(inst, initMeth);
-            dot->setSymbol(initMeth->getSymbol());
-            dot->setType(initMeth->type());
+        if (Identifier* initializer = classPatch->getInitializer()) {
+            MemberAccess* dot = make<MemberAccess>(inst, initializer);
+            dot->setSymbol(initializer->getSymbol());
+            dot->setType(initializer->type());
 
             std::vector<Expression*> args;
-            for (std::pair<Identifier*, Identifier*> capture : captures->capturesData) {
-                if (isArgumentToMutableClassField(capture.second)) {
+            for (Change change : classPatch->getChanges()) {
+                if (isArgumentToMutableClassField(change.initializerArg)) {
                     args.push_back(make<This>());
                 } else {
-                    args.push_back(capture.second);
+                    args.push_back(change.initializerArg);
                 }
             }
 
@@ -314,39 +476,15 @@ type::ProperType* PreTransformImplementation::boxOf(type::Type* tp) {
 }
 
 bool PreTransformImplementation::isLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const {
-    if (symbolic->getSymbol()) {
-        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(symbolic->getSymbol())) {
-            if (MutationInfo* info = var->getUserdata<MutationInfo>()) {
-                return info->isMutable && info->classFieldCapture == nullptr;
-            }
-        }
-    }
-    return false;
+    VariableInfo* info = getVariableInfo(symbolic->getSymbol());
+    return info->type() == LOCAL && info->isMutable();
 }
 
 sym::VariableSymbol* PreTransformImplementation::isMutableClassField(const sym::Symbolic<sym::Symbol>* symbolic) const {
-    if (symbolic->getSymbol()) {
-        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(symbolic->getSymbol())) {
-            if (MutationInfo* info = var->getUserdata<MutationInfo>()) {
-                if (info->isMutable) {
-                    return info->classFieldCapture;
-                }
-            }
-        }
-    }
     return nullptr;
 }
 
 bool PreTransformImplementation::isArgumentToMutableClassField(const sym::Symbolic<sym::Symbol>* symbolic) const {
-    if (symbolic->getSymbol()) {
-        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(symbolic->getSymbol())) {
-            if (MutationInfo* info = var->getUserdata<MutationInfo>()) {
-                if (!info->isMutable) {
-                    return info->classFieldCapture;
-                }
-            }
-        }
-    }
     return false;
 }
 

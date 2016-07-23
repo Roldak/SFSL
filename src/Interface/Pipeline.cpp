@@ -17,6 +17,7 @@
 #include "Compiler/Backend/AST2BAST/AST2BAST.h"
 #include "Compiler/Backend/BAST/Visitors/BASTPrinter.h"
 #include "Compiler/Backend/BytecodeGenerator.h"
+#include "Compiler/Frontend/AST/Visitors/ASTPrinter.h"
 
 namespace sfsl {
 
@@ -101,11 +102,13 @@ public:
         ast::PreTransformImplementation ptimpl(ctx, *namer, *res);
         ast::UserDataAssignment udassignment(ctx);
         ast::AnnotationUsageWarner auwarner(ctx);
+        ast::ASTPrinter printer(ctx, std::cout);
 
         prog->onVisit(&ptanalysis);
         prog->onVisit(&ptimpl);
         prog->onVisit(&udassignment);
         prog->onVisit(&auwarner);
+        prog->onVisit(&printer);
 
         return ctx->reporter().getErrorCount() == 0;
     }
