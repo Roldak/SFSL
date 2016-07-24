@@ -54,11 +54,12 @@ private:
     type::ProperType* boxOf(type::Type* tp);
 
     bool isLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const;
-    sym::VariableSymbol* isMutableClassField(const sym::Symbolic<sym::Symbol>* symbolic) const;
-    bool isArgumentToMutableClassField(const sym::Symbolic<sym::Symbol>* symbolic) const;
+    bool isClassField(const sym::Symbolic<sym::Symbol>* symbolic) const;
+    bool isClassThis(const sym::Symbolic<sym::Symbol>* symbolic) const;
 
-    void makeAccessToBoxedValueOf(Expression* expr);
-    void makeAccessToClassField(Expression* expr, sym::VariableSymbol* field);
+    Expression* makeAccessToBoxedValueOf(Expression* expr);
+    Expression* makeAccessToClassField(Identifier* field);
+    This* makeAccessToClassThis();
 
     type::TypeConstructorType* _boxType;
     sym::TypeSymbol* _boxSymbol;
