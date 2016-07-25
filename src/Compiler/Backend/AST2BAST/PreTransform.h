@@ -43,6 +43,7 @@ public:
     virtual ~PreTransformImplementation();
 
     virtual void visit(ClassDecl* clss) override;
+    virtual void visit(DefineDecl* decl) override;
     virtual void visit(MemberAccess* dot) override;
     virtual void visit(FunctionCreation* func) override;
     virtual void visit(TypeSpecifier* tps) override;
@@ -53,10 +54,12 @@ private:
 
     type::ProperType* boxOf(type::Type* tp);
 
+    bool isCapturedClassField(Identifier* ident) const;
     bool isLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const;
     bool isClassField(const sym::Symbolic<sym::Symbol>* symbolic) const;
     bool isClassThis(const sym::Symbolic<sym::Symbol>* symbolic) const;
 
+    Expression* makeAccessToCapturedClassField(Identifier* ident);
     Expression* makeAccessToBoxedValueOf(Expression* expr);
     Expression* makeAccessToClassField(Identifier* field);
     This* makeAccessToClassThis();
@@ -65,6 +68,8 @@ private:
     sym::TypeSymbol* _boxSymbol;
     sym::VariableSymbol* _boxValueFieldSym;
     Identifier* _boxValueFieldIdent;
+
+    std::map<Identifier*, sym::Symbol*> _curCapturedFields;
 };
 
 /**

@@ -221,8 +221,8 @@ struct Change {
 };
 
 struct ClassPatch final : public common::MemoryManageable {
-    ClassPatch(Identifier* initializer, const std::vector<Change>& changes)
-        : _initalizer(initializer), _changes(changes) {}
+    ClassPatch(Identifier* initializer, const std::vector<Change>& changes, const std::map<Identifier*, sym::Symbol*>& fieldCaptures)
+        : _initalizer(initializer), _changes(changes), _fieldCaptures(fieldCaptures) {}
     virtual ~ClassPatch() {}
 
     Identifier* getInitializer() const {
@@ -233,15 +233,24 @@ struct ClassPatch final : public common::MemoryManageable {
         return _changes;
     }
 
+    const std::map<Identifier*, sym::Symbol*>& getFieldCaptures() const {
+        return _fieldCaptures;
+    }
+
 private:
 
     Identifier* _initalizer;
     std::vector<Change> _changes;
+    std::map<Identifier*, sym::Symbol*> _fieldCaptures;
 };
 
 struct ClassPatcher final {
     ClassPatcher(ClassDecl* clss, CompCtx_Ptr& ctx)
         : _clss(clss), _initBuilder(clss, ctx), _ctx(ctx), _mngr(_ctx->memoryManager()) {}
+
+    void addFieldCapture(Identifier* id) {
+        _fieldCaptures[id] = id->getSymbol();
+    }
 
     Change addNewField(const std::string& name) {
         // Make new field
@@ -262,7 +271,7 @@ struct ClassPatcher final {
     }
 
     ClassPatch* buildPatch() {
-        return _mngr.New<ClassPatch>(_initBuilder.build(), _changes);
+        return _mngr.New<ClassPatch>(_initBuilder.build(), _changes, _fieldCaptures);
     }
 
 private:
@@ -270,6 +279,7 @@ private:
     ClassDecl* _clss;
     InitializerBuilder _initBuilder;
     std::vector<Change> _changes;
+    std::map<Identifier*, sym::Symbol*> _fieldCaptures;
 
     CompCtx_Ptr _ctx;
     common::AbstractMemoryManager& _mngr;
@@ -345,6 +355,11 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
         // Make that new field has the same variable infos
         setVariableInfo(change.getNewFieldSymbol(), getVariableInfo(capturedSymbol)->copy(_ctx));
 
+        if (getVariableInfo(capturedSymbol)->type() == VAR_THIS) {
+            for (Identifier* ident : referringCapturedSymbol) {
+                classPatcher.addFieldCapture(ident);
+            }
+        }
         // For all identifiers that refer to this capture,
         // make them refer to the new class field instead.
         for (Identifier* ident : referringCapturedSymbol) {
@@ -397,9 +412,7 @@ void PreTransformAnalysis::visit(Identifier* ident) {
 
         if (info) {
             if (FieldInfo* field = FieldInfo::from(info)) {
-                Identifier* thisClass = _mngr.New<Identifier>(field->thisClass->getValue());
-                thisClass->setSymbol(field->thisClassSymbol());
-                _usedVars[field->thisClassSymbol()].push_back(thisClass);
+                _usedVars[field->thisClassSymbol()].push_back(ident);
             } else if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
                 _usedVars[var].push_back(ident);
             }
@@ -440,6 +453,8 @@ PreTransformImplementation::~PreTransformImplementation() {
 void PreTransformImplementation::visit(ClassDecl* clss) {
     ClassPatch* classPatch = clss->getUserdata<ClassPatch>();
 
+    SAVE_MEMBER_AND_SET(_curCapturedFields, classPatch->getFieldCaptures())
+
     TypeExpression* parent = transform<TypeExpression>(clss->getParent());
     std::vector<TypeDecl*> types(transform<TypeDecl>(clss->getTypeDecls()));
     std::vector<TypeSpecifier*> fields(transform<TypeSpecifier>(clss->getFields()));
@@ -456,16 +471,21 @@ void PreTransformImplementation::visit(ClassDecl* clss) {
     }
 
     update(clss, clss->getName(), parent, types, fields, decls, clss->isAbstract());
+
+    RESTORE_MEMBER(_curCapturedFields)
+}
+
+void PreTransformImplementation::visit(DefineDecl* decl) {
+    update(decl, decl->getName(),
+           transform<TypeExpression>(decl->getTypeSpecifier()),
+           transform<Expression>(decl->getValue()),
+           decl->isRedef(), decl->isExtern(), decl->isAbstract());
 }
 
 void PreTransformImplementation::visit(MemberAccess* dot) {
     update(dot,
            transform<Expression>(dot->getAccessed()),
            dot->getMember());
-
-    if (isLocalMutableVar(dot)) {
-        makeAccessToBoxedValueOf(dot);
-    }
 }
 
 void PreTransformImplementation::visit(FunctionCreation* func) {
@@ -524,7 +544,9 @@ void PreTransformImplementation::visit(Instantiation* inst) {
 void PreTransformImplementation::visit(Identifier* ident) {
     ASTTransformer::visit(ident);
 
-    if (isLocalMutableVar(ident)) {
+    if (isCapturedClassField(ident)) {
+        makeAccessToCapturedClassField(ident);
+    } else if (isLocalMutableVar(ident)) {
         makeAccessToBoxedValueOf(ident);
     } else if (isClassField(ident)) {
         makeAccessToClassField(ident);
@@ -536,6 +558,10 @@ void PreTransformImplementation::visit(Identifier* ident) {
 type::ProperType* PreTransformImplementation::boxOf(type::Type* tp) {
     type::ConstructorApplyType apply(_boxType, {tp});
     return type::getIf<type::ProperType>(apply.apply(_ctx));
+}
+
+bool PreTransformImplementation::isCapturedClassField(Identifier* ident) const {
+    return _curCapturedFields.find(ident) != _curCapturedFields.end();
 }
 
 bool PreTransformImplementation::isLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const {
@@ -565,6 +591,16 @@ bool PreTransformImplementation::isClassThis(const sym::Symbolic<sym::Symbol>* s
     return false;
 }
 
+Expression* PreTransformImplementation::makeAccessToCapturedClassField(Identifier* ident) {
+    sym::Symbol* s = _curCapturedFields[ident];
+    Identifier* member = _mngr.New<Identifier>(s->getName());
+    member->setSymbol(s);
+
+    MemberAccess* dot = make<MemberAccess>(ident, member);
+    dot->setSymbol(s);
+    return dot;
+}
+
 Expression* PreTransformImplementation::makeAccessToBoxedValueOf(Expression* expr) {
     MemberAccess* dot = make<MemberAccess>(expr, _boxValueFieldIdent);
     dot->setSymbol(_boxValueFieldSym);
@@ -574,10 +610,6 @@ Expression* PreTransformImplementation::makeAccessToBoxedValueOf(Expression* exp
 
 Expression* PreTransformImplementation::makeAccessToClassField(Identifier* field) {
     FieldInfo* fieldInfo = FieldInfo::from(getVariableInfo(field->getSymbol()));
-    if (isClassThis(fieldInfo->thisClass)) {
-        set(field);
-        return field;
-    }
     MemberAccess* dot = make<MemberAccess>(transform<Expression>(fieldInfo->thisClass), field);
     dot->setSymbol(field->getSymbol());
     dot->setType(field->type());
