@@ -36,8 +36,14 @@ struct VariableInfo : public common::MemoryManageable {
     bool isMutable() const {
         return _isMutable;
     }
+    bool isCaptured() const {
+        return _isCaptured;
+    }
     void setMutable() {
         _isMutable = true;
+    }
+    void setCaptured() {
+        _isCaptured = true;
     }
 
     SymbolInfoPtr symInfo;
@@ -45,6 +51,7 @@ struct VariableInfo : public common::MemoryManageable {
 protected:
     VariableInfo() {}
     bool _isMutable;
+    bool _isCaptured;
 };
 
 /**
@@ -326,10 +333,13 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
         sym::VariableSymbol* capturedSymbol(freeVar.first);
         const std::vector<Identifier*>& referringCapturedSymbol(freeVar.second);
 
+        VariableInfo* capturedInfo = getVariableInfo(capturedSymbol);
+        capturedInfo->setCaptured();
+
         // Add a new field to the class, which has the name of the captured variable.
         Change change = classPatcher.addNewField(capturedSymbol->getName());
         // Make that new field has the same variable infos
-        setVariableInfo(change.getNewFieldSymbol(), getVariableInfo(capturedSymbol)->asCaptured(_ctx));
+        setVariableInfo(change.getNewFieldSymbol(), capturedInfo->asCaptured(_ctx));
 
         // If `this` is captured, things work a bit differently:
         // Not all the Identifiers referring to this symbol really do yet, they may
@@ -485,7 +495,7 @@ void PreTransformImplementation::visit(FunctionCreation* func) {
 void PreTransformImplementation::visit(TypeSpecifier* tps) {
     update(tps, tps->getSpecified(), transform<TypeExpression>(tps->getTypeNode()));
 
-    if (isLocalMutableVar(tps->getSpecified())) {
+    if (isCapturedLocalMutableVar(tps->getSpecified())) {
         type::ProperType* boxOfT = boxOf(tps->type());
         TypeIdentifier* tid = make<TypeIdentifier>("Box");
         tid->setSymbol(_boxSymbol);
@@ -509,7 +519,7 @@ void PreTransformImplementation::visit(Instantiation* inst) {
 
             std::vector<Expression*> args;
             for (Change change : classPatch->getChanges()) {
-                if (isLocalMutableVar(change.initializerArg)) {
+                if (isCapturedLocalMutableVar(change.initializerArg)) {
                     // If the capture was a local mutable variable, we want to send the
                     // boxed value, therefore we don't take the transform<Expression> path.
                     args.push_back(change.initializerArg);
@@ -529,7 +539,7 @@ void PreTransformImplementation::visit(Identifier* ident) {
 
     if (isCapturedClassField(ident)) {
         makeAccessToCapturedClassField(ident);
-    } else if (isLocalMutableVar(ident)) {
+    } else if (isCapturedLocalMutableVar(ident)) {
         makeAccessToBoxedValueOf(ident);
     } else if (isClassThis(ident)) {
         makeAccessToClassThis();
@@ -545,10 +555,10 @@ bool PreTransformImplementation::isCapturedClassField(Identifier* ident) const {
     return _curCapturedFields.find(ident) != _curCapturedFields.end();
 }
 
-bool PreTransformImplementation::isLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const {
+bool PreTransformImplementation::isCapturedLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const {
     if (symbolic->getSymbol()) {
         if (VariableInfo* info = getVariableInfo(symbolic->getSymbol())) {
-            return info->type() == VAR_LOCAL && info->isMutable();
+            return info->type() == VAR_LOCAL && info->isMutable() && info->isCaptured();
         }
     }
     return false;

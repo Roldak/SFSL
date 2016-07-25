@@ -55,7 +55,7 @@ private:
     type::ProperType* boxOf(type::Type* tp);
 
     bool isCapturedClassField(Identifier* ident) const;
-    bool isLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const;
+    bool isCapturedLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const;
     bool isClassField(const sym::Symbolic<sym::Symbol>* symbolic) const;
     bool isClassThis(const sym::Symbolic<sym::Symbol>* symbolic) const;
 
