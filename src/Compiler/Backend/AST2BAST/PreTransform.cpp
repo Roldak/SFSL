@@ -71,7 +71,7 @@ struct LocalInfo final : public VariableInfo {
  * @brief Represents a field of a class
  */
 struct FieldInfo final : public VariableInfo {
-    FieldInfo(Identifier* thisClass) : thisClass(thisClass) {}
+    FieldInfo(sym::VariableSymbol* thisClassSymbol) : thisClassSymbol(thisClassSymbol) {}
 
     virtual ~FieldInfo() {}
 
@@ -87,11 +87,7 @@ struct FieldInfo final : public VariableInfo {
         return VAR_FIELD;
     }
 
-    sym::VariableSymbol* thisClassSymbol() const {
-        return sym::getIfSymbolOfType<sym::VariableSymbol>(thisClass->getSymbol());
-    }
-
-    Identifier* thisClass;
+    sym::VariableSymbol* thisClassSymbol;
 };
 
 struct ThisInfo final : public VariableInfo {
@@ -301,17 +297,14 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
     SAVE_MEMBER_AND_SET(_boundVars, {})
 
     // Create the `this` class symbol
-    Identifier* thisClass = _mngr.New<Identifier>(clss->getName() + ".this");
-    sym::VariableSymbol* thisClassSym = _mngr.New<sym::VariableSymbol>(clss->getName() + ".this", "");
-    setVariableInfo(thisClassSym, _mngr.New<ThisInfo>());
-
-    thisClass->setSymbol(thisClassSym);
+    sym::VariableSymbol* thisClassSymbol = _mngr.New<sym::VariableSymbol>(clss->getName() + ".this", "");
+    setVariableInfo(thisClassSymbol, _mngr.New<ThisInfo>());
 
     // Assign the FieldInfo to every field of the class
     for (const auto& pair : clss->getScope()->getAllSymbols()) {
         if (sym::Symbol* s = pair.second.symbol) {
             if (!getVariableInfo(s)) {
-                setVariableInfo(s, _mngr.New<FieldInfo>(thisClass));
+                setVariableInfo(s, _mngr.New<FieldInfo>(thisClassSymbol));
             }
         }
     }
@@ -324,7 +317,7 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
     for (sym::VariableSymbol* var : _boundVars) {
         _usedVars.erase(var);
     }
-    _usedVars.erase(thisClassSym);
+    _usedVars.erase(thisClassSymbol);
 
     ClassPatcher classPatcher(clss, _ctx);
 
@@ -402,7 +395,7 @@ void PreTransformAnalysis::visit(Identifier* ident) {
 
         if (info) {
             if (FieldInfo* field = FieldInfo::from(info)) {
-                _usedVars[field->thisClassSymbol()].push_back(ident);
+                _usedVars[field->thisClassSymbol].push_back(ident);
             } else if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
                 _usedVars[var].push_back(ident);
             }
@@ -580,6 +573,13 @@ Expression* PreTransformImplementation::makeAccessToCapturedClassField(Identifie
 
     MemberAccess* dot = make<MemberAccess>(thisClass, member);
     dot->setSymbol(s);
+
+    if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(s)) {
+        dot->setType(var->type());
+    } else if (sym::DefinitionSymbol* def = sym::getIfSymbolOfType<sym::DefinitionSymbol>(s)) {
+        dot->setType(def->type());
+    }
+
     return dot;
 }
 
