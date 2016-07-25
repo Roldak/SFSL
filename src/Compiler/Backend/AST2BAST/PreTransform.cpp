@@ -355,9 +355,15 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
         // Make that new field has the same variable infos
         setVariableInfo(change.getNewFieldSymbol(), getVariableInfo(capturedSymbol)->copy(_ctx));
 
+        // If `this` is captured, things work a bit differently:
+        // Not all the Identifiers referring to this symbol really do yet.
+        // Identifiers which have a FieldInfo have been added to the list in order to become
+        // part of the ClassPatch's field captures.
         if (getVariableInfo(capturedSymbol)->type() == VAR_THIS) {
             for (Identifier* ident : referringCapturedSymbol) {
-                classPatcher.addFieldCapture(ident);
+                if (getVariableInfo(ident->getSymbol())->type() == VAR_FIELD) {
+                    classPatcher.addFieldCapture(ident);
+                }
             }
         }
         // For all identifiers that refer to this capture,
