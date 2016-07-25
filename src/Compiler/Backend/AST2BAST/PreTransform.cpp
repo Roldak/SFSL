@@ -22,24 +22,6 @@ struct SymbolInfo;
 
 typedef std::shared_ptr<SymbolInfo> SymbolInfoPtr;
 
-/**
- * @brief A SymbolInfo is shared among several VariableInfo.
- * For example, when capturing some local variable x inside a class A, two VariableSymbol
- * (and therefore two VariableInfo) will represent the same original variable x. The one that is used
- * inside the local scope, and the one that is used in the class A. Basically, a SymbolInfo is a way to
- * link all the VariableInfos that share the same original symbol. (In the example, the two VariableInfo
- * will have the same SymbolInfo which refers to the original local variable x).
- */
-struct SymbolInfo final {
-    SymbolInfo() : isMutable(false) {}
-
-    static SymbolInfoPtr make() {
-        return std::make_shared<SymbolInfo>();
-    }
-
-    bool isMutable;
-};
-
 enum VARIABLE_TYPE { VAR_LOCAL, VAR_FIELD, VAR_THIS };
 
 /**
@@ -48,35 +30,36 @@ enum VARIABLE_TYPE { VAR_LOCAL, VAR_FIELD, VAR_THIS };
 struct VariableInfo : public common::MemoryManageable {
     virtual ~VariableInfo() {}
 
-    virtual VariableInfo* copy(CompCtx_Ptr ctx) const = 0;
+    virtual VariableInfo* asCaptured(CompCtx_Ptr ctx) = 0;
     virtual VARIABLE_TYPE type() const = 0;
 
     bool isMutable() const {
-        return symInfo->isMutable;
+        return _isMutable;
     }
     void setMutable() {
-        symInfo->isMutable = true;
+        _isMutable = true;
     }
 
     SymbolInfoPtr symInfo;
 
 protected:
-    VariableInfo(SymbolInfoPtr symInfo) : symInfo(symInfo) {}
+    VariableInfo() {}
+    bool _isMutable;
 };
 
 /**
  * @brief Represents a local variable
  */
 struct LocalInfo final : public VariableInfo {
-    LocalInfo(SymbolInfoPtr symInfo) : VariableInfo(symInfo) {}
+    LocalInfo() {}
     virtual ~LocalInfo() {}
 
     static LocalInfo* from(VariableInfo* info) {
         return (info && info->type() == VAR_LOCAL) ? static_cast<LocalInfo*>(info) : nullptr;
     }
 
-    VariableInfo* copy(CompCtx_Ptr ctx) const override {
-        return ctx->memoryManager().New<LocalInfo>(symInfo);
+    VariableInfo* asCaptured(CompCtx_Ptr) override {
+        return this;
     }
 
     VARIABLE_TYPE type() const override {
@@ -88,7 +71,7 @@ struct LocalInfo final : public VariableInfo {
  * @brief Represents a field of a class
  */
 struct FieldInfo final : public VariableInfo {
-    FieldInfo(SymbolInfoPtr symInfo, Identifier* thisClass) : VariableInfo(symInfo), thisClass(thisClass) {}
+    FieldInfo(Identifier* thisClass) : thisClass(thisClass) {}
 
     virtual ~FieldInfo() {}
 
@@ -96,8 +79,8 @@ struct FieldInfo final : public VariableInfo {
         return (info && info->type() == VAR_FIELD) ? static_cast<FieldInfo*>(info) : nullptr;
     }
 
-    VariableInfo* copy(CompCtx_Ptr ctx) const override {
-        return ctx->memoryManager().New<FieldInfo>(symInfo, thisClass);
+    VariableInfo* asCaptured(CompCtx_Ptr) override {
+        return this;
     }
 
     VARIABLE_TYPE type() const override {
@@ -112,11 +95,11 @@ struct FieldInfo final : public VariableInfo {
 };
 
 struct ThisInfo final : public VariableInfo {
-    ThisInfo(SymbolInfoPtr symInfo) : VariableInfo(symInfo) {}
+    ThisInfo() {}
     virtual ~ThisInfo() {}
 
-    VariableInfo* copy(CompCtx_Ptr ctx) const override {
-        return ctx->memoryManager().New<LocalInfo>(symInfo);
+    VariableInfo* asCaptured(CompCtx_Ptr ctx) override {
+        return ctx->memoryManager().New<LocalInfo>();
     }
 
     VARIABLE_TYPE type() const override {
@@ -320,7 +303,7 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
     // Create the `this` class symbol
     Identifier* thisClass = _mngr.New<Identifier>(clss->getName() + ".this");
     sym::VariableSymbol* thisClassSym = _mngr.New<sym::VariableSymbol>(clss->getName() + ".this", "");
-    setVariableInfo(thisClassSym, _mngr.New<ThisInfo>(SymbolInfo::make()));
+    setVariableInfo(thisClassSym, _mngr.New<ThisInfo>());
 
     thisClass->setSymbol(thisClassSym);
 
@@ -328,7 +311,7 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
     for (const auto& pair : clss->getScope()->getAllSymbols()) {
         if (sym::Symbol* s = pair.second.symbol) {
             if (!getVariableInfo(s)) {
-                setVariableInfo(s, _mngr.New<FieldInfo>(SymbolInfo::make(), thisClass));
+                setVariableInfo(s, _mngr.New<FieldInfo>(thisClass));
             }
         }
     }
@@ -353,12 +336,13 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
         // Add a new field to the class, which has the name of the captured variable.
         Change change = classPatcher.addNewField(capturedSymbol->getName());
         // Make that new field has the same variable infos
-        setVariableInfo(change.getNewFieldSymbol(), getVariableInfo(capturedSymbol)->copy(_ctx));
+        setVariableInfo(change.getNewFieldSymbol(), getVariableInfo(capturedSymbol)->asCaptured(_ctx));
 
         // If `this` is captured, things work a bit differently:
-        // Not all the Identifiers referring to this symbol really do yet.
-        // Identifiers which have a FieldInfo have been added to the list in order to become
-        // part of the ClassPatch's field captures.
+        // Not all the Identifiers referring to this symbol really do yet, they may
+        // have been added to the `referringCapturedSymbol` vector as a hint that they
+        // are class field captures. To deal with class field captures, find among the
+        // identifiers those which have a FieldInfo and add them to the ClassPatch's field captures.
         if (getVariableInfo(capturedSymbol)->type() == VAR_THIS) {
             for (Identifier* ident : referringCapturedSymbol) {
                 if (getVariableInfo(ident->getSymbol())->type() == VAR_FIELD) {
@@ -413,7 +397,7 @@ void PreTransformAnalysis::visit(Identifier* ident) {
     if (ident->getSymbol()) {
         VariableInfo* info = getVariableInfo(ident->getSymbol());
         if (!info) {
-            info = setVariableInfo(ident->getSymbol(), _mngr.New<LocalInfo>(SymbolInfo::make()));
+            info = setVariableInfo(ident->getSymbol(), _mngr.New<LocalInfo>());
         }
 
         if (info) {
@@ -554,8 +538,6 @@ void PreTransformImplementation::visit(Identifier* ident) {
         makeAccessToCapturedClassField(ident);
     } else if (isLocalMutableVar(ident)) {
         makeAccessToBoxedValueOf(ident);
-    } else if (isClassField(ident)) {
-        makeAccessToClassField(ident);
     } else if (isClassThis(ident)) {
         makeAccessToClassThis();
     }
@@ -579,15 +561,6 @@ bool PreTransformImplementation::isLocalMutableVar(const sym::Symbolic<sym::Symb
     return false;
 }
 
-bool PreTransformImplementation::isClassField(const sym::Symbolic<sym::Symbol>* symbolic) const {
-    if (symbolic->getSymbol()) {
-        if (FieldInfo* info = FieldInfo::from(getVariableInfo(symbolic->getSymbol()))) {
-            return info->thisClass;
-        }
-    }
-    return false;
-}
-
 bool PreTransformImplementation::isClassThis(const sym::Symbolic<sym::Symbol>* symbolic) const {
     if (symbolic->getSymbol()) {
         if (VariableInfo* info = getVariableInfo(symbolic->getSymbol())) {
@@ -602,7 +575,10 @@ Expression* PreTransformImplementation::makeAccessToCapturedClassField(Identifie
     Identifier* member = _mngr.New<Identifier>(s->getName());
     member->setSymbol(s);
 
-    MemberAccess* dot = make<MemberAccess>(ident, member);
+    Identifier* thisClass = _mngr.New<Identifier>(ident->getSymbol()->getName());
+    thisClass->setSymbol(ident->getSymbol());
+
+    MemberAccess* dot = make<MemberAccess>(thisClass, member);
     dot->setSymbol(s);
     return dot;
 }
@@ -611,14 +587,6 @@ Expression* PreTransformImplementation::makeAccessToBoxedValueOf(Expression* exp
     MemberAccess* dot = make<MemberAccess>(expr, _boxValueFieldIdent);
     dot->setSymbol(_boxValueFieldSym);
     dot->setType(expr->type());
-    return dot;
-}
-
-Expression* PreTransformImplementation::makeAccessToClassField(Identifier* field) {
-    FieldInfo* fieldInfo = FieldInfo::from(getVariableInfo(field->getSymbol()));
-    MemberAccess* dot = make<MemberAccess>(transform<Expression>(fieldInfo->thisClass), field);
-    dot->setSymbol(field->getSymbol());
-    dot->setType(field->type());
     return dot;
 }
 

@@ -61,7 +61,6 @@ private:
 
     Expression* makeAccessToCapturedClassField(Identifier* ident);
     Expression* makeAccessToBoxedValueOf(Expression* expr);
-    Expression* makeAccessToClassField(Identifier* field);
     This* makeAccessToClassThis();
 
     type::TypeConstructorType* _boxType;
