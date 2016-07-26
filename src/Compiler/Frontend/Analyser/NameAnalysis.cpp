@@ -673,7 +673,7 @@ void SymbolAssignation::warnForUnusedVariableInCurrentScope() {
     for (const auto& s : _curScope->getAllSymbols()) {
         if (s.second.symbol->getSymbolType() == sym::SYM_VAR) {
             sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(s.second.symbol);
-            if (!var->isUsed()) {
+            if (!var->isUsed() && var->getName() != "_") {
                 _ctx->reporter().warning(*var, "Unused variable '" + var->getName() + "'");
             }
         }
