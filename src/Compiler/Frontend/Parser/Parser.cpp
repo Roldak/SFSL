@@ -10,6 +10,7 @@
 
 #include "../Lexer/Tokens.h"
 #include "../AST/Visitors/ASTTypeIdentifier.h"
+#include "../AST/Visitors/ASTExpr2TypeExpr.h"
 
 #define SAVE_POS(ident) const common::Positionnable ident = *_currentToken;
 
@@ -68,6 +69,10 @@ bool Parser::accept(tok::KW_TYPE type) {
 void Parser::accept() {
     _lastTokenEndPos = _currentToken->getEndPosition();
     _currentToken = _lex.getNext();
+}
+
+void Parser::reportUnexpectedCurrentToken() {
+    _ctx->reporter().error(*_currentToken, "Unexpected token `" + _currentToken->toString() + "`");
 }
 
 template<typename T>
@@ -483,7 +488,7 @@ Expression* Parser::parsePrimary() {
         else if (accept(tok::OPER_L_BRACE)) {
             toRet = parseBlock();
         } else {
-            _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
+            reportUnexpectedCurrentToken();
             accept();
         }
         break;
@@ -589,8 +594,13 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
         res = _mngr.New<FunctionCall>(left, nullptr, parseTuple());
     } else if (accept(tok::OPER_L_BRACKET)) {
         TypeTuple* typeArgs = parseTypeTuple();
-        expect(tok::OPER_L_PAREN, "`(`");
-        res = _mngr.New<FunctionCall>(left, typeArgs, parseTuple());
+        if (accept(tok::OPER_L_PAREN)) {
+            res = _mngr.New<FunctionCall>(left, typeArgs, parseTuple());
+        } else if (TypeExpression* typeLeft = ast::ASTExpr2TypeExpr::convert(left, _ctx)) {
+            res = parseTypeBinary(_mngr.New<TypeConstructorCall>(typeLeft, typeArgs), tok::Operator(tok::OPER_L_BRACKET).getPrecedence(), true);
+        } else {
+            reportUnexpectedCurrentToken();
+        }
     } else if (accept(tok::OPER_FAT_ARROW)) {
         std::vector<Annotation*> annots(std::move(consumeAnnotations()));
         res = _mngr.New<FunctionCreation>(
@@ -767,7 +777,7 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
         } else if (accept(tok::OPER_L_PAREN)) {
             parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression*>(exprs, [&](){return parseTypeExpression();});
         } else {
-            _ctx->reporter().error(*_currentToken, "Unexpected token `"+ _currentToken->toString() +"`");
+            reportUnexpectedCurrentToken();
             accept();
         }
         break;

@@ -8,9 +8,46 @@ module test {
 		}
 	}
 	
+	type Test2[T] => class {
+		type Inner[K] => class {
+			type Innest[M] => class {
+				a: T;
+				b: K;
+				c: M;
+				new() => {}
+			}
+		}
+	}
+	
 	def test1() => {
 		type T = Test[int];
 		x := T.Inner();
 		y: int = x.x;
+	}
+	
+	def test2() => {
+		z: int = Test[int].Inner().x;
+	}
+	
+	def test3() => {
+		type T1 = Test2;
+		type T2 = T1[int];
+		type T3 = T2.Inner;
+		type T4 = T3[real];
+		type T5 = T4.Innest;
+		type T6 = T5[string];
+		
+		x := T6();
+		a: int = x.a;
+		b: real = x.b;
+		c: string = x.c;
+	}
+	
+	def test4() => {
+		x := Test2[int].Inner[real].Innest[string]();
+		
+		a: int = x.a;
+		b: real = x.b;
+		c: string = x.c;
 	}
 }

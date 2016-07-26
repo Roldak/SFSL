@@ -81,6 +81,8 @@ private:
     template<typename T>
     T* as();
 
+    void reportUnexpectedCurrentToken();
+
     // Parsing
 
     template<typename T>
