@@ -148,6 +148,8 @@ private:
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
     ast::Identifier* parseOperatorsAsIdentifer();
 
+    void desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std::vector<DefineDecl*>& defs);
+
     // Members
 
     std::vector<Annotation*> _parsedAnnotations;

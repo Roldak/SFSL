@@ -236,6 +236,9 @@ ClassDecl* Parser::parseClass(bool isAbstractClass) {
     SAVE_POS(startPos)
 
     std::vector<Annotation*> annots(std::move(consumeAnnotations()));
+    std::vector<TypeDecl*> tdecls;
+    std::vector<TypeSpecifier*> fields;
+    std::vector<DefineDecl*> defs;
 
     std::string className = _currentTypeName.empty() ? AnonymousClassName : _currentTypeName;
     TypeExpression* parent = nullptr;
@@ -245,13 +248,13 @@ ClassDecl* Parser::parseClass(bool isAbstractClass) {
         accept();
     }
 
+    if (accept(tok::OPER_L_PAREN)) {
+        desugarTrivialConstructor(fields, defs);
+    }
+
     if (accept(tok::OPER_COLON)) {
         parent = parseTypeExpression();
     }
-
-    std::vector<TypeDecl*> tdecls;
-    std::vector<TypeSpecifier*> fields;
-    std::vector<DefineDecl*> defs;
 
     if (accept(tok::OPER_L_BRACE)) {
         while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
@@ -1070,6 +1073,56 @@ Identifier* Parser::parseOperatorsAsIdentifer() {
     id->setPos(startPos);
     id->setEndPos(_lastTokenEndPos);
     return id;
+}
+
+void Parser::desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std::vector<DefineDecl*>& defs) {
+    // desugaring
+    SAVE_POS(startPos)
+
+    std::vector<Expression*> args;
+    std::vector<Expression*> body;
+    do {
+        // ADD FIELD
+        Identifier* fieldName = parseIdentifier("Expected field name");
+        expect(tok::OPER_COLON, "`:`");
+
+        TypeExpression* tp = parseTypeExpression();
+
+        TypeSpecifier* field = _mngr.New<TypeSpecifier>(fieldName, tp);
+        field->setPos(*fieldName);
+        field->setEndPos(_lastTokenEndPos);
+
+        fields.push_back(field);
+
+        // CREATE ARG
+
+        Identifier* argName = _mngr.New<Identifier>(fieldName->getValue() + "$arg");
+        argName->setPos(*fieldName);
+
+        TypeSpecifier* arg = _mngr.New<TypeSpecifier>(argName, tp);
+        arg->setPos(*field);
+
+        args.push_back(arg);
+
+        // CREATE ASSIGNMENT
+
+        body.push_back(_mngr.New<AssignmentExpression>(fieldName, argName));
+
+    } while (accept(tok::OPER_COMMA) && !accept(tok::TOK_EOF));
+
+    expect(tok::OPER_R_PAREN, "`)`");
+
+    FunctionCreation* func = _mngr.New<FunctionCreation>("new", nullptr, _mngr.New<Tuple>(args), _mngr.New<Block>(body), nullptr);
+    Identifier* constrName = _mngr.New<Identifier>("new");
+    DefineDecl* constrDecl = _mngr.New<DefineDecl>(constrName, nullptr, func, false, false, false);
+
+    common::Positionnable constrPos(startPos.getStartPosition(), _lastTokenEndPos, startPos.getSourceName());
+
+    func->setPos(constrPos);
+    constrName->setPos(constrPos);
+    constrDecl->setPos(constrPos);
+
+    defs.push_back(constrDecl);
 }
 
 }
