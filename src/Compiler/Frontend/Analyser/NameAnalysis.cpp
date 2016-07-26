@@ -173,7 +173,7 @@ void ScopeGeneration::visit(DefineDecl* def) {
     if (def->getName()->getValue() == "new" &&
         def->getValue() &&
         !isNodeOfType<FunctionCreation>(def->getValue(), _ctx)) {
-        _ctx->reporter().error(*def, "Right-hand side of a constructor must be a function creation");
+        _ctx->reporter().error(*def, "A constructor must be a function");
     }
 
     ASTImplicitVisitor::visit(def);
@@ -669,11 +669,19 @@ void SymbolAssignation::updateSubtypeRelations(ClassDecl* clss) {
     clss->CanSubtypeClasses::updateParents();
 }
 
+bool isSupposedToBeUnused(const std::string& name) {
+    if (name.size() >= 7) {
+        if (name.substr(0, 7) == "unused_") {
+            return true;
+        }
+    }
+    return false;
+}
+
 void SymbolAssignation::warnForUnusedVariableInCurrentScope() {
     for (const auto& s : _curScope->getAllSymbols()) {
-        if (s.second.symbol->getSymbolType() == sym::SYM_VAR) {
-            sym::VariableSymbol* var = static_cast<sym::VariableSymbol*>(s.second.symbol);
-            if (!var->isUsed() && var->getName() != "_") {
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(s.second.symbol)) {
+            if (!var->isUsed() && !isSupposedToBeUnused(var->getName())) {
                 _ctx->reporter().warning(*var, "Unused variable '" + var->getName() + "'");
             }
         }

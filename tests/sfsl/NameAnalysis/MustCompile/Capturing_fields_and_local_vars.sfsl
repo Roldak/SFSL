@@ -18,7 +18,7 @@ module test {
     
     def test3() => {
         x: int;
-        f := () => x;
+        unused_f := () => x;
         
         type Inner = class {
             def f() => x
