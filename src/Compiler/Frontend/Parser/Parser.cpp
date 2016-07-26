@@ -1081,36 +1081,39 @@ void Parser::desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std:
 
     std::vector<Expression*> args;
     std::vector<Expression*> body;
-    do {
-        // ADD FIELD
-        Identifier* fieldName = parseIdentifier("Expected field name");
-        expect(tok::OPER_COLON, "`:`");
 
-        TypeExpression* tp = parseTypeExpression();
+    if (!accept(tok::OPER_R_PAREN)) {
+        do {
+            // ADD FIELD
+            Identifier* fieldName = parseIdentifier("Expected field name");
+            expect(tok::OPER_COLON, "`:`");
 
-        TypeSpecifier* field = _mngr.New<TypeSpecifier>(fieldName, tp);
-        field->setPos(*fieldName);
-        field->setEndPos(_lastTokenEndPos);
+            TypeExpression* tp = parseTypeExpression();
 
-        fields.push_back(field);
+            TypeSpecifier* field = _mngr.New<TypeSpecifier>(fieldName, tp);
+            field->setPos(*fieldName);
+            field->setEndPos(_lastTokenEndPos);
 
-        // CREATE ARG
+            fields.push_back(field);
 
-        Identifier* argName = _mngr.New<Identifier>(fieldName->getValue() + "$arg");
-        argName->setPos(*fieldName);
+            // CREATE ARG
 
-        TypeSpecifier* arg = _mngr.New<TypeSpecifier>(argName, tp);
-        arg->setPos(*field);
+            Identifier* argName = _mngr.New<Identifier>(fieldName->getValue() + "$arg");
+            argName->setPos(*fieldName);
 
-        args.push_back(arg);
+            TypeSpecifier* arg = _mngr.New<TypeSpecifier>(argName, tp);
+            arg->setPos(*field);
 
-        // CREATE ASSIGNMENT
+            args.push_back(arg);
 
-        body.push_back(_mngr.New<AssignmentExpression>(fieldName, argName));
+            // CREATE ASSIGNMENT
 
-    } while (accept(tok::OPER_COMMA) && !accept(tok::TOK_EOF));
+            body.push_back(_mngr.New<AssignmentExpression>(fieldName, argName));
 
-    expect(tok::OPER_R_PAREN, "`)`");
+        } while (accept(tok::OPER_COMMA) && !accept(tok::TOK_EOF));
+
+        expect(tok::OPER_R_PAREN, "`)`");
+    }
 
     FunctionCreation* func = _mngr.New<FunctionCreation>("new", nullptr, _mngr.New<Tuple>(args), _mngr.New<Block>(body), nullptr);
     Identifier* constrName = _mngr.New<Identifier>("new");
