@@ -1,0 +1,16 @@
+module test {
+	using sfsl.lang
+	
+	type Test[T] => class {
+		type Inner = class {
+			x: T;
+			new() => {}
+		}
+	}
+	
+	def test1() => {
+		type T = Test[int];
+		x := T.Inner();
+		y: int = x.x;
+	}
+}

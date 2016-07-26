@@ -1,0 +1,14 @@
+module test {
+	using sfsl.lang
+	type test_A = [T] => class {
+		type test_B = class {
+			
+		}
+	}
+	
+	def test() => {
+		type T1 = test_A;
+		type T2 = T1[int];
+		assert_same_sym("test_B_0", T2.test_B);
+	}
+}

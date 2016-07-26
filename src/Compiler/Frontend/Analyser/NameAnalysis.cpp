@@ -13,6 +13,7 @@
 #include "../AST/Visitors/ASTSymbolExtractor.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTKindCreator.h"
+#include "../AST/Visitors/ASTExpr2TypeExpr.h"
 
 //#define DEBUG_DEPENDENCIES
 
@@ -549,12 +550,12 @@ void SymbolAssignation::visit(FunctionCall* call) {
     ASTImplicitVisitor::visit(call);
 
     if (sym::Symbol* s = ASTSymbolExtractor::extractSymbol(call->getCallee(), _ctx)) {
-        if (sym::TypeSymbol* tpsym = sym::getIfSymbolOfType<sym::TypeSymbol>(s)) {
-            TypeIdentifier* tid = _mngr.New<TypeIdentifier>(tpsym->getName());
-            tid->setPos(*call->getCallee());
-            tid->setSymbol(tpsym);
-
-            TypeExpression* expr = tid;
+        if (s->getSymbolType() == sym::SYM_TPE) {
+            TypeExpression* expr = ASTExpr2TypeExpr::convert(call->getCallee(), _ctx);
+            if (!expr) {
+                _ctx->reporter().fatal(*call->getCallee(), "Expression cannot be converted to a type expression");
+                return;
+            }
 
             if (call->getTypeArgsTuple()) {
                 expr = _mngr.New<TypeConstructorCall>(expr, call->getTypeArgsTuple());
