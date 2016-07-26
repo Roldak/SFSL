@@ -467,8 +467,6 @@ Expression* Parser::parsePrimary() {
             shouldReportAnnotations = false;
         }
         else if (accept(tok::OPER_L_BRACKET)) {
-            SAVE_POS(pos)
-
             std::vector<Annotation*> annots(std::move(consumeAnnotations()));
 
             TypeTuple* typeParams = parseTypeParameters();
@@ -485,12 +483,26 @@ Expression* Parser::parsePrimary() {
             toRet = _mngr.New<FunctionCreation>(_currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
                                                typeParams, args, parseExpression(), retType);
             static_cast<FunctionCreation*>(toRet)->setAnnotations(annots);
-            toRet->setPos(pos);
+            toRet->setPos(startPos);
             toRet->setEndPos(_lastTokenEndPos);
         }
         else if (accept(tok::OPER_L_BRACE)) {
             toRet = parseBlock();
-        } else {
+        }
+        else if (accept(tok::OPER_FAT_ARROW)) {
+            std::vector<Annotation*> annots(std::move(consumeAnnotations()));
+
+            Tuple* args = _mngr.New<Tuple>(std::vector<Expression*>());
+            args->setPos(startPos);
+            toRet = _mngr.New<FunctionCreation>(_currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
+                                               nullptr, args, parseExpression(), nullptr);
+
+            static_cast<FunctionCreation*>(toRet)->setAnnotations(annots);
+
+            toRet->setPos(startPos);
+            toRet->setEndPos(_lastTokenEndPos);
+        }
+        else {
             reportUnexpectedCurrentToken();
             accept();
         }
@@ -779,6 +791,8 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
             }
         } else if (accept(tok::OPER_L_PAREN)) {
             parseTuple<TypeTuple, tok::OPER_R_PAREN, TypeExpression*>(exprs, [&](){return parseTypeExpression();});
+        } else if (accept(tok::OPER_THIN_ARROW)) {
+            exprs.push_back(createFunctionTypeDecl(nullptr, {}, parseTypeExpression(allowTypeConstructor)));
         } else {
             reportUnexpectedCurrentToken();
             accept();
