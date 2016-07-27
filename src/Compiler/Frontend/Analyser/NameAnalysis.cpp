@@ -789,11 +789,11 @@ void UsageAnalysis::visit(FunctionCreation* func) {
 void UsageAnalysis::visit(Identifier* id) {
     if (sym::VariableSymbol* var = getVariableSymbol(id)) {
         if (!var->getProperty(UsageTrackable::DECLARED)) {
-            _ctx->reporter().error(*id, "Variable `" + id->getValue() + "` is used before being declared");
-        } else if (!var->getProperty(UsageTrackable::INITIALIZED)) {
-            _ctx->reporter().error(*id, "Variable `" + id->getValue() + "` is used before being initialized");
-        }
-        if (var->getProperty(UsageTrackable::USABLE)) {
+            _ctx->reporter().error(*id, "Variable `" + id->getValue() + "` is used or assigned before being declared");
+        } else if (var->getProperty(UsageTrackable::USABLE)) {
+            if (!var->getProperty(UsageTrackable::INITIALIZED)) {
+                _ctx->reporter().error(*id, "Variable `" + id->getValue() + "` is used before being initialized");
+            }
             var->setProperty(UsageTrackable::USED);
         }
     }
