@@ -30,9 +30,19 @@ protected:
 public:
 
     /**
+     * @brief Sets the initialized state to the given value
+     */
+    void setInitialized(bool val);
+
+    /**
      * @brief Sets the used state to the given value
      */
     void setUsed(bool val);
+
+    /**
+     * @return True if the object has been initialized, otherwise false
+     */
+    bool isInitialized() const;
 
     /**
      * @return True if the object has been used, otherwise false
@@ -41,6 +51,7 @@ public:
 
 private:
 
+    bool _initialized;
     bool _used;
 };
 

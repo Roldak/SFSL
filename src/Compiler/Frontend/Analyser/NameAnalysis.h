@@ -134,9 +134,10 @@ public:
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
     virtual void visit(TypeIdentifier* tident) override;
 
+    virtual void visit(AssignmentExpression* aex) override;
     virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(Block* block) override;
-    virtual void visit(MemberAccess* mac) override;
+    virtual void visit(MemberAccess* dot) override;
     virtual void visit(FunctionCreation* func) override;
     virtual void visit(FunctionCall* call) override;
     virtual void visit(Identifier* id) override;
@@ -162,6 +163,8 @@ private:
 
     void warnForUnusedVariableInCurrentScope();
 
+    bool _insideAssignmentExpression;
+    bool _isAssignableExpression;
     std::set<TypeExpression*> _temporarilyVisitedTypes;
     std::set<TypeExpression*> _visitedTypes;
 };

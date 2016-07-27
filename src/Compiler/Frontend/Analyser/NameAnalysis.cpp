@@ -14,6 +14,7 @@
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTKindCreator.h"
 #include "../AST/Visitors/ASTExpr2TypeExpr.h"
+#include "../AST/Visitors/ASTAssignmentChecker.h"
 
 //#define DEBUG_DEPENDENCIES
 
@@ -76,6 +77,10 @@ template<typename T>
 void ScopePossessorVisitor::setVariableSymbolicUsed(T* symbolic, bool val) {
     if (sym::Symbol* s = symbolic->getSymbol()) {
         if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(s)) {
+            if (val && !var->isInitialized()) {
+                var->setInitialized(true);
+                _ctx->reporter().error(*symbolic, "Variable `" + var->getName() + "` is used before being initialized");
+            }
             var->setUsed(val);
         }
     }
@@ -513,6 +518,20 @@ void SymbolAssignation::visit(TypeConstructorCreation* tc) {
 
 void SymbolAssignation::visit(TypeIdentifier* id) {
     assignIdentifier(id);
+}
+
+void SymbolAssignation::visit(AssignmentExpression* aex ) {
+    aex->getLhs()->onVisit(this);
+    aex->getRhs()->onVisit(this);
+
+    std::vector<sym::VariableSymbol*> assignedVars = ASTAssignmentChecker::getAssignedVars(aex->getLhs(), _ctx);
+    if (assignedVars.empty()) {
+        _ctx->reporter().error(*aex->getLhs(), "This expression is not assignable");
+    }
+
+    for (sym::VariableSymbol* var : assignedVars) {
+        var->setInitialized(true);
+    }
 }
 
 void SymbolAssignation::visit(TypeSpecifier* tps) {

@@ -36,20 +36,26 @@ public:
     virtual void visit(Tuple* tuple) override;
     virtual void visit(Identifier* ident) override;
 
-    bool isValid() const;
+    std::vector<sym::VariableSymbol*> get() const;
 
     /**
-     * @brief Checks if a given expression is assignable or not
+     * @brief Checks if a given expression is assignable or not,
+     * and returns all the variable symbols that are assigned by
+     * the expression. If there are 0, then the expression is not
+     * assignable.
      *
      * @param node The node to check
      * @param ctx The compilation context
-     * @return true if the given node is assignable
+     * @return All the variable symbols that are assigned. (0 if expression is not valid)
      */
-    static bool isExpressionAssignable(ASTNode* node, CompCtx_Ptr& ctx);
+    static std::vector<sym::VariableSymbol*> getAssignedVars(ASTNode* node, CompCtx_Ptr& ctx);
 
 protected:
 
+    void visitSymbolic(sym::Symbolic<sym::Symbol>* symbolic);
+
     bool _isValid;
+    std::vector<sym::VariableSymbol*> _assignedVars;
 };
 
 }

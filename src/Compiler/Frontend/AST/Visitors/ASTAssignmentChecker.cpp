@@ -13,7 +13,7 @@ namespace sfsl {
 namespace ast {
 
 ASTAssignmentChecker::ASTAssignmentChecker(CompCtx_Ptr& ctx)
-    : ASTExplicitVisitor(ctx), _isValid(false) {
+    : ASTExplicitVisitor(ctx), _isValid(true) {
 
 }
 
@@ -37,12 +37,11 @@ void ASTAssignmentChecker::visit(IfExpression* ifexpr) {
     ifexpr->getElse()->onVisit(this);
     bool isElseValid = _isValid;
 
-    _isValid = isThenValid && isElseValid;
+    _isValid &= isThenValid & isElseValid;
 }
 
 void ASTAssignmentChecker::visit(MemberAccess* dot) {
-    _isValid = dot->getSymbol()
-            && dot->getSymbol()->getSymbolType() == sym::SYM_VAR;
+    visitSymbolic(dot);
 }
 
 void ASTAssignmentChecker::visit(Tuple* tuple) {
@@ -55,19 +54,32 @@ void ASTAssignmentChecker::visit(Tuple* tuple) {
     }
 }
 
-void ASTAssignmentChecker::visit(Identifier* id) {
-    _isValid = id->getSymbol()
-            && id->getSymbol()->getSymbolType() == sym::SYM_VAR;
+void ASTAssignmentChecker::visit(Identifier* ident) {
+    visitSymbolic(ident);
 }
 
-bool ASTAssignmentChecker::isValid() const {
-    return _isValid;
+void ASTAssignmentChecker::visitSymbolic(sym::Symbolic<sym::Symbol>* symbolic) {
+    if (symbolic->getSymbol()) {
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(symbolic->getSymbol())) {
+            _assignedVars.push_back(var);
+            return;
+        }
+    }
+    _isValid = false;
 }
 
-bool ASTAssignmentChecker::isExpressionAssignable(ASTNode* node, CompCtx_Ptr& ctx) {
+std::vector<sym::VariableSymbol*> ASTAssignmentChecker::get() const {
+    if (_isValid) {
+        return _assignedVars;
+    } else {
+        return std::vector<sym::VariableSymbol*>();
+    }
+}
+
+std::vector<sym::VariableSymbol*> ASTAssignmentChecker::getAssignedVars(ASTNode* node, CompCtx_Ptr& ctx) {
     ASTAssignmentChecker checker(ctx);
     node->onVisit(&checker);
-    return checker.isValid();
+    return checker.get();
 }
 
 }

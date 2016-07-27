@@ -12,7 +12,6 @@
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTSymbolExtractor.h"
-#include "../AST/Visitors/ASTAssignmentChecker.h"
 #include "../Symbols/Scope.h"
 
 #include "../../../Utils/TakeSecondIterator.h"
@@ -256,10 +255,6 @@ void TypeChecking::visit(ExpressionStatement* exp) {
 
 void TypeChecking::visit(AssignmentExpression* aex) {
     ASTImplicitVisitor::visit(aex);
-
-    if (!ASTAssignmentChecker::isExpressionAssignable(aex->getLhs(), _ctx)) {
-        _rep.error(*aex, "Left hand side is not an assignable expression");
-    }
 
     type::Type* lhsT = aex->getLhs()->type();
     type::Type* rhsT = aex->getRhs()->type();

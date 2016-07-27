@@ -12,10 +12,18 @@ namespace sfsl {
 
 namespace ast {
 
-UsageTrackable::UsageTrackable() : _used(false) {}
+UsageTrackable::UsageTrackable() : _initialized(false), _used(false) {}
+
+void UsageTrackable::setInitialized(bool val) {
+    _initialized = val;
+}
 
 void UsageTrackable::setUsed(bool val) {
     _used = val;
+}
+
+bool UsageTrackable::isInitialized() const {
+    return _initialized;
 }
 
 bool UsageTrackable::isUsed() const {
