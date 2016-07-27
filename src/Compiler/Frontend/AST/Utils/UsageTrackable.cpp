@@ -12,22 +12,20 @@ namespace sfsl {
 
 namespace ast {
 
-UsageTrackable::UsageTrackable() : _initialized(false), _used(false) {}
-
-void UsageTrackable::setInitialized(bool val) {
-    _initialized = val;
+UsageTrackable::UsageTrackable() : _flags(0) {
+    setProperty(USABLE);
 }
 
-void UsageTrackable::setUsed(bool val) {
-    _used = val;
+void UsageTrackable::setProperty(PROPERTY_TYPE property) {
+    _flags |= property;
 }
 
-bool UsageTrackable::isInitialized() const {
-    return _initialized;
+void UsageTrackable::unsetProperty(UsageTrackable::PROPERTY_TYPE property) {
+    _flags &= ~property;
 }
 
-bool UsageTrackable::isUsed() const {
-    return _used;
+bool UsageTrackable::getProperty(PROPERTY_TYPE property) {
+    return _flags & property;
 }
 
 }

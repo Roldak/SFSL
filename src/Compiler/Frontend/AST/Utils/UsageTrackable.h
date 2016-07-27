@@ -29,30 +29,20 @@ protected:
 
 public:
 
-    /**
-     * @brief Sets the initialized state to the given value
-     */
-    void setInitialized(bool val);
+    enum PROPERTY_TYPE {
+        DECLARED    = 1 << 0,
+        INITIALIZED = 1 << 1,
+        USABLE      = 1 << 2,
+        USED        = 1 << 3
+    };
 
-    /**
-     * @brief Sets the used state to the given value
-     */
-    void setUsed(bool val);
-
-    /**
-     * @return True if the object has been initialized, otherwise false
-     */
-    bool isInitialized() const;
-
-    /**
-     * @return True if the object has been used, otherwise false
-     */
-    bool isUsed() const;
+    void setProperty(PROPERTY_TYPE property);
+    void unsetProperty(PROPERTY_TYPE property);
+    bool getProperty(PROPERTY_TYPE property);
 
 private:
 
-    bool _initialized;
-    bool _used;
+    char _flags;
 };
 
 }

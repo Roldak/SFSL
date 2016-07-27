@@ -33,7 +33,7 @@ protected:
     void initCreated(T* id, S* s);
 
     template<typename T>
-    void setVariableSymbolicUsed(T* symbolic, bool val);
+    sym::VariableSymbol* getVariableSymbol(T* symbolic);
 
     void buildUsingsFromPaths(const CanUseModules* canUseModules);
 
@@ -134,7 +134,6 @@ public:
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
     virtual void visit(TypeIdentifier* tident) override;
 
-    virtual void visit(AssignmentExpression* aex) override;
     virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(Block* block) override;
     virtual void visit(MemberAccess* dot) override;
@@ -161,12 +160,39 @@ private:
     void addSubtypeRelations(ClassDecl* clss, ClassDecl* parent);
     void updateSubtypeRelations(ClassDecl* clss);
 
-    void warnForUnusedVariableInCurrentScope();
-
     bool _insideAssignmentExpression;
     bool _isAssignableExpression;
     std::set<TypeExpression*> _temporarilyVisitedTypes;
     std::set<TypeExpression*> _visitedTypes;
+};
+
+/**
+ * @brief
+ */
+class UsageAnalysis : public ScopePossessorVisitor {
+public:
+
+    UsageAnalysis(CompCtx_Ptr& ctx);
+    virtual ~UsageAnalysis();
+
+    virtual void visit(ModuleDecl* mod) override;
+    virtual void visit(TypeDecl* tdecl) override;
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(DefineDecl* decl) override;
+    virtual void visit(FunctionTypeDecl* ftdecl) override;
+
+    virtual void visit(TypeConstructorCreation* typeconstructor) override;
+
+    virtual void visit(AssignmentExpression* aex) override;
+    virtual void visit(TypeSpecifier* tps) override;
+    virtual void visit(Block* block) override;
+    virtual void visit(MemberAccess* dot) override;
+    virtual void visit(FunctionCreation* func) override;
+    virtual void visit(Identifier* id) override;
+
+private:
+
+    void warnForUnusedVariableInCurrentScope();
 };
 
 }
