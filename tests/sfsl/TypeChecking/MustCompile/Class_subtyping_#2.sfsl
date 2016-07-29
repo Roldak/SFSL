@@ -1,15 +1,15 @@
 module test {
 	using sfsl.lang
 	
-	type A = class {}
-	type B = class : A {}
-	type C = class : B {}
+	type A = class
+	type B = class : A
+	type C = class () : B
 	
 	def f1(x: A) => ()
 	def f2(x: B) => ()
 	
 	def t1 = {
-		x: C;
+		x := C();
 		f1(x);
 		y: A = x;
 		f2(x);

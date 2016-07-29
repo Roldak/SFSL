@@ -1,4 +1,4 @@
-module Main {
+@NoUsageAnalysis module Main {
 	using sfsl.lang
 	
 	type Box[T] => class {

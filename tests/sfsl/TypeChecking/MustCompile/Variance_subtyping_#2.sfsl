@@ -1,4 +1,4 @@
-module test {
+@NoUsageAnalysis module test {
 	using sfsl.lang
 	
 	type A[out T] => class {}

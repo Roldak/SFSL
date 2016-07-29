@@ -675,6 +675,13 @@ public:
         warnForUnusedVariable();
     }
 
+    void analyse(DefineDecl* def) {
+        if (def->getValue()) {
+            def->getValue()->onVisit(this);
+            warnForUnusedVariable();
+        }
+    }
+
 protected:
 
     virtual void visit(ExpressionStatement* expr) override {
@@ -838,9 +845,18 @@ void UsageAnalysis::visit(ClassDecl* clss) {
 }
 
 void UsageAnalysis::visit(DefineDecl* def) {
-    if (checkAnnotation(def)) {
-        ASTImplicitVisitor::visit(def);
+    bool performAnalysis = true;
+
+    def->matchAnnotation<>("NoUsageAnalysis", [&]() {
+        performAnalysis = false;
+    });
+
+    if (performAnalysis) {
+        LocalUsageAnalysis analyser(_ctx);
+        analyser.analyse(def);
     }
+
+    ASTImplicitVisitor::visit(def);
 }
 
 void UsageAnalysis::visit(FunctionCreation* func) {
