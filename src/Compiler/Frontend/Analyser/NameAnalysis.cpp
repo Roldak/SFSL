@@ -821,6 +821,12 @@ UsageAnalysis::~UsageAnalysis() {
 
 }
 
+void UsageAnalysis::visit(ModuleDecl* mod) {
+    if (checkAnnotation(mod)) {
+        ASTImplicitVisitor::visit(mod);
+    }
+}
+
 void UsageAnalysis::visit(ClassDecl* clss) {
     for (TypeSpecifier* tps : clss->getFields()) {
         if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(tps->getSpecified()->getSymbol())) {
@@ -831,25 +837,35 @@ void UsageAnalysis::visit(ClassDecl* clss) {
     ASTImplicitVisitor::visit(clss);
 }
 
-void UsageAnalysis::visit(FunctionCreation* func) {
-    int performAnalysis = 2; // 0 don't, 1 don't recursively, 2 do
+void UsageAnalysis::visit(DefineDecl* def) {
+    if (checkAnnotation(def)) {
+        ASTImplicitVisitor::visit(def);
+    }
+}
 
-    func->matchAnnotation<std::string>("UsageAnalysis", [&](std::string param) {
-        if (param == "no") {
-            performAnalysis = 0;
-        } else if (param == "no_recursive") {
-            performAnalysis = 1;
-        } else {
-            performAnalysis = 2;
-        }
+void UsageAnalysis::visit(FunctionCreation* func) {
+    bool performAnalysis = true;
+
+    func->matchAnnotation<>("NoUsageAnalysis", [&]() {
+        performAnalysis = false;
     });
 
-    if (performAnalysis == 2) {
+    if (performAnalysis) {
         LocalUsageAnalysis analyser(_ctx);
         analyser.analyse(func);
-    } else if (performAnalysis == 0) {
-        ASTImplicitVisitor::visit(func);
     }
+
+    ASTImplicitVisitor::visit(func);
+}
+
+bool UsageAnalysis::checkAnnotation(Annotable* annotableNode) const {
+    bool performAnalysis = true;
+
+    annotableNode->matchAnnotation<>("NoUsageAnalysis", [&]() {
+        performAnalysis = false;
+    });
+
+    return performAnalysis;
 }
 
 }

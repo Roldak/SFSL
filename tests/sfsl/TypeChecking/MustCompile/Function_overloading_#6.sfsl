@@ -1,19 +1,17 @@
 module test {
 	using sfsl.lang
 	
-	type Box[T] => class {
-		x: T;
-	}
+	type Box[T] => class (x: T)
 	
-	type Test = class {
+	type Test = class () {
 		def f(x: Box[int], y: Box[real]) => 42
-		def f(x: Box[real], y: Box[int]) => 3.14
+		def f(x: Box[real], y: Box[int]) => 3.1415
 	}
 	
 	def main()->int => {
-		x: Box[int];
-		y: Box[real];
-		t: Test;
+		x := Box[int](42);
+		y := Box[real](3.1415);
+		t := Test();
 		t.f(x, y);
 	}
 }

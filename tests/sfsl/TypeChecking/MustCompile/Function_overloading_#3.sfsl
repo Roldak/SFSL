@@ -1,21 +1,21 @@
 module test {
 	using sfsl.lang
 	
-	type R1 = class {}
-	type R2 = class {}
-	type R3 = class {}
-	type R4 = class {}
-	type R5 = class {}
-	type R6 = class {}
-	type R7 = class {}
+	type R1 = class ()
+	type R2 = class ()
+	type R3 = class ()
+	type R4 = class ()
+	type R5 = class ()
+	type R6 = class ()
+	type R7 = class ()
 	
-	def f() => {r: R1; r;}
-	def f(x: int) => {r: R2; r;}
-	def f(x: real) => {r: R3; r;}
-	def f(x: int, y: int) => {r: R4; r;}
-	def f(x: real, y: real) => {r: R5; r;}
-	def f(x: int, y: real) => {r: R6; r;}
-	def f(x: real, y: int) => {r: R7; r;}
+	def f() => {r := R1(); r;}
+	def f(x: int) => {r := R2(); r;}
+	def f(x: real) => {r := R3(); r;}
+	def f(x: int, y: int) => {r := R4(); r;}
+	def f(x: real, y: real) => {r := R5(); r;}
+	def f(x: int, y: real) => {r := R6(); r;}
+	def f(x: real, y: int) => {r := R7(); r;}
 	
 	def t1: R1 = f()
 	def t2: R2 = f(2)

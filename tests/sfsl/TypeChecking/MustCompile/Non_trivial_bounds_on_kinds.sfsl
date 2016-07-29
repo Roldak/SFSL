@@ -24,12 +24,10 @@ module test {
         CommittedType();
     }
     
-    type Array[T] => class : Filterable[Array] {
-        
-    }
+    type Array[T] => class () : Filterable[Array]
     
     def main() => {
-        t: Array[Transaction];
+        t := Array[Transaction]();
         Committed.from[Array](t);
     }
 }

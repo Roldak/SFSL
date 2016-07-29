@@ -38,7 +38,7 @@ module test {
     
     type MyList = ConsNumber[One, ConsNumber[Three, ConsNumber[Three, NilNumber]]]
     
-    def main() => {
+    def main = @NoUsageAnalysis () => {
         x: Three[int][Box]; // Box[Box[Box[int]]]
         y: Mul[Two, Three][int][Box]; // Box[Box[Box[Box[Box[Box[int]]]]]]
         z: ListSum[MyList][int][Box]; // Box[Box[Box[Box[Box[Box[Box[int]]]]]]]

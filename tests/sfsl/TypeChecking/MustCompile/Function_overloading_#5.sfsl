@@ -1,4 +1,4 @@
-module test {
+@NoUsageAnalysis module test {
 	type R1 = class {}
 	type R2 = class {}
 	type R3 = class {}

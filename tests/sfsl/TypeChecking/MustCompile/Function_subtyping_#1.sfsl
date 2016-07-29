@@ -1,16 +1,16 @@
 module test {
 	using sfsl.lang
 	
-	type A = class {}
-	type B = class : A {}
+	type A = class
+	type B = class () : A
 	
 	def f1(x: A) => {
-		y: B;
+		y := B();
 		y;
 	}
 	
 	def f2(f: B->A, x: A)->B => {
-		y: B;
+		y := B();
 		y;
 	}
 	

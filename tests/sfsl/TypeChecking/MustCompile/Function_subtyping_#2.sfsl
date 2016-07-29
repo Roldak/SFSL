@@ -1,12 +1,12 @@
 module test {
 	using sfsl.lang
 	
-	type A[out T] => class {}
-	type B[T] => class : A[T] {}
+	type A[out T] => class
+	type B[T] => class() : A[T]
 	
 	def f1(x: A[int]) => x
 	def f2(x: A[A[int]]) => {
-		r: B[int];
+		r := B[int]();
 		r;
 	}
 	
