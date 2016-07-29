@@ -170,6 +170,7 @@ public:
     UsageAnalysis(CompCtx_Ptr& ctx);
     virtual ~UsageAnalysis();
 
+    virtual void visit(ClassDecl* clss) override;
     virtual void visit(FunctionCreation* func) override;
 };
 

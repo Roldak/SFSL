@@ -821,6 +821,17 @@ UsageAnalysis::~UsageAnalysis() {
 
 }
 
+void UsageAnalysis::visit(ClassDecl* clss) {
+    for (TypeSpecifier* tps : clss->getFields()) {
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(tps->getSpecified()->getSymbol())) {
+            var->setProperty(UsageTrackable::DECLARED);
+            var->setProperty(UsageTrackable::INITIALIZED);
+        }
+    }
+
+    ASTImplicitVisitor::visit(clss);
+}
+
 void UsageAnalysis::visit(FunctionCreation* func) {
     LocalUsageAnalysis analyser(_ctx);
     analyser.analyse(func);
