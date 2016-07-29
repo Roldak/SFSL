@@ -690,15 +690,15 @@ protected:
         }
 
         for (sym::VariableSymbol* var : assignedVars) {
-            var->unsetProperty(UsageTrackable::USABLE);
+            var->unsetProperty(UsageProperty::USABLE);
         }
 
         aex->getLhs()->onVisit(this);
 
         for (sym::VariableSymbol* var : assignedVars) {
-            var->setProperty(UsageTrackable::USABLE);
-            if (var->getProperty(UsageTrackable::INITIALIZED)) {
-                var->setProperty(UsageTrackable::MUTABLE);
+            var->setProperty(UsageProperty::USABLE);
+            if (var->hasProperty(UsageProperty::INITIALIZED)) {
+                var->setProperty(UsageProperty::MUTABLE);
             } else {
                 init(var);
             }
@@ -764,31 +764,31 @@ protected:
     virtual void visit(Identifier* ident) override {
         if (sym::Symbol* s = ident->getSymbol()) {
             if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(s)) {
-                if (!var->getProperty(UsageTrackable::DECLARED)) {
+                if (!var->hasProperty(UsageProperty::DECLARED)) {
                     _ctx->reporter().error(*ident, "Variable `" + ident->getValue() + "` is used or assigned before being declared");
-                } else if (var->getProperty(UsageTrackable::USABLE)) {
-                    if (!var->getProperty(UsageTrackable::INITIALIZED)) {
+                } else if (var->hasProperty(UsageProperty::USABLE)) {
+                    if (!var->hasProperty(UsageProperty::INITIALIZED)) {
                         _ctx->reporter().error(*ident, "Variable `" + ident->getValue() + "` is used before being initialized");
                     }
-                    var->setProperty(UsageTrackable::USED);
+                    var->setProperty(UsageProperty::USED);
                 }
             }
         }
     }
 
     void declare(sym::VariableSymbol* var) {
-        var->setProperty(UsageTrackable::DECLARED);
+        var->setProperty(UsageProperty::DECLARED);
         _declaredVars.push_back(var);
     }
 
     void init(sym::VariableSymbol* var) {
-        var->setProperty(UsageTrackable::INITIALIZED);
+        var->setProperty(UsageProperty::INITIALIZED);
         _initCurScope.push_back(var);
     }
 
     void uninit(const std::vector<sym::VariableSymbol*>& vars) {
         for (sym::VariableSymbol* var : vars) {
-            var->unsetProperty(UsageTrackable::INITIALIZED);
+            var->unsetProperty(UsageProperty::INITIALIZED);
         }
     }
 
@@ -803,7 +803,7 @@ protected:
 
     void warnForUnusedVariable() {
         for (sym::VariableSymbol* var : _declaredVars) {
-            if (!var->getProperty(UsageTrackable::USED) && !isSupposedToBeUnused(var->getName())) {
+            if (!var->hasProperty(UsageProperty::USED) && !isSupposedToBeUnused(var->getName())) {
                 _ctx->reporter().warning(*var, "Unused variable '" + var->getName() + "'");
             }
         }
@@ -824,8 +824,7 @@ UsageAnalysis::~UsageAnalysis() {
 void UsageAnalysis::visit(ClassDecl* clss) {
     for (TypeSpecifier* tps : clss->getFields()) {
         if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(tps->getSpecified()->getSymbol())) {
-            var->setProperty(UsageTrackable::DECLARED);
-            var->setProperty(UsageTrackable::INITIALIZED);
+            var->setProperty(UsageProperty::DECLARED | UsageProperty::INITIALIZED | UsageProperty::USED);
         }
     }
 
