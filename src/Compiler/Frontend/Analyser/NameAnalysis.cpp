@@ -73,14 +73,6 @@ void ScopePossessorVisitor::initCreated(T* id, S* s) {
     tryAddSymbol(s);
 }
 
-template<typename T>
-sym::VariableSymbol* ScopePossessorVisitor::getVariableSymbol(T* symbolic) {
-    if (sym::Symbol* s = symbolic->getSymbol()) {
-        return sym::getIfSymbolOfType<sym::VariableSymbol>(s);
-    }
-    return nullptr;
-}
-
 void ScopePossessorVisitor::pushPathPart(const std::string& name) {
     _symbolPath.push_back(name);
 }
@@ -665,7 +657,163 @@ void SymbolAssignation::updateSubtypeRelations(ClassDecl* clss) {
 
 // USAGE ANALYSIS
 
-UsageAnalysis::UsageAnalysis(CompCtx_Ptr& ctx) : ScopePossessorVisitor(ctx) {
+class LocalUsageAnalysis : ASTExplicitVisitor {
+public:
+
+    LocalUsageAnalysis(CompCtx_Ptr& ctx) : ASTExplicitVisitor(ctx) {}
+
+    virtual ~LocalUsageAnalysis() {}
+
+    void analyse(FunctionCreation* func) {
+        for (sym::VariableSymbol* var : ASTAssignmentChecker::getAssignedVars(func->getArgs(), _ctx)) {
+            var->setProperty(UsageTrackable::DECLARED);
+            var->setProperty(UsageTrackable::INITIALIZED);
+        }
+
+        func->getBody()->onVisit(this);
+
+        warnForUnusedVariable();
+    }
+
+protected:
+
+    virtual void visit(ExpressionStatement* expr) override {
+        expr->getExpression()->onVisit(this);
+    }
+
+    virtual void visit(AssignmentExpression* aex) override {
+        aex->getRhs()->onVisit(this);
+
+        std::vector<sym::VariableSymbol*> assignedVars = ASTAssignmentChecker::getAssignedVars(aex->getLhs(), _ctx);
+        if (assignedVars.empty()) {
+            _ctx->reporter().error(*aex->getLhs(), "This expression is not assignable");
+        }
+
+        for (sym::VariableSymbol* var : assignedVars) {
+            var->unsetProperty(UsageTrackable::USABLE);
+        }
+
+        aex->getLhs()->onVisit(this);
+
+        for (sym::VariableSymbol* var : assignedVars) {
+            var->setProperty(UsageTrackable::USABLE);
+            if (var->getProperty(UsageTrackable::INITIALIZED)) {
+                var->setProperty(UsageTrackable::MUTABLE);
+            } else {
+                init(var);
+            }
+        }
+    }
+
+    virtual void visit(TypeSpecifier* tps) override {
+        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(tps->getSpecified()->getSymbol())) {
+            declare(var);
+        }
+    }
+
+    virtual void visit(Block* block) override {
+        for (Expression* expr : block->getStatements()) {
+            expr->onVisit(this);
+        }
+    }
+
+    virtual void visit(IfExpression* ifexpr) override {
+        ifexpr->getCondition()->onVisit(this);
+        SAVE_MEMBER(_initCurScope)
+
+        _initCurScope.clear();
+
+        ifexpr->getThen()->onVisit(this);
+        std::vector<sym::VariableSymbol*> thenInits = std::move(_initCurScope);
+        uninit(thenInits);
+
+        _initCurScope.clear();
+
+        if (ifexpr->getElse()) {
+            ifexpr->getElse()->onVisit(this);
+        }
+        std::vector<sym::VariableSymbol*> elseInits = std::move(_initCurScope);
+        uninit(elseInits);
+
+        RESTORE_MEMBER(_initCurScope)
+
+        for (sym::VariableSymbol* thenInit : thenInits) {
+            for (sym::VariableSymbol* elseInit : elseInits) {
+                if (thenInit == elseInit) {
+                    init(thenInit);
+                }
+            }
+        }
+    }
+
+    virtual void visit(MemberAccess* dot) override {
+        dot->getAccessed()->onVisit(this);
+    }
+
+    virtual void visit(Tuple* tuple) override {
+        for (Expression* expr : tuple->getExpressions()) {
+            expr->onVisit(this);
+        }
+    }
+
+    virtual void visit(FunctionCall* call) override {
+        call->getCallee()->onVisit(this);
+        call->getArgsTuple()->onVisit(this);
+    }
+
+    virtual void visit(Identifier* ident) override {
+        if (sym::Symbol* s = ident->getSymbol()) {
+            if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(s)) {
+                if (!var->getProperty(UsageTrackable::DECLARED)) {
+                    _ctx->reporter().error(*ident, "Variable `" + ident->getValue() + "` is used or assigned before being declared");
+                } else if (var->getProperty(UsageTrackable::USABLE)) {
+                    if (!var->getProperty(UsageTrackable::INITIALIZED)) {
+                        _ctx->reporter().error(*ident, "Variable `" + ident->getValue() + "` is used before being initialized");
+                    }
+                    var->setProperty(UsageTrackable::USED);
+                }
+            }
+        }
+    }
+
+    void declare(sym::VariableSymbol* var) {
+        var->setProperty(UsageTrackable::DECLARED);
+        _declaredVars.push_back(var);
+    }
+
+    void init(sym::VariableSymbol* var) {
+        var->setProperty(UsageTrackable::INITIALIZED);
+        _initCurScope.push_back(var);
+    }
+
+    void uninit(const std::vector<sym::VariableSymbol*>& vars) {
+        for (sym::VariableSymbol* var : vars) {
+            var->unsetProperty(UsageTrackable::INITIALIZED);
+        }
+    }
+
+    static bool isSupposedToBeUnused(const std::string& name) {
+        if (name.size() >= 7) {
+            if (name.substr(0, 7) == "unused_") {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void warnForUnusedVariable() {
+        for (sym::VariableSymbol* var : _declaredVars) {
+            if (!var->getProperty(UsageTrackable::USED) && !isSupposedToBeUnused(var->getName())) {
+                _ctx->reporter().warning(*var, "Unused variable '" + var->getName() + "'");
+            }
+        }
+    }
+
+    std::vector<sym::VariableSymbol*> _declaredVars;
+    std::vector<sym::VariableSymbol*> _initCurScope;
+};
+
+UsageAnalysis::UsageAnalysis(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx) {
 
 }
 
@@ -673,149 +821,11 @@ UsageAnalysis::~UsageAnalysis() {
 
 }
 
-
-void UsageAnalysis::visit(ModuleDecl* mod) {
-    SAVE_SCOPE(mod->getSymbol())
-
-    ASTImplicitVisitor::visit(mod);
-
-    RESTORE_SCOPE
-}
-
-void UsageAnalysis::visit(TypeDecl* tdecl) {
-    SAVE_SCOPE(tdecl->getSymbol())
-
-    ASTImplicitVisitor::visit(tdecl);
-
-    RESTORE_SCOPE
-}
-
-void UsageAnalysis::visit(ClassDecl* clss) {
-    if (clss->getParent()) {
-        clss->getParent()->onVisit(this);
-    }
-
-    SAVE_SCOPE(clss)
-
-    for (TypeDecl* tdecl: clss->getTypeDecls()) {
-        tdecl->onVisit(this);
-    }
-    for (TypeSpecifier* field : clss->getFields()) {
-        field->onVisit(this);
-    }
-    for (DefineDecl* def : clss->getDefs()) {
-        def->onVisit(this);
-    }
-
-    RESTORE_SCOPE
-}
-
-void UsageAnalysis::visit(DefineDecl* def) {
-    SAVE_SCOPE(def->getSymbol())
-
-    ASTImplicitVisitor::visit(def);
-
-    RESTORE_SCOPE
-}
-
-void UsageAnalysis::visit(FunctionTypeDecl* ftdecl) {
-    SAVE_SCOPE(ftdecl)
-
-    ASTImplicitVisitor::visit(ftdecl);
-
-    RESTORE_SCOPE
-}
-
-void UsageAnalysis::visit(TypeConstructorCreation* tc) {
-    SAVE_SCOPE(tc)
-
-    ASTImplicitVisitor::visit(tc);
-
-    RESTORE_SCOPE
-}
-
-void UsageAnalysis::visit(AssignmentExpression* aex) {
-    aex->getRhs()->onVisit(this);
-
-    std::vector<sym::VariableSymbol*> assignedVars = ASTAssignmentChecker::getAssignedVars(aex->getLhs(), _ctx);
-    if (assignedVars.empty()) {
-        _ctx->reporter().error(*aex->getLhs(), "This expression is not assignable");
-    }
-
-    for (sym::VariableSymbol* var : assignedVars) {
-        var->unsetProperty(UsageTrackable::USABLE);
-//        var->setProperty(UsageTrackable::INITIALIZED);
-    }
-
-    aex->getLhs()->onVisit(this);
-
-    for (sym::VariableSymbol* var : assignedVars) {
-        var->setProperty(UsageTrackable::INITIALIZED);
-        var->setProperty(UsageTrackable::USABLE);
-    }
-}
-
-void UsageAnalysis::visit(TypeSpecifier* tps) {
-    tps->getTypeNode()->onVisit(this);
-    if (sym::VariableSymbol* var = getVariableSymbol(tps->getSpecified())) {
-        var->setProperty(UsageTrackable::DECLARED);
-    }
-}
-
-void UsageAnalysis::visit(Block* block) {
-    SAVE_SCOPE(block)
-
-    ASTImplicitVisitor::visit(block);
-
-    warnForUnusedVariableInCurrentScope();
-
-    RESTORE_SCOPE
-}
-
-void UsageAnalysis::visit(MemberAccess* mac) {
-    ASTImplicitVisitor::visit(mac);
-}
-
 void UsageAnalysis::visit(FunctionCreation* func) {
-    SAVE_SCOPE(func)
+    LocalUsageAnalysis analyser(_ctx);
+    analyser.analyse(func);
 
     ASTImplicitVisitor::visit(func);
-
-    warnForUnusedVariableInCurrentScope();
-
-    RESTORE_SCOPE
-}
-
-void UsageAnalysis::visit(Identifier* id) {
-    if (sym::VariableSymbol* var = getVariableSymbol(id)) {
-        if (!var->getProperty(UsageTrackable::DECLARED)) {
-            _ctx->reporter().error(*id, "Variable `" + id->getValue() + "` is used or assigned before being declared");
-        } else if (var->getProperty(UsageTrackable::USABLE)) {
-            if (!var->getProperty(UsageTrackable::INITIALIZED)) {
-                _ctx->reporter().error(*id, "Variable `" + id->getValue() + "` is used before being initialized");
-            }
-            var->setProperty(UsageTrackable::USED);
-        }
-    }
-}
-
-bool isSupposedToBeUnused(const std::string& name) {
-    if (name.size() >= 7) {
-        if (name.substr(0, 7) == "unused_") {
-            return true;
-        }
-    }
-    return false;
-}
-
-void UsageAnalysis::warnForUnusedVariableInCurrentScope() {
-    for (const auto& s : _curScope->getAllSymbols()) {
-        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(s.second.symbol)) {
-            if (!var->getProperty(UsageTrackable::USED) && !isSupposedToBeUnused(var->getName())) {
-                _ctx->reporter().warning(*var, "Unused variable '" + var->getName() + "'");
-            }
-        }
-    }
 }
 
 }

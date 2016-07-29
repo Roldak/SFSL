@@ -24,7 +24,7 @@ void UsageTrackable::unsetProperty(UsageTrackable::PROPERTY_TYPE property) {
     _flags &= ~property;
 }
 
-bool UsageTrackable::getProperty(PROPERTY_TYPE property) {
+bool UsageTrackable::getProperty(PROPERTY_TYPE property) const {
     return _flags & property;
 }
 

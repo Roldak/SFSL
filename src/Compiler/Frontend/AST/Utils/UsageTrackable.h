@@ -33,12 +33,13 @@ public:
         DECLARED    = 1 << 0,
         INITIALIZED = 1 << 1,
         USABLE      = 1 << 2,
-        USED        = 1 << 3
+        USED        = 1 << 3,
+        MUTABLE     = 1 << 4
     };
 
     void setProperty(PROPERTY_TYPE property);
     void unsetProperty(PROPERTY_TYPE property);
-    bool getProperty(PROPERTY_TYPE property);
+    bool getProperty(PROPERTY_TYPE property) const;
 
 private:
 
