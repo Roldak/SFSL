@@ -666,8 +666,8 @@ public:
 
     void analyse(FunctionCreation* func) {
         for (sym::VariableSymbol* var : ASTAssignmentChecker::getAssignedVars(func->getArgs(), _ctx)) {
-            var->setProperty(UsageTrackable::DECLARED);
-            var->setProperty(UsageTrackable::INITIALIZED);
+            declare(var);
+            init(var);
         }
 
         func->getBody()->onVisit(this);
