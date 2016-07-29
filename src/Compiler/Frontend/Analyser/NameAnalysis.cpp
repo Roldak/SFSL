@@ -833,10 +833,24 @@ void UsageAnalysis::visit(ClassDecl* clss) {
 }
 
 void UsageAnalysis::visit(FunctionCreation* func) {
-    LocalUsageAnalysis analyser(_ctx);
-    analyser.analyse(func);
+    int performAnalysis = 2; // 0 don't, 1 don't recursively, 2 do
 
-    ASTImplicitVisitor::visit(func);
+    func->matchAnnotation<std::string>("UsageAnalysis", [&](std::string param) {
+        if (param == "no") {
+            performAnalysis = 0;
+        } else if (param == "no_recursive") {
+            performAnalysis = 1;
+        } else {
+            performAnalysis = 2;
+        }
+    });
+
+    if (performAnalysis == 2) {
+        LocalUsageAnalysis analyser(_ctx);
+        analyser.analyse(func);
+    } else if (performAnalysis == 0) {
+        ASTImplicitVisitor::visit(func);
+    }
 }
 
 }
