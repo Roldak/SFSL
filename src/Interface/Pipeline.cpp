@@ -35,10 +35,12 @@ public:
         ast::ScopeGeneration scopeGen(ctx);
         ast::TypeDependencyFixation typeDep(ctx);
         ast::SymbolAssignation symAssign(ctx);
+        ast::UsageAnalysis usageAnalysis(ctx);
 
         prog->onVisit(&scopeGen);
         prog->onVisit(&typeDep);
         prog->onVisit(&symAssign);
+        prog->onVisit(&usageAnalysis);
 
         return ctx->reporter().getErrorCount() == 0;
     }

@@ -101,7 +101,7 @@ bool fromAnnotationValue(const Annotation::ArgumentValue& in, T* out) {
     return false;
 }
 
-template<typename T, typename std::enable_if<std::is_integral<T>::value, T>::type* = nullptr>
+template<typename T, typename std::enable_if<std::is_integral<T>::value && !std::is_same<bool, T>::value, T>::type* = nullptr>
 bool fromAnnotationValue(const Annotation::ArgumentValue& in, T* out) {
     if (in.tag == Annotation::ArgumentValue::K_ANNOT_INT) {
         *out = in.value.i;
@@ -119,7 +119,7 @@ bool fromAnnotationValue(const Annotation::ArgumentValue& in, T* out) {
     return false;
 }
 
-template<typename T, typename std::enable_if<std::is_same<std::string, std::remove_const<std::remove_reference<T>>>::value, T>::type* = nullptr>
+template<typename T, typename std::enable_if<std::is_same<std::string, T>::value, T>::type* = nullptr>
 bool fromAnnotationValue(const Annotation::ArgumentValue& in, T* out) {
     if (in.tag == Annotation::ArgumentValue::K_ANNOT_STRING) {
         *out = in.value.s;
