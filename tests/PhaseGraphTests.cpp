@@ -274,6 +274,11 @@ TestRunner* buildPhaseGraphTests() {
                                             "StopRightBeforeCodeGen->CodeGen",
                                             "DivByZero<-NameAnalysis"}));
 
+    advanced.addTest(new PhaseGraphTest("Concrete3", true, {
+                                            "CodeGen<--AST2BAST<--PreTransform<--TypeChecking<--KindChecking<--NameAnalysis",
+                                            "UsageAnalysis-->TypeChecking",
+                                            "UsageAnalysis<--NameAnalysis"}));
+
     return new TestRunner("PhaseGraphTests", {basic.build(), medium.build(), advanced.build()});
 }
 

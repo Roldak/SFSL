@@ -1,0 +1,24 @@
+module test {
+	using sfsl.lang
+	def test1() => {
+		x: int;
+		x = 2;
+		x;
+	}
+	
+	def test2 = {
+		x: int;
+		x = 2;
+		x;
+	}
+	
+	def test3 = {
+		x: int = 2;
+		x;
+	}
+	
+	def test4 = {
+		x := 2;
+		x;
+	}
+}

@@ -12,9 +12,13 @@ namespace sfsl {
 
 namespace test {
 
-CompilationTest::CompilationTest(const std::string& name, const std::string& source, bool shouldCompile, const std::string& lastPhase)
+CompilationTest::CompilationTest(const std::string& name, const std::string& source, bool shouldCompile,
+                                 const std::string& lastPhase, bool performUsageAnalysis)
     : AbstractTest(name), _source(source), _shouldCompile(shouldCompile), _lastPhase(lastPhase), _ppl(Pipeline::createDefault()) {
     _ppl.insert(Phase::StopRightAfter(lastPhase));
+    if (!performUsageAnalysis) {
+        _ppl.remove("UsageAnalysis");
+    }
 }
 
 CompilationTest::~CompilationTest() {
