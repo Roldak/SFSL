@@ -30,6 +30,7 @@ namespace sfsl {
 namespace ast {
 
 class Identifier;
+class TypeIdentifier;
 class TypeExpression;
 class TypeTuple;
 
@@ -67,6 +68,92 @@ private:
 
     Expression* _expr;
 
+};
+
+/**
+ * @brief The Define Declaration AST
+ * Contains :
+ *  - This definition's name
+ *  - The value associated to this definition
+ */
+class DefineDecl :
+        public Expression,
+        public sym::Symbolic<sym::DefinitionSymbol>,
+        public Annotable {
+public:
+
+    DefineDecl(Identifier* name, TypeExpression* tp, Expression* value, bool isRedef, bool isExtern, bool isAbstract);
+    virtual ~DefineDecl();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The name of this definition
+     */
+    Identifier* getName() const;
+
+    /**
+     * @return The type specifying expression (nullptr if none were specified)
+     */
+    TypeExpression* getTypeSpecifier() const;
+
+    /**
+     * @return The value associated to this definition
+     */
+    Expression* getValue() const;
+
+    /**
+     * @return True if the definition is supposed to override another one
+     */
+    bool isRedef() const;
+
+    /**
+     * @return True if the definition is marked with the `extern` flag
+     */
+    bool isExtern() const;
+
+    /**
+     * @return True if the definition is marked with the `abstract` flag
+     */
+    bool isAbstract() const;
+
+private:
+
+    Identifier* _name;
+    TypeExpression* _typeSpecifier;
+    Expression* _value;
+
+    bool _isRedef;
+    bool _isExtern;
+    bool _isAbstract;
+
+};
+
+class TypeDecl :
+        public Expression,
+        public sym::Symbolic<sym::TypeSymbol>,
+        public Annotable {
+public:
+
+    TypeDecl(TypeIdentifier* id, TypeExpression* exp);
+    virtual ~TypeDecl();
+
+    SFSL_AST_ON_VISIT_H
+
+    /**
+     * @return The name of the type
+     */
+    TypeIdentifier* getName() const;
+
+    /**
+     * @return The type expression
+     */
+    TypeExpression* getExpression() const;
+
+private:
+
+    TypeIdentifier* _name;
+    TypeExpression* _exp;
 };
 
 /**

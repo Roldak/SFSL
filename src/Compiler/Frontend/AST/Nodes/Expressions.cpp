@@ -37,6 +37,63 @@ Expression *ExpressionStatement::getExpression() const {
     return _expr;
 }
 
+// DEFINE DECLARATION
+
+DefineDecl::DefineDecl(Identifier* name, TypeExpression* typeSpecifier, Expression* value, bool isRedef, bool isExtern, bool isAbstract)
+    : _name(name), _typeSpecifier(typeSpecifier), _value(value), _isRedef(isRedef), _isExtern(isExtern), _isAbstract(isAbstract) {
+
+}
+
+DefineDecl::~DefineDecl() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(DefineDecl)
+
+Identifier* DefineDecl::getName() const {
+    return _name;
+}
+
+TypeExpression*DefineDecl::getTypeSpecifier() const {
+    return _typeSpecifier;
+}
+
+Expression* DefineDecl::getValue() const {
+    return _value;
+}
+
+bool DefineDecl::isRedef() const {
+    return _isRedef;
+}
+
+bool DefineDecl::isExtern() const {
+    return _isExtern;
+}
+
+bool DefineDecl::isAbstract() const {
+    return _isAbstract;
+}
+
+// TYPE DECLARATION
+
+TypeDecl::TypeDecl(TypeIdentifier *id, TypeExpression *exp) : _name(id), _exp(exp) {
+
+}
+
+TypeDecl::~TypeDecl() {
+
+}
+
+SFSL_AST_ON_VISIT_CPP(TypeDecl)
+
+TypeIdentifier* TypeDecl::getName() const {
+    return _name;
+}
+
+TypeExpression* TypeDecl::getExpression() const {
+    return _exp;
+}
+
 // ASSIGNMENT EXPRESSION
 
 AssignmentExpression::AssignmentExpression(Expression* lhs, Expression* rhs)

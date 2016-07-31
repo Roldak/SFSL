@@ -10,7 +10,7 @@
 #define __SFSL__API_ModuleContainer__
 
 #include "api/Module.h"
-#include "Compiler/Frontend/AST/Nodes/Declarations.h"
+#include "Compiler/Frontend/AST/Nodes/Program.h"
 
 class ModuleContainer {
 public:
