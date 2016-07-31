@@ -10,6 +10,7 @@
 #include "api/Phase.h"
 
 #include "Compiler/Frontend/Analyser/NameAnalysis.h"
+#include "Compiler/Frontend/Analyser/UsageAnalysis.h"
 #include "Compiler/Frontend/Analyser/KindChecking.h"
 #include "Compiler/Frontend/Analyser/TypeChecking.h"
 #include "Compiler/Frontend/Symbols/SymbolResolver.h"
@@ -39,6 +40,25 @@ public:
         prog->onVisit(&scopeGen);
         prog->onVisit(&typeDep);
         prog->onVisit(&symAssign);
+
+        return ctx->reporter().getErrorCount() == 0;
+    }
+};
+
+class UsageAnalysis : public Phase {
+public:
+    UsageAnalysis() : Phase("UsageAnalysis", "Checks wether variables are declared, initialized, used, etc.") { }
+    virtual ~UsageAnalysis() { }
+
+    virtual std::vector<std::string> runsAfter() const override { return {"NameAnalysis"}; }
+    virtual std::vector<std::string> runsBefore() const override { return {"TypeChecking"}; }
+
+    virtual bool run(PhaseContext& pctx) {
+        ast::Program* prog = pctx.require<ast::Program>("prog");
+        CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
+
+        ast::UsageAnalysis usageAnalysis(ctx);
+        prog->onVisit(&usageAnalysis);
 
         return ctx->reporter().getErrorCount() == 0;
     }
@@ -194,6 +214,16 @@ Pipeline& Pipeline::insert(std::shared_ptr<Phase> phase) {
     return *this;
 }
 
+Pipeline& Pipeline::remove(const std::string& byName) {
+    for (auto it = _phases.begin(), end = _phases.end(); it != end; ++it) {
+        if ((*it)->getName() == byName) {
+            it = _phases.erase(it);
+            break;
+        }
+    }
+    return *this;
+}
+
 Pipeline Pipeline::createEmpty() {
     return Pipeline();
 }
@@ -202,6 +232,7 @@ Pipeline Pipeline::createDefault() {
     Pipeline ppl;
 
     ppl.insert(std::shared_ptr<Phase>(new NameAnalysisPhase));
+    ppl.insert(std::shared_ptr<Phase>(new UsageAnalysis));
     ppl.insert(std::shared_ptr<Phase>(new KindCheckingPhase));
     ppl.insert(std::shared_ptr<Phase>(new TypeCheckingPhase));
     ppl.insert(std::shared_ptr<Phase>(new PreTransformPhase));

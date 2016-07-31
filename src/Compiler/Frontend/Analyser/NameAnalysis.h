@@ -32,9 +32,6 @@ protected:
     template<typename T, typename S>
     void initCreated(T* id, S* s);
 
-    template<typename T>
-    void setVariableSymbolicUsed(T* symbolic, bool val);
-
     void buildUsingsFromPaths(const CanUseModules* canUseModules);
 
     sym::DefinitionSymbol* createSymbol(DefineDecl* node, TypeExpression* currentThis);
@@ -136,7 +133,7 @@ public:
 
     virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(Block* block) override;
-    virtual void visit(MemberAccess* mac) override;
+    virtual void visit(MemberAccess* dot) override;
     virtual void visit(FunctionCreation* func) override;
     virtual void visit(FunctionCall* call) override;
     virtual void visit(Identifier* id) override;
@@ -159,8 +156,6 @@ private:
 
     void addSubtypeRelations(ClassDecl* clss, ClassDecl* parent);
     void updateSubtypeRelations(ClassDecl* clss);
-
-    void warnForUnusedVariableInCurrentScope();
 
     std::set<TypeExpression*> _temporarilyVisitedTypes;
     std::set<TypeExpression*> _visitedTypes;

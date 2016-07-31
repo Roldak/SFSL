@@ -10,13 +10,48 @@
 #define __SFSL__UsageTrackable__
 
 #include <iostream>
-#include <vector>
+#include <type_traits>
 
 #include "../../../Common/Positionnable.h"
 
 namespace sfsl {
 
 namespace ast {
+
+enum class UsageProperty : char {
+    DECLARED    = 1 << 0,
+    INITIALIZED = 1 << 1,
+    USABLE      = 1 << 2,
+    USED        = 1 << 3,
+    MUTABLE     = 1 << 4
+};
+
+// thanks http://programmers.stackexchange.com/questions/194412/using-scoped-enums-for-bit-flags-in-c
+
+inline UsageProperty operator|(UsageProperty lhs, UsageProperty rhs) {
+    typedef std::underlying_type<UsageProperty>::type T;
+    return static_cast<UsageProperty>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+inline UsageProperty& operator|=(UsageProperty& lhs, UsageProperty rhs) {
+    lhs = lhs | rhs;
+    return lhs;
+}
+
+inline UsageProperty operator&(UsageProperty lhs, UsageProperty rhs) {
+    typedef std::underlying_type<UsageProperty>::type T;
+    return static_cast<UsageProperty>(static_cast<T>(lhs) & static_cast<T>(rhs));
+}
+
+inline UsageProperty& operator&=(UsageProperty& lhs, UsageProperty rhs) {
+    lhs = lhs & rhs;
+    return lhs;
+}
+
+inline UsageProperty operator~(UsageProperty prop) {
+    typedef std::underlying_type<UsageProperty>::type T;
+    return static_cast<UsageProperty>(~static_cast<T>(prop));
+}
 
 /**
  * @brief An interface to keep track of
@@ -28,20 +63,13 @@ protected:
     UsageTrackable();
 
 public:
-
-    /**
-     * @brief Sets the used state to the given value
-     */
-    void setUsed(bool val);
-
-    /**
-     * @return True if the object has been used, otherwise false
-     */
-    bool isUsed() const;
+    void setProperty(UsageProperty property);
+    void unsetProperty(UsageProperty property);
+    bool hasProperty(UsageProperty property) const;
 
 private:
 
-    bool _used;
+    UsageProperty _flags;
 };
 
 }

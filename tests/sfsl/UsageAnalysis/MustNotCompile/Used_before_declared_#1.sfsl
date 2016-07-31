@@ -1,0 +1,7 @@
+module test {
+	using sfsl.lang
+	def test() => {
+		x;
+		x: int;
+	}
+}

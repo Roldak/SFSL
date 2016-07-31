@@ -72,15 +72,6 @@ void ScopePossessorVisitor::initCreated(T* id, S* s) {
     tryAddSymbol(s);
 }
 
-template<typename T>
-void ScopePossessorVisitor::setVariableSymbolicUsed(T* symbolic, bool val) {
-    if (sym::Symbol* s = symbolic->getSymbol()) {
-        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(s)) {
-            var->setUsed(val);
-        }
-    }
-}
-
 void ScopePossessorVisitor::pushPathPart(const std::string& name) {
     _symbolPath.push_back(name);
 }
@@ -517,7 +508,6 @@ void SymbolAssignation::visit(TypeIdentifier* id) {
 
 void SymbolAssignation::visit(TypeSpecifier* tps) {
     tps->getTypeNode()->onVisit(this);
-    setVariableSymbolicUsed(tps->getSpecified(), false);
 }
 
 void SymbolAssignation::visit(Block* block) {
@@ -526,8 +516,6 @@ void SymbolAssignation::visit(Block* block) {
     buildUsingsFromPaths(block);
 
     ASTImplicitVisitor::visit(block);
-
-    warnForUnusedVariableInCurrentScope();
 
     RESTORE_SCOPE
 }
@@ -540,8 +528,6 @@ void SymbolAssignation::visit(FunctionCreation* func) {
     SAVE_SCOPE(func)
 
     ASTImplicitVisitor::visit(func);
-
-    warnForUnusedVariableInCurrentScope();
 
     RESTORE_SCOPE
 }
@@ -576,7 +562,6 @@ void SymbolAssignation::visit(FunctionCall* call) {
 
 void SymbolAssignation::visit(Identifier* id) {
     assignIdentifier(id);
-    setVariableSymbolicUsed(id, true);
 }
 
 void SymbolAssignation::visitParent(ClassDecl* clss) {
@@ -667,25 +652,6 @@ void SymbolAssignation::addSubtypeRelations(ClassDecl* clss, ClassDecl* parent) 
 void SymbolAssignation::updateSubtypeRelations(ClassDecl* clss) {
     clss->CanSubtypeClasses::insertParent(clss);
     clss->CanSubtypeClasses::updateParents();
-}
-
-bool isSupposedToBeUnused(const std::string& name) {
-    if (name.size() >= 7) {
-        if (name.substr(0, 7) == "unused_") {
-            return true;
-        }
-    }
-    return false;
-}
-
-void SymbolAssignation::warnForUnusedVariableInCurrentScope() {
-    for (const auto& s : _curScope->getAllSymbols()) {
-        if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(s.second.symbol)) {
-            if (!var->isUsed() && !isSupposedToBeUnused(var->getName())) {
-                _ctx->reporter().warning(*var, "Unused variable '" + var->getName() + "'");
-            }
-        }
-    }
 }
 
 }

@@ -1,0 +1,48 @@
+module test {
+	using sfsl.lang
+	def test1() => {
+		x: int;
+		x = 2;
+		f := () => {
+			x;
+		};
+	}
+	
+	def test2() => {
+		x: int;
+		x = 2;
+		
+		type F = class () {
+			def f() => {
+				x;
+			}
+		};
+		
+		F();
+	}
+	
+	def test3() => {
+		x: int;
+		type F = class () {
+			def f() => {
+				x;
+			}
+		};
+		x = 2;
+		F();
+	}
+	
+	def test4 = {
+		x := 2;
+		f := () => {
+			type A = class () {
+				def f() => {
+					g := () => () => {
+						x;
+					};
+				}
+			};
+			A();
+		};
+	}
+}
