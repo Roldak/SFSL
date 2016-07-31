@@ -10,6 +10,7 @@
 #include "api/Phase.h"
 
 #include "Compiler/Frontend/Analyser/NameAnalysis.h"
+#include "Compiler/Frontend/Analyser/UsageAnalysis.h"
 #include "Compiler/Frontend/Analyser/KindChecking.h"
 #include "Compiler/Frontend/Analyser/TypeChecking.h"
 #include "Compiler/Frontend/Symbols/SymbolResolver.h"
@@ -46,7 +47,7 @@ public:
 
 class UsageAnalysis : public Phase {
 public:
-    UsageAnalysis() : Phase("UsageAnalysis", "Checks wether variables are declared, initialised, used, etc.") { }
+    UsageAnalysis() : Phase("UsageAnalysis", "Checks wether variables are declared, initialized, used, etc.") { }
     virtual ~UsageAnalysis() { }
 
     virtual std::vector<std::string> runsAfter() const override { return {"NameAnalysis"}; }

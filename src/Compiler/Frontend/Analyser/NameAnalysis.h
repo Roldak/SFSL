@@ -161,28 +161,6 @@ private:
     std::set<TypeExpression*> _visitedTypes;
 };
 
-/**
- * @brief
- */
-class UsageAnalysis : public ASTImplicitVisitor {
-public:
-
-    UsageAnalysis(CompCtx_Ptr& ctx);
-    virtual ~UsageAnalysis();
-
-    virtual void visit(Program* prog) override;
-
-    virtual void visit(ClassDecl* clss) override;
-    virtual void visit(DefineDecl* def) override;
-
-    virtual void visit(FunctionCreation* func) override;
-
-private:
-
-    std::map<sym::VariableSymbol*, std::vector<Identifier*>> _undeclaredVars;
-    bool checkAnnotation(Annotable* annotableNode) const;
-};
-
 }
 
 }
