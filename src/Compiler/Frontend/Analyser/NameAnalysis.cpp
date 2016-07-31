@@ -891,12 +891,6 @@ void UsageAnalysis::visit(Program* prog) {
     }
 }
 
-void UsageAnalysis::visit(ModuleDecl* mod) {
-    if (checkAnnotation(mod)) {
-        ASTImplicitVisitor::visit(mod);
-    }
-}
-
 void UsageAnalysis::visit(ClassDecl* clss) {
     SAVE_MEMBER_AND_SET(_undeclaredVars, {})
 
@@ -914,10 +908,8 @@ void UsageAnalysis::visit(ClassDecl* clss) {
 void UsageAnalysis::visit(DefineDecl* def) {
     ASTImplicitVisitor::visit(def);
 
-    if (checkAnnotation(def)) {
-        LocalUsageAnalysis analyser(_ctx, _undeclaredVars);
-        analyser.analyse(def);
-    }
+    LocalUsageAnalysis analyser(_ctx, _undeclaredVars);
+    analyser.analyse(def);
 }
 
 void UsageAnalysis::visit(FunctionCreation* func) {
@@ -925,22 +917,10 @@ void UsageAnalysis::visit(FunctionCreation* func) {
 
     ASTImplicitVisitor::visit(func);
 
-    if (checkAnnotation(func)) {
-        LocalUsageAnalysis analyser(_ctx, _undeclaredVars);
-        analyser.analyse(func);
-    }
+    LocalUsageAnalysis analyser(_ctx, _undeclaredVars);
+    analyser.analyse(func);
 
     SET_CAPTURES_AND_UPDATE_UNDECLARED_VARS(func)
-}
-
-bool UsageAnalysis::checkAnnotation(Annotable* annotableNode) const {
-    bool performAnalysis = true;
-
-    annotableNode->matchAnnotation<>("NoUsageAnalysis", [&]() {
-        performAnalysis = false;
-    });
-
-    return performAnalysis;
 }
 
 }

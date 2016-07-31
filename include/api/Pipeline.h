@@ -21,6 +21,7 @@ public:
     ~Pipeline();
 
     Pipeline& insert(std::shared_ptr<Phase> phase);
+    Pipeline& remove(const std::string& byName);
 
     static Pipeline createEmpty();
     static Pipeline createDefault();

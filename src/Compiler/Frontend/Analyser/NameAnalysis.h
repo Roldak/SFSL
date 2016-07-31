@@ -172,7 +172,6 @@ public:
 
     virtual void visit(Program* prog) override;
 
-    virtual void visit(ModuleDecl* mod) override;
     virtual void visit(ClassDecl* clss) override;
     virtual void visit(DefineDecl* def) override;
 
