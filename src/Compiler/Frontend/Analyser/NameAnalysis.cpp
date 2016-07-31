@@ -655,12 +655,22 @@ void SymbolAssignation::updateSubtypeRelations(ClassDecl* clss) {
     clss->CanSubtypeClasses::updateParents();
 }
 
+// CAPTURES USER DATA
+
+struct CapturesUserData : common::MemoryManageable {
+    CapturesUserData(const std::map<sym::VariableSymbol*, std::vector<Identifier*>>& captures)
+        : captures(captures) {}
+
+    std::map<sym::VariableSymbol*, std::vector<Identifier*>> captures;
+};
+
 // USAGE ANALYSIS
 
 class LocalUsageAnalysis : ASTExplicitVisitor {
 public:
 
-    LocalUsageAnalysis(CompCtx_Ptr& ctx) : ASTExplicitVisitor(ctx) {}
+    LocalUsageAnalysis(CompCtx_Ptr& ctx, std::map<sym::VariableSymbol*, std::vector<Identifier*>>& undeclaredVars)
+        : ASTExplicitVisitor(ctx), _undeclaredVars(undeclaredVars) {}
 
     virtual ~LocalUsageAnalysis() {}
 
@@ -683,6 +693,10 @@ public:
     }
 
 protected:
+
+    virtual void visit(TypeDecl* tdecl) override {
+
+    }
 
     virtual void visit(ExpressionStatement* expr) override {
         expr->getExpression()->onVisit(this);
@@ -763,22 +777,27 @@ protected:
         }
     }
 
+    virtual void visit(FunctionCreation* func) override {
+        useCapturedVarsOnInstantiation(func, *func);
+    }
+
     virtual void visit(FunctionCall* call) override {
         call->getCallee()->onVisit(this);
         call->getArgsTuple()->onVisit(this);
     }
 
+    virtual void visit(Instantiation* inst) override {
+        if (type::Type* tp = ASTTypeCreator::createType(inst->getInstantiatedExpression(), _ctx)) {
+            if (type::ProperType* pt = type::getIf<type::ProperType>(tp)) {
+                useCapturedVarsOnInstantiation(pt->getClass(), *inst);
+            }
+        }
+    }
+
     virtual void visit(Identifier* ident) override {
         if (sym::Symbol* s = ident->getSymbol()) {
             if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(s)) {
-                if (!var->hasProperty(UsageProperty::DECLARED)) {
-                    _ctx->reporter().error(*ident, "Variable `" + ident->getValue() + "` is used or assigned before being declared");
-                } else if (var->hasProperty(UsageProperty::USABLE)) {
-                    if (!var->hasProperty(UsageProperty::INITIALIZED)) {
-                        _ctx->reporter().error(*ident, "Variable `" + ident->getValue() + "` is used before being initialized");
-                    }
-                    var->setProperty(UsageProperty::USED);
-                }
+                use(var, *ident, ident);
             }
         }
     }
@@ -786,11 +805,26 @@ protected:
     void declare(sym::VariableSymbol* var) {
         var->setProperty(UsageProperty::DECLARED);
         _declaredVars.push_back(var);
+        _undeclaredVars.erase(var);
     }
 
     void init(sym::VariableSymbol* var) {
         var->setProperty(UsageProperty::INITIALIZED);
         _initCurScope.push_back(var);
+    }
+
+    void use(sym::VariableSymbol* var, const common::Positionnable& pos, Identifier* by = nullptr) {
+        if (var->hasProperty(UsageProperty::USABLE)) {
+            var->setProperty(UsageProperty::USED);
+        }
+
+        if (!var->hasProperty(UsageProperty::DECLARED) && by) {
+            _undeclaredVars[var].push_back(by);
+        } else if (var->hasProperty(UsageProperty::USABLE) && var->hasProperty(UsageProperty::DECLARED) && !var->hasProperty(UsageProperty::INITIALIZED)) {
+            _ctx->reporter().error(pos, "Variable `" + var->getName() +
+                                   ( by ? "` is used here before being initialized" :
+                                          "` is captured here before being initialized"));
+        }
     }
 
     void uninit(const std::vector<sym::VariableSymbol*>& vars) {
@@ -799,9 +833,20 @@ protected:
         }
     }
 
+    void useCapturedVarsOnInstantiation(common::HasManageableUserdata* ud, const common::Positionnable& pos) {
+        if (ud) {
+            if (CapturesUserData* capturesData = ud->getUserdata<CapturesUserData>()) {
+                for (const auto& capture : capturesData->captures) {
+                    use(capture.first, pos);
+                }
+            }
+        }
+    }
+
     static bool isSupposedToBeUnused(const std::string& name) {
-        if (name.size() >= 7) {
-            if (name.substr(0, 7) == "unused_") {
+        const std::string unusedPrefix = "unused_";
+        if (name.size() >= unusedPrefix.size()) {
+            if (name.substr(0, unusedPrefix.size()) == unusedPrefix) {
                 return true;
             }
         }
@@ -816,9 +861,17 @@ protected:
         }
     }
 
+    std::map<sym::VariableSymbol*, std::vector<Identifier*>>& _undeclaredVars;
     std::vector<sym::VariableSymbol*> _declaredVars;
     std::vector<sym::VariableSymbol*> _initCurScope;
 };
+
+// USAGE ANALYSIS
+
+#define SAVE_UNDECLARED_VARS SAVE_MEMBER_AND_SET(_undeclaredVars, {})
+#define SET_CAPTURES_AND_UPDATE_UNDECLARED_VARS(obj) \
+    obj->setUserdata(_mngr.New<CapturesUserData>(_undeclaredVars)); \
+    _undeclaredVars.insert(OLD(_undeclaredVars).cbegin(), OLD(_undeclaredVars).cend());
 
 UsageAnalysis::UsageAnalysis(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx) {
 
@@ -828,6 +881,16 @@ UsageAnalysis::~UsageAnalysis() {
 
 }
 
+void UsageAnalysis::visit(Program* prog) {
+    ASTImplicitVisitor::visit(prog);
+
+    for (const std::pair<sym::VariableSymbol*, std::vector<Identifier*>>& var : _undeclaredVars) {
+        for (Identifier* ident : var.second) {
+            _ctx->reporter().error(*ident, "Variable `" + var.first->getName() + "` is used or assigned before being declared");
+        }
+    }
+}
+
 void UsageAnalysis::visit(ModuleDecl* mod) {
     if (checkAnnotation(mod)) {
         ASTImplicitVisitor::visit(mod);
@@ -835,6 +898,8 @@ void UsageAnalysis::visit(ModuleDecl* mod) {
 }
 
 void UsageAnalysis::visit(ClassDecl* clss) {
+    SAVE_MEMBER_AND_SET(_undeclaredVars, {})
+
     for (TypeSpecifier* tps : clss->getFields()) {
         if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(tps->getSpecified()->getSymbol())) {
             var->setProperty(UsageProperty::DECLARED | UsageProperty::INITIALIZED | UsageProperty::USED);
@@ -842,36 +907,30 @@ void UsageAnalysis::visit(ClassDecl* clss) {
     }
 
     ASTImplicitVisitor::visit(clss);
+
+    SET_CAPTURES_AND_UPDATE_UNDECLARED_VARS(clss)
 }
 
 void UsageAnalysis::visit(DefineDecl* def) {
-    bool performAnalysis = true;
+    ASTImplicitVisitor::visit(def);
 
-    def->matchAnnotation<>("NoUsageAnalysis", [&]() {
-        performAnalysis = false;
-    });
-
-    if (performAnalysis) {
-        LocalUsageAnalysis analyser(_ctx);
+    if (checkAnnotation(def)) {
+        LocalUsageAnalysis analyser(_ctx, _undeclaredVars);
         analyser.analyse(def);
     }
-
-    ASTImplicitVisitor::visit(def);
 }
 
 void UsageAnalysis::visit(FunctionCreation* func) {
-    bool performAnalysis = true;
+    SAVE_UNDECLARED_VARS
 
-    func->matchAnnotation<>("NoUsageAnalysis", [&]() {
-        performAnalysis = false;
-    });
+    ASTImplicitVisitor::visit(func);
 
-    if (performAnalysis) {
-        LocalUsageAnalysis analyser(_ctx);
+    if (checkAnnotation(func)) {
+        LocalUsageAnalysis analyser(_ctx, _undeclaredVars);
         analyser.analyse(func);
     }
 
-    ASTImplicitVisitor::visit(func);
+    SET_CAPTURES_AND_UPDATE_UNDECLARED_VARS(func)
 }
 
 bool UsageAnalysis::checkAnnotation(Annotable* annotableNode) const {
