@@ -1,0 +1,13 @@
+module test {
+	using sfsl.lang
+	
+	def test1(x: int) => {
+		x;
+	}
+	
+	type Test2 = class (x: int) {
+		def test() => {
+			x;
+		}
+	}
+}

@@ -266,18 +266,15 @@ TestRunner* buildPhaseGraphTests() {
     advanced.addTest(new PhaseGraphTest("Advanced1", true, {"A-->B-->C-->D", "X-->E-->C", "A-->X", "X-->D"}));
     advanced.addTest(new PhaseGraphTest("Concrete1", true, {
                                             "CodeGen<--AST2BAST<--PreTransform<--TypeChecking<--KindChecking<--NameAnalysis",
-                                            "DivByZero<--TypeChecking",
-                                            "DivByZero-->PreTransform"}));
+                                            "UsageAnalysis<--TypeChecking",
+                                            "UsageAnalysis-->PreTransform"}));
 
     advanced.addTest(new PhaseGraphTest("Concrete2", true, {
                                             "CodeGen<--AST2BAST<--PreTransform<--TypeChecking<--KindChecking<--NameAnalysis",
                                             "StopRightBeforeCodeGen->CodeGen",
-                                            "DivByZero<-NameAnalysis"}));
-
-    advanced.addTest(new PhaseGraphTest("Concrete3", true, {
-                                            "CodeGen<--AST2BAST<--PreTransform<--TypeChecking<--KindChecking<--NameAnalysis",
-                                            "UsageAnalysis-->TypeChecking",
-                                            "UsageAnalysis<--NameAnalysis"}));
+                                            "DivByZero<-NameAnalysis",
+                                            "UsageAnalysis<--TypeChecking",
+                                            "UsageAnalysis-->PreTransform"}));
 
     return new TestRunner("PhaseGraphTests", {basic.build(), medium.build(), advanced.build()});
 }

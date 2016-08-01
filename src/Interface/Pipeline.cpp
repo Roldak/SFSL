@@ -45,25 +45,6 @@ public:
     }
 };
 
-class UsageAnalysis : public Phase {
-public:
-    UsageAnalysis() : Phase("UsageAnalysis", "Checks wether variables are declared, initialized, used, etc.") { }
-    virtual ~UsageAnalysis() { }
-
-    virtual std::vector<std::string> runsAfter() const override { return {"NameAnalysis"}; }
-    virtual std::vector<std::string> runsBefore() const override { return {"TypeChecking"}; }
-
-    virtual bool run(PhaseContext& pctx) {
-        ast::Program* prog = pctx.require<ast::Program>("prog");
-        CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
-
-        ast::UsageAnalysis usageAnalysis(ctx);
-        prog->onVisit(&usageAnalysis);
-
-        return ctx->reporter().getErrorCount() == 0;
-    }
-};
-
 class KindCheckingPhase : public Phase {
 public:
     KindCheckingPhase() : Phase("KindChecking", "Assigns kinds to every kinded nodes, and reports any kind check errors") { }
@@ -100,6 +81,25 @@ public:
 
         prog->onVisit(&topleveltypecheck);
         prog->onVisit(&typeCheck);
+
+        return ctx->reporter().getErrorCount() == 0;
+    }
+};
+
+class UsageAnalysisPhase : public Phase {
+public:
+    UsageAnalysisPhase() : Phase("UsageAnalysis", "Checks wether variables are declared, initialized, used, etc.") { }
+    virtual ~UsageAnalysisPhase() { }
+
+    virtual std::vector<std::string> runsAfter() const override { return {"TypeChecking"}; }
+    virtual std::vector<std::string> runsBefore() const override { return {"PreTransform"}; }
+
+    virtual bool run(PhaseContext& pctx) {
+        ast::Program* prog = pctx.require<ast::Program>("prog");
+        CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
+
+        ast::UsageAnalysis usageAnalysis(ctx);
+        prog->onVisit(&usageAnalysis);
 
         return ctx->reporter().getErrorCount() == 0;
     }
@@ -232,9 +232,9 @@ Pipeline Pipeline::createDefault() {
     Pipeline ppl;
 
     ppl.insert(std::shared_ptr<Phase>(new NameAnalysisPhase));
-    ppl.insert(std::shared_ptr<Phase>(new UsageAnalysis));
     ppl.insert(std::shared_ptr<Phase>(new KindCheckingPhase));
     ppl.insert(std::shared_ptr<Phase>(new TypeCheckingPhase));
+    ppl.insert(std::shared_ptr<Phase>(new UsageAnalysisPhase));
     ppl.insert(std::shared_ptr<Phase>(new PreTransformPhase));
     ppl.insert(std::shared_ptr<Phase>(new AST2BASTPhase));
     ppl.insert(std::shared_ptr<Phase>(new CodeGenPhase));
