@@ -8,6 +8,7 @@
 
 #include "PreTransform.h"
 #include "../../Frontend/AST/Visitors/ASTTypeCreator.h"
+#include "../../Frontend/AST/Visitors/ASTAssignmentChecker.h"
 #include "../../Frontend/Symbols/Scope.h"
 
 namespace sfsl {
@@ -49,7 +50,7 @@ struct VariableInfo : public common::MemoryManageable {
     SymbolInfoPtr symInfo;
 
 protected:
-    VariableInfo() {}
+    VariableInfo() : _isMutable(false), _isCaptured(false) {}
     bool _isMutable;
     bool _isCaptured;
 };
@@ -488,21 +489,21 @@ void PreTransformImplementation::visit(FunctionCreation* func) {
 
         transform<Expression>(inst);
     } else {
-        ASTTransformer::visit(func);
+        Expression* newBody = transformFuncBody(func->getBody(), func->getArgs());
+
+        update(func, func->getName(),
+               transform<TypeTuple>(func->getTypeArgs()),
+               transform<Expression>(func->getArgs()),
+               newBody,
+               transform<TypeExpression>(func->getReturnType()));
     }
 }
 
 void PreTransformImplementation::visit(TypeSpecifier* tps) {
     update(tps, tps->getSpecified(), transform<TypeExpression>(tps->getTypeNode()));
 
-    if (isCapturedLocalMutableVar(tps->getSpecified())) {
-        type::ProperType* boxOfT = boxOf(tps->type());
-        TypeIdentifier* tid = make<TypeIdentifier>("Box");
-        tid->setSymbol(_boxSymbol);
-        Instantiation* inst = make<Instantiation>(tid);
-        inst->setType(boxOfT);
-
-        makeAccessToBoxedValueOf(make<AssignmentExpression>(tps, inst));
+    if (isCapturedLocalMutableVar(tps->getSpecified()->getSymbol())) {
+        makeAccessToBoxedValueOf(make<AssignmentExpression>(tps, makeBoxInstantiationOf(tps->type())));
     }
 }
 
@@ -519,7 +520,7 @@ void PreTransformImplementation::visit(Instantiation* inst) {
 
             std::vector<Expression*> args;
             for (Change change : classPatch->getChanges()) {
-                if (isCapturedLocalMutableVar(change.initializerArg)) {
+                if (isCapturedLocalMutableVar(change.initializerArg->getSymbol())) {
                     // If the capture was a local mutable variable, we want to send the
                     // boxed value, therefore we don't take the transform<Expression> path.
                     args.push_back(change.initializerArg);
@@ -539,9 +540,9 @@ void PreTransformImplementation::visit(Identifier* ident) {
 
     if (isCapturedClassField(ident)) {
         makeAccessToCapturedClassField(ident);
-    } else if (isCapturedLocalMutableVar(ident)) {
+    } else if (isCapturedLocalMutableVar(ident->getSymbol())) {
         makeAccessToBoxedValueOf(ident);
-    } else if (isClassThis(ident)) {
+    } else if (isClassThis(ident->getSymbol())) {
         makeAccessToClassThis();
     }
 }
@@ -555,22 +556,31 @@ bool PreTransformImplementation::isCapturedClassField(Identifier* ident) const {
     return _curCapturedFields.find(ident) != _curCapturedFields.end();
 }
 
-bool PreTransformImplementation::isCapturedLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const {
-    if (symbolic->getSymbol()) {
-        if (VariableInfo* info = getVariableInfo(symbolic->getSymbol())) {
+bool PreTransformImplementation::isCapturedLocalMutableVar(sym::Symbol* symbol) const {
+    if (symbol) {
+        if (VariableInfo* info = getVariableInfo(symbol)) {
             return info->type() == VAR_LOCAL && info->isMutable() && info->isCaptured();
         }
     }
     return false;
 }
 
-bool PreTransformImplementation::isClassThis(const sym::Symbolic<sym::Symbol>* symbolic) const {
-    if (symbolic->getSymbol()) {
-        if (VariableInfo* info = getVariableInfo(symbolic->getSymbol())) {
+bool PreTransformImplementation::isClassThis(sym::Symbol* symbol) const {
+    if (symbol) {
+        if (VariableInfo* info = getVariableInfo(symbol)) {
             return info->type() == VAR_THIS;
         }
     }
     return false;
+}
+
+Expression* PreTransformImplementation::makeBoxInstantiationOf(type::Type* tp) {
+    type::ProperType* boxOfT = boxOf(tp);
+    TypeIdentifier* tid = make<TypeIdentifier>("Box");
+    tid->setSymbol(_boxSymbol);
+    Instantiation* inst = make<Instantiation>(tid);
+    inst->setType(boxOfT);
+    return inst;
 }
 
 Expression* PreTransformImplementation::makeAccessToCapturedClassField(Identifier* ident) {
@@ -602,6 +612,25 @@ Expression* PreTransformImplementation::makeAccessToBoxedValueOf(Expression* exp
 
 This* PreTransformImplementation::makeAccessToClassThis() {
     return make<This>();
+}
+
+Expression* PreTransformImplementation::transformFuncBody(Expression* oldBody, Expression* args) {
+    std::vector<Expression*> exprs;
+
+    for (sym::VariableSymbol* param : ASTAssignmentChecker::getAssignedVars(args, _ctx)) {
+        if (isCapturedLocalMutableVar(param)) {
+            Identifier* paramIdent = make<Identifier>(param->getName());
+            paramIdent->setSymbol(param);
+            exprs.push_back(make<AssignmentExpression>(
+                                makeAccessToBoxedValueOf(make<AssignmentExpression>(
+                                                             paramIdent,
+                                                             makeBoxInstantiationOf(param->type()))),
+                                paramIdent));
+        }
+    }
+
+    exprs.push_back(transform<Expression>(oldBody));
+    return exprs.size() > 1 ? make<Block>(exprs) : exprs[0];
 }
 
 // ASSIGN USER DATAS

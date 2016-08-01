@@ -55,13 +55,15 @@ private:
     type::ProperType* boxOf(type::Type* tp);
 
     bool isCapturedClassField(Identifier* ident) const;
-    bool isCapturedLocalMutableVar(const sym::Symbolic<sym::Symbol>* symbolic) const;
-    bool isClassField(const sym::Symbolic<sym::Symbol>* symbolic) const;
-    bool isClassThis(const sym::Symbolic<sym::Symbol>* symbolic) const;
+    bool isCapturedLocalMutableVar(sym::Symbol* symbol) const;
+    bool isClassThis(sym::Symbol* symbol) const;
 
+    Expression* makeBoxInstantiationOf(type::Type* tp);
     Expression* makeAccessToCapturedClassField(Identifier* ident);
     Expression* makeAccessToBoxedValueOf(Expression* expr);
     This* makeAccessToClassThis();
+
+    Expression* transformFuncBody(Expression* oldBody, Expression* args);
 
     type::TypeConstructorType* _boxType;
     sym::TypeSymbol* _boxSymbol;
