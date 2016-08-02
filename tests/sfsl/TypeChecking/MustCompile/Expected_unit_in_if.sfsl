@@ -11,4 +11,6 @@ module test {
 	def test3(b: bool)->unit => {
 		if (b) 34; else 21.5;
 	}
+	
+	def test4(b: bool)->unit => if (b) 32
 }

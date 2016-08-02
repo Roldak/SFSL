@@ -20,8 +20,8 @@ namespace test {
 
 class CompilationTest : public AbstractTest {
 public:
-    CompilationTest(const std::string& name, const std::string& source, bool shouldCompile,
-                    const std::string& lastPhase = "", bool performUsageAnalysis = false);
+    CompilationTest(const std::string& name, const std::string& source,
+                    bool shouldCompile, const std::string& lastPhase = "");
 
     virtual ~CompilationTest();
 

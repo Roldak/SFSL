@@ -93,18 +93,16 @@ void FileSystemTestGenerator::createTestsForType(TestSuiteBuilder& builder, File
                 source += f.get();
             }
 
-            bool performUsageAnalysis = builder.getName() == "UsageAnalysis";
-
             switch (type) {
             case MUST_COMPILE:
                 if (builder.getName() == "NameAnalysis") {
                     builder.addTest(new SymbolicTest(testName, source));
                 } else {
-                    builder.addTest(new CompilationTest(testName, source, true, builder.getName(), performUsageAnalysis));
+                    builder.addTest(new CompilationTest(testName, source, true, builder.getName()));
                 }
                 break;
             case MUST_NOT_COMPILE:
-                builder.addTest(new CompilationTest(testName, source, false, builder.getName(), performUsageAnalysis));
+                builder.addTest(new CompilationTest(testName, source, false, builder.getName()));
                 break;
             default:
                 break;
