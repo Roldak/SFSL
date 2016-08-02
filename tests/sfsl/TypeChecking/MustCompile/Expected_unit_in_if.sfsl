@@ -1,0 +1,14 @@
+module test {
+	using sfsl.lang
+	
+	def test1(b: bool)->unit => if (b) 1 else 3.4
+	
+	def test2(b: bool) => {
+		if (b) 1; else 3.4;
+		42;
+	}
+	
+	def test3(b: bool)->unit => {
+		if (b) 34; else 21.5;
+	}
+}

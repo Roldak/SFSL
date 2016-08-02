@@ -298,26 +298,61 @@ void TypeChecking::visit(TypeSpecifier* tps) {
 }
 
 void TypeChecking::visit(Block* block) {
-    ASTImplicitVisitor::visit(block);
-
     const std::vector<Expression*>& stats = block->getStatements();
+
     if (stats.size() > 0) {
-        block->setType(stats.back()->type());
+        SAVE_MEMBER(_expectedInfo)
+        _expectedInfo.ret = _res.Unit();
+
+        for (size_t i = 0; i < stats.size() - 1; ++i) {
+            _expectedInfo.node = stats[i];
+            stats[i]->onVisit(this);
+        }
+
+        RESTORE_MEMBER(_expectedInfo)
+
+        _expectedInfo.node = stats.back();
+        stats.back()->onVisit(this);
+
+        RESTORE_MEMBER(_expectedInfo)
+
+        if (_expectedInfo.node == block && _expectedInfo.ret && _expectedInfo.ret->isSubTypeOf(_res.Unit())) {
+            block->setType(_res.Unit());
+        } else {
+            block->setType(stats.back()->type());
+        }
     } else {
         block->setType(_res.Unit());
     }
 }
 
 void TypeChecking::visit(IfExpression* ifexpr) {
-    ASTImplicitVisitor::visit(ifexpr);
+    ifexpr->getCondition()->onVisit(this);
 
     if (!ifexpr->getCondition()->type()->apply(_ctx)->isSubTypeOf(_res.Bool())) {
         _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (Found " + ifexpr->getCondition()->type()->apply(_ctx)->toString() + ")");
     }
 
+    if (_expectedInfo.node == ifexpr && _expectedInfo.ret && _expectedInfo.ret->isSubTypeOf(_res.Unit())) {
+        ifexpr->setType(_res.Unit());
+
+        _expectedInfo.node = ifexpr->getThen();
+        ifexpr->getThen()->onVisit(this);
+
+        if (Expression* expr = ifexpr->getElse()) {
+            _expectedInfo.node = ifexpr->getElse();
+            expr->onVisit(this);
+        }
+        _expectedInfo.node = ifexpr;
+
+        return;
+    }
+
+    ifexpr->getThen()->onVisit(this);
     type::Type* thenType = ifexpr->getThen()->type();
 
     if (ifexpr->getElse()) {
+        ifexpr->getElse()->onVisit(this);
         type::Type* elseType = ifexpr->getElse()->type();
 
         if (thenType->apply(_ctx)->isSubTypeOf(elseType->apply(_ctx))) {
@@ -425,7 +460,15 @@ void TypeChecking::visit(FunctionCreation* func) {
 
     if (func->getReturnType()) {
         _triggeringDef->setType(func->type());
+
+        SAVE_MEMBER(_expectedInfo)
+        _expectedInfo.ret = retType;
+        _expectedInfo.node = func->getBody();
+
         func->getBody()->onVisit(this);
+
+        RESTORE_MEMBER(_expectedInfo)
+
         if (!func->getBody()->type()->apply(_ctx)->isSubTypeOf(retType->apply(_ctx))) {
             _rep.error(*func->getBody(),
                        "Return type mismatch. Expected " + retType->apply(_ctx)->toString() + ", found " + func->getBody()->type()->apply(_ctx)->toString());
