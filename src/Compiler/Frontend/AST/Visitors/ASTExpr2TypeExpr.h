@@ -63,7 +63,7 @@ public:
     virtual void visit(StringLiteral* strlit) override;
 
     /**
-     * @brief Transform an Expression tree in its equivalent
+     * @brief Transforms an Expression tree in its equivalent
      * TypeExpression tree. For example, the expression:
      * `a.b` represented by MemberAccess(Identifier, Identifier)
      * will be transformed to TypeMemberAccess(TypeIdentifier, TypeIdentifier)

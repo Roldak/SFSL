@@ -68,7 +68,6 @@ public:
     virtual void visit(RealLiteral* reallit) override;
     virtual void visit(StringLiteral* strlit) override;
 
-protected:
 };
 
 }

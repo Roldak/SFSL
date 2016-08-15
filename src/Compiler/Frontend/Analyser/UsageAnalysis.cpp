@@ -254,7 +254,7 @@ void UsageAnalysis::visit(Program* prog) {
 }
 
 void UsageAnalysis::visit(ClassDecl* clss) {
-    SAVE_MEMBER_AND_SET(_undeclaredVars, {})
+    SAVE_UNDECLARED_VARS
 
     for (TypeSpecifier* tps : clss->getFields()) {
         if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(tps->getSpecified()->getSymbol())) {

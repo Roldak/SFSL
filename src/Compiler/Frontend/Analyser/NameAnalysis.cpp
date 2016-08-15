@@ -400,8 +400,8 @@ size_t TypeDependencyFixation::pushTypeParameters(const std::vector<TypeExpressi
                    //  => compiler will stop before type dependency is even used
         }
 
-        if (id->getSymbol()->getSymbolType() == sym::SYM_TPE) {
-            _parameters.push_back(Parameter(vt, static_cast<sym::TypeSymbol*>(id->getSymbol())));
+        if (sym::TypeSymbol* tpsym = sym::getIfSymbolOfType<sym::TypeSymbol>(id->getSymbol())) {
+            _parameters.push_back(Parameter(vt, tpsym));
             ++pushed;
         } else {
             _ctx->reporter().fatal(*typeParam, "Is supposed to be a TypeSymbol");
