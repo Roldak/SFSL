@@ -186,18 +186,22 @@ bool unify(const type::Type* ta, type::Type* tb, const std::vector<type::Type*>&
         if (type::ConstructorApplyType* appB = type::getIf<type::ConstructorApplyType>(tb)) {
             if (appA->getArgs().size() == appB->getArgs().size()) {
                 if (unify(appA->getCallee(), appB->getCallee(), params, args, argTypes, ctx)) {
+                    bool ok = true;
                     for (size_t i = 0; i < appA->getArgs().size(); ++i) {
                         if (!unify(appA->getArgs()[i], appB->getArgs()[i], params, args, argTypes, ctx)) {
-                            return false;
+                            ok = false;
                         }
                     }
-                    return true;
+                    if (ok) {
+                        return true;
+                    }
                 }
             }
-        } else if (type::ProperType* pB = type::getIf<type::ProperType>(tb)) {
+        }
+        if (type::ProperType* pB = type::getIf<type::ProperType>(tb->applyTCCallsOnly(ctx))) {
             if (pB->getClass()->getParent()) {
                 if (type::Type* parent = ASTTypeCreator::createType(pB->getClass()->getParent(), ctx)) {
-                    return unify(ta, parent, params, args, argTypes, ctx);
+                    return unify(ta, parent->substitute(pB->getSubstitutionTable(), ctx), params, args, argTypes, ctx);
                 }
             }
         }

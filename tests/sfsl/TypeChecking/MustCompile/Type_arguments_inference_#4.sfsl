@@ -2,12 +2,16 @@ module test {
 	using sfsl.lang
 	
 	type Test1[T] => class ()
-	
 	type Test2 = class () : Test1[real]
+	type Test3[T] => class () : Test1[T]
 	
 	def f[F: *->*](unused_x: F[real]) => unused_y: F[int]
-	
+	def g[T](unused_x: Test1[T]) => unused_y: Test1[int]
+		
 	def test() => {
 		unused_test1: Test1[int] = f(Test2());
+		unused_test2: Test1[int] = g(Test2());
+		unused_test3: Test1[int] = f(Test3[real]());
+		unused_test4: Test1[int] = g(Test3[int]());
 	}
 }
