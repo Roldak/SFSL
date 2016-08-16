@@ -55,7 +55,8 @@ public:
                                                         const std::vector<TypeExpression*>& arguments,
                                                         const std::vector<type::Type*>& createdArguments,
                                                         const common::Positionnable& callPos,
-                                                        const type::Environment& env, CompCtx_Ptr& ctx);
+                                                        const type::Environment& env, CompCtx_Ptr& ctx,
+                                                        bool reportErrors = true);
 
 private:
 

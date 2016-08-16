@@ -890,7 +890,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         const AnySymbolicData data(val.symbol, val.env);
         if (data.symbol->getSymbolType() == sym::SYM_DEF) {
             sym::DefinitionSymbol* defsymbol = static_cast<sym::DefinitionSymbol*>(data.symbol);
-            type::Type* deftype = ASTTypeCreator::evalFunctionConstructor(defsymbol->type(), *_expectedInfo.typeArgs, *triggerer, _ctx, _expectedInfo.args);
+            type::Type* deftype = ASTTypeCreator::evalFunctionConstructor(defsymbol->type(), *_expectedInfo.typeArgs, *triggerer, _ctx, _expectedInfo.args, false);
             OverloadedDefSymbolCandidate::append(candidates, defsymbol, deftype, expectedArgCount, env, data.env, _ctx);
         }
     }

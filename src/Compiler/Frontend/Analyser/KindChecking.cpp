@@ -245,10 +245,13 @@ bool KindChecking::kindCheckWithBoundsArgumentSubstitution(const std::vector<kin
                                                            const std::vector<TypeExpression*>& arguments,
                                                            const std::vector<type::Type*>& createdArguments,
                                                            const common::Positionnable& callPos,
-                                                           const type::Environment& env, CompCtx_Ptr& ctx) {
+                                                           const type::Environment& env, CompCtx_Ptr& ctx,
+                                                           bool reportErrors) {
     if (arguments.size() != parametersKinds.size()) {
-        ctx->reporter().error(callPos, "Wrong number of type arguments. Expected " +
-                   utils::T_toString(parametersKinds.size()) + ", found " + utils::T_toString(arguments.size()));
+        if (reportErrors) {
+            ctx->reporter().error(callPos, "Wrong number of type arguments. Expected " +
+                       utils::T_toString(parametersKinds.size()) + ", found " + utils::T_toString(arguments.size()));
+        }
         return false;
     }
 
@@ -256,8 +259,10 @@ bool KindChecking::kindCheckWithBoundsArgumentSubstitution(const std::vector<kin
         kind::Kind* appliedArgKind = arguments[i]->kind()->substitute(createdArguments[i]->getSubstitutionTable(), ctx)->apply(ctx);
         kind::Kind* appliedParamKind = parametersKinds[i]->substitute(env, ctx)->apply(ctx);
         if (!appliedArgKind->isSubKindOf(appliedParamKind, true)) {
-            ctx->reporter().error(*arguments[i], "Kind mismatch. Expected " + appliedParamKind->toString(true) +
-                       ", found " + appliedArgKind->toString(true));
+            if (reportErrors) {
+                ctx->reporter().error(*arguments[i], "Kind mismatch. Expected " + appliedParamKind->toString(true) +
+                           ", found " + appliedArgKind->toString(true));
+            }
             return false;
         }
     }

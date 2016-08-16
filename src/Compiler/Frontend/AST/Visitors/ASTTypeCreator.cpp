@@ -234,7 +234,7 @@ bool checkArgumentsValidity(const std::vector<type::Type*>& args) {
 
 type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::vector<TypeExpression*>& args,
                                                     const common::Positionnable& callPos, CompCtx_Ptr& ctx,
-                                                    const std::vector<type::Type*>* callArgTypes) {
+                                                    const std::vector<type::Type*>* callArgTypes, bool reportErrors) {
 
     std::vector<TypeExpression*> typeParams;
     const std::vector<type::Type*>* paramTypes;
@@ -284,9 +284,11 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
         }
 
         if (paramTypes->size() != callArgTypes->size()) {
-            ctx->reporter().error(callPos,
-                       "Wrong number of argument. Found " + utils::T_toString(callArgTypes->size()) +
-                       ", expected " + utils::T_toString(paramTypes->size()));
+            if (reportErrors) {
+                ctx->reporter().error(callPos,
+                           "Wrong number of argument. Found " + utils::T_toString(callArgTypes->size()) +
+                           ", expected " + utils::T_toString(paramTypes->size()));
+            }
             return type::Type::NotYetDefined();
         }
 
@@ -298,7 +300,9 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
         }
 
         if (!checkArgumentsValidity(argTypes)) {
-            ctx->reporter().error(callPos, "Unable to infer type arguments based on call arguments");
+            if (reportErrors) {
+                ctx->reporter().error(callPos, "Unable to infer type arguments based on call arguments");
+            }
             return type::Type::NotYetDefined();
         }
     }
@@ -307,7 +311,7 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
     type::Environment callEnv(buildEnvironmentFromTypeParameterInstantiation(typeParams, argTypes, ctx));
     fnEnv.insert(callEnv.begin(), callEnv.end());
 
-    if (!KindChecking::kindCheckWithBoundsArgumentSubstitution(paramKinds, argExprs, argTypes, callPos, fnEnv, ctx)) {
+    if (!KindChecking::kindCheckWithBoundsArgumentSubstitution(paramKinds, argExprs, argTypes, callPos, fnEnv, ctx, reportErrors)) {
         return type::Type::NotYetDefined();
     } else if (typeParams.size() == 0) {
         return fc;
