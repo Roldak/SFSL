@@ -1,0 +1,12 @@
+module test {
+	using sfsl.lang
+
+	def f[F: *->*, T](x: F[T]) => x
+	def f[T](x: T) => x
+	def f(x: string) => x
+	
+	def main() => {
+		f(2);
+		f[string]("hello");
+	}
+}

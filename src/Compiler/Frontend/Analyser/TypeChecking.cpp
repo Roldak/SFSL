@@ -736,7 +736,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
         funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr, std::vector<TypeDecl*>(),
                                                           std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
 
-        funcType = _mngr.New<type::ProperType>(funcClass, env);
+        funcType = _mngr.New<type::FunctionType>(typeArgs, argTypes, retType, funcClass, env);
     } else {
         std::vector<type::Type*> parentTypeArgs = argTypes;
         parentTypeArgs.push_back(retType);
