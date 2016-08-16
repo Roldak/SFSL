@@ -68,7 +68,7 @@ public:
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type*) const override;
-    virtual bool equals(const Type *other) const override;
+    virtual bool equals(const Type* other) const override;
     virtual std::string toString() const override;
 
     void assignInferredType(Type* t);
@@ -90,7 +90,7 @@ public:
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other) const override;
-    virtual bool equals(const Type *other) const override;
+    virtual bool equals(const Type* other) const override;
     virtual std::string toString() const override;
 
     ast::ClassDecl* getClass() const;
@@ -142,7 +142,7 @@ public:
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other) const override;
-    virtual bool equals(const Type *other) const override;
+    virtual bool equals(const Type* other) const override;
     virtual std::string toString() const override;
 
     virtual FunctionType* apply(CompCtx_Ptr& ctx) const override;
@@ -166,8 +166,8 @@ public:
     virtual ~MethodType();
 
     virtual TYPE_KIND getTypeKind() const override;
-    virtual bool isSubTypeOf(const Type *other) const override;
-    virtual bool equals(const Type *other) const override;
+    virtual bool isSubTypeOf(const Type* other) const override;
+    virtual bool equals(const Type* other) const override;
     virtual std::string toString() const override;
 
     virtual MethodType* apply(CompCtx_Ptr &ctx) const override;
@@ -200,7 +200,7 @@ public:
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other) const override;
-    virtual bool equals(const Type *other) const override;
+    virtual bool equals(const Type* other) const override;
     virtual std::string toString() const override;
 
     ast::TypeConstructorCreation* getTypeConstructor() const;
@@ -224,6 +224,9 @@ public:
 
     virtual Type* apply(CompCtx_Ptr& ctx) const override;
     virtual Type* applyTCCallsOnly(CompCtx_Ptr& ctx) const override;
+
+    Type* getCallee() const;
+    const std::vector<Type*>& getArgs();
 
 protected:
 

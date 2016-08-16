@@ -594,6 +594,14 @@ Type* ConstructorApplyType::applyTCCallsOnly(CompCtx_Ptr& ctx) const {
     return ast::ASTTypeCreator::evalTypeConstructor(ctr, _args, ctx)->applyTCCallsOnly(ctx);
 }
 
+Type* ConstructorApplyType::getCallee() const {
+    return _callee;
+}
+
+const std::vector<Type*>& ConstructorApplyType::getArgs() {
+    return _args;
+}
+
 // TYPED
 
 Typed::Typed() : _type(Type::NotYetDefined()) {

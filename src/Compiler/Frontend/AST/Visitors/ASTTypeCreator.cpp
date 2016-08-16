@@ -158,18 +158,96 @@ type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, 
     return created;
 }
 
+TypeExpression* typeExpressionFromType(type::Type* tp) {
+    if (type::ProperType* pt = type::getIf<type::ProperType>(tp)) {
+        return pt->getClass();
+    } else if (type::TypeConstructorType* tct = type::getIf<type::TypeConstructorType>(tp)) {
+        return tct->getTypeConstructor();
+    }
+    return nullptr;
+}
+
+bool unify(const type::Type* ta, type::Type* tb, const std::vector<type::Type*>& params,
+           std::vector<TypeExpression*>& args, std::vector<type::Type*>& argTypes, CompCtx_Ptr& ctx) {
+
+    for (size_t i = 0; i < params.size(); ++i) {
+        if (ta == params[i]) {
+            // unification fails if some parameter was already assigned to a different type
+            if (argTypes[i] && !argTypes[i]->equals(tb)) {
+                return false;
+            }
+            args[i] = typeExpressionFromType(tb->applyTCCallsOnly(ctx));
+            argTypes[i] = tb;
+            return true;
+        }
+    }
+
+    if (type::ConstructorApplyType* appA = type::getIf<type::ConstructorApplyType>(ta)) {
+        if (type::ConstructorApplyType* appB = type::getIf<type::ConstructorApplyType>(tb)) {
+            if (appA->getArgs().size() == appB->getArgs().size()) {
+                if (unify(appA->getCallee(), appB->getCallee(), params, args, argTypes, ctx)) {
+                    for (size_t i = 0; i < appA->getArgs().size(); ++i) {
+                        if (!unify(appA->getArgs()[i], appB->getArgs()[i], params, args, argTypes, ctx)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+        } else if (type::ProperType* pB = type::getIf<type::ProperType>(tb)) {
+            if (pB->getClass()->getParent()) {
+                if (type::Type* parent = ASTTypeCreator::createType(pB->getClass()->getParent(), ctx)) {
+                    return unify(ta, parent, params, args, argTypes, ctx);
+                }
+            }
+        }
+        return false;
+    }
+
+    if (type::ValueConstructorType* valA = type::getIf<type::ValueConstructorType>(ta)) {
+        if (type::ValueConstructorType* valB = type::getIf<type::ValueConstructorType>(tb)) {
+            if (valA->getArgTypes().size() == valB->getArgTypes().size()) {
+                if (unify(valA->getRetType(), valB->getRetType(), params, args, argTypes, ctx)) {
+                    for (size_t i = 0; i < valA->getArgTypes().size(); ++i) {
+                        if (!unify(valA->getArgTypes()[i], valB->getArgTypes()[i], params, args, argTypes, ctx)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    return ta->equals(tb);
+}
+
+bool checkArgumentsValidity(const std::vector<type::Type*>& args) {
+    for (type::Type* arg : args) {
+        if (arg == nullptr) {
+            return false;
+        }
+    }
+    return true;
+}
+
 type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::vector<TypeExpression*>& args,
-                                                    const common::Positionnable& callPos, CompCtx_Ptr& ctx) {
+                                                    const common::Positionnable& callPos, CompCtx_Ptr& ctx,
+                                                    const std::vector<type::Type*>* callArgTypes) {
 
     std::vector<TypeExpression*> typeParams;
+    const std::vector<type::Type*>* paramTypes;
     type::Type* created;
 
     if (type::FunctionType* ft = type::getIf<type::FunctionType>(fc)) {
         typeParams = ft->getTypeArgs();
+        paramTypes = &ft->getArgTypes();
         created = ctx->memoryManager().New<type::FunctionType>(
                         std::vector<TypeExpression*>(), ft->getArgTypes(), ft->getRetType(), ft->getClass(), ft->getSubstitutionTable());
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(fc)) {
         typeParams = mt->getTypeArgs();
+        paramTypes = &mt->getArgTypes();
         created = ctx->memoryManager().New<type::MethodType>(
                         mt->getOwner(), std::vector<TypeExpression*>(), mt->getArgTypes(), mt->getRetType(), mt->getSubstitutionTable());
     } else {
@@ -188,11 +266,48 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
         }
     }
 
+    std::vector<TypeExpression*> argExprs(args);
+
+    if (typeParams.size() > 0 && args.size() == 0 && callArgTypes) {
+        // Caller supplied 0 type arguments, so try to infer them
+        argExprs.resize(typeParams.size(), nullptr);
+        argTypes.resize(typeParams.size(), nullptr);
+
+        std::vector<type::Type*> typeParamTypes(typeParams.size());
+        for (size_t i = 0; i < typeParams.size(); ++i) {
+            TypeExpression* param = typeParams[i];
+            if (TypeParameter* tparam = getIfNodeOfType<TypeParameter>(param, ctx)) {
+                param = tparam->getSpecified();
+            }
+
+            typeParamTypes[i] = static_cast<sym::TypeSymbol*>(ASTSymbolExtractor::extractSymbol(param, ctx))->type();
+        }
+
+        if (paramTypes->size() != callArgTypes->size()) {
+            ctx->reporter().error(callPos,
+                       "Wrong number of argument. Found " + utils::T_toString(callArgTypes->size()) +
+                       ", expected " + utils::T_toString(paramTypes->size()));
+            return type::Type::NotYetDefined();
+        }
+
+        for (size_t i = 0; i < paramTypes->size(); ++i) {
+            if (   !unify(paramTypes->at(i), callArgTypes->at(i), typeParamTypes, argExprs, argTypes, ctx) ||
+                    checkArgumentsValidity(argTypes)) {
+                break;
+            }
+        }
+
+        if (!checkArgumentsValidity(argTypes)) {
+            ctx->reporter().error(callPos, "Unable to infer type arguments based on call arguments");
+            return type::Type::NotYetDefined();
+        }
+    }
+
     type::Environment fnEnv(created->getSubstitutionTable());
     type::Environment callEnv(buildEnvironmentFromTypeParameterInstantiation(typeParams, argTypes, ctx));
     fnEnv.insert(callEnv.begin(), callEnv.end());
 
-    if (!KindChecking::kindCheckWithBoundsArgumentSubstitution(paramKinds, args, argTypes, callPos, fnEnv, ctx)) {
+    if (!KindChecking::kindCheckWithBoundsArgumentSubstitution(paramKinds, argExprs, argTypes, callPos, fnEnv, ctx)) {
         return type::Type::NotYetDefined();
     } else if (typeParams.size() == 0) {
         return fc;

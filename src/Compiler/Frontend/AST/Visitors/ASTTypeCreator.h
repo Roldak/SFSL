@@ -60,7 +60,7 @@ public:
     static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, bool allowFunctionConstructors = false);
 
     /**
-     * @brief Evaluates the given type constructor with the given arguments
+     * @brief Evaluates the given type constructor with the given type arguments
      * and returns its result.
      *
      * @param ctr The type constructor to evaluate
@@ -72,18 +72,19 @@ public:
     static type::Type* evalTypeConstructor(type::TypeConstructorType* ctr, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx);
 
     /**
-     * @brief Evaluates the given function constructor with the given arguments
+     * @brief Evaluates the given function constructor with the given type arguments
      * and returns its result.
      *
      * @param fc The function constructor to evaluate (a FunctionType or a MethodType)
-     * @param args The arguments to feed the function constructors with
+     * @param args The type arguments to feed the function constructors with
      * @param callPos the position of the call
      * @param ctx The compilation context
      * @return The function type that was created after evaluating the type constructor
      * (or the `not yet defined` type in case of failure)
      */
     static type::Type* evalFunctionConstructor(type::Type* fc, const std::vector<TypeExpression*>& args,
-                                               const common::Positionnable& callPos, CompCtx_Ptr& ctx);
+                                               const common::Positionnable& callPos, CompCtx_Ptr& ctx,
+                                               const std::vector<type::Type*>* callArgTypes = nullptr);
 
     /**
      * @brief Creates an environment mapping the types of the parameters to the types of the arguments

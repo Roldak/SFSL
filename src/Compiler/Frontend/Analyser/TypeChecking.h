@@ -116,7 +116,8 @@ private:
     void tryAssigningTypeToSymbolic(T* symbolic);
 
     bool transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
-                                   const std::vector<TypeExpression*>& typeArgs, const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType);
+                                   const std::vector<TypeExpression*>& typeArgs, const std::vector<type::Type*>& callArgTypes,
+                                   const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType);
 
     sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);
 

@@ -506,7 +506,7 @@ void TypeChecking::visit(FunctionCall* call) {
         _expectedInfo.node = inst;
 
         if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
-            if (!transformIntoCallToMember(call, inst, pt, "new", callTypeArgs, expectedArgTypes, retType)) {
+            if (!transformIntoCallToMember(call, inst, pt, "new", callTypeArgs, callArgTypes, expectedArgTypes, retType)) {
                 call->setType(inst->type());
                 return;
             }
@@ -517,12 +517,12 @@ void TypeChecking::visit(FunctionCall* call) {
 
         retType = inst->type(); // force constructor to return type of its `this`
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(
-                   ASTTypeCreator::evalFunctionConstructor(calleeT, callTypeArgs, *call, _ctx))) {
+                   ASTTypeCreator::evalFunctionConstructor(calleeT, callTypeArgs, *call, _ctx, &callArgTypes))) {
 
         expectedArgTypes = &mt->apply(_ctx)->getArgTypes();
         retType = mt->getRetType();
     } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
-        if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", callTypeArgs, expectedArgTypes, retType)) {
+        if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", callTypeArgs, callArgTypes, expectedArgTypes, retType)) {
             return;
         }
     } else {
@@ -556,7 +556,7 @@ void TypeChecking::visit(Instantiation* inst) {
         if (pt->getClass()->isAbstract()) {
             _rep.error(*inst, "Cannot instantiate abstract class " + pt->getClass()->getName());
         }
-        inst->setType(pt);
+        inst->setType(instType);
     } else {
         _rep.error(*inst, "Only classes can be instantiated. Found " + instType->apply(_ctx)->toString());
     }
@@ -630,14 +630,15 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
 }
 
 bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
-                                             const std::vector<TypeExpression*>& typeArgs, const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType) {
+                                             const std::vector<TypeExpression*>& typeArgs, const std::vector<type::Type*>& callArgTypes,
+                                             const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType) {
     ClassDecl* clss = pt->getClass();
     const type::Environment& env = pt->getSubstitutionTable();
 
     FieldInfo field = tryGetFieldInfo(newCallee, clss, member, env);
 
     if (field.isValid()) {
-        type::Type* calleeT = ASTTypeCreator::evalFunctionConstructor(field.t->applyTCCallsOnly(_ctx), typeArgs, *call, _ctx);
+        type::Type* calleeT = ASTTypeCreator::evalFunctionConstructor(field.t->applyTCCallsOnly(_ctx), typeArgs, *call, _ctx, &callArgTypes);
 
         if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
             expectedArgTypes = &ft->apply(_ctx)->getArgTypes();
@@ -889,7 +890,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         const AnySymbolicData data(val.symbol, val.env);
         if (data.symbol->getSymbolType() == sym::SYM_DEF) {
             sym::DefinitionSymbol* defsymbol = static_cast<sym::DefinitionSymbol*>(data.symbol);
-            type::Type* deftype = ASTTypeCreator::evalFunctionConstructor(defsymbol->type(), *_expectedInfo.typeArgs, *triggerer, _ctx);
+            type::Type* deftype = ASTTypeCreator::evalFunctionConstructor(defsymbol->type(), *_expectedInfo.typeArgs, *triggerer, _ctx, _expectedInfo.args);
             OverloadedDefSymbolCandidate::append(candidates, defsymbol, deftype, expectedArgCount, env, data.env, _ctx);
         }
     }
