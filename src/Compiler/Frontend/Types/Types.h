@@ -288,7 +288,9 @@ inline MethodType* getIf(const Type* t) {
 
 template<>
 inline ValueConstructorType* getIf(const Type* t) {
-    return t->getTypeKind() == TYPE_FUNCTION || t->getTypeKind() == TYPE_METHOD ? (ValueConstructorType*)t : nullptr;
+    if (FunctionType* ft = getIf<FunctionType>(t)) { return ft; }
+    else if (MethodType* mt = getIf<MethodType>(t)) { return mt; }
+    else { return nullptr; }
 }
 
 template<>

@@ -1,0 +1,30 @@
+module test {
+	using sfsl.lang
+		
+	def f[A](x: A->int) => x
+	def g[A, B](x: (A, B)->int) => x
+	def h[A, R](x: A->R) => x
+	def i[A, B, R](x: A->B->R) => x
+	
+	def test1() => {
+		unused_test1: real->int = f((unused_x: real) => 2);
+		unused_test2: (int, real)->int = g((x: int, unused_y: real) => x);
+		unused_test3: int->real = h((unused_x: int) => 3.14);
+		unused_test4: int->real->string = i((unused_x: int) => (unused_y: real) => "hello");
+	}
+	
+	type Test = class () {
+		def f[A](x: A->int) => x
+		def g[A, B](x: (A, B)->int) => x
+		def h[A, R](x: A->R) => x
+		def i[A, B, R](x: A->B->R) => x
+	}
+	
+	def test2() => {
+		t := Test();
+		unused_test1: real->int = t.f((unused_x: real) => 2);
+		unused_test2: (int, real)->int = t.g((x: int, unused_y: real) => x);
+		unused_test3: int->real = t.h((unused_x: int) => 3.14);
+		unused_test4: int->real->string = t.i((unused_x: int) => (unused_y: real) => "hello");
+	}
+}

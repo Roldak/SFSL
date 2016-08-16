@@ -1,0 +1,22 @@
+module test {
+	using sfsl.lang
+	
+	def ident[T](x: T) => x
+		
+	def test1() => {
+		unused_test1: int = ident(1);
+		unused_test2: real = ident(2.4);
+		unused_test3 : string = ident("hello");
+	}
+	
+	type Test = class () {
+		def ident[T](x: T) => x
+	}
+	
+	def test2() => {
+		t := Test();
+		unused_test1: int = t.ident(1);
+		unused_test2: real = t.ident(2.4);
+		unused_test3 : string = t.ident("hello");
+	}
+}

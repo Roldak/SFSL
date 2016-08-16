@@ -1,0 +1,23 @@
+module test {
+	using sfsl.lang
+	
+	type Test1[T] => class ()
+	type Test2[A, B] => class ()
+	type Test3[A, B, C] => class ()
+	type Test4[F: *->*] => class ()
+	
+	def f[F: *->*](unused_x: F[int]) => unused_y: F[real]
+	def g[F: *->*, A](unused_x: F[A]) => [B](unused_y: F[B]) => Test2[A, B]()
+	def h[F: [*, *]->*, A, B, C, D](unused_x: F[A, B], unused_a: C, unused_b: D) => unused_y: F[Test2[A, C], Test2[B, D]]
+	def i[F: *->*](unused_x: Test4[F]) => unused_y: F[real]
+	def j[F: [*->*]->*, G: *->*](unused_x: F[G]) => unused_y: F[Test1]
+	
+	def test() => {
+		x := Test1[int]();
+		unused_test1: Test1[real] = f(x);
+		test2: Test2[int, real] = g(x)(Test1[real]());
+		unused_test3: Test2[Test2[int, string], Test2[real, bool]] = h(test2, "hello", true);
+		unused_test4: Test1[real] = i(Test4[Test1]());
+		unused_test5: Test4[Test1] = j(Test4[Test1]());
+	}
+}

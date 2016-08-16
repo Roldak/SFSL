@@ -1,0 +1,13 @@
+module test {
+	using sfsl.lang
+	
+	type Test1[T] => class ()
+	
+	type Test2 = class () : Test1[real]
+	
+	def f[F: *->*](unused_x: F[real]) => unused_y: F[int]
+	
+	def test() => {
+		unused_test1: Test1[int] = f(Test2());
+	}
+}
