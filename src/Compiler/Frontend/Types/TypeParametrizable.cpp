@@ -25,11 +25,11 @@ TypeParametrizable::~TypeParametrizable() {
 
 }
 
-void TypeParametrizable::setDependencies(const std::vector<Parameter>& types) {
+void TypeParametrizable::setParameters(const std::vector<Parameter>& types) {
     _types = types;
 }
 
-const std::vector<TypeParametrizable::Parameter>& TypeParametrizable::getDependencies() const {
+const std::vector<TypeParametrizable::Parameter>& TypeParametrizable::getParameters() const {
     return _types;
 }
 

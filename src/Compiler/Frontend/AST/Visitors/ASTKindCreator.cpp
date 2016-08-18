@@ -113,7 +113,7 @@ void ASTDefaultTypeFromKindCreator::visit(ProperTypeKindSpecifier*) {
                                            std::vector<DefineDecl*>(), false);
 
     clss->setScope(_mngr.New<sym::Scope>(nullptr));
-    clss->setDependencies(_parameters);
+    clss->setParameters(_parameters);
 
     clss->CanSubtypeClasses::insertParent(clss);
 
@@ -144,7 +144,7 @@ void ASTDefaultTypeFromKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
 
     TypeConstructorCreation* tcc = _mngr.New<TypeConstructorCreation>(_name, tt, ret);
     tcc->setScope(_mngr.New<sym::Scope>(nullptr));
-    tcc->setDependencies(_parameters);
+    tcc->setParameters(_parameters);
 
     _created = tcc;
 }

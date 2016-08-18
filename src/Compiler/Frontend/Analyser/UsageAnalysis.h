@@ -36,7 +36,6 @@ public:
 private:
 
     std::map<sym::VariableSymbol*, std::vector<Identifier*>> _undeclaredVars;
-    bool checkAnnotation(Annotable* annotableNode) const;
 };
 
 }

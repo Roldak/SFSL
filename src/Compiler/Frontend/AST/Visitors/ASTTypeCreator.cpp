@@ -361,7 +361,7 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic
 
 type::Environment ASTTypeCreator::buildEnvironmentFromTypeParametrizable(type::TypeParametrizable* param) {
     type::Environment env;
-    const std::vector<type::TypeParametrizable::Parameter>& syms(param->getDependencies());
+    const std::vector<type::TypeParametrizable::Parameter>& syms(param->getParameters());
 
     for (type::TypeParametrizable::Parameter ts : syms) {
         env.insert(type::Environment::Substitution(ts.varianceType, ts.symbol->type(), ts.symbol->type()));

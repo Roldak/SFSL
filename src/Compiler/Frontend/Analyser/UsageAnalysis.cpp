@@ -163,7 +163,7 @@ protected:
         _declaredVars.push_back(var);
         _undeclaredVars.erase(var);
 
-        for (Identifier* ident : _locallyUnderclaredVars[var]) {
+        for (Identifier* ident : _locallyUndeclaredVars[var]) {
             _ctx->reporter().error(*ident, "Variable `" + var->getName() + "` is used or assigned before being declared");
         }
     }
@@ -180,7 +180,7 @@ protected:
 
         if (!var->hasProperty(UsageProperty::DECLARED) && by) {
             _undeclaredVars[var].push_back(by);
-            _locallyUnderclaredVars[var].push_back(by);
+            _locallyUndeclaredVars[var].push_back(by);
         } else if (var->hasProperty(UsageProperty::USABLE) && var->hasProperty(UsageProperty::DECLARED) && !var->hasProperty(UsageProperty::INITIALIZED)) {
             _ctx->reporter().error(pos, "Variable `" + var->getName() +
                                    ( by ? "` is used here before being initialized" :
@@ -223,7 +223,7 @@ protected:
     }
 
     std::map<sym::VariableSymbol*, std::vector<Identifier*>>& _undeclaredVars;
-    std::map<sym::VariableSymbol*, std::vector<Identifier*>> _locallyUnderclaredVars;
+    std::map<sym::VariableSymbol*, std::vector<Identifier*>> _locallyUndeclaredVars;
     std::vector<sym::VariableSymbol*> _declaredVars;
     std::vector<sym::VariableSymbol*> _initCurScope;
 };

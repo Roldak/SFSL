@@ -315,7 +315,7 @@ TypeDependencyFixation::~TypeDependencyFixation() {
 }
 
 void TypeDependencyFixation::visit(ClassDecl* clss) {
-    clss->setDependencies(_parameters);
+    clss->setParameters(_parameters);
 
     ASTImplicitVisitor::visit(clss);
 
@@ -337,7 +337,7 @@ void TypeDependencyFixation::visit(FunctionTypeDecl* ftdecl) {
 }
 
 void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
-    tc->setDependencies(_parameters);
+    tc->setParameters(_parameters);
 
     TypeExpression* expr = tc->getArgs();
     std::vector<TypeExpression*> args;
@@ -360,7 +360,7 @@ void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
 }
 
 void TypeDependencyFixation::visit(FunctionCreation* func) {
-    func->setDependencies(_parameters);
+    func->setParameters(_parameters);
 
     size_t pushed = 0;
 

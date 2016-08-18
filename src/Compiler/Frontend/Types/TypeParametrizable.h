@@ -21,8 +21,8 @@ class TypeSymbol;
 namespace type {
 
 /**
- * @brief Interface which represents an object that can depend on type symbols.
- * Concrete implementations are: ClassDecl, TraitDecl, TypeConstructorCreation and FunctionCreation.
+ * @brief Interface which represents an object that can depend on type parameters.
+ * Concrete implementations are: ClassDecl, TypeConstructorCreation and FunctionCreation.
  */
 class TypeParametrizable {
 public:
@@ -37,14 +37,14 @@ public:
     virtual ~TypeParametrizable();
 
     /**
-     * @param type The dependencies of this object
+     * @param types The type parameters of this object
      */
-    void setDependencies(const std::vector<Parameter>& types);
+    void setParameters(const std::vector<Parameter>& types);
 
     /**
-     * @return All the types that this object depends on
+     * @return All the type parameters that this object depends on
      */
-    const std::vector<Parameter>& getDependencies() const;
+    const std::vector<Parameter>& getParameters() const;
 
 private:
 
