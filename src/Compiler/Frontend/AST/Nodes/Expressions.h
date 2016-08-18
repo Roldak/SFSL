@@ -39,7 +39,7 @@ class TypeTuple;
  * Cannot be constructed. This class is there just to provide
  * a lower upper bound for all the expressions than ASTNode
  */
-class Expression : virtual public ASTNode, public type::Typed {
+class Expression : public ASTNode, public type::Typed {
 public:
 
     virtual ~Expression();
