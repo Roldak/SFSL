@@ -1,0 +1,13 @@
+module test {
+	type A = class
+	type B = class : A
+	type C[T] => class
+	
+	type G[F: *->*, T < F[A]] => class
+	
+	type H[F: *->*, X, T < F[X]] => class
+	
+	type Test1 = G[C, C[A]]
+	
+	type Test2 = H[C, B, C[B]]
+}
