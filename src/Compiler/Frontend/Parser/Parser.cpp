@@ -1036,20 +1036,36 @@ RETURN_TYPE* Parser::parseTuple(std::vector<ELEMENT_TYPE>& exprs, const PARSING_
     return tuple;
 }
 
+Expression* Parser::makeMethodCall(Expression* left, const std::string& memberName, const std::vector<Expression*>& argExprs,
+                                  const common::Positionnable& memberPos, const common::Positionnable& argsPos) {
+    Identifier* id = _mngr.New<Identifier>(memberName);
+    Tuple* args = _mngr.New<Tuple>(argExprs);
+    id->setPos(memberPos);
+    args->setPos(argsPos);
+
+    MemberAccess* mac = _mngr.New<MemberAccess>(left, id);
+    mac->setPos(*left);
+    mac->setEndPos(id->getEndPosition());
+
+    return _mngr.New<FunctionCall>(mac, nullptr, args);
+}
+
 Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operator* oper) {
     Expression* res;
 
     switch (oper->getOpType()) {
     case tok::OPER_EQ:
-        res = _mngr.New<AssignmentExpression>(left, right);
+        if (FunctionCall* call = getIfNodeOfType<FunctionCall>(left, _ctx)) {
+            std::vector<Expression*> newArgsExprs(call->getArgs());
+            newArgsExprs.push_back(right);
+
+            res = makeMethodCall(call->getCallee(), "(=)", newArgsExprs, *oper, *call->getArgsTuple());
+        } else {
+            res = _mngr.New<AssignmentExpression>(left, right);
+        }
         break;
     default:
-        Identifier* id = _mngr.New<Identifier>(oper->toString());
-        Tuple* args = _mngr.New<Tuple>(std::vector<Expression*>{right});
-        id->setPos(*oper);
-        args->setPos(*right);
-        res = _mngr.New<MemberAccess>(left, id);
-        res = _mngr.New<FunctionCall>(res, nullptr, args);
+        res = makeMethodCall(left, oper->toString(), {right}, *oper, *right);
         break;
     }
 
@@ -1065,8 +1081,12 @@ Identifier* Parser::parseOperatorsAsIdentifer() {
     tok::OPER_TYPE op = as<tok::Operator>()->getOpType();
 
     if (accept(tok::OPER_L_PAREN)) {
+        name = "(";
+        if (accept(tok::OPER_EQ)) {
+            name += "=";
+        }
         expect(tok::OPER_R_PAREN, ")");
-        name = "()";
+        name += ")";
     } else if (op == tok::OPER_PLUS   || op == tok::OPER_MINUS ||
                op == tok::OPER_TIMES  || op == tok::OPER_DIV   ||
                op == tok::OPER_MOD    || op == tok::OPER_POW   ||

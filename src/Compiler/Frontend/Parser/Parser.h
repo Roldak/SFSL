@@ -145,6 +145,8 @@ private:
     template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
     RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE>& exprs, const PARSING_FUNC& f);
 
+    ast::Expression* makeMethodCall(Expression* left, const std::string& memberName, const std::vector<Expression*>& argExprs,
+                                    const common::Positionnable& memberPos, const common::Positionnable& argsPos);
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
     ast::Identifier* parseOperatorsAsIdentifer();
 
