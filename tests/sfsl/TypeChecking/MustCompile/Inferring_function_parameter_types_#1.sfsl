@@ -1,0 +1,21 @@
+module test {
+	using sfsl.lang
+	
+	def test1: int->int = x => x
+	
+	def test2() => {
+		unused_f: int->int = x => x;
+	}
+	
+	type Test3 = class {
+		f: int->int;
+		
+		new() => {
+			f = x => x;
+		}
+	}
+	
+	def test4()->int->int => x => x
+	
+	def test5: (int, real)->int = (x, y: real) => x
+}

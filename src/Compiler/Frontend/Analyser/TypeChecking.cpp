@@ -194,6 +194,8 @@ void TypeChecking::visit(DefineDecl* decl) {
         type::Type* expectedType = nullptr;
         type::Type* foundType = nullptr;
 
+        SAVE_MEMBER(_expectedInfo)
+
         if (TypeExpression* tpexpr = decl->getTypeSpecifier()) {
             tpexpr->onVisit(this);
             expectedType = ASTTypeCreator::createType(tpexpr, _ctx, _currentThis != nullptr);
@@ -203,12 +205,17 @@ void TypeChecking::visit(DefineDecl* decl) {
                             static_cast<type::FunctionType*>(expectedType->applyTCCallsOnly(_ctx)),
                             static_cast<ast::ClassDecl*>(_currentThis), _ctx);
             }
+
+            _expectedInfo.node = decl->getValue();
+            _expectedInfo.ret = expectedType;
         }
 
         if (Expression* value = decl->getValue()) {
             value->onVisit(this);
             foundType = value->type();
         }
+
+        RESTORE_MEMBER(_expectedInfo)
 
         RESTORE_MEMBER(_triggeringDef)
         RESTORE_MEMBER(_nextDef)
