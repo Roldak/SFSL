@@ -234,7 +234,9 @@ private:
  * @brief Enumerates every possible Operator type
  */
 enum OPER_TYPE {
-    OPER_PLUS = 0, OPER_MINUS, OPER_TIMES, OPER_DIV, OPER_MOD, OPER_POW, OPER_AND, OPER_OR, OPER_EQ, // BINARY OPERATORS
+    OPER_PLUS = 0, OPER_MINUS, OPER_TIMES, OPER_DIV, OPER_MOD, OPER_POW, OPER_AND, OPER_OR, // BINARY OPERATORS
+    OPER_EQ, // ASSIGNMENT OPERATORS
+    OPER_BANG, OPER_TILDE, // UNARY OPERATORS
     OPER_EQ_EQ, OPER_NOT_EQ, OPER_LT, OPER_GT, OPER_LE, OPER_GE, // COMPARISON OPERATORS
     OPER_L_PAREN, OPER_R_PAREN, OPER_L_BRACKET, OPER_R_BRACKET, OPER_L_BRACE, OPER_R_BRACE, // BRACKETS
     OPER_DOT, OPER_COLON, OPER_COMMA, OPER_SEMICOLON, // SYMBOLS
@@ -266,6 +268,15 @@ public:
      * @return The precedence of this operator
      */
     int getPrecedence() const;
+
+    /**
+     * @brief All the unary operators have the same precedence,
+     * so there is no need to store the precedence of unary operators
+     * in the precedence table
+     *
+     * @return The precedence of any unary operator
+     */
+    static int getUnaryOperatorPrecedence();
 
     /**
      * @brief Converts an OPER_TYPE to its string representation

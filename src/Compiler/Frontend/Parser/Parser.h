@@ -104,6 +104,7 @@ private:
         // expressions
 
     ast::Expression* parseExpression();
+    ast::Expression* parseUnary();
     ast::Expression* parseBinary(ast::Expression* left, int precedence);
     ast::Expression* parsePrimary();
     ast::TypeSpecifier* parseTypeSpecifier(ast::Identifier* id);
@@ -145,7 +146,7 @@ private:
     template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
     RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE>& exprs, const PARSING_FUNC& f);
 
-    ast::Expression* makeMethodCall(Expression* left, const std::string& memberName, const std::vector<Expression*>& argExprs,
+    ast::Expression* makeMethodCall(Expression* callee, const std::string& memberName, const std::vector<Expression*>& argExprs,
                                     const common::Positionnable& memberPos, const common::Positionnable& argsPos, TypeTuple* typeArgs = nullptr);
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
     ast::Identifier* parseOperatorsAsIdentifer();

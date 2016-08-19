@@ -381,6 +381,26 @@ Expression* Parser::parseExpression() {
     return parseBinary(parsePrimary(), 0);
 }
 
+Expression* Parser::parseUnary() {
+    tok::OPER_TYPE oper = as<tok::Operator>()->getOpType();
+
+    if (oper == tok::OPER_MINUS || oper == tok::OPER_PLUS || oper == tok::OPER_BANG || oper == tok::OPER_TILDE) {
+        SAVE_POS(pos)
+        std::string operName = as<tok::Operator>()->toString();
+        accept();
+
+        Expression* callee = parseBinary(parsePrimary(), tok::Operator::getUnaryOperatorPrecedence());
+        Expression* toRet = makeMethodCall(callee, operName, {}, *callee, *callee);
+
+        toRet->setPos(pos);
+        toRet->setEndPos(_lastTokenEndPos);
+
+        return toRet;
+    }
+
+    return nullptr;
+}
+
 Expression* Parser::parseBinary(Expression* left, int precedence) {
     while (isType(tok::TOK_OPER)) {
         tok::Operator* oper = as<tok::Operator>();
@@ -502,7 +522,7 @@ Expression* Parser::parsePrimary() {
             toRet->setPos(startPos);
             toRet->setEndPos(_lastTokenEndPos);
         }
-        else {
+        else if (!(toRet = parseUnary())) {
             reportUnexpectedCurrentToken();
             accept();
         }
@@ -1036,15 +1056,15 @@ RETURN_TYPE* Parser::parseTuple(std::vector<ELEMENT_TYPE>& exprs, const PARSING_
     return tuple;
 }
 
-Expression* Parser::makeMethodCall(Expression* left, const std::string& memberName, const std::vector<Expression*>& argExprs,
+Expression* Parser::makeMethodCall(Expression* callee, const std::string& memberName, const std::vector<Expression*>& argExprs,
                                   const common::Positionnable& memberPos, const common::Positionnable& argsPos, TypeTuple* typeArgs) {
     Identifier* id = _mngr.New<Identifier>(memberName);
     Tuple* args = _mngr.New<Tuple>(argExprs);
     id->setPos(memberPos);
     args->setPos(argsPos);
 
-    MemberAccess* mac = _mngr.New<MemberAccess>(left, id);
-    mac->setPos(*left);
+    MemberAccess* mac = _mngr.New<MemberAccess>(callee, id);
+    mac->setPos(*callee);
     mac->setEndPos(id->getEndPosition());
 
     return _mngr.New<FunctionCall>(mac, typeArgs, args);
@@ -1091,6 +1111,7 @@ Identifier* Parser::parseOperatorsAsIdentifer() {
                op == tok::OPER_TIMES  || op == tok::OPER_DIV   ||
                op == tok::OPER_MOD    || op == tok::OPER_POW   ||
                op == tok::OPER_AND    || op == tok::OPER_OR    ||
+               op == tok::OPER_BANG   || op == tok::OPER_TILDE ||
                op == tok::OPER_EQ_EQ  || op == tok::OPER_LT    ||
                op == tok::OPER_GT     || op == tok::OPER_LE    ||
                op == tok::OPER_GE) {

@@ -250,6 +250,10 @@ int Operator::getPrecedence() const {
     return PRECEDENCE[_opType];
 }
 
+int Operator::getUnaryOperatorPrecedence() {
+    return 60;
+}
+
 std::string Operator::OperTypeToString(OPER_TYPE type) {
     switch (type) {
 
@@ -263,7 +267,15 @@ std::string Operator::OperTypeToString(OPER_TYPE type) {
     case OPER_POW:      return "^";
     case OPER_AND:      return "&&";
     case OPER_OR:       return "||";
+
+        // ASSIGNMENT OPERATORS
+
     case OPER_EQ:       return "=";
+
+        // UNARY OPERATORS
+
+    case OPER_BANG:     return "!";
+    case OPER_TILDE:    return "~";
 
         // COMPARISON BINARY OPERATORS
 
@@ -315,6 +327,8 @@ std::unordered_map<std::string, OPER_TYPE> createOperatorsMap() {
     map["||"] = OPER_OR;
     map["or"] = OPER_OR;
     map["="] = OPER_EQ;
+    map["!"] = OPER_BANG;
+    map["~"] = OPER_TILDE;
     map["=="] = OPER_EQ_EQ;
     map["!="] = OPER_NOT_EQ;
     map["<"] = OPER_LT;
