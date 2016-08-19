@@ -1107,13 +1107,14 @@ Identifier* Parser::parseOperatorsAsIdentifer() {
         }
         expect(tok::OPER_R_PAREN, ")");
         name += ")";
-    } else if (op == tok::OPER_PLUS   || op == tok::OPER_MINUS ||
-               op == tok::OPER_TIMES  || op == tok::OPER_DIV   ||
-               op == tok::OPER_MOD    || op == tok::OPER_POW   ||
-               op == tok::OPER_AND    || op == tok::OPER_OR    ||
-               op == tok::OPER_BANG   || op == tok::OPER_TILDE ||
-               op == tok::OPER_EQ_EQ  || op == tok::OPER_LT    ||
-               op == tok::OPER_GT     || op == tok::OPER_LE    ||
+    } else if (op == tok::OPER_PLUS    || op == tok::OPER_MINUS   ||
+               op == tok::OPER_TIMES   || op == tok::OPER_DIV     ||
+               op == tok::OPER_MOD     || op == tok::OPER_POW     ||
+               op == tok::OPER_AND     || op == tok::OPER_OR      ||
+               op == tok::OPER_L_SHIFT || op == tok::OPER_R_SHIFT ||
+               op == tok::OPER_BANG    || op == tok::OPER_TILDE   ||
+               op == tok::OPER_EQ_EQ   || op == tok::OPER_LT      ||
+               op == tok::OPER_GT      || op == tok::OPER_LE      ||
                op == tok::OPER_GE) {
         name = as<tok::Operator>()->toString();
         accept();

@@ -18,8 +18,8 @@ namespace sfsl {
 
 namespace ast {
 
-ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args, bool allowFunctionConstructors)
-    : ASTExplicitVisitor(ctx), _created(nullptr), _args(args), _allowFunctionConstructors(allowFunctionConstructors) {
+ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, bool allowFunctionConstructors)
+    : ASTExplicitVisitor(ctx), _created(nullptr), _allowFunctionConstructors(allowFunctionConstructors) {
 
 }
 
@@ -131,7 +131,7 @@ type::Type* ASTTypeCreator::getCreatedType() const {
 }
 
 type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx, bool allowFunctionConstructors) {
-    ASTTypeCreator creator(ctx, {}, allowFunctionConstructors);
+    ASTTypeCreator creator(ctx, allowFunctionConstructors);
     node->onVisit(&creator);
     return creator.getCreatedType();
 }

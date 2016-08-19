@@ -267,6 +267,8 @@ std::string Operator::OperTypeToString(OPER_TYPE type) {
     case OPER_POW:      return "^";
     case OPER_AND:      return "&&";
     case OPER_OR:       return "||";
+    case OPER_L_SHIFT:  return "<<";
+    case OPER_R_SHIFT:  return ">>";
 
         // ASSIGNMENT OPERATORS
 
@@ -326,6 +328,8 @@ std::unordered_map<std::string, OPER_TYPE> createOperatorsMap() {
     map["and"] = OPER_AND;
     map["||"] = OPER_OR;
     map["or"] = OPER_OR;
+    map["<<"] = OPER_L_SHIFT;
+    map[">>"] = OPER_R_SHIFT;
     map["="] = OPER_EQ;
     map["!"] = OPER_BANG;
     map["~"] = OPER_TILDE;
@@ -357,27 +361,29 @@ std::unordered_map<std::string, OPER_TYPE> Operator::OPERATORS = createOperators
 
 std::vector<int> createOperatorsPrecedenceTable() {
     std::vector<int> prec(OPER_UNKNOWN, -1);
-    prec[OPER_PLUS] = 20;
-    prec[OPER_MINUS] = 20;
+    prec[OPER_L_PAREN] = 100;
+    prec[OPER_L_BRACKET] = 100;
+    prec[OPER_THIN_ARROW] = 100;
+    prec[OPER_FAT_ARROW] = 80;
+    prec[OPER_DOT] = 70;
+    prec[OPER_COLON] = 65;
+    prec[OPER_POW] = 50;
     prec[OPER_TIMES] = 40;
     prec[OPER_DIV] = 40;
     prec[OPER_MOD] = 40;
-    prec[OPER_POW] = 50;
-    prec[OPER_EQ] = 2;
-    prec[OPER_EQ_EQ] = 9;
-    prec[OPER_NOT_EQ] = 9;
+    prec[OPER_PLUS] = 20;
+    prec[OPER_MINUS] = 20;
+    prec[OPER_L_SHIFT] = 15;
+    prec[OPER_R_SHIFT] = 15;
     prec[OPER_GT] = 10;
     prec[OPER_LT] = 10;
     prec[OPER_GE] = 10;
     prec[OPER_LE] = 10;
-    prec[OPER_OR] = 5;
+    prec[OPER_EQ_EQ] = 9;
+    prec[OPER_NOT_EQ] = 9;
     prec[OPER_AND] = 6;
-    prec[OPER_L_PAREN] = 100;
-    prec[OPER_L_BRACKET] = 100;
-    prec[OPER_DOT] = 70;
-    prec[OPER_COLON] = 65;
-    prec[OPER_FAT_ARROW] = 80;
-    prec[OPER_THIN_ARROW] = 100;
+    prec[OPER_OR] = 5;
+    prec[OPER_EQ] = 2;
     return prec;
 }
 

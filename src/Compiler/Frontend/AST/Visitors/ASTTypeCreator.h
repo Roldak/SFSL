@@ -29,7 +29,7 @@ public:
      * @brief Creates an ASTTypeCreator
      * @param ctx the compilation context that will be used throughout the visits
      */
-    ASTTypeCreator(CompCtx_Ptr& ctx, const std::vector<type::Type*>& args, bool allowFunctionConstructors);
+    ASTTypeCreator(CompCtx_Ptr& ctx, bool allowFunctionConstructors);
 
     virtual ~ASTTypeCreator();
 
@@ -112,8 +112,6 @@ protected:
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
 
     type::Type* _created;
-
-    const std::vector<type::Type*>& _args;
 
     bool _allowFunctionConstructors;
 
