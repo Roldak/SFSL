@@ -267,6 +267,8 @@ std::string Operator::OperTypeToString(OPER_TYPE type) {
     case OPER_POW:      return "^";
     case OPER_AND:      return "&&";
     case OPER_OR:       return "||";
+    case OPER_BIT_AND:  return "&";
+    case OPER_BIT_OR:   return "|";
     case OPER_L_SHIFT:  return "<<";
     case OPER_R_SHIFT:  return ">>";
 
@@ -328,6 +330,8 @@ std::unordered_map<std::string, OPER_TYPE> createOperatorsMap() {
     map["and"] = OPER_AND;
     map["||"] = OPER_OR;
     map["or"] = OPER_OR;
+    map["&"] = OPER_BIT_AND;
+    map["|"] = OPER_BIT_OR;
     map["<<"] = OPER_L_SHIFT;
     map[">>"] = OPER_R_SHIFT;
     map["="] = OPER_EQ;
@@ -382,6 +386,8 @@ std::vector<int> createOperatorsPrecedenceTable() {
     prec[OPER_LE] = 10;
     prec[OPER_EQ_EQ] = 9;
     prec[OPER_NOT_EQ] = 9;
+    prec[OPER_BIT_AND] = 8;
+    prec[OPER_BIT_OR] = 7;
     prec[OPER_AND] = 6;
     prec[OPER_OR] = 5;
     prec[OPER_EQ] = 2;

@@ -1117,6 +1117,7 @@ Identifier* Parser::parseOperatorsAsIdentifer() {
                op == tok::OPER_TIMES   || op == tok::OPER_DIV     ||
                op == tok::OPER_MOD     || op == tok::OPER_POW     ||
                op == tok::OPER_AND     || op == tok::OPER_OR      ||
+               op == tok::OPER_BIT_AND || op == tok::OPER_BIT_OR  ||
                op == tok::OPER_L_SHIFT || op == tok::OPER_R_SHIFT ||
                op == tok::OPER_BANG    || op == tok::OPER_TILDE   ||
                op == tok::OPER_EQ_EQ   || op == tok::OPER_LT      ||
