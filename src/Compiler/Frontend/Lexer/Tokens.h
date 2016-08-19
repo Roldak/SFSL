@@ -271,6 +271,11 @@ public:
     int getPrecedence() const;
 
     /**
+     * @return True if the operator is right associative
+     */
+    bool isRightAssociative() const;
+
+    /**
      * @brief All the unary operators have the same precedence,
      * so there is no need to store the precedence of unary operators
      * in the precedence table

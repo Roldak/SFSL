@@ -407,7 +407,6 @@ Expression* Parser::parseBinary(Expression* left, int precedence) {
         int newOpPrec = oper->getPrecedence();
 
         if (newOpPrec >= precedence) {
-
             if (Expression* expr = parseSpecialBinaryContinuity(left)) {
                 left = expr;
                 continue;
@@ -417,8 +416,9 @@ Expression* Parser::parseBinary(Expression* left, int precedence) {
                 Expression* right = parsePrimary();
 
                 while (isType(tok::TOK_OPER)) {
-                    if (as<tok::Operator>()->getPrecedence() > newOpPrec) {
-                        right = parseBinary(right, as<tok::Operator>()->getPrecedence());
+                    int curOpPrec = as<tok::Operator>()->getPrecedence();
+                    if (curOpPrec > newOpPrec || (curOpPrec == newOpPrec && as<tok::Operator>()->isRightAssociative())) {
+                        right = parseBinary(right, curOpPrec);
                     } else {
                         break;
                     }
@@ -428,7 +428,6 @@ Expression* Parser::parseBinary(Expression* left, int precedence) {
                     left = makeBinary(left, right, oper);
                 }
             }
-
         } else {
             break;
         }

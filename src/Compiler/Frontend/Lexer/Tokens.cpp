@@ -250,6 +250,10 @@ int Operator::getPrecedence() const {
     return PRECEDENCE[_opType];
 }
 
+bool Operator::isRightAssociative() const {
+    return _opType >= OPER_EQ && _opType <= OPER_EQ; // only assignment operators are right associative
+}
+
 int Operator::getUnaryOperatorPrecedence() {
     return 60;
 }
