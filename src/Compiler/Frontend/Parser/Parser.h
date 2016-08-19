@@ -146,7 +146,7 @@ private:
     RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE>& exprs, const PARSING_FUNC& f);
 
     ast::Expression* makeMethodCall(Expression* left, const std::string& memberName, const std::vector<Expression*>& argExprs,
-                                    const common::Positionnable& memberPos, const common::Positionnable& argsPos);
+                                    const common::Positionnable& memberPos, const common::Positionnable& argsPos, TypeTuple* typeArgs = nullptr);
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
     ast::Identifier* parseOperatorsAsIdentifer();
 

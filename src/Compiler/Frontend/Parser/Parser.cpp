@@ -1037,7 +1037,7 @@ RETURN_TYPE* Parser::parseTuple(std::vector<ELEMENT_TYPE>& exprs, const PARSING_
 }
 
 Expression* Parser::makeMethodCall(Expression* left, const std::string& memberName, const std::vector<Expression*>& argExprs,
-                                  const common::Positionnable& memberPos, const common::Positionnable& argsPos) {
+                                  const common::Positionnable& memberPos, const common::Positionnable& argsPos, TypeTuple* typeArgs) {
     Identifier* id = _mngr.New<Identifier>(memberName);
     Tuple* args = _mngr.New<Tuple>(argExprs);
     id->setPos(memberPos);
@@ -1047,7 +1047,7 @@ Expression* Parser::makeMethodCall(Expression* left, const std::string& memberNa
     mac->setPos(*left);
     mac->setEndPos(id->getEndPosition());
 
-    return _mngr.New<FunctionCall>(mac, nullptr, args);
+    return _mngr.New<FunctionCall>(mac, typeArgs, args);
 }
 
 Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operator* oper) {
@@ -1059,7 +1059,7 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
             std::vector<Expression*> newArgsExprs(call->getArgs());
             newArgsExprs.push_back(right);
 
-            res = makeMethodCall(call->getCallee(), "(=)", newArgsExprs, *oper, *call->getArgsTuple());
+            res = makeMethodCall(call->getCallee(), "(=)", newArgsExprs, *oper, *call->getArgsTuple(), call->getTypeArgsTuple());
         } else {
             res = _mngr.New<AssignmentExpression>(left, right);
         }
