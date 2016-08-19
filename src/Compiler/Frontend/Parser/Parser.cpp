@@ -1084,6 +1084,12 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
             res = _mngr.New<AssignmentExpression>(left, right);
         }
         break;
+    case tok::OPER_AND:
+        res = _mngr.New<IfExpression>(left, right, _mngr.New<BoolLiteral>(false));
+        break;
+    case tok::OPER_OR:
+        res = _mngr.New<IfExpression>(left, _mngr.New<BoolLiteral>(true), right);
+        break;
     default:
         res = makeMethodCall(left, oper->toString(), {right}, *oper, *right);
         break;
