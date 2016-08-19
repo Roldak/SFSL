@@ -627,7 +627,8 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
 
     if (accept(tok::OPER_L_PAREN)) {
         res = _mngr.New<FunctionCall>(left, nullptr, parseTuple());
-    } else if (accept(tok::OPER_L_BRACKET)) {
+    }
+    else if (accept(tok::OPER_L_BRACKET)) {
         TypeTuple* typeArgs = parseTypeTuple();
         if (accept(tok::OPER_L_PAREN)) {
             res = _mngr.New<FunctionCall>(left, typeArgs, parseTuple());
@@ -636,13 +637,15 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
         } else {
             reportUnexpectedCurrentToken();
         }
-    } else if (accept(tok::OPER_FAT_ARROW)) {
+    }
+    else if (accept(tok::OPER_FAT_ARROW)) {
         std::vector<Annotation*> annots(std::move(consumeAnnotations()));
         res = _mngr.New<FunctionCreation>(
                     _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
                     nullptr, left, parseExpression());
         static_cast<FunctionCreation*>(res)->setAnnotations(annots);
-    } else if (accept(tok::OPER_THIN_ARROW)) {
+    }
+    else if (accept(tok::OPER_THIN_ARROW)) {
         std::vector<Annotation*> annots(std::move(consumeAnnotations()));
         TypeExpression* retType = parseTypeExpression(false);
         expect(tok::OPER_FAT_ARROW, "`=>`");
@@ -650,7 +653,8 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
                     _currentDefName.empty() ? AnonymousFunctionName : _currentDefName,
                     nullptr, left, parseExpression(), retType);
         static_cast<FunctionCreation*>(res)->setAnnotations(annots);
-    } else if (accept(tok::OPER_DOT)) {
+    }
+    else if (accept(tok::OPER_DOT)) {
         Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : parseIdentifier("Expected attribute / method name");
         res = _mngr.New<MemberAccess>(left, id);
     } // no match is not an error
@@ -658,8 +662,8 @@ Expression* Parser::parseSpecialBinaryContinuity(Expression* left) {
     if (res) {
         res->setPos(left ? *left : fallbackPos);
         res->setEndPos(_lastTokenEndPos);
-
     }
+
     reportErroneousAnnotations();
 
     return res;

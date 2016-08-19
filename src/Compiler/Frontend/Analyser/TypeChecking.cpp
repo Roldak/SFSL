@@ -12,6 +12,7 @@
 #include "../AST/Visitors/ASTTypeIdentifier.h"
 #include "../AST/Visitors/ASTTypeCreator.h"
 #include "../AST/Visitors/ASTSymbolExtractor.h"
+#include "../AST/Visitors/ASTAssignmentChecker.h"
 #include "../Symbols/Scope.h"
 
 #include "../../../Utils/TakeSecondIterator.h"
@@ -254,16 +255,22 @@ void TypeChecking::visit(ExpressionStatement* exp) {
 }
 
 void TypeChecking::visit(AssignmentExpression* aex) {
-    ASTImplicitVisitor::visit(aex);
+    aex->getLhs()->onVisit(this);
+
+    SAVE_MEMBER(_expectedInfo)
+    _expectedInfo.node = aex->getRhs();
+    _expectedInfo.ret = aex->getLhs()->type();
+
+    aex->getRhs()->onVisit(this);
+
+    RESTORE_MEMBER(_expectedInfo)
 
     type::Type* lhsT = aex->getLhs()->type();
     type::Type* rhsT = aex->getRhs()->type();
 
     if (rhsT->apply(_ctx)->getTypeKind() == type::TYPE_NYD) {
         _rep.error(*aex, "Right hand side does not have any type");
-    }
-
-    if (type::TypeToBeInferred* tbi = type::getIf<type::TypeToBeInferred>(lhsT)) {
+    } else if (type::TypeToBeInferred* tbi = type::getIf<type::TypeToBeInferred>(lhsT)) {
         tbi->assignInferredType(rhsT);
     } else if (!rhsT->apply(_ctx)->isSubTypeOf(lhsT->apply(_ctx))) {
         _rep.error(*aex, "Assigning incompatible type. Expected " +
@@ -434,9 +441,34 @@ void TypeChecking::visit(FunctionCreation* func) {
     std::vector<type::Type*> argTypes(args.size());
     type::Type* retType = nullptr;
 
-    // TODO: What if there are no type annotations with the parameters
+    bool isIncomplete = false;
+
     for (size_t i = 0; i < args.size(); ++i) {
         argTypes[i] = args[i]->type();
+        isIncomplete |= argTypes[i]->getTypeKind() == type::TYPE_TBI;
+    }
+
+    if (isIncomplete && _expectedInfo.node == func && _expectedInfo.ret) {
+        if (type::ValueConstructorType* expectedValueConstructor = type::getIf<type::ValueConstructorType>(_expectedInfo.ret->applyTCCallsOnly(_ctx))) {
+            std::vector<sym::VariableSymbol*> params(ASTAssignmentChecker::getAssignedVars(func->getArgs(), _ctx));
+
+            if (params.size() == args.size() && expectedValueConstructor->getArgTypes().size() == args.size()) {
+                for (size_t i = 0; i < params.size(); ++i) {
+                    if (type::TypeToBeInferred* tbi = type::getIf<type::TypeToBeInferred>(params[i]->type())) {
+                        tbi->assignInferredType(expectedValueConstructor->getArgTypes()[i]);
+                        argTypes[i] = params[i]->type();
+                    }
+                }
+
+                isIncomplete = false;
+            }
+        }
+    }
+
+    if (isIncomplete) {
+        _rep.error(*func->getArgs(), "Some of the function's parameters are not annotated with a type and not enough information are available to infer them");
+        func->setType(type::Type::NotYetDefined());
+        return;
     }
 
     if (TypeExpression* retTypeExpr = func->getReturnType()) {

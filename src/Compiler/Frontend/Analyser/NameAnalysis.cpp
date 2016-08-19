@@ -239,15 +239,36 @@ void ScopeGeneration::visit(FunctionCreation* func) {
         args.push_back(expr);
     }
 
-    for (Expression* expr : args) {
+    bool wasModified = false;
+
+    for (Expression*& expr : args) {
         if (Identifier* ident = getIfNodeOfType<Identifier>(expr, _ctx)) { // arg of the form `x`
-            createVar(ident);
-        } else if(isNodeOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
-            // The var is already going to be created by the TypeSpecifier Node
+            expr = _mngr.New<TypeSpecifier>(ident, _mngr.New<TypeToBeInferred>());
+            expr->setPos(*ident);
+            wasModified = true;
+        }
+
+        if(isNodeOfType<TypeSpecifier>(expr, _ctx)) { // arg of the form `x: type`
+            // The var is going to be created by the TypeSpecifier Node
             expr->onVisit(this);
         } else {
             _ctx->reporter().error(*expr, "Argument should be an identifier");
         }
+    }
+
+    if (wasModified) {
+        // update the function creation node
+        common::Positionnable funcPos = *func;
+        sym::Scoped funcScope = *func;
+        Annotable funcAnnot = *func;
+
+        Tuple* newArgs = _mngr.New<Tuple>(args);
+        newArgs->setPos(*func->getArgs());
+        *func = FunctionCreation(func->getName(), func->getTypeArgs(), newArgs, func->getBody(), func->getReturnType());
+
+        *(static_cast<Annotable*>(func)) = funcAnnot;
+        *(static_cast<sym::Scoped*>(func)) = funcScope;
+        *(static_cast<common::Positionnable*>(func)) = funcPos;
     }
 
     if (TypeExpression* retType = func->getReturnType()) {
