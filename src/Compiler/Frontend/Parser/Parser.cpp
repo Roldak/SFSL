@@ -607,7 +607,7 @@ IfExpression* Parser::parseIf(bool asStatement) {
          els = asStatement ? parseStatement() : parseExpression();
     }
 
-    IfExpression* ifexpr = _mngr.New<IfExpression>(cond, then, els);
+    IfExpression* ifexpr = _mngr.New<IfExpression>(cond, then, els, false);
     ifexpr->setPos(startPos);
     ifexpr->setEndPos(_lastTokenEndPos);
 
@@ -1084,12 +1084,18 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
             res = _mngr.New<AssignmentExpression>(left, right);
         }
         break;
-    case tok::OPER_AND:
-        res = _mngr.New<IfExpression>(left, right, _mngr.New<BoolLiteral>(false));
+    case tok::OPER_AND: {
+        BoolLiteral* fals = _mngr.New<BoolLiteral>(false);
+        fals->setPos(*right);
+        res = _mngr.New<IfExpression>(left, right, fals, true);
         break;
-    case tok::OPER_OR:
-        res = _mngr.New<IfExpression>(left, _mngr.New<BoolLiteral>(true), right);
+    }
+    case tok::OPER_OR: {
+        BoolLiteral* tru = _mngr.New<BoolLiteral>(true);
+        tru->setPos(*right);
+        res = _mngr.New<IfExpression>(left, tru, right, true);
         break;
+    }
     default:
         res = makeMethodCall(left, oper->toString(), {right}, *oper, *right);
         break;

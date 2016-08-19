@@ -153,8 +153,8 @@ const std::vector<Expression*>& Block::getStatements() const {
 
 // IF EXPRESSION
 
-IfExpression::IfExpression(Expression* cond, Expression* then, Expression* els)
-    : _cond(cond), _then(then), _else(els) {
+IfExpression::IfExpression(Expression* cond, Expression* then, Expression* els, bool fromLazyOperator)
+    : _cond(cond), _then(then), _else(els), _isFromLazyOperator(fromLazyOperator) {
 
 }
 
@@ -164,7 +164,7 @@ IfExpression::~IfExpression() {
 
 SFSL_AST_ON_VISIT_CPP(IfExpression)
 
-Expression *IfExpression::getCondition() const {
+Expression* IfExpression::getCondition() const {
     return _cond;
 }
 
@@ -174,6 +174,10 @@ Expression* IfExpression::getThen() const {
 
 Expression* IfExpression::getElse() const {
     return _else;
+}
+
+bool IfExpression::isFromLazyOperator() const {
+    return _isFromLazyOperator;
 }
 
 // MEMBER ACCESS

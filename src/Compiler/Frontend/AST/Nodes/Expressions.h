@@ -239,7 +239,7 @@ private:
 class IfExpression : public Expression {
 public:
 
-    IfExpression(Expression* cond, Expression* then, Expression* els);
+    IfExpression(Expression* cond, Expression* then, Expression* els, bool fromLazyOperator);
     virtual ~IfExpression();
 
     SFSL_AST_ON_VISIT_H
@@ -259,12 +259,19 @@ public:
      */
     Expression* getElse() const;
 
+    /**
+     * @return True if this if expression was generated for a
+     * lazy operator (&& or || for example)
+     */
+    bool isFromLazyOperator() const;
+
 private:
 
     Expression* _cond;
     Expression* _then;
     Expression* _else;
 
+    bool _isFromLazyOperator;
 };
 
 /**

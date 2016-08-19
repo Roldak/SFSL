@@ -144,7 +144,8 @@ void ASTTransformer::visit(IfExpression* ifexpr) {
     update(ifexpr,
            transform<Expression>(ifexpr->getCondition()),
            transform<Expression>(ifexpr->getThen()),
-           transform<Expression>(ifexpr->getElse()));
+           transform<Expression>(ifexpr->getElse()),
+           ifexpr->isFromLazyOperator());
 }
 
 void ASTTransformer::visit(MemberAccess* dot) {

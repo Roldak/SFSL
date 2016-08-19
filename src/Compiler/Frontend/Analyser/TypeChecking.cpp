@@ -330,7 +330,11 @@ void TypeChecking::visit(IfExpression* ifexpr) {
     ifexpr->getCondition()->onVisit(this);
 
     if (!ifexpr->getCondition()->type()->apply(_ctx)->isSubTypeOf(_res.Bool())) {
-        _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (Found " + ifexpr->getCondition()->type()->apply(_ctx)->toString() + ")");
+        if (ifexpr->isFromLazyOperator()) {
+            _rep.error(*ifexpr->getCondition(), "Operands of the `&&` and `||` operators must be booleans");
+        } else {
+            _rep.error(*ifexpr->getCondition(), "Condition is not a boolean (Found " + ifexpr->getCondition()->type()->apply(_ctx)->toString() + ")");
+        }
     }
 
     if (_expectedInfo.node == ifexpr && _expectedInfo.ret && _expectedInfo.ret->isSubTypeOf(_res.Unit())) {
@@ -359,6 +363,9 @@ void TypeChecking::visit(IfExpression* ifexpr) {
             ifexpr->setType(elseType);
         } else if (elseType->apply(_ctx)->isSubTypeOf(thenType->apply(_ctx))) {
             ifexpr->setType(thenType);
+        } else if (ifexpr->isFromLazyOperator()) {
+            // then and else parts have the same position in this case
+            _rep.error(*ifexpr->getThen(), "Operands of the `&&` and `||` operators must be booleans");
         } else {
             _rep.error(*ifexpr, "The then-part and else-part have different types. Found " +
                        thenType->apply(_ctx)->toString() + " and " + elseType->apply(_ctx)->toString());
