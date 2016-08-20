@@ -1,7 +1,14 @@
 module test {
 	using sfsl.lang
+		
+	type Test = class () {
+		def +(other: Test) => other
+		def -(other: Test) => other
+		def *(other: Test) => other
+	}
 	
 	def test() => {
-		unused_x := unused_y := unused_z := 3;
+		unused_x := unused_y := unused_z := Test();
+		unused_x += unused_y -= unused_z *= Test();
 	}
 }
