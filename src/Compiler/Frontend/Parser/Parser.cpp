@@ -1078,12 +1078,48 @@ Expression* Parser::makeBinary(Expression* left, Expression* right, tok::Operato
 
     switch (oper->getOpType()) {
     case tok::OPER_EQ:
+    case tok::OPER_PLUS_EQ:
+    case tok::OPER_MINUS_EQ:
+    case tok::OPER_TIMES_EQ:
+    case tok::OPER_DIV_EQ:
+    case tok::OPER_MOD_EQ:
+    case tok::OPER_POW_EQ:
+    case tok::OPER_B_AND_EQ:
+    case tok::OPER_B_OR_EQ:
+    case tok::OPER_L_SHIFT_EQ:
+    case tok::OPER_R_SHIFT_EQ:
+
         if (FunctionCall* call = getIfNodeOfType<FunctionCall>(left, _ctx)) {
             std::vector<Expression*> newArgsExprs(call->getArgs());
             newArgsExprs.push_back(right);
 
-            res = makeMethodCall(call->getCallee(), "(=)", newArgsExprs, *oper, *call->getArgsTuple(), call->getTypeArgsTuple());
+            res = makeMethodCall(call->getCallee(), std::string("(") + oper->toString() + ")",
+                                 newArgsExprs, *oper, *call->getArgsTuple(), call->getTypeArgsTuple());
         } else {
+            std::string baseOper = "";
+
+            switch (oper->getOpType()) {
+            case tok::OPER_PLUS_EQ:     baseOper = "+"; break;
+            case tok::OPER_MINUS_EQ:    baseOper = "-"; break;
+            case tok::OPER_TIMES_EQ:    baseOper = "*"; break;
+            case tok::OPER_DIV_EQ:      baseOper = "/"; break;
+            case tok::OPER_MOD_EQ:      baseOper = "%"; break;
+            case tok::OPER_POW_EQ:      baseOper = "^"; break;
+            case tok::OPER_B_AND_EQ:    baseOper = "&"; break;
+            case tok::OPER_B_OR_EQ:     baseOper = "|"; break;
+            case tok::OPER_L_SHIFT_EQ:  baseOper = "<<"; break;
+            case tok::OPER_R_SHIFT_EQ:  baseOper = ">>"; break;
+            default: break;
+            }
+
+            if (baseOper != "") {
+                common::Positionnable pos = *left;
+                pos.setEndPos(right->getEndPosition());
+
+                right = makeMethodCall(left, baseOper, {right}, *oper, pos);
+                right->setPos(pos);
+            }
+
             res = _mngr.New<AssignmentExpression>(left, right);
         }
         break;
@@ -1117,8 +1153,16 @@ Identifier* Parser::parseOperatorsAsIdentifer() {
 
     if (accept(tok::OPER_L_PAREN)) {
         name = "(";
-        if (accept(tok::OPER_EQ)) {
-            name += "=";
+        if (isType(tok::TOK_OPER)) {
+            tok::OPER_TYPE inOp = as<tok::Operator>()->getOpType();
+
+            if (inOp >= tok::OPER_EQ && inOp <= tok::OPER_R_SHIFT_EQ) {
+                name += as<tok::Operator>()->toString();
+                accept();
+            } else if (inOp != tok::OPER_R_PAREN) {
+                reportUnexpectedCurrentToken();
+                accept();
+            }
         }
         expect(tok::OPER_R_PAREN, ")");
         name += ")";

@@ -251,7 +251,7 @@ int Operator::getPrecedence() const {
 }
 
 bool Operator::isRightAssociative() const {
-    return _opType >= OPER_EQ && _opType <= OPER_EQ; // only assignment operators are right associative
+    return _opType >= OPER_EQ && _opType <= OPER_R_SHIFT_EQ; // only assignment operators are right associative
 }
 
 int Operator::getUnaryOperatorPrecedence() {
@@ -279,6 +279,16 @@ std::string Operator::OperTypeToString(OPER_TYPE type) {
         // ASSIGNMENT OPERATORS
 
     case OPER_EQ:       return "=";
+    case OPER_PLUS_EQ:  return "+=";
+    case OPER_MINUS_EQ: return "-=";
+    case OPER_TIMES_EQ: return "*=";
+    case OPER_DIV_EQ:   return "/=";
+    case OPER_MOD_EQ:   return "%=";
+    case OPER_POW_EQ:   return "^=";
+    case OPER_B_AND_EQ: return "&=";
+    case OPER_B_OR_EQ:  return "|=";
+    case OPER_L_SHIFT_EQ:return "<<=";
+    case OPER_R_SHIFT_EQ:return ">>=";
 
         // UNARY OPERATORS
 
@@ -339,6 +349,16 @@ std::unordered_map<std::string, OPER_TYPE> createOperatorsMap() {
     map["<<"] = OPER_L_SHIFT;
     map[">>"] = OPER_R_SHIFT;
     map["="] = OPER_EQ;
+    map["+="] = OPER_PLUS_EQ;
+    map["-="] = OPER_MINUS_EQ;
+    map["*="] = OPER_TIMES_EQ;
+    map["/="] = OPER_DIV_EQ;
+    map["%="] = OPER_MOD_EQ;
+    map["^="] = OPER_POW_EQ;
+    map["&="] = OPER_B_AND_EQ;
+    map["|="] = OPER_B_OR_EQ;
+    map["<<="] = OPER_L_SHIFT_EQ;
+    map[">>="] = OPER_R_SHIFT_EQ;
     map["!"] = OPER_BANG;
     map["not"] = OPER_BANG;
     map["~"] = OPER_TILDE;
@@ -395,6 +415,16 @@ std::vector<int> createOperatorsPrecedenceTable() {
     prec[OPER_AND] = 6;
     prec[OPER_OR] = 5;
     prec[OPER_EQ] = 2;
+    prec[OPER_PLUS_EQ] = 2;
+    prec[OPER_MINUS_EQ] = 2;
+    prec[OPER_TIMES_EQ] = 2;
+    prec[OPER_DIV_EQ] = 2;
+    prec[OPER_MOD_EQ] = 2;
+    prec[OPER_POW_EQ] = 2;
+    prec[OPER_B_AND_EQ] = 2;
+    prec[OPER_B_OR_EQ] = 2;
+    prec[OPER_L_SHIFT_EQ] = 2;
+    prec[OPER_R_SHIFT_EQ] = 2;
     return prec;
 }
 
