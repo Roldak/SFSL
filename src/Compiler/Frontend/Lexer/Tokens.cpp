@@ -251,7 +251,8 @@ int Operator::getPrecedence() const {
 }
 
 bool Operator::isRightAssociative() const {
-    return _opType >= OPER_EQ && _opType <= OPER_R_SHIFT_EQ; // only assignment operators are right associative
+    // only assignment operators and power operator are right associative
+    return (_opType >= OPER_EQ && _opType <= OPER_R_SHIFT_EQ) || _opType == OPER_POW;
 }
 
 int Operator::getUnaryOperatorPrecedence() {
