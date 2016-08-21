@@ -35,9 +35,8 @@ void ASTTypeCreator::visit(ClassDecl* clss) {
     type::Environment finalTable;
 
     if (clss->getParent()) {
-        clss->getParent()->onVisit(this);
-        if (_created) {
-            if (type::ProperType* parent = type::getIf<type::ProperType>(_created->apply(_ctx))) {
+        if (type::Type* pt = createType(clss->getParent())) {
+            if (type::ProperType* parent = type::getIf<type::ProperType>(pt->apply(_ctx))) {
                 finalTable = parent->getSubstitutionTable();
             }
         }
@@ -52,17 +51,17 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
     const std::vector<TypeExpression*>& argTypeExprs(ftdecl->getArgTypes());
 
     std::vector<type::Type*> argTypes(argTypeExprs.size());
-    type::Type* retType = createType(ftdecl->getRetType(), _ctx); // don't allow function constructors
+    type::Type* retType = createType(ftdecl->getRetType()); // don't allow function constructors
 
     for (size_t i = 0; i < argTypes.size(); ++i) {
-        argTypes[i] = createType(argTypeExprs[i], _ctx); // don't allow function constructors
+        argTypes[i] = createType(argTypeExprs[i]); // don't allow function constructors
     }
 
     ClassDecl* functionClass = nullptr;
     type::Environment env;
 
     if (ftdecl->getTypeArgs().size() == 0) {
-        if (type::ProperType* pt = type::getIf<type::ProperType>(createType(ftdecl->getClassEquivalent(), _ctx)->applyTCCallsOnly(_ctx))) {
+        if (type::ProperType* pt = type::getIf<type::ProperType>(createType(ftdecl->getClassEquivalent())->applyTCCallsOnly(_ctx))) {
             functionClass = pt->getClass();
             env = pt->getSubstitutionTable();
         } else {
@@ -90,7 +89,7 @@ void ASTTypeCreator::visit(TypeConstructorCall* tcall) {
     std::vector<type::Type*> args(found.size());
 
     for (size_t i = 0; i < found.size(); ++i) {
-        if (!(args[i] = createType(found[i], _ctx))) {
+        if (!(args[i] = createType(found[i]))) {
             _ctx->reporter().fatal(*found[i], "failed to create type");
             _created = nullptr;
             return;
@@ -134,6 +133,19 @@ type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx, bool all
     ASTTypeCreator creator(ctx, allowFunctionConstructors);
     node->onVisit(&creator);
     return creator.getCreatedType();
+}
+
+type::Type* ASTTypeCreator::createType(ASTNode* node, bool allowFunctionConstructors) {
+    SAVE_MEMBER_AND_SET(_created, nullptr)
+    SAVE_MEMBER_AND_SET(_allowFunctionConstructors, allowFunctionConstructors)
+
+    node->onVisit(this);
+    type::Type* created = _created;
+
+    RESTORE_MEMBER(_allowFunctionConstructors)
+    RESTORE_MEMBER(_created)
+
+    return created;
 }
 
 type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx) {

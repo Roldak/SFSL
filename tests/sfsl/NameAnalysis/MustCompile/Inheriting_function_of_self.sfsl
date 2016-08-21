@@ -1,0 +1,4 @@
+module test {
+	type Test[T] => class
+	type A = class : Test[A]
+}

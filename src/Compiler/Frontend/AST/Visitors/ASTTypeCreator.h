@@ -109,6 +109,7 @@ public:
 
 protected:
 
+    type::Type* createType(ASTNode* node, bool allowFunctionConstructors = false);
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
 
     type::Type* _created;
