@@ -264,126 +264,134 @@ std::string Operator::OperTypeToString(OPER_TYPE type) {
 
         // BINARY OPERATORS
 
-    case OPER_PLUS:     return "+";
-    case OPER_MINUS:    return "-";
-    case OPER_TIMES:    return "*";
-    case OPER_DIV:      return "/";
-    case OPER_MOD:      return "%";
-    case OPER_POW:      return "^";
-    case OPER_AND:      return "&&";
-    case OPER_OR:       return "||";
-    case OPER_BIT_AND:  return "&";
-    case OPER_BIT_OR:   return "|";
-    case OPER_L_SHIFT:  return "<<";
-    case OPER_R_SHIFT:  return ">>";
+    case OPER_PLUS:         return "+";
+    case OPER_MINUS:        return "-";
+    case OPER_TIMES:        return "*";
+    case OPER_DIV:          return "/";
+    case OPER_MOD:          return "%";
+    case OPER_POW:          return "^";
+    case OPER_AND:          return "&&";
+    case OPER_OR:           return "||";
+    case OPER_BIT_AND:      return "&";
+    case OPER_BIT_OR:       return "|";
+    case OPER_L_SHIFT:      return "<<";
+    case OPER_R_SHIFT:      return ">>";
 
         // ASSIGNMENT OPERATORS
 
-    case OPER_EQ:       return "=";
-    case OPER_PLUS_EQ:  return "+=";
-    case OPER_MINUS_EQ: return "-=";
-    case OPER_TIMES_EQ: return "*=";
-    case OPER_DIV_EQ:   return "/=";
-    case OPER_MOD_EQ:   return "%=";
-    case OPER_POW_EQ:   return "^=";
-    case OPER_B_AND_EQ: return "&=";
-    case OPER_B_OR_EQ:  return "|=";
-    case OPER_L_SHIFT_EQ:return "<<=";
-    case OPER_R_SHIFT_EQ:return ">>=";
+    case OPER_EQ:           return "=";
+    case OPER_PLUS_EQ:      return "+=";
+    case OPER_MINUS_EQ:     return "-=";
+    case OPER_TIMES_EQ:     return "*=";
+    case OPER_DIV_EQ:       return "/=";
+    case OPER_MOD_EQ:       return "%=";
+    case OPER_POW_EQ:       return "^=";
+    case OPER_B_AND_EQ:     return "&=";
+    case OPER_B_OR_EQ:      return "|=";
+    case OPER_L_SHIFT_EQ:   return "<<=";
+    case OPER_R_SHIFT_EQ:   return ">>=";
 
         // UNARY OPERATORS
 
-    case OPER_BANG:     return "!";
-    case OPER_TILDE:    return "~";
+    case OPER_BANG:         return "!";
+    case OPER_TILDE:        return "~";
 
         // COMPARISON BINARY OPERATORS
 
-    case OPER_EQ_EQ:    return "==";
-    case OPER_NOT_EQ:   return "!=";
-    case OPER_LT:       return "<";
-    case OPER_GT:       return ">";
-    case OPER_LE:       return "<=";
-    case OPER_GE:       return ">=";
+    case OPER_EQ_EQ:        return "==";
+    case OPER_NOT_EQ:       return "!=";
+    case OPER_LT:           return "<";
+    case OPER_GT:           return ">";
+    case OPER_LE:           return "<=";
+    case OPER_GE:           return ">=";
 
         // BRACKETS
 
-    case OPER_L_PAREN:  return "(";
-    case OPER_R_PAREN:  return ")";
-    case OPER_L_BRACKET:return "[";
-    case OPER_R_BRACKET:return "]";
-    case OPER_L_BRACE:  return "{";
-    case OPER_R_BRACE:  return "}";
+    case OPER_L_PAREN:      return "(";
+    case OPER_R_PAREN:      return ")";
+    case OPER_L_BRACKET:    return "[";
+    case OPER_R_BRACKET:    return "]";
+    case OPER_L_BRACE:      return "{";
+    case OPER_R_BRACE:      return "}";
 
         // SYMBOLS
 
-    case OPER_DOT:      return ".";
-    case OPER_COLON:    return ":";
-    case OPER_COMMA:    return ",";
-    case OPER_SEMICOLON:return ";";
+    case OPER_DOT:          return ".";
+    case OPER_COLON:        return ":";
+    case OPER_COMMA:        return ",";
+    case OPER_SEMICOLON:    return ";";
 
         // OTHERS
 
-    case OPER_THIN_ARROW:return "->";
-    case OPER_FAT_ARROW:return "=>";
-    case OPER_DOT_DOT:  return "..";
-    case OPER_AT:       return "@";
-    case OPER_SHARP:    return "#";
+    case OPER_THIN_ARROW:   return "->";
+    case OPER_FAT_ARROW:    return "=>";
+    case OPER_DOT_DOT:      return "..";
+    case OPER_AT:           return "@";
+    case OPER_SHARP:        return "#";
 
-    default:            return "";
+    default:                return "";
     }
 }
 
 std::unordered_map<std::string, OPER_TYPE> createOperatorsMap() {
     std::unordered_map<std::string, OPER_TYPE> map;
-    map["+"] = OPER_PLUS;
-    map["-"] = OPER_MINUS;
-    map["*"] = OPER_TIMES;
-    map["/"] = OPER_DIV;
-    map["%"] = OPER_MOD;
-    map["^"] = OPER_POW;
-    map["&&"] = OPER_AND;
-    map["and"] = OPER_AND;
-    map["||"] = OPER_OR;
-    map["or"] = OPER_OR;
-    map["&"] = OPER_BIT_AND;
-    map["|"] = OPER_BIT_OR;
-    map["<<"] = OPER_L_SHIFT;
-    map[">>"] = OPER_R_SHIFT;
-    map["="] = OPER_EQ;
-    map["+="] = OPER_PLUS_EQ;
-    map["-="] = OPER_MINUS_EQ;
-    map["*="] = OPER_TIMES_EQ;
-    map["/="] = OPER_DIV_EQ;
-    map["%="] = OPER_MOD_EQ;
-    map["^="] = OPER_POW_EQ;
-    map["&="] = OPER_B_AND_EQ;
-    map["|="] = OPER_B_OR_EQ;
-    map["<<="] = OPER_L_SHIFT_EQ;
-    map[">>="] = OPER_R_SHIFT_EQ;
-    map["!"] = OPER_BANG;
-    map["not"] = OPER_BANG;
-    map["~"] = OPER_TILDE;
-    map["=="] = OPER_EQ_EQ;
-    map["!="] = OPER_NOT_EQ;
-    map["<"] = OPER_LT;
-    map[">"] = OPER_GT;
-    map["<="] = OPER_LE;
-    map[">="] = OPER_GE;
-    map["("] = OPER_L_PAREN;
-    map[")"] = OPER_R_PAREN;
-    map["["] = OPER_L_BRACKET;
-    map["]"] = OPER_R_BRACKET;
-    map["{"] = OPER_L_BRACE;
-    map["}"] = OPER_R_BRACE;
-    map["."] = OPER_DOT;
-    map[":"] = OPER_COLON;
-    map[","] = OPER_COMMA;
-    map[";"] = OPER_SEMICOLON;
-    map["->"] = OPER_THIN_ARROW;
-    map["=>"] = OPER_FAT_ARROW;
-    map[".."] = OPER_DOT_DOT;
-    map["@"] = OPER_AT;
-    map["#"] = OPER_SHARP;
+
+    map["+"]    = OPER_PLUS;
+    map["-"]    = OPER_MINUS;
+    map["*"]    = OPER_TIMES;
+    map["/"]    = OPER_DIV;
+    map["%"]    = OPER_MOD;
+    map["^"]    = OPER_POW;
+    map["&&"]   = OPER_AND;
+    map["and"]  = OPER_AND;
+    map["||"]   = OPER_OR;
+    map["or"]   = OPER_OR;
+    map["&"]    = OPER_BIT_AND;
+    map["|"]    = OPER_BIT_OR;
+    map["<<"]   = OPER_L_SHIFT;
+    map[">>"]   = OPER_R_SHIFT;
+
+    map["="]    = OPER_EQ;
+    map["+="]   = OPER_PLUS_EQ;
+    map["-="]   = OPER_MINUS_EQ;
+    map["*="]   = OPER_TIMES_EQ;
+    map["/="]   = OPER_DIV_EQ;
+    map["%="]   = OPER_MOD_EQ;
+    map["^="]   = OPER_POW_EQ;
+    map["&="]   = OPER_B_AND_EQ;
+    map["|="]   = OPER_B_OR_EQ;
+    map["<<="]  = OPER_L_SHIFT_EQ;
+    map[">>="]  = OPER_R_SHIFT_EQ;
+
+    map["!"]    = OPER_BANG;
+    map["not"]  = OPER_BANG;
+    map["~"]    = OPER_TILDE;
+
+    map["=="]   = OPER_EQ_EQ;
+    map["!="]   = OPER_NOT_EQ;
+    map["<"]    = OPER_LT;
+    map[">"]    = OPER_GT;
+    map["<="]   = OPER_LE;
+    map[">="]   = OPER_GE;
+
+    map["("]    = OPER_L_PAREN;
+    map[")"]    = OPER_R_PAREN;
+    map["["]    = OPER_L_BRACKET;
+    map["]"]    = OPER_R_BRACKET;
+    map["{"]    = OPER_L_BRACE;
+    map["}"]    = OPER_R_BRACE;
+
+    map["."]    = OPER_DOT;
+    map[":"]    = OPER_COLON;
+    map[","]    = OPER_COMMA;
+    map[";"]    = OPER_SEMICOLON;
+
+    map["->"]   = OPER_THIN_ARROW;
+    map["=>"]   = OPER_FAT_ARROW;
+    map[".."]   = OPER_DOT_DOT;
+    map["@"]    = OPER_AT;
+    map["#"]    = OPER_SHARP;
+
     return map;
 }
 
@@ -391,41 +399,41 @@ std::unordered_map<std::string, OPER_TYPE> Operator::OPERATORS = createOperators
 
 std::vector<int> createOperatorsPrecedenceTable() {
     std::vector<int> prec(OPER_UNKNOWN, -1);
-    prec[OPER_L_PAREN] = 100;
-    prec[OPER_L_BRACKET] = 100;
-    prec[OPER_THIN_ARROW] = 100;
-    prec[OPER_FAT_ARROW] = 80;
-    prec[OPER_DOT] = 70;
-    prec[OPER_COLON] = 65;
-    prec[OPER_POW] = 50;
-    prec[OPER_TIMES] = 40;
-    prec[OPER_DIV] = 40;
-    prec[OPER_MOD] = 40;
-    prec[OPER_PLUS] = 20;
-    prec[OPER_MINUS] = 20;
-    prec[OPER_L_SHIFT] = 15;
-    prec[OPER_R_SHIFT] = 15;
-    prec[OPER_GT] = 10;
-    prec[OPER_LT] = 10;
-    prec[OPER_GE] = 10;
-    prec[OPER_LE] = 10;
-    prec[OPER_EQ_EQ] = 9;
-    prec[OPER_NOT_EQ] = 9;
-    prec[OPER_BIT_AND] = 8;
-    prec[OPER_BIT_OR] = 7;
-    prec[OPER_AND] = 6;
-    prec[OPER_OR] = 5;
-    prec[OPER_EQ] = 2;
-    prec[OPER_PLUS_EQ] = 2;
-    prec[OPER_MINUS_EQ] = 2;
-    prec[OPER_TIMES_EQ] = 2;
-    prec[OPER_DIV_EQ] = 2;
-    prec[OPER_MOD_EQ] = 2;
-    prec[OPER_POW_EQ] = 2;
-    prec[OPER_B_AND_EQ] = 2;
-    prec[OPER_B_OR_EQ] = 2;
-    prec[OPER_L_SHIFT_EQ] = 2;
-    prec[OPER_R_SHIFT_EQ] = 2;
+    prec[OPER_L_PAREN]      = 100;
+    prec[OPER_L_BRACKET]    = 100;
+    prec[OPER_THIN_ARROW]   = 100;
+    prec[OPER_FAT_ARROW]    = 80;
+    prec[OPER_DOT]          = 70;
+    prec[OPER_COLON]        = 65;
+    prec[OPER_POW]          = 50;
+    prec[OPER_TIMES]        = 40;
+    prec[OPER_DIV]          = 40;
+    prec[OPER_MOD]          = 40;
+    prec[OPER_PLUS]         = 20;
+    prec[OPER_MINUS]        = 20;
+    prec[OPER_L_SHIFT]      = 15;
+    prec[OPER_R_SHIFT]      = 15;
+    prec[OPER_GT]           = 10;
+    prec[OPER_LT]           = 10;
+    prec[OPER_GE]           = 10;
+    prec[OPER_LE]           = 10;
+    prec[OPER_EQ_EQ]        = 9;
+    prec[OPER_NOT_EQ]       = 9;
+    prec[OPER_BIT_AND]      = 8;
+    prec[OPER_BIT_OR]       = 7;
+    prec[OPER_AND]          = 6;
+    prec[OPER_OR]           = 5;
+    prec[OPER_EQ]           = 2;
+    prec[OPER_PLUS_EQ]      = 2;
+    prec[OPER_MINUS_EQ]     = 2;
+    prec[OPER_TIMES_EQ]     = 2;
+    prec[OPER_DIV_EQ]       = 2;
+    prec[OPER_MOD_EQ]       = 2;
+    prec[OPER_POW_EQ]       = 2;
+    prec[OPER_B_AND_EQ]     = 2;
+    prec[OPER_B_OR_EQ]      = 2;
+    prec[OPER_L_SHIFT_EQ]   = 2;
+    prec[OPER_R_SHIFT_EQ]   = 2;
     return prec;
 }
 
