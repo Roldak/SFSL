@@ -12,14 +12,16 @@
 
 #include "../../Symbols/Scope.h"
 
+#include "../Utils/HasCacheableCreatedType.h"
+
 #include "../../Analyser/KindChecking.h"
 
 namespace sfsl {
 
 namespace ast {
 
-ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx, bool allowFunctionConstructors)
-    : ASTExplicitVisitor(ctx), _created(nullptr), _allowFunctionConstructors(allowFunctionConstructors) {
+ASTTypeCreator::ASTTypeCreator(CompCtx_Ptr& ctx)
+    : ASTExplicitVisitor(ctx), _created(nullptr) {
 
 }
 
@@ -113,22 +115,26 @@ void ASTTypeCreator::visit(Identifier* ident) {
     createTypeFromSymbolic(ident, *ident);
 }
 
-type::Type* ASTTypeCreator::getCreatedType() const {
-    return _created;
-}
-
 type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx, bool allowFunctionConstructors) {
-    ASTTypeCreator creator(ctx, allowFunctionConstructors);
-    node->onVisit(&creator);
-    return creator.getCreatedType();
+    return ASTTypeCreator(ctx).createType(node, allowFunctionConstructors);
 }
 
 type::Type* ASTTypeCreator::createType(ASTNode* node, bool allowFunctionConstructors) {
+    HasCacheableCreatedType* cacheable = getIfNodeOfType<TypeExpression>(node, _ctx);
+
+    if (cacheable && cacheable->hasCachedType()) {
+        return cacheable->getCachedType();
+    }
+
     SAVE_MEMBER_AND_SET(_created, nullptr)
     SAVE_MEMBER_AND_SET(_allowFunctionConstructors, allowFunctionConstructors)
 
     node->onVisit(this);
     type::Type* created = _created;
+
+    if (cacheable) {
+        cacheable->setCachedType(created);
+    }
 
     RESTORE_MEMBER(_allowFunctionConstructors)
     RESTORE_MEMBER(_created)

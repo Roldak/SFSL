@@ -22,32 +22,10 @@ namespace ast {
 /**
  * @brief A visitor that can generate a type from an ASTNode
  */
-class ASTTypeCreator : public ASTExplicitVisitor {
+class ASTTypeCreator : protected ASTExplicitVisitor {
 public:
 
-    /**
-     * @brief Creates an ASTTypeCreator
-     * @param ctx the compilation context that will be used throughout the visits
-     */
-    ASTTypeCreator(CompCtx_Ptr& ctx, bool allowFunctionConstructors);
-
     virtual ~ASTTypeCreator();
-
-    virtual void visit(ASTNode* node) override;
-
-    virtual void visit(ClassDecl* clss) override;
-    virtual void visit(FunctionTypeDecl* ftdecl) override;
-    virtual void visit(TypeConstructorCreation* typeconstructor) override;
-    virtual void visit(TypeConstructorCall* tcall) override;
-
-    virtual void visit(TypeMemberAccess* mac) override;
-    virtual void visit(TypeIdentifier* ident) override;
-    virtual void visit(Identifier* ident) override;
-
-    /**
-     * @return The type created by the ASTTypeCreator
-     */
-    type::Type* getCreatedType() const;
 
     /**
      * @brief Creates a type from an ASTNode, if the node corresponds
@@ -108,6 +86,19 @@ public:
     static type::Environment buildEnvironmentFromTypeParametrizable(type::TypeParametrizable* param);
 
 protected:
+
+    ASTTypeCreator(CompCtx_Ptr& ctx);
+
+    virtual void visit(ASTNode* node) override;
+
+    virtual void visit(ClassDecl* clss) override;
+    virtual void visit(FunctionTypeDecl* ftdecl) override;
+    virtual void visit(TypeConstructorCreation* typeconstructor) override;
+    virtual void visit(TypeConstructorCall* tcall) override;
+
+    virtual void visit(TypeMemberAccess* mac) override;
+    virtual void visit(TypeIdentifier* ident) override;
+    virtual void visit(Identifier* ident) override;
 
     type::Type* createType(ASTNode* node, bool allowFunctionConstructors = false);
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);

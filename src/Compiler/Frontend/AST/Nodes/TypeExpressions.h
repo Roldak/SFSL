@@ -18,6 +18,7 @@
 #include "../../Types/CanSubtype.h"
 
 #include "../Utils/Annotations.h"
+#include "../Utils/HasCacheableCreatedType.h"
 #include "../../Common/Miscellaneous.h"
 
 namespace sfsl {
@@ -32,7 +33,7 @@ class KindSpecifyingExpression;
  * Cannot be constructed. This class is there just to provide
  * a lower upper bound for all the type expressions than Expression
  */
-class TypeExpression : public Expression, public kind::Kinded {
+class TypeExpression : public Expression, public HasCacheableCreatedType, public kind::Kinded {
 public:
 
     virtual ~TypeExpression();
