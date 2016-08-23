@@ -72,7 +72,7 @@ void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
 }
 
 void ASTTypeCreator::visit(TypeConstructorCall* tcall) {
-    tcall->getCallee()->onVisit(this);
+    doVisit(tcall->getCallee());
     type::Type* ctr = _created;
 
     const std::vector<TypeExpression*>& found = tcall->getArgs();
@@ -90,13 +90,13 @@ void ASTTypeCreator::visit(TypeConstructorCall* tcall) {
 }
 
 void ASTTypeCreator::visit(TypeMemberAccess* mac) {
-    mac->getAccessed()->onVisit(this);
+    doVisit(mac->getAccessed());
 
     if (_created) {
         if (type::ProperType* pt = type::getIf<type::ProperType>(_created->applyTCCallsOnly(_ctx))) {
             sym::Scope* classScope = pt->getClass()->getScope();
             if (classScope->assignSymbolic(*mac->getMember(), mac->getMember()->getValue())) {
-                mac->getMember()->onVisit(this);
+                doVisit(mac->getMember());
                 if (_created) {
                     _created = _created->substitute(pt->getEnvironment(), _ctx);
                 }
@@ -120,26 +120,31 @@ type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx, bool all
 }
 
 type::Type* ASTTypeCreator::createType(ASTNode* node, bool allowFunctionConstructors) {
-    HasCacheableCreatedType* cacheable = getIfNodeOfType<TypeExpression>(node, _ctx);
-
-    if (cacheable && cacheable->hasCachedType()) {
-        return cacheable->getCachedType();
-    }
-
     SAVE_MEMBER_AND_SET(_created, nullptr)
     SAVE_MEMBER_AND_SET(_allowFunctionConstructors, allowFunctionConstructors)
 
-    node->onVisit(this);
+    doVisit(node);
     type::Type* created = _created;
-
-    if (cacheable) {
-        cacheable->setCachedType(created);
-    }
 
     RESTORE_MEMBER(_allowFunctionConstructors)
     RESTORE_MEMBER(_created)
 
     return created;
+}
+
+void ASTTypeCreator::doVisit(ASTNode* node) {
+    HasCacheableCreatedType* cacheable = getIfNodeOfType<TypeExpression>(node, _ctx);
+
+    if (cacheable && cacheable->hasCachedType()) {
+        _created = cacheable->getCachedType();
+        return;
+    }
+
+    node->onVisit(this);
+
+    if (cacheable) {
+        cacheable->setCachedType(_created);
+    }
 }
 
 type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, const std::vector<type::Type*>& args, CompCtx_Ptr& ctx) {
@@ -354,7 +359,7 @@ void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic
     if (ts->type() == type::Type::NotYetDefined()) {
 
         if (TRY_INSERT(_visitedTypes, ts)) {
-            ts->getTypeDecl()->getExpression()->onVisit(this);
+            doVisit(ts->getTypeDecl()->getExpression());
             ts->setType(_created);
         } else {
             _ctx->reporter().error(pos, "A cyclic dependency was found");

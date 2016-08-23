@@ -101,6 +101,8 @@ protected:
     virtual void visit(Identifier* ident) override;
 
     type::Type* createType(ASTNode* node, bool allowFunctionConstructors = false);
+    void doVisit(ASTNode* node);
+
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
 
     type::Type* _created;
