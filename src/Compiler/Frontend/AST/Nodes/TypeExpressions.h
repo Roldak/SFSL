@@ -51,7 +51,7 @@ class ClassDecl :
         public TypeExpression,
         public sym::Scoped,
         public type::TypeParametrizable,
-        public type::CanSubtype<ClassDecl>,
+        public type::CanSubtype<ClassDecl*>,
         public common::HasManageableUserdata,
         public Annotable {
 public:
@@ -98,7 +98,7 @@ public:
      */
     bool isAbstract() const;
 
-    typedef type::CanSubtype<ClassDecl> CanSubtypeClasses;
+    typedef type::CanSubtype<ClassDecl*> CanSubtypeClasses;
 
 private:
 

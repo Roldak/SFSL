@@ -201,27 +201,31 @@ TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
 
 bool ProperType::isSubTypeOf(const Type* other) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
-        if (_class->CanSubtypeClasses::extends(objother->_class)) {
-            const Environment& osubs = objother->getSubstitutionTable();
+        const Environment& osubs = objother->getSubstitutionTable();
 
+        for (const Environment& parentEnv : _class->subTypeInstances(objother->_class)) {
             for (const Environment::Substitution& osub : osubs) {
-                const auto& sub = _env.find(osub.key);
+                const auto& sub = parentEnv.find(osub.key);
 
-                if (sub == _env.end()) {
+                if (sub == parentEnv.end()) {
                     return false;
-                } else switch (osub.varianceType) {
-                case common::VAR_T_IN:
-                    if (!osub.value->isSubTypeOf(sub->value))
-                        return false;
-                    break;
-                case common::VAR_T_OUT:
-                    if (!sub->value->isSubTypeOf(osub.value))
-                        return false;
-                    break;
-                default:
-                    if (!sub->value->equals(osub.value))
-                        return false;
-                    break;
+                } else {
+                    Type* val = _env.findSubstOrReturnMe(sub->value);
+
+                    switch (osub.varianceType) {
+                    case common::VAR_T_IN:
+                        if (!osub.value->isSubTypeOf(val))
+                            return false;
+                        break;
+                    case common::VAR_T_OUT:
+                        if (!val->isSubTypeOf(osub.value))
+                            return false;
+                        break;
+                    case common::VAR_T_NONE:
+                        if (!val->equals(osub.value))
+                            return false;
+                        break;
+                    }
                 }
             }
             return true;

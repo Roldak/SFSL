@@ -605,14 +605,14 @@ void SymbolAssignation::visitParent(ClassDecl* clss) {
 
                     _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable(), sym::Scope::ExcludeConstructors);
 
-                    addSubtypeRelations(clss, parentClass);
+                    clss->addSuperType(parentClass, parent->getSubstitutionTable());
                 }
             }
 
             RESTORE_SCOPE
         }
 
-        updateSubtypeRelations(clss);
+        clss->addSpecialSuperType(clss, ASTTypeCreator::buildEnvironmentFromTypeParametrizable(clss));
 
         _temporarilyVisitedTypes.erase(it); // unmark temporarily
         _visitedTypes.insert(clss); // mark permantently
@@ -664,15 +664,6 @@ void SymbolAssignation::assignFromTypeScope(T* mac, type::Type* t) {
     } else {
         _ctx->reporter().error(*mac->getAccessed(), "Type " + t->toString() + " cannot have any members");
     }
-}
-
-void SymbolAssignation::addSubtypeRelations(ClassDecl* clss, ClassDecl* parent) {
-    clss->CanSubtypeClasses::insertParents(parent->CanSubtypeClasses::cParentBegin(), parent->CanSubtypeClasses::cParentEnd());
-}
-
-void SymbolAssignation::updateSubtypeRelations(ClassDecl* clss) {
-    clss->CanSubtypeClasses::insertParent(clss);
-    clss->CanSubtypeClasses::updateParents();
 }
 
 }

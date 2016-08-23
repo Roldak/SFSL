@@ -46,16 +46,22 @@ private:
         std::vector<Environment> envs;
     };
 
-    typedef typename std::vector<Entry>::const_iterator EntryIterator;
+    typedef typename std::vector<Entry>::iterator EntryIterator;
 
 public:
+
+    virtual ~CanSubtype() { }
 
     void addSuperType(Type t, const Environment& env) {
         t->addImmediateSubType(this, env);
         recursivelyAddSuperType(t, env);
     }
 
-    const std::vector<Environment>& subTypeInstances(Type t) const {
+    void addSpecialSuperType(Type t, const Environment& env) {
+        findOrAddSuperType(t)->addInstance(env);
+    }
+
+    const std::vector<Environment>& subTypeInstances(Type t) {
         static const std::vector<Environment> None = {};
 
         EntryIterator it = find(t);
@@ -82,11 +88,11 @@ private:
         _immSubTypes.push_back(std::make_pair(t, env));
     }
 
-    const std::vector<std::pair<CanSubtype<Type>*, Environment>>& getImmediateSubTypes() const {
+    std::vector<std::pair<CanSubtype<Type>*, Environment>>& getImmediateSubTypes() {
         return _immSubTypes;
     }
 
-    EntryIterator find(Type t) const {
+    EntryIterator find(Type t) {
         EntryIterator it = std::lower_bound(_superTypes.begin(), _superTypes.end(), t);
         if (it == _superTypes.end() || !it->correspondsTo(t)) {
             return _superTypes.end();
