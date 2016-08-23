@@ -158,6 +158,14 @@ void ScopeGeneration::visit(DefineDecl* def) {
     pushScope(def->getSymbol(), _currentThis == nullptr);
     pushPathPart(def->getName()->getValue());
 
+    if (_currentThis) {
+        if (TypeExpression* texpr = def->getTypeSpecifier()) {
+            if (FunctionTypeDecl* ftdecl = getIfNodeOfType<FunctionTypeDecl>(texpr, _ctx)) {
+                _nextMethodDecl = ftdecl;
+            }
+        }
+    }
+
     SAVE_MEMBER_AND_SET(_currentThis, nullptr)
 
     // check that the RHS of a constructor definition is a function creation
@@ -176,6 +184,10 @@ void ScopeGeneration::visit(DefineDecl* def) {
 }
 
 void ScopeGeneration::visit(FunctionTypeDecl* ftdecl) {
+    if (_nextMethodDecl != ftdecl && !ftdecl->getTypeArgs().empty()) {
+        _ctx->reporter().error(*ftdecl, "Function type cannot be declared generic in this context");
+    }
+
     pushScope(ftdecl);
 
     generateTypeParametersSymbols(ftdecl->getTypeArgs(), false);

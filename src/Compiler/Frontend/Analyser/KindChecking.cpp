@@ -275,7 +275,7 @@ kind::ProperKind* KindChecking::createProperKindWithBounds(TypeExpression* lb, T
     type::ProperType* ubType = nullptr;
 
     if (lb) {
-        if (type::Type* tp = ASTTypeCreator::createType(lb, _ctx, true)) {
+        if (type::Type* tp = ASTTypeCreator::createType(lb, _ctx)) {
             lbType = type::getIf<type::ProperType>(tp);
         }
     }
@@ -283,7 +283,7 @@ kind::ProperKind* KindChecking::createProperKindWithBounds(TypeExpression* lb, T
     if (ub) {
         if (ub == lb) {
             ubType = lbType;
-        } else if (type::Type* tp = ASTTypeCreator::createType(ub, _ctx, true)) {
+        } else if (type::Type* tp = ASTTypeCreator::createType(ub, _ctx)) {
             ubType = type::getIf<type::ProperType>(tp);
         }
     }

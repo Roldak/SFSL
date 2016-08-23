@@ -35,7 +35,7 @@ public:
      * @param ctx The compilation context
      * @return The generated type
      */
-    static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx, bool allowFunctionConstructors = false);
+    static type::Type* createType(ASTNode* node, CompCtx_Ptr& ctx);
 
     /**
      * @brief Evaluates the given type constructor with the given type arguments
@@ -100,14 +100,12 @@ protected:
     virtual void visit(TypeIdentifier* ident) override;
     virtual void visit(Identifier* ident) override;
 
-    type::Type* createType(ASTNode* node, bool allowFunctionConstructors = false);
+    type::Type* createType(ASTNode* node);
     void doVisit(ASTNode* node);
 
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
 
     type::Type* _created;
-
-    bool _allowFunctionConstructors;
 
     std::set<sym::TypeSymbol*> _visitedTypes;
 };

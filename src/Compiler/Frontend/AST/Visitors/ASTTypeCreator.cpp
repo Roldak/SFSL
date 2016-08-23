@@ -59,12 +59,7 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
         }
     }
 
-    if (!_allowFunctionConstructors && ftdecl->getTypeArgs().size() > 0) {
-        _ctx->reporter().error(*ftdecl, "Function type cannot be declared generic in this context");
-        _created = _mngr.New<type::FunctionType>(std::vector<TypeExpression*>(), argTypes, retType, functionClass, env);
-    } else {
-        _created = _mngr.New<type::FunctionType>(ftdecl->getTypeArgs(), argTypes, retType, functionClass, env);
-    }
+    _created = _mngr.New<type::FunctionType>(ftdecl->getTypeArgs(), argTypes, retType, functionClass, env);
 }
 
 void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
@@ -115,18 +110,16 @@ void ASTTypeCreator::visit(Identifier* ident) {
     createTypeFromSymbolic(ident, *ident);
 }
 
-type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx, bool allowFunctionConstructors) {
-    return ASTTypeCreator(ctx).createType(node, allowFunctionConstructors);
+type::Type* ASTTypeCreator::createType(ASTNode* node, CompCtx_Ptr& ctx) {
+    return ASTTypeCreator(ctx).createType(node);
 }
 
-type::Type* ASTTypeCreator::createType(ASTNode* node, bool allowFunctionConstructors) {
+type::Type* ASTTypeCreator::createType(ASTNode* node) {
     SAVE_MEMBER_AND_SET(_created, nullptr)
-    SAVE_MEMBER_AND_SET(_allowFunctionConstructors, allowFunctionConstructors)
 
     doVisit(node);
     type::Type* created = _created;
 
-    RESTORE_MEMBER(_allowFunctionConstructors)
     RESTORE_MEMBER(_created)
 
     return created;

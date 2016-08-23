@@ -69,8 +69,7 @@ void TopLevelTypeChecking::visit(ClassDecl* clss) {
     ASTImplicitVisitor::visit(clss);
 
     for (TypeSpecifier* tps : clss->getFields()) {
-        if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx, true)) { // 'true' since errors for function constructors
-                                                                                            // will be reported in typechecking
+        if (type::Type* tpe = ASTTypeCreator::createType(tps->getTypeNode(), _ctx)) {
             static_cast<sym::VariableSymbol*>(tps->getSpecified()->getSymbol())->setType(tpe);
             tps->setType(tpe);
         }
@@ -80,8 +79,7 @@ void TopLevelTypeChecking::visit(ClassDecl* clss) {
 void TopLevelTypeChecking::visit(DefineDecl* decl) {
     if (TypeExpression* typeExpr = decl->getTypeSpecifier()) {
         typeExpr->onVisit(this);
-        type::Type* tp = ASTTypeCreator::createType(typeExpr, _ctx, true); // 'true' since errors for function constructors
-                                                                           // will be reported in typechecking
+        type::Type* tp = ASTTypeCreator::createType(typeExpr, _ctx);
         decl->getSymbol()->setType(tp);
 
         // visit value but don't need to create the type, so don't set _nextDef
@@ -112,8 +110,7 @@ void TopLevelTypeChecking::visit(FunctionCreation* func) {
 
         for (size_t i = 0; i < args.size(); ++i) {
             if (TypeSpecifier* tps = getIfNodeOfType<TypeSpecifier>(args[i], _ctx)) {
-                argTypes[i] = ASTTypeCreator::createType(tps->getTypeNode(), _ctx, true); // 'true' since errors for function constructors
-                                                                                          // will be reported in typechecking
+                argTypes[i] = ASTTypeCreator::createType(tps->getTypeNode(), _ctx);
             } else {
                 _rep.error(*args[i], "Omitting the type of the argument is forbidden in this case");
                 argTypes[i] = type::Type::NotYetDefined();
@@ -198,7 +195,7 @@ void TypeChecking::visit(DefineDecl* decl) {
 
         if (TypeExpression* tpexpr = decl->getTypeSpecifier()) {
             tpexpr->onVisit(this);
-            expectedType = ASTTypeCreator::createType(tpexpr, _ctx, _currentThis != nullptr);
+            expectedType = ASTTypeCreator::createType(tpexpr, _ctx);
 
             if (expectedType->applyTCCallsOnly(_ctx)->getTypeKind() == type::TYPE_FUNCTION && _currentThis) {
                 expectedType = type::MethodType::fromFunctionType(

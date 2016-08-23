@@ -161,38 +161,19 @@ public:
 
 class CodeGenPhase : public Phase {
 public:
-    CodeGenPhase() : Phase("CodeGen", "Emits sfsl bytecode from the backend abstract syntax tree"), _out(nullptr) { }
-    virtual ~CodeGenPhase() {
-        cleanup();
-    }
+    CodeGenPhase() : Phase("CodeGen", "Emits sfsl bytecode from the backend abstract syntax tree") { }
+    virtual ~CodeGenPhase() { }
 
     virtual std::vector<std::string> runsAfter() const override { return {"AST2BAST"}; }
 
     virtual bool run(PhaseContext& pctx) {
-        ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
-        cleanup();
+        std::cerr << ctx->memoryManager().getInfos() << std::endl;
 
-        _out = new out::LinkedListOutput<bc::BCInstruction*>(ctx);
-
-        bc::DefaultBytecodeGenerator gen(ctx, *_out);
-        prog->onVisit(&gen);
-
-        pctx.output("out", _out);
-
+        pctx.output("out", new out::LinkedListOutput<bc::BCInstruction*>(ctx));
         return ctx->reporter().getErrorCount() == 0;
     }
-
-private:
-
-    void cleanup() {
-        if (_out) {
-            delete _out;
-        }
-    }
-
-    out::LinkedListOutput<bc::BCInstruction*>* _out;
 };
 
 // PIPELINE

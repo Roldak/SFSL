@@ -83,6 +83,7 @@ private:
     void generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams, bool allowVarianceAnnotations);
 
     TypeExpression* _currentThis;
+    FunctionTypeDecl* _nextMethodDecl;
 };
 
 /**
