@@ -399,7 +399,7 @@ void TypeChecking::visit(MemberAccess* dot) {
     if (type::Type* t = dot->getAccessed()->type()) {
         if (type::ProperType* obj = type::getIf<type::ProperType>(t->apply(_ctx))) {
             ClassDecl* clss = obj->getClass();
-            const type::Environment& env = obj->getSubstitutionTable();
+            const type::Environment& env = obj->getEnvironment();
 
             FieldInfo field = tryGetFieldInfo(dot, clss, dot->getMember()->getValue(), env);
 
@@ -679,7 +679,7 @@ bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* new
                                              const std::vector<TypeExpression*>& typeArgs, const std::vector<type::Type*>& callArgTypes,
                                              const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType) {
     ClassDecl* clss = pt->getClass();
-    const type::Environment& env = pt->getSubstitutionTable();
+    const type::Environment& env = pt->getEnvironment();
 
     FieldInfo field = tryGetFieldInfo(newCallee, clss, member, env);
 
@@ -805,7 +805,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
         _redefs.push_back(funcDecl);
 
         if (type::ProperType* parentPT = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
-            funcClassScope->copySymbolsFrom(parentPT->getClass()->getScope(), parentPT->getSubstitutionTable(), sym::Scope::ExcludeConstructors);
+            funcClassScope->copySymbolsFrom(parentPT->getClass()->getScope(), parentPT->getEnvironment(), sym::Scope::ExcludeConstructors);
         } else {
             _rep.fatal(*funcDecl, "Could not create type " + parentName);
         }

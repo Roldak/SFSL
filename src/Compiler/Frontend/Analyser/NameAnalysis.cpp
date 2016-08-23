@@ -603,8 +603,8 @@ bool SymbolAssignation::visitParent(ClassDecl* clss) {
                     ClassDecl* parentClass = parent->getClass();
 
                     if (visitParent(parentClass)) {
-                        _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable(), sym::Scope::ExcludeConstructors);
-                        clss->addSuperType(parentClass, parent->getSubstitutionTable());
+                        _curScope->copySymbolsFrom(parentClass->getScope(), parent->getEnvironment(), sym::Scope::ExcludeConstructors);
+                        clss->addSuperType(parentClass, parent->getEnvironment());
                     }
                 }
             }

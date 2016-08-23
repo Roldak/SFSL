@@ -46,7 +46,7 @@ public:
     virtual Type* apply(CompCtx_Ptr& ctx) const;
     virtual Type* applyTCCallsOnly(CompCtx_Ptr& ctx) const;
 
-    const Environment& getSubstitutionTable() const;
+    const Environment& getEnvironment() const;
 
     static Type* NotYetDefined();
 

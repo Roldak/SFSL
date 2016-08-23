@@ -86,7 +86,7 @@ Type* Type::applyTCCallsOnly(CompCtx_Ptr&) const {
     return const_cast<Type*>(this);
 }
 
-const Environment& Type::getSubstitutionTable() const {
+const Environment& Type::getEnvironment() const {
     return _env;
 }
 
@@ -201,7 +201,7 @@ TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
 
 bool ProperType::isSubTypeOf(const Type* other) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
-        const Environment& osubs = objother->getSubstitutionTable();
+        const Environment& osubs = objother->getEnvironment();
 
         for (const Environment& parentEnv : _class->subTypeInstances(objother->_class)) {
             for (const Environment::Substitution& osub : osubs) {
@@ -237,7 +237,7 @@ bool ProperType::isSubTypeOf(const Type* other) const {
 bool ProperType::equals(const Type* other) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
         if (_class == objother->getClass()) {
-            return _env.equals(objother->getSubstitutionTable());
+            return _env.equals(objother->getEnvironment());
         }
     }
     return false;
@@ -494,7 +494,7 @@ ast::ClassDecl* MethodType::getOwner() const {
 }
 
 MethodType* MethodType::fromFunctionType(const FunctionType* ft, ast::ClassDecl* owner, CompCtx_Ptr& ctx) {
-    return ctx->memoryManager().New<MethodType>(owner, ft->getTypeArgs(), ft->getArgTypes(), ft->getRetType(), ft->getSubstitutionTable());
+    return ctx->memoryManager().New<MethodType>(owner, ft->getTypeArgs(), ft->getArgTypes(), ft->getRetType(), ft->getEnvironment());
 }
 
 const Environment& MethodType::getValueConstructorSubstitutionTable() const {
@@ -523,7 +523,7 @@ bool TypeConstructorType::isSubTypeOf(const Type* other) const {
 bool TypeConstructorType::equals(const Type* other) const {
     if (TypeConstructorType* tc = getIf<TypeConstructorType>(other)) {
         return _typeConstructor == tc->getTypeConstructor()
-            && _env.equals(other->getSubstitutionTable());
+            && _env.equals(other->getEnvironment());
     }
     return false;
 }

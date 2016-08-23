@@ -122,7 +122,7 @@ public:
                     sym::Scope* clssScope = clss->getScope();
 
                     for (const std::pair<std::string, sym::SymbolData>& entry : clssScope->getAllSymbols()) {
-                        outputFromSymbolData(entry.second, tp->applyTCCallsOnly(_ctx)->getSubstitutionTable());
+                        outputFromSymbolData(entry.second, tp->applyTCCallsOnly(_ctx)->getEnvironment());
                     }
                 }
             }

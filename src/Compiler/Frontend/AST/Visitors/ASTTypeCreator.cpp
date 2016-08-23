@@ -51,7 +51,7 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
     if (ftdecl->getTypeArgs().size() == 0) {
         if (type::ProperType* pt = type::getIf<type::ProperType>(createType(ftdecl->getClassEquivalent())->applyTCCallsOnly(_ctx))) {
             functionClass = pt->getClass();
-            env = pt->getSubstitutionTable();
+            env = pt->getEnvironment();
         } else {
             _ctx->reporter().fatal(*ftdecl, "Could not create type of this function's class equivalent");
         }
@@ -96,7 +96,7 @@ void ASTTypeCreator::visit(TypeMemberAccess* mac) {
             if (classScope->assignSymbolic(*mac->getMember(), mac->getMember()->getValue())) {
                 mac->getMember()->onVisit(this);
                 if (_created) {
-                    _created = _created->substitute(pt->getSubstitutionTable(), _ctx);
+                    _created = _created->substitute(pt->getEnvironment(), _ctx);
                 }
             }
         }
@@ -153,7 +153,7 @@ type::Type* ASTTypeCreator::evalTypeConstructor(type::TypeConstructorType* ctr, 
     type::Type* created = createType(ctr->getTypeConstructor()->getBody(), ctx);
     type::Environment subs(buildEnvironmentFromTypeParameterInstantiation(params, args, ctx));
 
-    created = created->substitute(subs, ctx)->substitute(ctr->getSubstitutionTable(), ctx);
+    created = created->substitute(subs, ctx)->substitute(ctr->getEnvironment(), ctx);
 
     return created;
 }
@@ -201,7 +201,7 @@ bool unify(const type::Type* ta, type::Type* tb, const std::vector<type::Type*>&
         if (type::ProperType* pB = type::getIf<type::ProperType>(tb->applyTCCallsOnly(ctx))) {
             if (pB->getClass()->getParent()) {
                 if (type::Type* parent = ASTTypeCreator::createType(pB->getClass()->getParent(), ctx)) {
-                    return unify(ta, parent->substitute(pB->getSubstitutionTable(), ctx), params, args, argTypes, ctx);
+                    return unify(ta, parent->substitute(pB->getEnvironment(), ctx), params, args, argTypes, ctx);
                 }
             }
         }
@@ -248,12 +248,12 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
         typeParams = ft->getTypeArgs();
         paramTypes = &ft->getArgTypes();
         created = ctx->memoryManager().New<type::FunctionType>(
-                        std::vector<TypeExpression*>(), ft->getArgTypes(), ft->getRetType(), ft->getClass(), ft->getSubstitutionTable());
+                        std::vector<TypeExpression*>(), ft->getArgTypes(), ft->getRetType(), ft->getClass(), ft->getEnvironment());
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(fc)) {
         typeParams = mt->getTypeArgs();
         paramTypes = &mt->getArgTypes();
         created = ctx->memoryManager().New<type::MethodType>(
-                        mt->getOwner(), std::vector<TypeExpression*>(), mt->getArgTypes(), mt->getRetType(), mt->getSubstitutionTable());
+                        mt->getOwner(), std::vector<TypeExpression*>(), mt->getArgTypes(), mt->getRetType(), mt->getEnvironment());
     } else {
         return type::Type::NotYetDefined();
     }
@@ -311,7 +311,7 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
         }
     }
 
-    type::Environment fnEnv(created->getSubstitutionTable());
+    type::Environment fnEnv(created->getEnvironment());
     type::Environment callEnv(buildEnvironmentFromTypeParameterInstantiation(typeParams, argTypes, ctx));
     fnEnv.insert(callEnv.begin(), callEnv.end());
 

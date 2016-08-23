@@ -167,7 +167,7 @@ void KindChecking::visit(TypeConstructorCall* tcall) {
 
             // build the environment of the type constructor being called
 
-            type::Environment ctrEnv(ctrType->getSubstitutionTable());
+            type::Environment ctrEnv(ctrType->getEnvironment());
             type::Environment callEnv(ASTTypeCreator::buildEnvironmentFromTypeParameterInstantiation(params, callArgsTypes, _ctx));
             ctrEnv.insert(callEnv.begin(), callEnv.end());
 
@@ -256,7 +256,7 @@ bool KindChecking::kindCheckWithBoundsArgumentSubstitution(const std::vector<kin
     }
 
     for (size_t i = 0; i < arguments.size(); ++i) {
-        kind::Kind* appliedArgKind = arguments[i]->kind()->substitute(createdArguments[i]->apply(ctx)->getSubstitutionTable(), ctx)->apply(ctx);
+        kind::Kind* appliedArgKind = arguments[i]->kind()->substitute(createdArguments[i]->apply(ctx)->getEnvironment(), ctx)->apply(ctx);
         kind::Kind* appliedParamKind = parametersKinds[i]->substitute(env, ctx)->apply(ctx);
         if (!appliedArgKind->isSubKindOf(appliedParamKind, true)) {
             if (reportErrors) {
