@@ -36,6 +36,10 @@ private:
             envs.push_back(env);
         }
 
+        inline Type getType() const {
+            return tpe;
+        }
+
         inline const std::vector<Environment>& getInstances() const {
             return envs;
         }
@@ -75,7 +79,15 @@ public:
 private:
 
     void recursivelyAddSuperType(Type t, const Environment& env) {
-        findOrAddSuperType(t)->addInstance(env);
+        for (const Entry& e : t->_superTypes) {
+            std::vector<Environment> envs;
+            for (const Environment& inst : e.getInstances()) {
+                Environment subInst = inst;
+                subInst.substituteAll(env);
+                envs.push_back(subInst);
+            }
+            _superTypes.push_back(Entry(e.getType(), envs));
+        }
 
         for (std::pair<CanSubtype<Type>*, Environment>& sub : getImmediateSubTypes()) {
             Environment substitued = env;
