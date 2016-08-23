@@ -115,7 +115,7 @@ void ASTDefaultTypeFromKindCreator::visit(ProperTypeKindSpecifier*) {
     clss->setScope(_mngr.New<sym::Scope>(nullptr));
     clss->setParameters(_parameters);
 
-    clss->CanSubtypeClasses::insertParent(clss);
+    clss->addSpecialSuperType(clss, ASTTypeCreator::buildEnvironmentFromTypeParametrizable(clss));
 
     _created = clss;
 }

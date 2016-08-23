@@ -11,119 +11,117 @@
 
 #include <algorithm>
 #include <vector>
+#include "Environment.h"
 
 namespace sfsl {
 
 namespace type {
 
-template<typename ParentType, template<typename, typename> class Container>
-/**
- * @brief Base trait of the CanSubtype trait
- * @see CanSubtype
- */
-class CanSubtypeBase {
-    typedef Container<ParentType*, std::allocator<ParentType*>> ParentTypeContainer;
+template<typename Type>
+class CanSubtype {
+private:
+
+    struct Entry {
+        Entry(Type t, const std::vector<Environment>& e) : tpe(t), envs(e) {}
+
+        inline bool operator <(Type t) const {
+            return tpe < t;
+        }
+
+        inline bool correspondsTo(Type t) const {
+            return tpe == t;
+        }
+
+        inline void addInstance(const Environment& env) {
+            envs.push_back(env);
+        }
+
+        inline Type getType() const {
+            return tpe;
+        }
+
+        inline const std::vector<Environment>& getInstances() const {
+            return envs;
+        }
+
+    private:
+
+        Type tpe;
+        std::vector<Environment> envs;
+    };
+
+    typedef typename std::vector<Entry>::iterator EntryIterator;
 
 public:
 
-    virtual ~CanSubtypeBase() {}
+    virtual ~CanSubtype() { }
 
-    /**
-     * @return An iterator to the first parent of this object
-     */
-    typename ParentTypeContainer::iterator parentBegin() const {
-        return _container.begin();
+    void addSuperType(Type t, const Environment& env) {
+        t->addImmediateSubType(this, env);
+        recursivelyAddSuperType(t, env);
     }
 
-    /**
-     * @return An iterator to the last + 1 parent of this object
-     */
-    typename ParentTypeContainer::iterator parentEnd() const {
-        return _container.end();
+    void addSpecialSuperType(Type t, const Environment& env) {
+        findOrAddSuperType(t)->addInstance(env);
     }
 
-    /**
-     * @return A const iterator to the first parent of this object
-     */
-    typename ParentTypeContainer::const_iterator cParentBegin() const {
-        return _container.cbegin();
+    const std::vector<Environment>& subTypeInstances(Type t) {
+        static const std::vector<Environment> None = {};
+
+        EntryIterator it = find(t);
+        if (it != _superTypes.end()) {
+            return it->getInstances();
+        }
+
+        return None;
     }
 
-    /**
-     * @return A const iterator to the last + 1 parent of this object
-     */
-    typename ParentTypeContainer::const_iterator cParentEnd() const {
-        return _container.cend();
+private:
+
+    void recursivelyAddSuperType(Type t, const Environment& env) {
+        for (const Entry& e : t->_superTypes) {
+            std::vector<Environment> envs;
+            for (const Environment& inst : e.getInstances()) {
+                Environment subInst = inst;
+                subInst.substituteAll(env);
+                envs.push_back(subInst);
+            }
+            _superTypes.push_back(Entry(e.getType(), envs));
+        }
+
+        for (std::pair<CanSubtype<Type>*, Environment>& sub : getImmediateSubTypes()) {
+            Environment substitued = env;
+            substitued.substituteAll(sub.second);
+            sub.first->recursivelyAddSuperType(t, substitued);
+        }
     }
 
-protected:
-
-    CanSubtypeBase() {}
-
-    ParentTypeContainer _container;
-};
-
-template<typename ParentType, template<typename, typename> class Container = std::vector>
-/**
- * @brief Trait which can be extended by classes to declare they can subtype the type ParentType.
- * This trait can be specialized to implement your own container type. The default specialization uses
- * a sorted std::vector.
- */
-class CanSubtype : public CanSubtypeBase<ParentType, Container> {
-public:
-
-    virtual ~CanSubtype() {}
-};
-
-template<typename ParentType>
-/**
- * @brief Default specialization of the CanSubtype trait, using as the underlying container
- * a std::vector and the std::binary_search function once the vector is sorted.
- */
-class CanSubtype<ParentType, std::vector> : public CanSubtypeBase<ParentType, std::vector> {
-    typedef CanSubtypeBase<ParentType, std::vector> Base;
-public:
-
-    virtual ~CanSubtype() {}
-
-    /**
-     * @brief Add a new parent to this object
-     * @param parent The parent to add
-     */
-    void insertParent(ParentType* parent) {
-        Base::_container.push_back(parent);
+    void addImmediateSubType(CanSubtype<Type>* t, const Environment& env) {
+        _immSubTypes.push_back(std::make_pair(t, env));
     }
 
-    template<typename Iterator>
-    /**
-     * @brief Insert multiple parents to this object
-     * @param begin The begin iterator of the collection to add
-     * @param end The end iterator of the collection to add
-     */
-    void insertParents(const Iterator& begin, const Iterator& end) {
-        Base::_container.insert(Base::_container.end(), begin, end);
+    std::vector<std::pair<CanSubtype<Type>*, Environment>>& getImmediateSubTypes() {
+        return _immSubTypes;
     }
 
-    /**
-     * @brief Sorts the underlying vector, so that binary search can be used
-     * to determine sub type validity
-     */
-    void updateParents() {
-        std::sort(Base::_container.begin(), Base::_container.end());
+    EntryIterator find(Type t) {
+        EntryIterator it = std::lower_bound(_superTypes.begin(), _superTypes.end(), t);
+        if (it == _superTypes.end() || !it->correspondsTo(t)) {
+            return _superTypes.end();
+        }
+        return it;
     }
 
-    /**
-     * @brief Can be used to determine if the given ParentType instance is among the parent of this object
-     *
-     * <b>Note :</b> Has log(N) complexity, where N is the number of parent. It uses std::binary_search to achieve
-     * this complexity, it is therefore important to have called updateParents to sort the vector before using extends.
-     *
-     * @param parent The instance to test as parent of this object
-     * @return True if the given ParentType instance is a parent of this object
-     */
-    bool extends(ParentType* parent) const {
-        return std::binary_search(Base::_container.cbegin(), Base::_container.cend(), parent);
+    EntryIterator findOrAddSuperType(Type t) {
+        EntryIterator it = std::lower_bound(_superTypes.begin(), _superTypes.end(), t);
+        if (it == _superTypes.end() || !it->correspondsTo(t)) {
+            return _superTypes.insert(it, Entry(t, {}));
+        }
+        return it;
     }
+
+    std::vector<Entry> _superTypes;
+    std::vector<std::pair<CanSubtype<Type>*, Environment>> _immSubTypes;
 };
 
 }

@@ -585,10 +585,10 @@ void SymbolAssignation::visit(Identifier* id) {
     assignIdentifier(id);
 }
 
-void SymbolAssignation::visitParent(ClassDecl* clss) {
+bool SymbolAssignation::visitParent(ClassDecl* clss) {
     if (_temporarilyVisitedTypes.find(clss) != _temporarilyVisitedTypes.end()) {
         _ctx->reporter().error(*clss, "Class " + clss->getName() + " is part of an inheritance cycle");
-        return;
+        return false;
     }
 
     if (_visitedTypes.find(clss) == _visitedTypes.end()) { // if unmarked
@@ -601,22 +601,24 @@ void SymbolAssignation::visitParent(ClassDecl* clss) {
             if (type::Type* parentType = ASTTypeCreator::createType(clss->getParent(), _ctx)) {
                 if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
                     ClassDecl* parentClass = parent->getClass();
-                    visitParent(parentClass);
 
-                    _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable(), sym::Scope::ExcludeConstructors);
-
-                    addSubtypeRelations(clss, parentClass);
+                    if (visitParent(parentClass)) {
+                        _curScope->copySymbolsFrom(parentClass->getScope(), parent->getSubstitutionTable(), sym::Scope::ExcludeConstructors);
+                        clss->addSuperType(parentClass, parent->getSubstitutionTable());
+                    }
                 }
             }
 
             RESTORE_SCOPE
         }
 
-        updateSubtypeRelations(clss);
+        clss->addSpecialSuperType(clss, ASTTypeCreator::buildEnvironmentFromTypeParametrizable(clss));
 
         _temporarilyVisitedTypes.erase(it); // unmark temporarily
         _visitedTypes.insert(clss); // mark permantently
     }
+
+    return true;
 }
 
 template<typename T>
@@ -664,15 +666,6 @@ void SymbolAssignation::assignFromTypeScope(T* mac, type::Type* t) {
     } else {
         _ctx->reporter().error(*mac->getAccessed(), "Type " + t->toString() + " cannot have any members");
     }
-}
-
-void SymbolAssignation::addSubtypeRelations(ClassDecl* clss, ClassDecl* parent) {
-    clss->CanSubtypeClasses::insertParents(parent->CanSubtypeClasses::cParentBegin(), parent->CanSubtypeClasses::cParentEnd());
-}
-
-void SymbolAssignation::updateSubtypeRelations(ClassDecl* clss) {
-    clss->CanSubtypeClasses::insertParent(clss);
-    clss->CanSubtypeClasses::updateParents();
 }
 
 }

@@ -152,10 +152,7 @@ private:
     template<typename T>
     void assignFromTypeScope(T* mac, type::Type* t);
 
-    void visitParent(ClassDecl* clss);
-
-    void addSubtypeRelations(ClassDecl* clss, ClassDecl* parent);
-    void updateSubtypeRelations(ClassDecl* clss);
+    bool visitParent(ClassDecl* clss);
 
     std::set<TypeExpression*> _temporarilyVisitedTypes;
     std::set<TypeExpression*> _visitedTypes;

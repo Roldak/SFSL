@@ -32,19 +32,7 @@ void ASTTypeCreator::visit(ASTNode*) {
 }
 
 void ASTTypeCreator::visit(ClassDecl* clss) {
-    type::Environment finalTable;
-
-    if (clss->getParent()) {
-        if (type::Type* pt = createType(clss->getParent())) {
-            if (type::ProperType* parent = type::getIf<type::ProperType>(pt->apply(_ctx))) {
-                finalTable = parent->getSubstitutionTable();
-            }
-        }
-    }
-    type::Environment thisTable(buildEnvironmentFromTypeParametrizable(clss));
-    finalTable.insert(thisTable.begin(), thisTable.end());
-
-    _created = _mngr.New<type::ProperType>(clss, finalTable);
+    _created = _mngr.New<type::ProperType>(clss, buildEnvironmentFromTypeParametrizable(clss));
 }
 
 void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
