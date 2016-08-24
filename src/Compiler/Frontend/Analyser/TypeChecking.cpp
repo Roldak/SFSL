@@ -1011,6 +1011,40 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
     }
 }
 
+// ARG EVALUATOR
+
+TypeChecking::ArgTypeEvaluator::ArgTypeEvaluator(TypeChecking* checker, const std::vector<Expression*>& argExprs)
+    : _checker(checker), _argExprs(argExprs), _evaluated(argExprs.size(), false) {
+
+}
+
+type::Type* TypeChecking::ArgTypeEvaluator::operator[](size_t i) {
+    if (!_evaluated[i]) {
+        _argExprs[i]->onVisit(_checker);
+        _evaluated[i] = true;
+    }
+
+    return _argExprs[i]->type();
+}
+
+void TypeChecking::ArgTypeEvaluator::evalAll(const std::vector<type::Type*>& expectedTypes) {
+    ExpectedInfo save = _checker->_expectedInfo;
+
+    for (size_t i = 0; i < _argExprs.size(); ++i) {
+        if (!_evaluated[i]) {
+            if (expectedTypes.size() > i) {
+                _checker->_expectedInfo.node = _argExprs[i];
+                _checker->_expectedInfo.ret = expectedTypes[i];
+            }
+
+            _argExprs[i]->onVisit(_checker);
+            _evaluated[i] = true;
+        }
+    }
+
+    _checker->_expectedInfo = save;
+}
+
 // FIELD INFO
 
 TypeChecking::FieldInfo::FieldInfo(sym::Symbol* sy, type::Type* ty) : s(sy), t(ty) {

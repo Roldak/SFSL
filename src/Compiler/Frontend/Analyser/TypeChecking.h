@@ -92,6 +92,20 @@ private:
 
     typedef sym::Symbolic<sym::Symbol>::SymbolData AnySymbolicData;
 
+    class ArgTypeEvaluator final {
+        ArgTypeEvaluator(TypeChecking* checker, const std::vector<Expression*>& argExprs);
+
+        type::Type* operator[](size_t i);
+
+        void evalAll(const std::vector<type::Type*>& expectedTypes);
+
+    private:
+
+        TypeChecking* _checker;
+        std::vector<Expression*> _argExprs;
+        std::vector<bool> _evaluated;
+    };
+
     struct FieldInfo final {
         FieldInfo(sym::Symbol* sy, type::Type* ty);
 
