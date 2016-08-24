@@ -534,14 +534,6 @@ void TypeChecking::visit(FunctionCall* call) {
 
     call->getCallee()->onVisit(this);
 
-    evaluator.evalAll({});
-
-    std::vector<type::Type*> callArgTypes(callArgs.size());
-
-    for (size_t i = 0; i < callArgs.size(); ++i) {
-        callArgTypes[i] = callArgs[i]->type();
-    }
-
     type::Type* calleeT = call->getCallee()->type()->applyTCCallsOnly(_ctx);
 
     const std::vector<type::Type*>* expectedArgTypes = nullptr;
@@ -575,22 +567,23 @@ void TypeChecking::visit(FunctionCall* call) {
         return;
     }
 
+    evaluator.evalAll(*expectedArgTypes);
     call->setType(retType);
 
     RESTORE_MEMBER(_expectedInfo)
 
-    if (callArgTypes.size() != expectedArgTypes->size()) {
+    if (evaluator.size() != expectedArgTypes->size()) {
         _rep.error(*call->getArgsTuple(),
-                   "Wrong number of argument. Found " + utils::T_toString(callArgTypes.size()) +
+                   "Wrong number of argument. Found " + utils::T_toString(evaluator.size()) +
                    ", expected " + utils::T_toString(expectedArgTypes->size()));
         return;
     }
 
     for (size_t i = 0; i < expectedArgTypes->size(); ++i) {
-        if (!callArgTypes[i]->apply(_ctx)->isSubTypeOf((*expectedArgTypes)[i]->apply(_ctx))) {
+        if (!evaluator.at(i)->apply(_ctx)->isSubTypeOf(expectedArgTypes->at(i)->apply(_ctx))) {
             _rep.error(*callArgs[i],
-                       "Argument type mismatch. Found " + callArgTypes[i]->apply(_ctx)->toString() +
-                       ", expected " + (*expectedArgTypes)[i]->apply(_ctx)->toString());
+                       "Argument type mismatch. Found " + evaluator.at(i)->apply(_ctx)->toString() +
+                       ", expected " + expectedArgTypes->at(i)->apply(_ctx)->toString());
         }
     }
 }
