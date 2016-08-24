@@ -13,6 +13,7 @@
 #include <set>
 #include "../AST/Visitors/ASTImplicitVisitor.h"
 #include "../Symbols/SymbolResolver.h"
+#include "../AST/Utils/ArgTypeEvaluator.h"
 
 namespace sfsl {
 
@@ -92,19 +93,7 @@ private:
 
     typedef sym::Symbolic<sym::Symbol>::SymbolData AnySymbolicData;
 
-    class ArgTypeEvaluator final {
-        ArgTypeEvaluator(TypeChecking* checker, const std::vector<Expression*>& argExprs);
-
-        type::Type* operator[](size_t i);
-
-        void evalAll(const std::vector<type::Type*>& expectedTypes);
-
-    private:
-
-        TypeChecking* _checker;
-        std::vector<Expression*> _argExprs;
-        std::vector<bool> _evaluated;
-    };
+    friend class ArgTypeEvaluator;
 
     struct FieldInfo final {
         FieldInfo(sym::Symbol* sy, type::Type* ty);
@@ -117,7 +106,7 @@ private:
 
     struct ExpectedInfo final {
         const std::vector<TypeExpression*>* typeArgs;
-        const std::vector<type::Type*>* args;
+        ArgTypeEvaluator* args;
         type::Type* ret;
         ASTNode* node;
     };
@@ -130,7 +119,7 @@ private:
     void tryAssigningTypeToSymbolic(T* symbolic);
 
     bool transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
-                                   const std::vector<TypeExpression*>& typeArgs, const std::vector<type::Type*>& callArgTypes,
+                                   const std::vector<TypeExpression*>& typeArgs, ArgTypeEvaluator* callArgTypes,
                                    const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType);
 
     sym::DefinitionSymbol* findOverridenSymbol(sym::DefinitionSymbol* def);

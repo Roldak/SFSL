@@ -12,8 +12,11 @@
 #include <iostream>
 #include <set>
 #include "ASTExplicitVisitor.h"
+
 #include "../../Symbols/SymbolResolver.h"
 #include "../../Types/Types.h"
+
+#include "../Utils/ArgTypeEvaluator.h"
 
 namespace sfsl {
 
@@ -62,7 +65,7 @@ public:
      */
     static type::Type* evalFunctionConstructor(type::Type* fc, const std::vector<TypeExpression*>& args,
                                                const common::Positionnable& callPos, CompCtx_Ptr& ctx,
-                                               const std::vector<type::Type*>* callArgTypes = nullptr, bool reportErrors = true);
+                                               ArgTypeEvaluator* callArgTypes = nullptr, bool reportErrors = true);
 
     /**
      * @brief Creates an environment mapping the types of the parameters to the types of the arguments

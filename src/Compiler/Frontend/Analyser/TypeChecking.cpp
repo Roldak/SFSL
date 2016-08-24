@@ -520,25 +520,27 @@ void TypeChecking::visit(FunctionCreation* func) {
 }
 
 void TypeChecking::visit(FunctionCall* call) {
-    call->getArgsTuple()->onVisit(this);
-
     std::vector<TypeExpression*> callTypeArgs = call->getTypeArgsTuple() ? call->getTypeArgs() : std::vector<TypeExpression*>();
 
     const std::vector<Expression*>& callArgs = call->getArgs();
+    ArgTypeEvaluator evaluator(this, callArgs);
+
+    SAVE_MEMBER(_expectedInfo)
+
+    _expectedInfo.typeArgs = &callTypeArgs;
+    _expectedInfo.args = &evaluator;
+    _expectedInfo.ret = nullptr;
+    _expectedInfo.node = call->getCallee();
+
+    call->getCallee()->onVisit(this);
+
+    evaluator.evalAll({});
+
     std::vector<type::Type*> callArgTypes(callArgs.size());
 
     for (size_t i = 0; i < callArgs.size(); ++i) {
         callArgTypes[i] = callArgs[i]->type();
     }
-
-    SAVE_MEMBER(_expectedInfo)
-
-    _expectedInfo.typeArgs = &callTypeArgs;
-    _expectedInfo.args = &callArgTypes;
-    _expectedInfo.ret = nullptr;
-    _expectedInfo.node = call->getCallee();
-
-    call->getCallee()->onVisit(this);
 
     type::Type* calleeT = call->getCallee()->type()->applyTCCallsOnly(_ctx);
 
@@ -549,7 +551,7 @@ void TypeChecking::visit(FunctionCall* call) {
         _expectedInfo.node = inst;
 
         if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
-            if (!transformIntoCallToMember(call, inst, pt, "new", callTypeArgs, callArgTypes, expectedArgTypes, retType)) {
+            if (!transformIntoCallToMember(call, inst, pt, "new", callTypeArgs, &evaluator, expectedArgTypes, retType)) {
                 call->setType(inst->type());
                 return;
             }
@@ -560,12 +562,12 @@ void TypeChecking::visit(FunctionCall* call) {
 
         retType = inst->type(); // force constructor to return type of its `this`
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(
-                   ASTTypeCreator::evalFunctionConstructor(calleeT, callTypeArgs, *call, _ctx, &callArgTypes))) {
+                   ASTTypeCreator::evalFunctionConstructor(calleeT, callTypeArgs, *call, _ctx, &evaluator))) {
 
         expectedArgTypes = &mt->apply(_ctx)->getArgTypes();
         retType = mt->getRetType();
     } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
-        if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", callTypeArgs, callArgTypes, expectedArgTypes, retType)) {
+        if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", callTypeArgs, &evaluator, expectedArgTypes, retType)) {
             return;
         }
     } else {
@@ -673,7 +675,7 @@ type::Type* TypeChecking::tryGetTypeOfSymbol(sym::Symbol* sym) {
 }
 
 bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* newCallee, type::ProperType* pt, const std::string& member,
-                                             const std::vector<TypeExpression*>& typeArgs, const std::vector<type::Type*>& callArgTypes,
+                                             const std::vector<TypeExpression*>& typeArgs, ArgTypeEvaluator* callArgTypes,
                                              const std::vector<type::Type*>*& expectedArgTypes, type::Type*& retType) {
     ClassDecl* clss = pt->getClass();
     const type::Environment& env = pt->getEnvironment();
@@ -681,7 +683,7 @@ bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* new
     FieldInfo field = tryGetFieldInfo(newCallee, clss, member, env);
 
     if (field.isValid()) {
-        type::Type* calleeT = ASTTypeCreator::evalFunctionConstructor(field.t->applyTCCallsOnly(_ctx), typeArgs, *call, _ctx, &callArgTypes);
+        type::Type* calleeT = ASTTypeCreator::evalFunctionConstructor(field.t->applyTCCallsOnly(_ctx), typeArgs, *call, _ctx, callArgTypes);
 
         if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
             expectedArgTypes = &ft->apply(_ctx)->getArgTypes();
@@ -967,7 +969,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         bool matches = true;
 
         for (size_t a = 0; a < expectedArgCount; ++a) {
-            if (!((*_expectedInfo.args)[a]->apply(_ctx)->isSubTypeOf(candidate.arg(a)))) {
+            if (!(_expectedInfo.args->at(a)->apply(_ctx)->isSubTypeOf(candidate.arg(a)))) {
                 matches = false;
                 break;
             }
@@ -1009,40 +1011,6 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
     case 1:
         return {chosen->symbol(), chosen->env()};
     }
-}
-
-// ARG EVALUATOR
-
-TypeChecking::ArgTypeEvaluator::ArgTypeEvaluator(TypeChecking* checker, const std::vector<Expression*>& argExprs)
-    : _checker(checker), _argExprs(argExprs), _evaluated(argExprs.size(), false) {
-
-}
-
-type::Type* TypeChecking::ArgTypeEvaluator::operator[](size_t i) {
-    if (!_evaluated[i]) {
-        _argExprs[i]->onVisit(_checker);
-        _evaluated[i] = true;
-    }
-
-    return _argExprs[i]->type();
-}
-
-void TypeChecking::ArgTypeEvaluator::evalAll(const std::vector<type::Type*>& expectedTypes) {
-    ExpectedInfo save = _checker->_expectedInfo;
-
-    for (size_t i = 0; i < _argExprs.size(); ++i) {
-        if (!_evaluated[i]) {
-            if (expectedTypes.size() > i) {
-                _checker->_expectedInfo.node = _argExprs[i];
-                _checker->_expectedInfo.ret = expectedTypes[i];
-            }
-
-            _argExprs[i]->onVisit(_checker);
-            _evaluated[i] = true;
-        }
-    }
-
-    _checker->_expectedInfo = save;
 }
 
 // FIELD INFO

@@ -242,7 +242,7 @@ bool checkArgumentsValidity(const std::vector<type::Type*>& args) {
 
 type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::vector<TypeExpression*>& args,
                                                     const common::Positionnable& callPos, CompCtx_Ptr& ctx,
-                                                    const std::vector<type::Type*>* callArgTypes, bool reportErrors) {
+                                                    ArgTypeEvaluator* callArgTypes, bool reportErrors) {
 
     std::vector<TypeExpression*> typeParams;
     const std::vector<type::Type*>* paramTypes;
