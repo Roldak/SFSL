@@ -40,7 +40,7 @@ public:
     virtual TYPE_KIND getTypeKind() const = 0;
     virtual bool isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const = 0;
     virtual bool equals(const Type* other, CompCtx_Ptr& ctx) const;
-    virtual std::string toString() const = 0;
+    virtual std::string toString(CompCtx_Ptr* shouldApply = nullptr) const = 0;
 
     Type* substitute(const Environment& env, CompCtx_Ptr& ctx) const;
     virtual Type* apply(CompCtx_Ptr& ctx) const;
@@ -69,7 +69,7 @@ public:
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type*, CompCtx_Ptr& ctx) const override;
     virtual bool equals(const Type* other, CompCtx_Ptr& ctx) const override;
-    virtual std::string toString() const override;
+    virtual std::string toString(CompCtx_Ptr* shouldApply = nullptr) const override;
 
     void assignInferredType(Type* t);
 
@@ -91,7 +91,7 @@ public:
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const override;
     virtual bool equals(const Type* other, CompCtx_Ptr& ctx) const override;
-    virtual std::string toString() const override;
+    virtual std::string toString(CompCtx_Ptr* shouldApply = nullptr) const override;
 
     ast::ClassDecl* getClass() const;
 
@@ -145,7 +145,7 @@ public:
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const override;
     virtual bool equals(const Type* other, CompCtx_Ptr& ctx) const override;
-    virtual std::string toString() const override;
+    virtual std::string toString(CompCtx_Ptr* shouldApply = nullptr) const override;
 
     virtual FunctionType* apply(CompCtx_Ptr& ctx) const override;
 
@@ -170,7 +170,7 @@ public:
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const override;
     virtual bool equals(const Type* other, CompCtx_Ptr& ctx) const override;
-    virtual std::string toString() const override;
+    virtual std::string toString(CompCtx_Ptr* shouldApply = nullptr) const override;
 
     virtual MethodType* apply(CompCtx_Ptr &ctx) const override;
 
@@ -203,7 +203,7 @@ public:
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const override;
     virtual bool equals(const Type* other, CompCtx_Ptr& ctx) const override;
-    virtual std::string toString() const override;
+    virtual std::string toString(CompCtx_Ptr* shouldApply = nullptr) const override;
 
     ast::TypeConstructorCreation* getTypeConstructor() const;
 
@@ -222,7 +222,7 @@ public:
 
     virtual TYPE_KIND getTypeKind() const override;
     virtual bool isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const override;
-    virtual std::string toString() const override;
+    virtual std::string toString(CompCtx_Ptr* shouldApply = nullptr) const override;
 
     virtual Type* apply(CompCtx_Ptr& ctx) const override;
     virtual Type* applyTCCallsOnly(CompCtx_Ptr& ctx) const override;

@@ -38,7 +38,7 @@ public:
         return this;
     }
 
-    virtual std::string toString(bool) const override {
+    virtual std::string toString(bool, CompCtx_Ptr*) const override {
         return "[not yet defined]";
     }
 };
@@ -123,9 +123,9 @@ ProperKind* ProperKind::apply(CompCtx_Ptr& ctx) {
 
 const std::string lessThan = " < ";
 
-std::string ProperKind::toString(bool withBoundsInformations) const {
-    std::string lbStr = _lb ? _lb->toString() + lessThan : "";
-    std::string ubStr = _ub ? lessThan + _ub->toString() : "";
+std::string ProperKind::toString(bool withBoundsInformations, CompCtx_Ptr* shouldApply) const {
+    std::string lbStr = _lb ? _lb->toString(shouldApply) + lessThan : "";
+    std::string ubStr = _ub ? lessThan + _ub->toString(shouldApply) : "";
     if (withBoundsInformations) {
         return lbStr + "*" + ubStr;
     } else {
@@ -207,16 +207,16 @@ TypeConstructorKind* TypeConstructorKind::apply(CompCtx_Ptr& ctx) {
     return ctx->memoryManager().New<TypeConstructorKind>(newParams, _ret->apply(ctx));
 }
 
-std::string TypeConstructorKind::toString(bool withBoundsInformations) const {
+std::string TypeConstructorKind::toString(bool withBoundsInformations, CompCtx_Ptr* shouldApply) const {
     std::string toRet = "[";
     for (size_t i = 0; i < _args.size(); ++i) {
         toRet += common::varianceTypeToString(_args[i].varianceType, true);
-        toRet += _args[i].kind->toString(withBoundsInformations);
+        toRet += _args[i].kind->toString(withBoundsInformations, shouldApply);
         if (i != _args.size() - 1) {
             toRet += ", ";
         }
     }
-    return toRet + "]->" + _ret->toString(withBoundsInformations);
+    return toRet + "]->" + _ret->toString(withBoundsInformations, shouldApply);
 }
 
 const std::vector<TypeConstructorKind::Parameter>& TypeConstructorKind::getArgKinds() const {

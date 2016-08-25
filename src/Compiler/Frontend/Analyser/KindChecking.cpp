@@ -260,8 +260,8 @@ bool KindChecking::kindCheckWithBoundsArgumentSubstitution(const std::vector<kin
         kind::Kind* appliedParamKind = parametersKinds[i]->substitute(env, ctx)->apply(ctx);
         if (!appliedArgKind->isSubKindOf(appliedParamKind, ctx, true)) {
             if (reportErrors) {
-                ctx->reporter().error(*arguments[i], "Argument kind mismatch. Expected " + appliedParamKind->toString(true) +
-                           ", found " + appliedArgKind->toString(true));
+                ctx->reporter().error(*arguments[i], "Argument kind mismatch. Expected " + appliedParamKind->toString(true, &ctx) +
+                           ", found " + appliedArgKind->toString(true, &ctx));
             }
             return false;
         }

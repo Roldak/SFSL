@@ -53,7 +53,7 @@ public:
         return (Type*)this;
     }
 
-    virtual std::string toString() const override {
+    virtual std::string toString(CompCtx_Ptr*) const override {
         return "<not yet defined>";
     }
 };
@@ -72,12 +72,12 @@ bool Type::equals(const Type* other, CompCtx_Ptr& ctx) const {
     return isSubTypeOf(other, ctx) && other->isSubTypeOf(this, ctx);
 }
 
-std::string Type::toString() const {
-    std::string toRet /*= utils::T_toString(this)*/;
+std::string Type::toString(CompCtx_Ptr* shouldApply) const {
+    std::string toRet;
     if (!_env.empty()) {
         toRet += "{";
         for (const auto& pair : _env) {
-            toRet += pair.key->toString() + "=>" + pair.value->toString() + ", ";
+            toRet += pair.key->toString() + "=>" + (shouldApply ? pair.value->apply(*shouldApply) : pair.value)->toString(shouldApply) + ", ";
         }
         toRet = toRet.substr(0, toRet.size() - 2) + "}";
     }
@@ -193,7 +193,7 @@ TypeToBeInferred* TypeToBeInferred::create(const std::vector<Typed*>& toBeInferr
     return ctx->memoryManager().New<TypeToBeInferred>(toBeInferred);
 }
 
-std::string TypeToBeInferred::toString() const {
+std::string TypeToBeInferred::toString(CompCtx_Ptr*) const {
     return "<to be inferred>";
 }
 
@@ -251,8 +251,8 @@ bool ProperType::equals(const Type* other, CompCtx_Ptr& ctx) const {
     return false;
 }
 
-std::string ProperType::toString() const {
-    return _class->getName() + Type::toString();
+std::string ProperType::toString(CompCtx_Ptr* shouldApply) const {
+    return _class->getName() + Type::toString(shouldApply);
 }
 
 ProperType* ProperType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
@@ -409,17 +409,17 @@ bool FunctionType::equals(const Type* other, CompCtx_Ptr& ctx) const {
     return false;
 }
 
-std::string FunctionType::toString() const {
+std::string FunctionType::toString(CompCtx_Ptr* shouldApply) const {
     std::string toRet = "(";
 
     if (_argTypes.size() > 0) {
         for (size_t i = 0; i < _argTypes.size() - 1; ++i) {
-            toRet += _argTypes[i]->toString() + ", ";
+            toRet += _argTypes[i]->toString(shouldApply) + ", ";
         }
-        toRet += _argTypes.back()->toString();
+        toRet += _argTypes.back()->toString(shouldApply);
     }
 
-    return toRet + ")->" + _retType->toString();
+    return toRet + ")->" + _retType->toString(shouldApply);
 }
 
 FunctionType* FunctionType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
@@ -475,14 +475,14 @@ bool MethodType::equals(const Type* other, CompCtx_Ptr& ctx) const {
     return false;
 }
 
-std::string MethodType::toString() const {
+std::string MethodType::toString(CompCtx_Ptr* shouldApply) const {
     std::string toRet = "([" + _owner->getName() + "]";
 
     for (size_t i = 0; i < _argTypes.size(); ++i) {
-        toRet += ", " + _argTypes[i]->toString();
+        toRet += ", " + _argTypes[i]->toString(shouldApply);
     }
 
-    return toRet + ")->" + _retType->toString();
+    return toRet + ")->" + _retType->toString(shouldApply);
 }
 
 MethodType* MethodType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
@@ -540,8 +540,8 @@ bool TypeConstructorType::equals(const Type* other, CompCtx_Ptr& ctx) const {
     return false;
 }
 
-std::string TypeConstructorType::toString() const {
-    return _typeConstructor->getName() + Type::toString();
+std::string TypeConstructorType::toString(CompCtx_Ptr* shouldApply) const {
+    return _typeConstructor->getName() + Type::toString(shouldApply);
 }
 
 TypeConstructorType* TypeConstructorType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
@@ -576,15 +576,15 @@ bool ConstructorApplyType::isSubTypeOf(const Type*, CompCtx_Ptr&) const {
     return false;
 }
 
-std::string ConstructorApplyType::toString() const {
-    std::string toRet = _callee->toString() + "[";
+std::string ConstructorApplyType::toString(CompCtx_Ptr* shouldApply) const {
+    std::string toRet = _callee->toString(shouldApply) + "[";
     for (size_t i = 0; i < _args.size(); ++i) {
-        toRet += _args[i]->toString();
+        toRet += _args[i]->toString(shouldApply);
         if (i != _args.size() - 1) {
             toRet += ", ";
         }
     }
-    return toRet + "]" + Type::toString();
+    return toRet + "]" + Type::toString(shouldApply);
 }
 
 ConstructorApplyType* ConstructorApplyType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {

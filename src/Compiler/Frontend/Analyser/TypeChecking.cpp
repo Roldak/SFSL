@@ -228,8 +228,8 @@ void TypeChecking::visit(DefineDecl* decl) {
         if (expectedType && foundType) {
             if (!foundType->apply(_ctx)->isSubTypeOf(expectedType->apply(_ctx), _ctx)) {
                 _rep.error(*decl->getValue(),
-                           "Type mismatch. Expected " + expectedType->apply(_ctx)->toString() +
-                           ", found " + foundType->apply(_ctx)->toString());
+                           "Type mismatch. Expected " + expectedType->apply(_ctx)->toString(&_ctx) +
+                           ", found " + foundType->apply(_ctx)->toString(&_ctx));
             }
 
             decl->getName()->setType(expectedType);
@@ -278,7 +278,7 @@ void TypeChecking::visit(AssignmentExpression* aex) {
         tbi->assignInferredType(rhsT);
     } else if (!rhsT->apply(_ctx)->isSubTypeOf(lhsT->apply(_ctx), _ctx)) {
         _rep.error(*aex, "Assigning incompatible type. Expected " +
-                   lhsT->apply(_ctx)->toString() + ", found " + rhsT->apply(_ctx)->toString());
+                   lhsT->apply(_ctx)->toString(&_ctx) + ", found " + rhsT->apply(_ctx)->toString(&_ctx));
     }
 
     aex->setType(rhsT);
@@ -379,7 +379,7 @@ void TypeChecking::visit(IfExpression* ifexpr) {
             _rep.error(*ifexpr->getThen(), "Operands of the `&&` and `||` operators must be booleans");
         } else {
             _rep.error(*ifexpr, "The then-part and else-part have different types. Found " +
-                       thenType->apply(_ctx)->toString() + " and " + elseType->apply(_ctx)->toString());
+                       thenType->apply(_ctx)->toString(&_ctx) + " and " + elseType->apply(_ctx)->toString(&_ctx));
         }
     } else {
         if (!thenType->apply(_ctx)->isSubTypeOf(_res.Unit(), _ctx)) {
@@ -514,7 +514,8 @@ void TypeChecking::visit(FunctionCreation* func) {
 
         if (!func->getBody()->type()->apply(_ctx)->isSubTypeOf(retType->apply(_ctx), _ctx)) {
             _rep.error(*func->getBody(),
-                       "Return type mismatch. Expected " + retType->apply(_ctx)->toString() + ", found " + func->getBody()->type()->apply(_ctx)->toString());
+                       "Return type mismatch. Expected " + retType->apply(_ctx)->toString(&_ctx) +
+                       ", found " + func->getBody()->type()->apply(_ctx)->toString(&_ctx));
         }
     }
 }
@@ -582,8 +583,8 @@ void TypeChecking::visit(FunctionCall* call) {
     for (size_t i = 0; i < expectedArgTypes->size(); ++i) {
         if (!argTypes.at(i)->apply(_ctx)->isSubTypeOf(expectedArgTypes->at(i)->apply(_ctx), _ctx)) {
             _rep.error(*callArgs[i],
-                       "Argument type mismatch. Found " + argTypes.at(i)->apply(_ctx)->toString() +
-                       ", expected " + expectedArgTypes->at(i)->apply(_ctx)->toString());
+                       "Argument type mismatch. Found " + argTypes.at(i)->apply(_ctx)->toString(&_ctx) +
+                       ", expected " + expectedArgTypes->at(i)->apply(_ctx)->toString(&_ctx));
         }
     }
 }
