@@ -261,7 +261,7 @@ ast::ClassDecl* ProperType::getClass() const {
 
 ValueConstructorType::ValueConstructorType(const std::vector<ast::TypeExpression*>& typeArgs,
                                            const std::vector<Type*>& argTypes, Type* retType)
-    : _typeArgs(typeArgs), _argTypes(argTypes), _retType(retType) {
+    : _typeArgs(typeArgs), _argTypes(argTypes), _retType(retType), _cachedApplied(nullptr) {
 
 }
 
@@ -330,6 +330,10 @@ ValueConstructorType* ValueConstructorType::substituteValueConstructor(const Env
 }
 
 ValueConstructorType* ValueConstructorType::applyValueConstructor(CompCtx_Ptr& ctx) const {
+    if (_cachedApplied) {
+        return _cachedApplied;
+    }
+
     const ValueConstructorType* self = this;
 
     if (_typeArgs.size() > 0) {
@@ -346,7 +350,7 @@ ValueConstructorType* ValueConstructorType::applyValueConstructor(CompCtx_Ptr& c
         applied[i] = self->_argTypes[i]->apply(ctx);
     }
 
-    return rebuildValueConstructor(self->_typeArgs, applied, self->_retType->apply(ctx), self->getValueConstructorSubstitutionTable(), ctx);
+    return _cachedApplied = rebuildValueConstructor(self->_typeArgs, applied, self->_retType->apply(ctx), self->getValueConstructorSubstitutionTable(), ctx);
 }
 
 const std::vector<ast::TypeExpression*>& ValueConstructorType::getTypeArgs() const {
@@ -545,7 +549,7 @@ ast::TypeConstructorCreation* TypeConstructorType::getTypeConstructor() const {
 // CONSTRUCTOR APPLY TYPE
 
 ConstructorApplyType::ConstructorApplyType(Type* callee, const std::vector<Type*>& args)
-    : Type(type::Environment::Empty), _callee(callee), _args(args) {
+    : Type(type::Environment::Empty), _callee(callee), _args(args), _cachedApplied(nullptr), _cachedTCCallsAppliedOnly(nullptr) {
 
 }
 
@@ -586,13 +590,19 @@ ConstructorApplyType* ConstructorApplyType::substituteDeep(const Environment& en
 }
 
 Type* ConstructorApplyType::apply(CompCtx_Ptr& ctx) const {
+    if (_cachedApplied) {
+        return _cachedApplied;
+    }
     TypeConstructorType* ctr = static_cast<TypeConstructorType*>(_callee->apply(ctx));
-    return ast::ASTTypeCreator::evalTypeConstructor(ctr, _args, ctx)->apply(ctx);
+    return _cachedApplied = ast::ASTTypeCreator::evalTypeConstructor(ctr, _args, ctx)->apply(ctx);
 }
 
 Type* ConstructorApplyType::applyTCCallsOnly(CompCtx_Ptr& ctx) const {
+    if (_cachedTCCallsAppliedOnly) {
+        return _cachedTCCallsAppliedOnly;
+    }
     TypeConstructorType* ctr = static_cast<TypeConstructorType*>(_callee->apply(ctx));
-    return ast::ASTTypeCreator::evalTypeConstructor(ctr, _args, ctx)->applyTCCallsOnly(ctx);
+    return _cachedTCCallsAppliedOnly = ast::ASTTypeCreator::evalTypeConstructor(ctr, _args, ctx)->applyTCCallsOnly(ctx);
 }
 
 Type* ConstructorApplyType::getCallee() const {

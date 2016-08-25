@@ -132,6 +132,8 @@ protected:
     std::vector<ast::TypeExpression*> _typeArgs;
     std::vector<Type*> _argTypes;
     Type* _retType;
+
+    mutable ValueConstructorType* _cachedApplied;
 };
 
 class FunctionType : public ProperType, public ValueConstructorType {
@@ -234,6 +236,9 @@ protected:
 
     Type* _callee;
     const std::vector<Type*> _args;
+
+    mutable Type* _cachedApplied;
+    mutable Type* _cachedTCCallsAppliedOnly;
 };
 
 /**
