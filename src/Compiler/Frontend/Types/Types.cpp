@@ -204,28 +204,25 @@ bool ProperType::isSubTypeOf(const Type* other) const {
         const Environment& osubs = objother->getEnvironment();
 
         for (const Environment& parentEnv : _class->subTypeInstances(objother->_class)) {
-            for (const Environment::Substitution& osub : osubs) {
-                const auto& sub = parentEnv.find(osub.key);
 
-                if (sub == parentEnv.end()) {
-                    return false;
-                } else {
-                    Type* val = _env.findSubstOrReturnMe(sub->value);
+            for (Environment::const_iterator otherIt = osubs.begin(), thisIt = parentEnv.begin(), otherEnd = osubs.end();
+                 otherIt != otherEnd; ++otherIt, ++thisIt) {
 
-                    switch (osub.varianceType) {
-                    case common::VAR_T_IN:
-                        if (!osub.value->isSubTypeOf(val))
-                            return false;
-                        break;
-                    case common::VAR_T_OUT:
-                        if (!val->isSubTypeOf(osub.value))
-                            return false;
-                        break;
-                    case common::VAR_T_NONE:
-                        if (!val->equals(osub.value))
-                            return false;
-                        break;
-                    }
+                Type* val = _env.findSubstOrReturnMe(thisIt->value);
+
+                switch (otherIt->varianceType) {
+                case common::VAR_T_IN:
+                    if (!otherIt->value->isSubTypeOf(val))
+                        return false;
+                    break;
+                case common::VAR_T_OUT:
+                    if (!val->isSubTypeOf(otherIt->value))
+                        return false;
+                    break;
+                case common::VAR_T_NONE:
+                    if (!val->equals(otherIt->value))
+                        return false;
+                    break;
                 }
             }
             return true;

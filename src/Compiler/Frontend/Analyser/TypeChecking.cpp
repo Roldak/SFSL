@@ -523,12 +523,12 @@ void TypeChecking::visit(FunctionCall* call) {
     std::vector<TypeExpression*> callTypeArgs = call->getTypeArgsTuple() ? call->getTypeArgs() : std::vector<TypeExpression*>();
 
     const std::vector<Expression*>& callArgs = call->getArgs();
-    ArgTypeEvaluator evaluator(this, callArgs);
+    ArgTypeEvaluator argTypes(this, callArgs);
 
     SAVE_MEMBER(_expectedInfo)
 
     _expectedInfo.typeArgs = &callTypeArgs;
-    _expectedInfo.args = &evaluator;
+    _expectedInfo.args = &argTypes;
     _expectedInfo.ret = nullptr;
     _expectedInfo.node = call->getCallee();
 
@@ -543,7 +543,7 @@ void TypeChecking::visit(FunctionCall* call) {
         _expectedInfo.node = inst;
 
         if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
-            if (!transformIntoCallToMember(call, inst, pt, "new", callTypeArgs, &evaluator, expectedArgTypes, retType)) {
+            if (!transformIntoCallToMember(call, inst, pt, "new", callTypeArgs, &argTypes, expectedArgTypes, retType)) {
                 call->setType(inst->type());
                 return;
             }
@@ -554,12 +554,12 @@ void TypeChecking::visit(FunctionCall* call) {
 
         retType = inst->type(); // force constructor to return type of its `this`
     } else if (type::MethodType* mt = type::getIf<type::MethodType>(
-                   ASTTypeCreator::evalFunctionConstructor(calleeT, callTypeArgs, *call, _ctx, &evaluator))) {
+                   ASTTypeCreator::evalFunctionConstructor(calleeT, callTypeArgs, *call, _ctx, &argTypes))) {
 
-        expectedArgTypes = &mt->apply(_ctx)->getArgTypes();
+        expectedArgTypes = &mt->getArgTypes();
         retType = mt->getRetType();
     } else if (type::ProperType* pt = type::getIf<type::ProperType>(calleeT)) {
-        if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", callTypeArgs, &evaluator, expectedArgTypes, retType)) {
+        if (!transformIntoCallToMember(call, call->getCallee(), pt, "()", callTypeArgs, &argTypes, expectedArgTypes, retType)) {
             return;
         }
     } else {
@@ -567,22 +567,22 @@ void TypeChecking::visit(FunctionCall* call) {
         return;
     }
 
-    evaluator.evalAll(*expectedArgTypes);
+    argTypes.evalAll(*expectedArgTypes);
     call->setType(retType);
 
     RESTORE_MEMBER(_expectedInfo)
 
-    if (evaluator.size() != expectedArgTypes->size()) {
+    if (argTypes.size() != expectedArgTypes->size()) {
         _rep.error(*call->getArgsTuple(),
-                   "Wrong number of argument. Found " + utils::T_toString(evaluator.size()) +
+                   "Wrong number of argument. Found " + utils::T_toString(argTypes.size()) +
                    ", expected " + utils::T_toString(expectedArgTypes->size()));
         return;
     }
 
     for (size_t i = 0; i < expectedArgTypes->size(); ++i) {
-        if (!evaluator.at(i)->apply(_ctx)->isSubTypeOf(expectedArgTypes->at(i)->apply(_ctx))) {
+        if (!argTypes.at(i)->apply(_ctx)->isSubTypeOf(expectedArgTypes->at(i)->apply(_ctx))) {
             _rep.error(*callArgs[i],
-                       "Argument type mismatch. Found " + evaluator.at(i)->apply(_ctx)->toString() +
+                       "Argument type mismatch. Found " + argTypes.at(i)->apply(_ctx)->toString() +
                        ", expected " + expectedArgTypes->at(i)->apply(_ctx)->toString());
         }
     }
@@ -679,10 +679,10 @@ bool TypeChecking::transformIntoCallToMember(FunctionCall* call, Expression* new
         type::Type* calleeT = ASTTypeCreator::evalFunctionConstructor(field.t->applyTCCallsOnly(_ctx), typeArgs, *call, _ctx, callArgTypes);
 
         if (type::FunctionType* ft = type::getIf<type::FunctionType>(calleeT)) {
-            expectedArgTypes = &ft->apply(_ctx)->getArgTypes();
+            expectedArgTypes = &ft->getArgTypes();
             retType = ft->getRetType();
         } else if (type::MethodType* mt = type::getIf<type::MethodType>(calleeT)) {
-            expectedArgTypes = &mt->apply(_ctx)->getArgTypes();
+            expectedArgTypes = &mt->getArgTypes();
             retType = mt->getRetType();
 
             MemberAccess* dot = _mngr.New<MemberAccess>(newCallee, _mngr.New<Identifier>(member));

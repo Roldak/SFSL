@@ -41,10 +41,10 @@ void ASTTypeCreator::visit(FunctionTypeDecl* ftdecl) {
     const std::vector<TypeExpression*>& argTypeExprs(ftdecl->getArgTypes());
 
     std::vector<type::Type*> argTypes(argTypeExprs.size());
-    type::Type* retType = createType(ftdecl->getRetType()); // don't allow function constructors
+    type::Type* retType = createType(ftdecl->getRetType());
 
     for (size_t i = 0; i < argTypes.size(); ++i) {
-        argTypes[i] = createType(argTypeExprs[i]); // don't allow function constructors
+        argTypes[i] = createType(argTypeExprs[i]);
     }
 
     ClassDecl* functionClass = nullptr;
