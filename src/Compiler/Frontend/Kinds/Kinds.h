@@ -27,12 +27,12 @@ public:
     virtual ~Kind();
 
     virtual KIND_GENRE getKindGenre() const = 0;
-    virtual bool isSubKindOf(Kind* other, bool checkBounds = false) const = 0;
+    virtual bool isSubKindOf(Kind* other, CompCtx_Ptr& ctx, bool checkBounds = false) const = 0;
 
     virtual Kind* substitute(const type::Environment& env, CompCtx_Ptr& ctx) = 0;
     virtual Kind* apply(CompCtx_Ptr& ctx) = 0;
 
-    virtual std::string toString(bool withBoundsInformations = false) const = 0;
+    virtual std::string toString(bool withBoundsInformations = false, CompCtx_Ptr* shouldApply = nullptr) const = 0;
 
 
     static Kind* NotYetDefined();
@@ -45,12 +45,12 @@ public:
     virtual ~ProperKind();
 
     virtual KIND_GENRE getKindGenre() const override;
-    virtual bool isSubKindOf(Kind* other, bool checkBounds = false) const override;
+    virtual bool isSubKindOf(Kind* other, CompCtx_Ptr& ctx, bool checkBounds = false) const override;
 
     virtual ProperKind* substitute(const type::Environment& env, CompCtx_Ptr& ctx) override;
     virtual ProperKind* apply(CompCtx_Ptr& ctx) override;
 
-    virtual std::string toString(bool withBoundsInformations = false) const override;
+    virtual std::string toString(bool withBoundsInformations = false, CompCtx_Ptr* shouldApply = nullptr) const override;
 
     type::Type* getLowerBound() const;
     type::Type* getUpperBound() const;
@@ -77,12 +77,12 @@ public:
     virtual ~TypeConstructorKind();
 
     virtual KIND_GENRE getKindGenre() const override;
-    virtual bool isSubKindOf(Kind* other, bool checkBounds = false) const override;
+    virtual bool isSubKindOf(Kind* other, CompCtx_Ptr& ctx, bool checkBounds = false) const override;
 
     virtual TypeConstructorKind* substitute(const type::Environment& env, CompCtx_Ptr& ctx) override;
     virtual TypeConstructorKind* apply(CompCtx_Ptr& ctx) override;
 
-    virtual std::string toString(bool withBoundsInformations = false) const override;
+    virtual std::string toString(bool withBoundsInformations = false, CompCtx_Ptr* shouldApply = nullptr) const override;
 
     const std::vector<Parameter>& getArgKinds() const;
     Kind* getRetKind() const;

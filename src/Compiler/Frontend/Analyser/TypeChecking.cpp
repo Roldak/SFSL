@@ -226,10 +226,10 @@ void TypeChecking::visit(DefineDecl* decl) {
         }
 
         if (expectedType && foundType) {
-            if (!foundType->apply(_ctx)->isSubTypeOf(expectedType->apply(_ctx))) {
+            if (!foundType->apply(_ctx)->isSubTypeOf(expectedType->apply(_ctx), _ctx)) {
                 _rep.error(*decl->getValue(),
-                           "Type mismatch. Expected " + expectedType->apply(_ctx)->toString() +
-                           ", found " + foundType->apply(_ctx)->toString());
+                           "Type mismatch. Expected " + expectedType->apply(_ctx)->toString(&_ctx) +
+                           ", found " + foundType->apply(_ctx)->toString(&_ctx));
             }
 
             decl->getName()->setType(expectedType);
@@ -276,9 +276,9 @@ void TypeChecking::visit(AssignmentExpression* aex) {
         _rep.error(*aex, "Right hand side does not have any type");
     } else if (type::TypeToBeInferred* tbi = type::getIf<type::TypeToBeInferred>(lhsT)) {
         tbi->assignInferredType(rhsT);
-    } else if (!rhsT->apply(_ctx)->isSubTypeOf(lhsT->apply(_ctx))) {
+    } else if (!rhsT->apply(_ctx)->isSubTypeOf(lhsT->apply(_ctx), _ctx)) {
         _rep.error(*aex, "Assigning incompatible type. Expected " +
-                   lhsT->apply(_ctx)->toString() + ", found " + rhsT->apply(_ctx)->toString());
+                   lhsT->apply(_ctx)->toString(&_ctx) + ", found " + rhsT->apply(_ctx)->toString(&_ctx));
     }
 
     aex->setType(rhsT);
@@ -327,7 +327,7 @@ void TypeChecking::visit(Block* block) {
 
         RESTORE_MEMBER(_expectedInfo)
 
-        if (_expectedInfo.node == block && _expectedInfo.ret && _expectedInfo.ret->isSubTypeOf(_res.Unit())) {
+        if (_expectedInfo.node == block && _expectedInfo.ret && _expectedInfo.ret->isSubTypeOf(_res.Unit(), _ctx)) {
             block->setType(_res.Unit());
         } else {
             block->setType(stats.back()->type());
@@ -340,7 +340,7 @@ void TypeChecking::visit(Block* block) {
 void TypeChecking::visit(IfExpression* ifexpr) {
     ifexpr->getCondition()->onVisit(this);
 
-    if (!ifexpr->getCondition()->type()->apply(_ctx)->isSubTypeOf(_res.Bool())) {
+    if (!ifexpr->getCondition()->type()->apply(_ctx)->isSubTypeOf(_res.Bool(), _ctx)) {
         if (ifexpr->isFromLazyOperator()) {
             _rep.error(*ifexpr->getCondition(), "Operands of the `&&` and `||` operators must be booleans");
         } else {
@@ -348,7 +348,7 @@ void TypeChecking::visit(IfExpression* ifexpr) {
         }
     }
 
-    if (_expectedInfo.node == ifexpr && _expectedInfo.ret && _expectedInfo.ret->isSubTypeOf(_res.Unit())) {
+    if (_expectedInfo.node == ifexpr && _expectedInfo.ret && _expectedInfo.ret->isSubTypeOf(_res.Unit(), _ctx)) {
         ifexpr->setType(_res.Unit());
 
         _expectedInfo.node = ifexpr->getThen();
@@ -370,19 +370,19 @@ void TypeChecking::visit(IfExpression* ifexpr) {
         ifexpr->getElse()->onVisit(this);
         type::Type* elseType = ifexpr->getElse()->type();
 
-        if (thenType->apply(_ctx)->isSubTypeOf(elseType->apply(_ctx))) {
+        if (thenType->apply(_ctx)->isSubTypeOf(elseType->apply(_ctx), _ctx)) {
             ifexpr->setType(elseType);
-        } else if (elseType->apply(_ctx)->isSubTypeOf(thenType->apply(_ctx))) {
+        } else if (elseType->apply(_ctx)->isSubTypeOf(thenType->apply(_ctx), _ctx)) {
             ifexpr->setType(thenType);
         } else if (ifexpr->isFromLazyOperator()) {
             // then and else parts have the same position in this case
             _rep.error(*ifexpr->getThen(), "Operands of the `&&` and `||` operators must be booleans");
         } else {
             _rep.error(*ifexpr, "The then-part and else-part have different types. Found " +
-                       thenType->apply(_ctx)->toString() + " and " + elseType->apply(_ctx)->toString());
+                       thenType->apply(_ctx)->toString(&_ctx) + " and " + elseType->apply(_ctx)->toString(&_ctx));
         }
     } else {
-        if (!thenType->apply(_ctx)->isSubTypeOf(_res.Unit())) {
+        if (!thenType->apply(_ctx)->isSubTypeOf(_res.Unit(), _ctx)) {
             _rep.error(*ifexpr->getThen(), "An if-expression without else-part must have its then-part evaluate to unit. Found " +
                        thenType->apply(_ctx)->toString());
         }
@@ -512,9 +512,10 @@ void TypeChecking::visit(FunctionCreation* func) {
 
         RESTORE_MEMBER(_expectedInfo)
 
-        if (!func->getBody()->type()->apply(_ctx)->isSubTypeOf(retType->apply(_ctx))) {
+        if (!func->getBody()->type()->apply(_ctx)->isSubTypeOf(retType->apply(_ctx), _ctx)) {
             _rep.error(*func->getBody(),
-                       "Return type mismatch. Expected " + retType->apply(_ctx)->toString() + ", found " + func->getBody()->type()->apply(_ctx)->toString());
+                       "Return type mismatch. Expected " + retType->apply(_ctx)->toString(&_ctx) +
+                       ", found " + func->getBody()->type()->apply(_ctx)->toString(&_ctx));
         }
     }
 }
@@ -580,10 +581,10 @@ void TypeChecking::visit(FunctionCall* call) {
     }
 
     for (size_t i = 0; i < expectedArgTypes->size(); ++i) {
-        if (!argTypes.at(i)->apply(_ctx)->isSubTypeOf(expectedArgTypes->at(i)->apply(_ctx))) {
+        if (!argTypes.at(i)->apply(_ctx)->isSubTypeOf(expectedArgTypes->at(i)->apply(_ctx), _ctx)) {
             _rep.error(*callArgs[i],
-                       "Argument type mismatch. Found " + argTypes.at(i)->apply(_ctx)->toString() +
-                       ", expected " + expectedArgTypes->at(i)->apply(_ctx)->toString());
+                       "Argument type mismatch. Found " + argTypes.at(i)->apply(_ctx)->toString(&_ctx) +
+                       ", expected " + expectedArgTypes->at(i)->apply(_ctx)->toString(&_ctx));
         }
     }
 }
@@ -733,7 +734,7 @@ sym::DefinitionSymbol* TypeChecking::findOverridenSymbol(sym::DefinitionSymbol* 
 
         if (data.symbol != def) {
             if (sym::DefinitionSymbol* potentialDef = sym::getIfSymbolOfType<sym::DefinitionSymbol>(data.symbol)) {
-                if (defType->isSubTypeOf(potentialDef->type()->substitute(data.env, _ctx)->apply(_ctx))) {
+                if (defType->isSubTypeOf(potentialDef->type()->substitute(data.env, _ctx)->apply(_ctx), _ctx)) {
                     if (potentialDef->getDef()->isRedef()) {
                         if (sym::DefinitionSymbol* alreadyOverriden = potentialDef->getOverridenSymbol()) {
                             return alreadyOverriden;
@@ -942,8 +943,8 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
             for (size_t j = i + 1; j < candidateCount; ++j) {
                 type::Type* jType = candidates[j].arg(a);
 
-                if (iType->isSubTypeOf(jType)) { candidates[i].incrScore(); }
-                if (jType->isSubTypeOf(iType)) { candidates[j].incrScore(); }
+                if (iType->isSubTypeOf(jType, _ctx)) { candidates[i].incrScore(); }
+                if (jType->isSubTypeOf(iType, _ctx)) { candidates[j].incrScore(); }
             }
         }
     }
@@ -962,7 +963,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         bool matches = true;
 
         for (size_t a = 0; a < expectedArgCount; ++a) {
-            if (!(_expectedInfo.args->at(a)->apply(_ctx)->isSubTypeOf(candidate.arg(a)))) {
+            if (!(_expectedInfo.args->at(a)->apply(_ctx)->isSubTypeOf(candidate.arg(a), _ctx))) {
                 matches = false;
                 break;
             }

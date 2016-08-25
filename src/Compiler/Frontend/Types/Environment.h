@@ -39,7 +39,6 @@ public:
     Environment();
     ~Environment();
 
-    bool equals(const Environment& other) const;
     bool empty() const;
     size_t size() const;
 

@@ -36,21 +36,6 @@ Environment::~Environment() {
 
 }
 
-bool Environment::equals(const Environment& other) const {
-    if (_subs.size() != other.size()) {
-        return false;
-    }
-
-    for (size_t i = 0; i < _subs.size(); ++i) {
-        if (_subs[i].key != other._subs[i].key ||
-                !_subs[i].value->equals(other._subs[i].value)) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 bool Environment::empty() const {
     return _subs.empty();
 }

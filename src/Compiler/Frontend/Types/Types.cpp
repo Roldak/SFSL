@@ -21,6 +21,17 @@ namespace sfsl {
 
 namespace type {
 
+bool envsEqual(const Environment& env1, const Environment& env2, CompCtx_Ptr& ctx) {
+    for (Environment::const_iterator env1It = env1.begin(), env2It = env2.begin(), env1End = env1.end();
+         env1It != env1End; ++env1It, ++env2It) {
+
+        if (!env1It->value->apply(ctx)->equals(env2It->value->apply(ctx), ctx)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // TYPE NOT YET DEFINED
 
 class TypeNotYetDefined : public Type {
@@ -34,7 +45,7 @@ public:
         return TYPE_NYD;
     }
 
-    virtual bool isSubTypeOf(const Type*) const override {
+    virtual bool isSubTypeOf(const Type*, CompCtx_Ptr&) const override {
         return false;
     }
 
@@ -42,7 +53,7 @@ public:
         return (Type*)this;
     }
 
-    virtual std::string toString() const override {
+    virtual std::string toString(CompCtx_Ptr*) const override {
         return "<not yet defined>";
     }
 };
@@ -57,16 +68,16 @@ Type::~Type() {
 
 }
 
-bool Type::equals(const Type* other) const {
-    return isSubTypeOf(other) && other->isSubTypeOf(this);
+bool Type::equals(const Type* other, CompCtx_Ptr& ctx) const {
+    return isSubTypeOf(other, ctx) && other->isSubTypeOf(this, ctx);
 }
 
-std::string Type::toString() const {
-    std::string toRet /*= utils::T_toString(this)*/;
+std::string Type::toString(CompCtx_Ptr* shouldApply) const {
+    std::string toRet;
     if (!_env.empty()) {
         toRet += "{";
         for (const auto& pair : _env) {
-            toRet += pair.key->toString() + "=>" + pair.value->toString() + ", ";
+            toRet += pair.key->toString() + "=>" + (shouldApply ? pair.value->apply(*shouldApply) : pair.value)->toString(shouldApply) + ", ";
         }
         toRet = toRet.substr(0, toRet.size() - 2) + "}";
     }
@@ -98,9 +109,9 @@ Type* Type::NotYetDefined() {
 struct DefaultGenericTypeHolder : public common::MemoryManageable {
     virtual ~DefaultGenericTypeHolder() { }
 
-    bool findCachedDefaultGeneric(kind::Kind* ofkind, type::Type** out) const {
+    bool findCachedDefaultGeneric(CompCtx_Ptr& ctx, kind::Kind* ofkind, type::Type** out) const {
         for (const std::pair<kind::Kind*, type::Type*>& defGen : _cachedDefaultGenerics) {
-            if (defGen.first->isSubKindOf(ofkind, false)) {
+            if (defGen.first->isSubKindOf(ofkind, ctx, false)) {
                 *out = defGen.second;
                 return true;
             }
@@ -127,7 +138,7 @@ Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
     kind::Kind* tpeKind = tpe->kind();
     type::Type* cachedType;
 
-    if (holder->findCachedDefaultGeneric(tpeKind, &cachedType)) {
+    if (holder->findCachedDefaultGeneric(ctx, tpeKind, &cachedType)) {
         return cachedType;
     }
 
@@ -160,11 +171,11 @@ TYPE_KIND TypeToBeInferred::getTypeKind() const {
     return TYPE_TBI;
 }
 
-bool TypeToBeInferred::isSubTypeOf(const Type*) const {
+bool TypeToBeInferred::isSubTypeOf(const Type*, CompCtx_Ptr&) const {
     return false;
 }
 
-bool TypeToBeInferred::equals(const Type* other) const {
+bool TypeToBeInferred::equals(const Type* other, CompCtx_Ptr&) const {
     return this == other;
 }
 
@@ -182,7 +193,7 @@ TypeToBeInferred* TypeToBeInferred::create(const std::vector<Typed*>& toBeInferr
     return ctx->memoryManager().New<TypeToBeInferred>(toBeInferred);
 }
 
-std::string TypeToBeInferred::toString() const {
+std::string TypeToBeInferred::toString(CompCtx_Ptr*) const {
     return "<to be inferred>";
 }
 
@@ -199,7 +210,7 @@ ProperType::~ProperType() {
 
 TYPE_KIND ProperType::getTypeKind() const { return TYPE_PROPER; }
 
-bool ProperType::isSubTypeOf(const Type* other) const {
+bool ProperType::isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
         const Environment& osubs = objother->getEnvironment();
 
@@ -212,15 +223,15 @@ bool ProperType::isSubTypeOf(const Type* other) const {
 
                 switch (otherIt->varianceType) {
                 case common::VAR_T_IN:
-                    if (!otherIt->value->isSubTypeOf(val))
+                    if (!otherIt->value->apply(ctx)->isSubTypeOf(val->apply(ctx), ctx))
                         return false;
                     break;
                 case common::VAR_T_OUT:
-                    if (!val->isSubTypeOf(otherIt->value))
+                    if (!val->apply(ctx)->isSubTypeOf(otherIt->value->apply(ctx), ctx))
                         return false;
                     break;
                 case common::VAR_T_NONE:
-                    if (!val->equals(otherIt->value))
+                    if (!val->apply(ctx)->equals(otherIt->value->apply(ctx), ctx))
                         return false;
                     break;
                 }
@@ -231,17 +242,17 @@ bool ProperType::isSubTypeOf(const Type* other) const {
     return false;
 }
 
-bool ProperType::equals(const Type* other) const {
+bool ProperType::equals(const Type* other, CompCtx_Ptr& ctx) const {
     if (ProperType* objother = getIf<ProperType>(other)) {
         if (_class == objother->getClass()) {
-            return _env.equals(objother->getEnvironment());
+            return envsEqual(_env, objother->getEnvironment(), ctx);
         }
     }
     return false;
 }
 
-std::string ProperType::toString() const {
-    return _class->getName() + Type::toString();
+std::string ProperType::toString(CompCtx_Ptr* shouldApply) const {
+    return _class->getName() + Type::toString(shouldApply);
 }
 
 ProperType* ProperType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
@@ -269,7 +280,7 @@ ValueConstructorType::~ValueConstructorType() {
 
 }
 
-bool ValueConstructorType::isSubTypeOfValueConstructor(const ValueConstructorType* other) const {
+bool ValueConstructorType::isSubTypeOfValueConstructor(const ValueConstructorType* other, CompCtx_Ptr& ctx) const {
     const std::vector<ast::TypeExpression*>& oTypeArgs = other->getTypeArgs();
     const std::vector<Type*>& oArgTypes = other->getArgTypes();
     const Type* oRetType = other->getRetType();
@@ -279,21 +290,21 @@ bool ValueConstructorType::isSubTypeOfValueConstructor(const ValueConstructorTyp
     }
 
     for (size_t i = 0; i < _typeArgs.size(); ++i) {
-        if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind(), true)) {
+        if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind(), ctx, true)) {
             return false;
         }
     }
 
     for (size_t i = 0; i < _argTypes.size(); ++i) {
-        if (!oArgTypes[i]->isSubTypeOf(_argTypes[i])) {
+        if (!oArgTypes[i]->isSubTypeOf(_argTypes[i], ctx)) {
             return false;
         }
     }
 
-    return _retType->isSubTypeOf(oRetType);
+    return _retType->isSubTypeOf(oRetType, ctx);
 }
 
-bool ValueConstructorType::equalsValueConstructor(const ValueConstructorType* other) const {
+bool ValueConstructorType::equalsValueConstructor(const ValueConstructorType* other, CompCtx_Ptr& ctx) const {
     const std::vector<ast::TypeExpression*>& oTypeArgs = other->getTypeArgs();
     const std::vector<Type*>& oArgTypes = other->getArgTypes();
     const Type* oRetType = other->getRetType();
@@ -303,18 +314,18 @@ bool ValueConstructorType::equalsValueConstructor(const ValueConstructorType* ot
     }
 
     for (size_t i = 0; i < _typeArgs.size(); ++i) {
-        if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind(), true)) {
+        if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind(), ctx, true)) {
             return false;
         }
     }
 
     for (size_t i = 0; i < _argTypes.size(); ++i) {
-        if (!oArgTypes[i]->equals(_argTypes[i])) {
+        if (!oArgTypes[i]->equals(_argTypes[i], ctx)) {
             return false;
         }
     }
 
-    return _retType->equals(oRetType);
+    return _retType->equals(oRetType, ctx);
 }
 
 ValueConstructorType* ValueConstructorType::substituteValueConstructor(const Environment& substitutions, CompCtx_Ptr& ctx) const {
@@ -382,33 +393,33 @@ TYPE_KIND FunctionType::getTypeKind() const {
     return TYPE_FUNCTION;
 }
 
-bool FunctionType::isSubTypeOf(const Type* other) const {
+bool FunctionType::isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const {
     if (FunctionType* f = getIf<FunctionType>(other)) {
-        return isSubTypeOfValueConstructor(f);
+        return isSubTypeOfValueConstructor(f, ctx);
     }
 
     return false;
 }
 
-bool FunctionType::equals(const Type* other) const {
+bool FunctionType::equals(const Type* other, CompCtx_Ptr& ctx) const {
     if (FunctionType* f = getIf<FunctionType>(other)) {
-        return equalsValueConstructor(f);
+        return equalsValueConstructor(f, ctx);
     }
 
     return false;
 }
 
-std::string FunctionType::toString() const {
+std::string FunctionType::toString(CompCtx_Ptr* shouldApply) const {
     std::string toRet = "(";
 
     if (_argTypes.size() > 0) {
         for (size_t i = 0; i < _argTypes.size() - 1; ++i) {
-            toRet += _argTypes[i]->toString() + ", ";
+            toRet += _argTypes[i]->toString(shouldApply) + ", ";
         }
-        toRet += _argTypes.back()->toString();
+        toRet += _argTypes.back()->toString(shouldApply);
     }
 
-    return toRet + ")->" + _retType->toString();
+    return toRet + ")->" + _retType->toString(shouldApply);
 }
 
 FunctionType* FunctionType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
@@ -448,30 +459,30 @@ TYPE_KIND MethodType::getTypeKind() const {
     return TYPE_METHOD;
 }
 
-bool MethodType::isSubTypeOf(const Type* other) const {
+bool MethodType::isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const {
     if (MethodType* m = getIf<MethodType>(other)) {
-        return isSubTypeOfValueConstructor(m);
+        return isSubTypeOfValueConstructor(m, ctx);
     }
 
     return false;
 }
 
-bool MethodType::equals(const Type* other) const {
+bool MethodType::equals(const Type* other, CompCtx_Ptr& ctx) const {
     if (MethodType* m = getIf<MethodType>(other)) {
-        return equalsValueConstructor(m);
+        return equalsValueConstructor(m, ctx);
     }
 
     return false;
 }
 
-std::string MethodType::toString() const {
+std::string MethodType::toString(CompCtx_Ptr* shouldApply) const {
     std::string toRet = "([" + _owner->getName() + "]";
 
     for (size_t i = 0; i < _argTypes.size(); ++i) {
-        toRet += ", " + _argTypes[i]->toString();
+        toRet += ", " + _argTypes[i]->toString(shouldApply);
     }
 
-    return toRet + ")->" + _retType->toString();
+    return toRet + ")->" + _retType->toString(shouldApply);
 }
 
 MethodType* MethodType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
@@ -517,20 +528,20 @@ TYPE_KIND TypeConstructorType::getTypeKind() const {
     return TYPE_CONSTRUCTOR_TYPE;
 }
 
-bool TypeConstructorType::isSubTypeOf(const Type* other) const {
-    return equals(other);
+bool TypeConstructorType::isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const {
+    return equals(other, ctx);
 }
 
-bool TypeConstructorType::equals(const Type* other) const {
+bool TypeConstructorType::equals(const Type* other, CompCtx_Ptr& ctx) const {
     if (TypeConstructorType* tc = getIf<TypeConstructorType>(other)) {
         return _typeConstructor == tc->getTypeConstructor()
-            && _env.equals(other->getEnvironment());
+            && envsEqual(_env, tc->getEnvironment(), ctx);
     }
     return false;
 }
 
-std::string TypeConstructorType::toString() const {
-    return _typeConstructor->getName() + Type::toString();
+std::string TypeConstructorType::toString(CompCtx_Ptr* shouldApply) const {
+    return _typeConstructor->getName() + Type::toString(shouldApply);
 }
 
 TypeConstructorType* TypeConstructorType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
@@ -561,19 +572,19 @@ TYPE_KIND ConstructorApplyType::getTypeKind() const {
     return TYPE_CONSTRUCTOR_APPLY;
 }
 
-bool ConstructorApplyType::isSubTypeOf(const Type* other) const {
+bool ConstructorApplyType::isSubTypeOf(const Type*, CompCtx_Ptr&) const {
     return false;
 }
 
-std::string ConstructorApplyType::toString() const {
-    std::string toRet = _callee->toString() + "[";
+std::string ConstructorApplyType::toString(CompCtx_Ptr* shouldApply) const {
+    std::string toRet = _callee->toString(shouldApply) + "[";
     for (size_t i = 0; i < _args.size(); ++i) {
-        toRet += _args[i]->toString();
+        toRet += _args[i]->toString(shouldApply);
         if (i != _args.size() - 1) {
             toRet += ", ";
         }
     }
-    return toRet + "]" + Type::toString();
+    return toRet + "]" + Type::toString(shouldApply);
 }
 
 ConstructorApplyType* ConstructorApplyType::substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const {
