@@ -25,7 +25,7 @@ bool envsEqual(const Environment& env1, const Environment& env2, CompCtx_Ptr& ct
     for (Environment::const_iterator env1It = env1.begin(), env2It = env2.begin(), env1End = env1.end();
          env1It != env1End; ++env1It, ++env2It) {
 
-        if (!env1It->value->equals(env2It->value, ctx)) {
+        if (!env1It->value->apply(ctx)->equals(env2It->value->apply(ctx), ctx)) {
             return false;
         }
     }
@@ -223,15 +223,15 @@ bool ProperType::isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const {
 
                 switch (otherIt->varianceType) {
                 case common::VAR_T_IN:
-                    if (!otherIt->value->isSubTypeOf(val, ctx))
+                    if (!otherIt->value->apply(ctx)->isSubTypeOf(val->apply(ctx), ctx))
                         return false;
                     break;
                 case common::VAR_T_OUT:
-                    if (!val->isSubTypeOf(otherIt->value, ctx))
+                    if (!val->apply(ctx)->isSubTypeOf(otherIt->value->apply(ctx), ctx))
                         return false;
                     break;
                 case common::VAR_T_NONE:
-                    if (!val->equals(otherIt->value, ctx))
+                    if (!val->apply(ctx)->equals(otherIt->value->apply(ctx), ctx))
                         return false;
                     break;
                 }

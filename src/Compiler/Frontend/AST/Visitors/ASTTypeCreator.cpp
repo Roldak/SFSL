@@ -393,7 +393,7 @@ type::Environment ASTTypeCreator::buildEnvironmentFromTypeParameterInstantiation
         // can only be a TypeSymbol
         sym::TypeSymbol* param = static_cast<sym::TypeSymbol*>(ASTSymbolExtractor::extractSymbol(params[i], ctx));
 
-        subs[param->type()] = args[i]->apply(ctx);
+        subs[param->type()] = args[i];
     }
 
     return subs;
