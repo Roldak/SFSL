@@ -231,7 +231,7 @@ bool KindChecking::kindCheckArgumentSubstitution(const std::vector<kind::Kind*>&
     }
 
     for (size_t i = 0; i < arguments.size(); ++i) {
-        if (!arguments[i]->kind()->isSubKindOf(parametersKinds[i])) {
+        if (!arguments[i]->kind()->isSubKindOf(parametersKinds[i], ctx)) {
             ctx->reporter().error(*arguments[i], "Kind mismatch. Expected " + parametersKinds[i]->toString() +
                        ", found " + arguments[i]->kind()->toString());
             return false;
@@ -258,7 +258,7 @@ bool KindChecking::kindCheckWithBoundsArgumentSubstitution(const std::vector<kin
     for (size_t i = 0; i < arguments.size(); ++i) {
         kind::Kind* appliedArgKind = arguments[i]->kind()->substitute(createdArguments[i]->apply(ctx)->getEnvironment(), ctx)->apply(ctx);
         kind::Kind* appliedParamKind = parametersKinds[i]->substitute(env, ctx)->apply(ctx);
-        if (!appliedArgKind->isSubKindOf(appliedParamKind, true)) {
+        if (!appliedArgKind->isSubKindOf(appliedParamKind, ctx, true)) {
             if (reportErrors) {
                 ctx->reporter().error(*arguments[i], "Argument kind mismatch. Expected " + appliedParamKind->toString(true) +
                            ", found " + appliedArgKind->toString(true));

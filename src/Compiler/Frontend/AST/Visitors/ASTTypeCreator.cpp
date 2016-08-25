@@ -177,7 +177,7 @@ bool unify(const type::Type* ta, type::Type* tb, const std::vector<type::Type*>&
     for (size_t i = 0; i < params.size(); ++i) {
         if (ta == params[i]) {
             // unification fails if some parameter was already assigned to a different type
-            if (argTypes[i] && !argTypes[i]->equals(tb)) {
+            if (argTypes[i] && !argTypes[i]->equals(tb, ctx)) {
                 return false;
             }
             args[i] = typeExpressionFromType(tb->applyTCCallsOnly(ctx));
@@ -228,7 +228,7 @@ bool unify(const type::Type* ta, type::Type* tb, const std::vector<type::Type*>&
         return false;
     }
 
-    return ta->equals(tb);
+    return ta->equals(tb, ctx);
 }
 
 bool checkArgumentsValidity(const std::vector<type::Type*>& args) {

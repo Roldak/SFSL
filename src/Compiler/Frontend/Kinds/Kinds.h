@@ -27,7 +27,7 @@ public:
     virtual ~Kind();
 
     virtual KIND_GENRE getKindGenre() const = 0;
-    virtual bool isSubKindOf(Kind* other, bool checkBounds = false) const = 0;
+    virtual bool isSubKindOf(Kind* other, CompCtx_Ptr& ctx, bool checkBounds = false) const = 0;
 
     virtual Kind* substitute(const type::Environment& env, CompCtx_Ptr& ctx) = 0;
     virtual Kind* apply(CompCtx_Ptr& ctx) = 0;
@@ -45,7 +45,7 @@ public:
     virtual ~ProperKind();
 
     virtual KIND_GENRE getKindGenre() const override;
-    virtual bool isSubKindOf(Kind* other, bool checkBounds = false) const override;
+    virtual bool isSubKindOf(Kind* other, CompCtx_Ptr& ctx, bool checkBounds = false) const override;
 
     virtual ProperKind* substitute(const type::Environment& env, CompCtx_Ptr& ctx) override;
     virtual ProperKind* apply(CompCtx_Ptr& ctx) override;
@@ -77,7 +77,7 @@ public:
     virtual ~TypeConstructorKind();
 
     virtual KIND_GENRE getKindGenre() const override;
-    virtual bool isSubKindOf(Kind* other, bool checkBounds = false) const override;
+    virtual bool isSubKindOf(Kind* other, CompCtx_Ptr& ctx, bool checkBounds = false) const override;
 
     virtual TypeConstructorKind* substitute(const type::Environment& env, CompCtx_Ptr& ctx) override;
     virtual TypeConstructorKind* apply(CompCtx_Ptr& ctx) override;
