@@ -936,6 +936,10 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
 
     size_t candidateCount = candidates.size();
 
+    if (candidateCount == 1) {
+        return {candidates[0].symbol(), candidates[0].env()};
+    }
+
     for (size_t a = 0; a < expectedArgCount; ++a) {
         for (size_t i = 0; i < candidateCount; ++i) {
             type::Type* iType = candidates[i].arg(a);
@@ -949,32 +953,36 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         }
     }
 
-    std::sort(candidates.begin(), candidates.end(), [](const OverloadedDefSymbolCandidate& a, const OverloadedDefSymbolCandidate& b) {
-        return a.score() > b.score();
-    });
-
 #ifdef DEBUG_FUNCTION_OVERLOADING
     debugDumpCandidateScores(candidates, _ctx);
 #endif
 
-    std::vector<OverloadedDefSymbolCandidate*> theChosenOnes;
-
-    for (OverloadedDefSymbolCandidate& candidate : candidates) {
-        bool matches = true;
-
-        for (size_t a = 0; a < expectedArgCount; ++a) {
-            if (!(_expectedInfo.args->at(a)->apply(_ctx)->isSubTypeOf(candidate.arg(a), _ctx))) {
-                matches = false;
-                break;
+    for (size_t a = 0; a < expectedArgCount; ++a) {
+        for (auto candidate = candidates.begin(); candidate != candidates.end();) {
+            if (_expectedInfo.args->at(a)->apply(_ctx)->isSubTypeOf(candidate->arg(a), _ctx)) {
+                ++candidate;
+            } else {
+                candidate = candidates.erase(candidate);
             }
         }
+        if (candidates.size() == 1) {
+            return {candidates[0].symbol(), candidates[0].env()};
+        }
+    }
 
-        if ( matches &&
-             theChosenOnes.size() > 0 &&
-             theChosenOnes[0]->score() > candidate.score()) {
-           break;
-        } else if (matches) {
-           theChosenOnes.push_back(&candidate);
+    std::vector<OverloadedDefSymbolCandidate*> theChosenOnes;
+
+    if (candidates.size() > 0) {
+        uint32_t maxScore = candidates[0].score();
+
+        for (OverloadedDefSymbolCandidate& candidate : candidates) {
+            if (candidate.score() == maxScore) {
+                theChosenOnes.push_back(&candidate);
+            } else if (candidate.score() > maxScore) {
+                theChosenOnes.resize(1);
+                theChosenOnes[0] = &candidate;
+                maxScore = candidate.score();
+            }
         }
     }
 
@@ -982,7 +990,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
 
     switch (theChosenOnes.size()) {
     case 0:
-        _rep.error(*triggerer, "No viable candidate found among " + utils::T_toString(candidates.size()) + " overloads");
+        _rep.error(*triggerer, "No viable candidate found among " + utils::T_toString(candidateCount) + " overloads");
         return {nullptr, nullptr};
 
     default: {
