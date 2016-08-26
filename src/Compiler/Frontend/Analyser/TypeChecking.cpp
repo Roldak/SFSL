@@ -830,33 +830,21 @@ public:
 
     OverloadedDefSymbolCandidate() {}
 
-    sym::DefinitionSymbol* symbol() const {
-        return _symbol;
-    }
+    sym::DefinitionSymbol* symbol() const { return _symbol; }
+    const type::Environment* env() const { return _env; }
 
-    const type::Environment* env() const {
-        return _env;
-    }
+    bool isRedef() const { return _symbol->getDef()->isRedef(); }
 
-    size_t argCount() const {
-        return _args->size();
-    }
+    size_t argCount() const { return _args->size(); }
+    type::Type* arg(size_t index) const { return _args->at(index); }
 
-    type::Type* arg(size_t index) const {
-        return (*_args)[index];
-    }
+    void incrScore() { ++_score; }
+    int32_t score() const { return _score; }
 
-    void incrScore() {
-        ++_score;
-    }
+    void invalidate() { _score = -1; }
+    bool isValid() const { return _score >= 0; }
 
-    uint32_t score() const {
-        return _score;
-    }
-
-    type::Type* appliedType() const {
-        return _appliedType;
-    }
+    type::Type* appliedType() const { return _appliedType; }
 
     static void append(std::vector<OverloadedDefSymbolCandidate>& vec, sym::DefinitionSymbol* s, type::Type* t, size_t expectedArgCount,
                        const type::Environment& env, const type::Environment* dataEnv, CompCtx_Ptr& ctx)
@@ -887,7 +875,7 @@ private:
 
     const std::vector<type::Type*>* _args;
     type::Type* _ret;
-    uint32_t _score;
+    int32_t _score;
 
     type::Type* _appliedType;
 };
@@ -940,6 +928,15 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         return {candidates[0].symbol(), candidates[0].env()};
     }
 
+    bool candidateRedefs[candidateCount][candidateCount] = {};
+    for (size_t i = 0; i < candidateCount; ++i) {
+        // at first, set redefs to override everything
+        bool iRedefsj = candidates[i].isRedef();
+        for (size_t j = 0; j < candidateCount; ++j) {
+            candidateRedefs[i][j] = iRedefsj;
+        }
+    }
+
     for (size_t a = 0; a < expectedArgCount; ++a) {
         for (size_t i = 0; i < candidateCount; ++i) {
             type::Type* iType = candidates[i].arg(a);
@@ -948,9 +945,36 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
                 type::Type* jType = candidates[j].arg(a);
 
                 if (iType->isSubTypeOf(jType, _ctx)) { candidates[i].incrScore(); }
+                else { candidateRedefs[j][i] = false; }
+
                 if (jType->isSubTypeOf(iType, _ctx)) { candidates[j].incrScore(); }
+                else { candidateRedefs[i][j] = false; }
             }
         }
+    }
+
+    // keep only the best redefs
+
+    for (size_t i = 0; i < candidateCount; ++i) {
+        for (size_t j = i + 1; j < candidateCount; ++j) {
+            if (candidateRedefs[i][j]) {
+                candidates[j].invalidate();
+            } else if (candidateRedefs[j][i]) {
+                candidates[i].invalidate();
+            }
+        }
+    }
+
+    for (auto candidate = candidates.begin(); candidate != candidates.end();) {
+        if (!candidate->isValid()) {
+            candidate = candidates.erase(candidate);
+        } else {
+            ++candidate;
+        }
+    }
+
+    if (candidates.size() == 1) {
+        return {candidates[0].symbol(), candidates[0].env()};
     }
 
 #ifdef DEBUG_FUNCTION_OVERLOADING
@@ -973,7 +997,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
     std::vector<OverloadedDefSymbolCandidate*> theChosenOnes;
 
     if (candidates.size() > 0) {
-        uint32_t maxScore = candidates[0].score();
+        int32_t maxScore = candidates[0].score();
 
         for (OverloadedDefSymbolCandidate& candidate : candidates) {
             if (candidate.score() == maxScore) {
@@ -993,22 +1017,11 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         _rep.error(*triggerer, "No viable candidate found among " + utils::T_toString(candidateCount) + " overloads");
         return {nullptr, nullptr};
 
-    default: {
-        size_t properDefCount = 0;
+    default:
+        _rep.error(*triggerer, "Ambiguous symbol access. Multiple candidates match the requirements:");
         for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
-            if (!candidate->symbol()->getDef()->isRedef()) {
-                chosen = candidate;
-                ++properDefCount;
-            }
+            _rep.info(*candidate->symbol(), "Is a viable candidate (has type " + candidate->appliedType()->toString() + ")");
         }
-
-        if (properDefCount > 1) {
-            _rep.error(*triggerer, "Ambiguous symbol access. Multiple candidates match the requirement:");
-            for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
-                _rep.info(*candidate->symbol(), "Is a viable candidate (has type " + candidate->appliedType()->toString() + ")");
-            }
-        }
-    }
 
     case 1:
         return {chosen->symbol(), chosen->env()};
