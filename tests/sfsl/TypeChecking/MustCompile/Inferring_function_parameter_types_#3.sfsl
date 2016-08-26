@@ -1,0 +1,61 @@
+module test {
+	using sfsl.lang
+	
+	type A = class ()
+	type B = class () : A
+	
+	type Test1A = class () {
+		def test(unused_f: A->B) => {}
+	}
+	
+	type Test1B = class () : Test1A {
+		redef test(unused_f: A->B) => {}
+	}
+	
+	type Test1C = class () : Test1B {
+		redef test(unused_f: A->B) => {}
+	}
+	
+	type Test1D = class () : Test1C {
+		redef test(unused_f: B->A) => {}
+	}
+	
+	type Test1E = class () : Test1C {
+		def test(unused_x: int, unused_f: int->int) => {}
+	}
+	
+	type Test1F = class () : Test1E {
+		redef test(unused_f: B->A) => {}
+	}
+	
+	type Test1G = class () : Test1E {
+		redef test(unused_f: B->A) => {}
+		redef test(unused_x: int, unused_f: int->int) => {}
+	}
+	
+	def test2(unused_f: int->int) => {}
+	
+	def test3[T](unused_x: T, unused_f: int->int) => {}
+	
+	def tmp1(unused_x: A) => B()
+	def tmp2(x: int) => x
+	
+	def main() => {
+		Test1B().test(x => tmp1(x));
+		
+		Test1C().test(x => tmp1(x));
+		
+		Test1E().test(x => tmp1(x));
+		Test1E().test(2, x => tmp2(x));
+		
+		Test1F().test(x => tmp1(x));
+		
+		
+		Test1G().test(x => tmp1(x));
+		Test1G().test(2, x => tmp2(x));
+		
+		test2(x => tmp2(x));
+		
+		test3(2, x => tmp2(x));
+	}
+}

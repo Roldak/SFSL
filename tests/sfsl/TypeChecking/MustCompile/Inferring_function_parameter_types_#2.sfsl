@@ -1,0 +1,34 @@
+module test {
+	using sfsl.lang
+	
+	type Test1 = class () {
+		def test(unused_f: int->int) => {}
+	}
+	
+	type Test2 = class () {
+		def test(unused_f: int->int) => {}
+		def test(unused_f: int->int, unused_x: int) => {}
+	}
+	
+	type Test3 = [T] => class () {
+		def test(unused_f: T->T) => {}
+	}
+	
+	type Test4 = class () {
+		def test[T](unused_f: T->T) => {}
+	}
+	
+	type Test5 = class () {
+		def test[T](unused_x: T, unused_f: T->T) => {}
+	}
+	
+	def tmp(x: int) => x
+	
+	def main() => {
+		Test1().test(x => tmp(x));
+		Test2().test(x => tmp(x));
+		Test3[int]().test(x => tmp(x));
+		Test4().test[int](x => tmp(x));
+		Test5().test(3, x => tmp(x));
+	}
+}

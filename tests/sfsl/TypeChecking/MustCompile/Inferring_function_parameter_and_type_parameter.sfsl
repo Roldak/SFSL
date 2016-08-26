@@ -1,0 +1,13 @@
+module test {
+	using sfsl.lang
+	
+	type Test[T] => class (x: T)
+	
+	def tmp[T](x: Test[T]) => x.x
+	
+	def test[A](unused_f: A->int) => {}
+	
+	def main() => {
+		test[Test[int]](x => tmp(x));
+	}
+}
