@@ -59,7 +59,7 @@ public:
         }
 
         src::StringSource source(src::InputSourceName::make(ctx, "tmp"), _toComplete);
-        lex::Lexer toCompleteLexer(ctx, source);
+        lex::Lexer toCompleteLexer(ctx->memoryManager(), ctx->reporter(), source);
         ast::Parser toCompleteParser(ctx, toCompleteLexer, namer);
 
         _exprToComplete = toCompleteParser.parseSingleExpression();

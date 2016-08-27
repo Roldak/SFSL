@@ -31,7 +31,7 @@ public:
      * @param source The input source
      * @param sourceBufferSize The size of the buffer used by the source reader
      */
-    Lexer(CompCtx_Ptr& ctx, src::InputSource& source, size_t sourceBufferSize = 128);
+    Lexer(common::AbstractMemoryManager& mngr, common::AbstractReporter& rep, src::InputSource& source, size_t sourceBufferSize = 128);
 
     /**
      * @return True if there are more tokens to come, otherwise false
@@ -73,7 +73,8 @@ private:
     void handleMultiLineComment();
     void handleSingleLineComment();
 
-    CompCtx_Ptr _ctx;
+    common::AbstractMemoryManager& _mngr;
+    common::AbstractReporter& _rep;
     src::BufferedInputSource _source;
 
     tok::Token* _curToken;

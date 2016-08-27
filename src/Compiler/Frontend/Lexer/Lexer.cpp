@@ -17,8 +17,8 @@ using namespace tok;
 
 namespace lex {
 
-Lexer::Lexer(CompCtx_Ptr& ctx, src::InputSource& source, size_t sourceBufferSize) :
-    _ctx(ctx), _source(source, sourceBufferSize) {
+Lexer::Lexer(common::AbstractMemoryManager& mngr, common::AbstractReporter& rep, src::InputSource& source, size_t sourceBufferSize) :
+    _mngr(mngr), _rep(rep), _source(source, sourceBufferSize) {
 
     _lastChar.kind = CHR_EMPTY;
     produceNext();
@@ -38,7 +38,7 @@ void Lexer::produceNext() {
 
     while (_lastChar.kind == CHR_EMPTY || _lastChar.kind == CHR_SPACE) {
         if (!_source.hasNext()) {
-            _curToken = _ctx->memoryManager().New<EOFToken>();
+            _curToken = _mngr.New<EOFToken>();
             _curToken->setPos(_source.currentPos());
             return;
         }
@@ -70,8 +70,8 @@ void Lexer::produceNext() {
             return;
         }
         else if (strKind == STR_UNKNOWN) {
-            _ctx->reporter().error(common::Positionnable(initPos, initPos + soFar.size(), _source.getSourceName()), "Unknown symbol '" + soFar + "'");
-            _curToken = _ctx->memoryManager().New<BadToken>(soFar);
+            _rep.error(common::Positionnable(initPos, initPos + soFar.size(), _source.getSourceName()), "Unknown symbol '" + soFar + "'");
+            _curToken = _mngr.New<BadToken>(soFar);
             _curToken->setPos(initPos, initPos + soFar.size(), _source.getSourceName());
             return;
         }
@@ -107,26 +107,26 @@ Lexer::CharInfo Lexer::readCharInfo() {
 
 Token* Lexer::buildToken(STR_KIND kind, const std::string& soFar) const {
     switch (kind) {
-    case STR_SYMBOL:        return _ctx->memoryManager().New<Operator>(Operator::OperTypeFromString(soFar));
+    case STR_SYMBOL:        return _mngr.New<Operator>(Operator::OperTypeFromString(soFar));
     case STR_ID:            return getRightTokenFromIdentifier(soFar);
-    case STR_INT_LIT:       return _ctx->memoryManager().New<IntLiteral>(utils::String_toT<sfsl_int_t>(soFar));
-    case STR_REAL_LIT:      return _ctx->memoryManager().New<RealLiteral>(utils::String_toT<sfsl_real_t>(soFar));
-    case STR_STRING_LIT:    return _ctx->memoryManager().New<StringLiteral>(soFar);
-    default:                return _ctx->memoryManager().New<BadToken>(soFar);
+    case STR_INT_LIT:       return _mngr.New<IntLiteral>(utils::String_toT<sfsl_int_t>(soFar));
+    case STR_REAL_LIT:      return _mngr.New<RealLiteral>(utils::String_toT<sfsl_real_t>(soFar));
+    case STR_STRING_LIT:    return _mngr.New<StringLiteral>(soFar);
+    default:                return _mngr.New<BadToken>(soFar);
     }
 }
 
 Token* Lexer::getRightTokenFromIdentifier(const std::string& str) const{
     if (isValidKeyword(str)) {
-        return _ctx->memoryManager().New<Keyword>(Keyword::KeywordTypeFromString(str));
+        return _mngr.New<Keyword>(Keyword::KeywordTypeFromString(str));
     } else if (Operator::OperTypeFromIdentifierString(str) != OPER_UNKNOWN) {
-        return _ctx->memoryManager().New<Operator>(Operator::OperTypeFromString(str));
+        return _mngr.New<Operator>(Operator::OperTypeFromString(str));
     } else if (str == "true") {
-        return _ctx->memoryManager().New<BoolLiteral>(true);
+        return _mngr.New<BoolLiteral>(true);
     } else if (str == "false") {
-        return _ctx->memoryManager().New<BoolLiteral>(false);
+        return _mngr.New<BoolLiteral>(false);
     } else {
-        return _ctx->memoryManager().New<Identifier>(str);
+        return _mngr.New<Identifier>(str);
     }
 }
 
@@ -141,7 +141,7 @@ void Lexer::handleStringLiteral(std::string& soFar) {
 
     for(;;) {
         if (!_source.hasNext()) {
-            _ctx->reporter().fatal(_source.currentPos(), "Unfinished string Literal");
+            _rep.fatal(_source.currentPos(), "Unfinished string Literal");
         }
 
         char c = _source.getNext();
@@ -151,7 +151,7 @@ void Lexer::handleStringLiteral(std::string& soFar) {
             if (chrutils::escapedChar(c)) {
                 soFar += c;
             } else {
-                _ctx->reporter().error(_source.currentPos(), std::string("Unknown escape sequence '\\") + c + "'");
+                _rep.error(_source.currentPos(), std::string("Unknown escape sequence '\\") + c + "'");
             }
             continue;
         }
@@ -185,7 +185,7 @@ void Lexer::handleMultiLineComment() {
 
     while (oldChr != '*' || chr != '/') {
         if (!_source.hasNext()) {
-            _ctx->reporter().fatal(_source.currentPos(), "Unfinished multiline comment");
+            _rep.fatal(_source.currentPos(), "Unfinished multiline comment");
         }
 
         oldChr = chr;

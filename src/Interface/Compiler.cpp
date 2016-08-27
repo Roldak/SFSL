@@ -424,8 +424,10 @@ void Compiler::unloadPlugin(const std::string& pathToPluginDll) {
 
 ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& srcContent) {
     try {
+        common::ChunkedMemoryManager lexerMemMngr(srcContent.size() * sizeof(tok::Identifier) / 3); // random heuristic :D
+
         src::StringSource source(src::InputSourceName::make(_impl->ctx, srcName), srcContent);
-        lex::Lexer lexer(_impl->ctx, source);
+        lex::Lexer lexer(lexerMemMngr, _impl->ctx->reporter(), source);
         ast::Parser parser(_impl->ctx, lexer, _impl->namer);
         ast::Program* program = parser.parse();
 
@@ -509,7 +511,7 @@ Type ProgramBuilder::parseType(const std::string& str) {
     }
 
     src::StringSource source(src::InputSourceName::make(_impl->cmp->ctx, "type"), str);
-    lex::Lexer lexer(_impl->cmp->ctx, source);
+    lex::Lexer lexer(_impl->cmp->ctx->memoryManager(), _impl->cmp->ctx->reporter(), source);
     ast::Parser parser(_impl->cmp->ctx, lexer, _impl->cmp->namer);
     ast::TypeExpression* tpe = parser.parseType();
 

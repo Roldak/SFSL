@@ -87,6 +87,16 @@ inline std::string join(const std::vector<std::string>& parts, const std::string
     return full;
 }
 
+template<typename T>
+inline max(std::initializer_list<T> list, T default_max = T()) {
+    for (auto elem : list) {
+        if (elem > default_max) {
+            default_max = elem;
+        }
+    }
+    return default_max;
+}
+
 }
 
 namespace chrutils {
