@@ -248,16 +248,15 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
     const std::vector<type::Type*>* paramTypes;
     type::Type* created;
 
-    if (type::FunctionType* ft = type::getIf<type::FunctionType>(fc)) {
-        typeParams = ft->getTypeArgs();
-        paramTypes = &ft->getArgTypes();
-        created = ctx->memoryManager().New<type::FunctionType>(
-                        std::vector<TypeExpression*>(), ft->getArgTypes(), ft->getRetType(), ft->getClass(), ft->getEnvironment());
-    } else if (type::MethodType* mt = type::getIf<type::MethodType>(fc)) {
-        typeParams = mt->getTypeArgs();
-        paramTypes = &mt->getArgTypes();
-        created = ctx->memoryManager().New<type::MethodType>(
-                        mt->getOwner(), std::vector<TypeExpression*>(), mt->getArgTypes(), mt->getRetType(), mt->getEnvironment());
+    if (type::ValueConstructorType* vt = type::getIf<type::ValueConstructorType>(fc)) {
+        typeParams = vt->getTypeArgs();
+        paramTypes = &vt->getArgTypes();
+
+        if (typeParams.size() == 0 && args.size() == 0) {
+            return fc;
+        }
+
+        created = dynamic_cast<type::Type*>(vt->rebuildValueConstructor({}, vt->getArgTypes(), vt->getRetType(), fc->getEnvironment(), ctx));
     } else {
         return type::Type::NotYetDefined();
     }
