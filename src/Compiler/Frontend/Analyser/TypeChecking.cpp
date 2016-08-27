@@ -909,6 +909,8 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         return {nullptr, nullptr};
     }
 
+    // Register potential candidates
+
     std::vector<OverloadedDefSymbolCandidate> candidates;
     size_t expectedArgCount = _expectedInfo.args->size();
 
@@ -924,13 +926,35 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
 
     size_t candidateCount = candidates.size();
 
+    // Some shortcuts
+
     if (candidateCount == 1) {
+        // This case allows to return early if the overloading was done
+        // only on the number of parameters of the function
+
         return {candidates[0].symbol(), candidates[0].env()};
+    } else if (candidateCount == 2) {
+
+        // These happen often when calling a free function, because the abstract `()`
+        // operator is overriden by the concrete implementation, and therefore
+        // we need to resolve the `()` "overloading" at each function call.
+
+        if (!candidates[1].isRedef() && candidates[0].isRedef()) {
+            // Candidate 0 has to be the redef of candidate 1
+            return {candidates[0].symbol(), candidates[0].env()};
+        }
+        else if (!candidates[0].isRedef() && candidates[1].isRedef()) {
+            // Candidate 1 has to be the redef of candidate 0
+            return {candidates[1].symbol(), candidates[1].env()};
+        }
     }
+
+    // Normal path: Compute the score of each candidate
+    // and fill the table of redefinition
 
     bool candidateRedefs[candidateCount][candidateCount] = {};
     for (size_t i = 0; i < candidateCount; ++i) {
-        // at first, set redefs to override everything
+        // At first, set redefs to override everything
         bool iRedefsj = candidates[i].isRedef();
         for (size_t j = 0; j < candidateCount; ++j) {
             candidateRedefs[i][j] = iRedefsj;
@@ -953,7 +977,11 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         }
     }
 
-    // keep only the best redefs
+#ifdef DEBUG_FUNCTION_OVERLOADING
+    debugDumpCandidateScores(candidates, _ctx);
+#endif
+
+    // Only keep the best redefs
 
     for (size_t i = 0; i < candidateCount; ++i) {
         for (size_t j = i + 1; j < candidateCount; ++j) {
@@ -973,13 +1001,13 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         }
     }
 
+    // Small shortcut
+
     if (candidates.size() == 1) {
         return {candidates[0].symbol(), candidates[0].env()};
     }
 
-#ifdef DEBUG_FUNCTION_OVERLOADING
-    debugDumpCandidateScores(candidates, _ctx);
-#endif
+    // Discard candidates that are not compatible with the provided argument types
 
     for (size_t a = 0; a < expectedArgCount; ++a) {
         for (auto candidate = candidates.begin(); candidate != candidates.end();) {
@@ -989,6 +1017,8 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
                 candidate = candidates.erase(candidate);
             }
         }
+
+        // If at any point there is only one candidate left, return it
         if (candidates.size() == 1) {
             return {candidates[0].symbol(), candidates[0].env()};
         }
@@ -996,6 +1026,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
 
     std::vector<OverloadedDefSymbolCandidate*> theChosenOnes;
 
+    // If there are still several candidate, find those which share the best score
     if (candidates.size() > 0) {
         int32_t maxScore = candidates[0].score();
 
@@ -1018,6 +1049,8 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         return {nullptr, nullptr};
 
     default:
+        // If there are more than one candidate sharing the best score, then it is an ambiguous access
+
         _rep.error(*triggerer, "Ambiguous symbol access. Multiple candidates match the requirements:");
         for (OverloadedDefSymbolCandidate* candidate : theChosenOnes) {
             _rep.info(*candidate->symbol(), "Is a viable candidate (has type " + candidate->appliedType()->toString() + ")");
