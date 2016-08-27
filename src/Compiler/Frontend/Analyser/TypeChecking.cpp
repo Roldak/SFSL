@@ -181,9 +181,9 @@ void TypeChecking::visit(ClassDecl* clss) {
 }
 
 void TypeChecking::visit(DefineDecl* decl) {
-    decl->setType(_res.Unit());
-
     if (TRY_INSERT(_visitedDefs, decl)) {
+        decl->setType(_res.Unit());
+
         SAVE_MEMBER_AND_SET(_currentThis, decl->getSymbol()->getOwner())
         SAVE_MEMBER_AND_SET(_nextDef, decl->getValue())
         SAVE_MEMBER_AND_SET(_triggeringDef, decl->getSymbol());
@@ -901,9 +901,27 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         const SymbolIterator& begin, const SymbolIterator& end,
         const type::Environment& env)
 {
-    if (std::distance(begin, end) == 1) {
+    size_t dist = std::distance(begin, end);
+    if (dist == 1) {
         const auto& val = *begin;
         return AnySymbolicData(val.symbol, val.env);
+    } else if (dist == 2) {
+
+        // These happen often when calling a free function, because the abstract `()`
+        // operator is overriden by the concrete implementation, and therefore
+        // we need to resolve the `()` "overloading" at each function call.
+
+        SymbolIterator beginCopy = begin;
+
+        const auto& val1 = *beginCopy;
+        const auto& val2 = *(++beginCopy);
+
+        if (sym::DefinitionSymbol* def1 = sym::getIfSymbolOfType<sym::DefinitionSymbol>(val1.symbol)) {
+            if (sym::DefinitionSymbol* def2 = sym::getIfSymbolOfType<sym::DefinitionSymbol>(val2.symbol)) {
+                if      (!def1->getDef()->isRedef() && def2->getDef()->isRedef()) { return {val2.symbol, val2.env}; }
+                else if (!def2->getDef()->isRedef() && def1->getDef()->isRedef()) { return {val1.symbol, val1.env}; }
+            }
+        }
     } else if (_expectedInfo.node != triggerer) {
         _rep.error(*triggerer, "Not enough information are provided to determine the right symbol");
         return {nullptr, nullptr};
@@ -917,8 +935,7 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
     for (SymbolIterator it = begin; it != end; ++it) {
         const auto& val = *it;
         const AnySymbolicData data(val.symbol, val.env);
-        if (data.symbol->getSymbolType() == sym::SYM_DEF) {
-            sym::DefinitionSymbol* defsymbol = static_cast<sym::DefinitionSymbol*>(data.symbol);
+        if (sym::DefinitionSymbol* defsymbol = sym::getIfSymbolOfType<sym::DefinitionSymbol>(data.symbol)) {
             type::Type* deftype = ASTTypeCreator::evalFunctionConstructor(defsymbol->type(), *_expectedInfo.typeArgs, *triggerer, _ctx, _expectedInfo.args, false);
             OverloadedDefSymbolCandidate::append(candidates, defsymbol, deftype, expectedArgCount, env, data.env, _ctx);
         }
@@ -933,20 +950,6 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         // only on the number of parameters of the function
 
         return {candidates[0].symbol(), candidates[0].env()};
-    } else if (candidateCount == 2) {
-
-        // These happen often when calling a free function, because the abstract `()`
-        // operator is overriden by the concrete implementation, and therefore
-        // we need to resolve the `()` "overloading" at each function call.
-
-        if (!candidates[1].isRedef() && candidates[0].isRedef()) {
-            // Candidate 0 has to be the redef of candidate 1
-            return {candidates[0].symbol(), candidates[0].env()};
-        }
-        else if (!candidates[0].isRedef() && candidates[1].isRedef()) {
-            // Candidate 1 has to be the redef of candidate 0
-            return {candidates[1].symbol(), candidates[1].env()};
-        }
     }
 
     // Normal path: Compute the score of each candidate
