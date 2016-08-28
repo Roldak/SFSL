@@ -1,0 +1,9 @@
+module test {
+	using sfsl.lang
+	
+	def test[T](f: (T, T)->int) => {}
+	
+	def main() => {
+		test((x: int, y: real) => 2);
+	}
+}
