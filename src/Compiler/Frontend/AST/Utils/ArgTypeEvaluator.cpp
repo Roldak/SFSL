@@ -20,11 +20,12 @@ ArgTypeEvaluator::ArgTypeEvaluator(TypeChecking* checker, const std::vector<Expr
 
 }
 
-type::Type* ArgTypeEvaluator::at(size_t i) {
-    if (!_evaluated[i]) {
-        _argExprs[i]->onVisit(_checker);
-        _evaluated[i] = true;
-    }
+type::Type* ArgTypeEvaluator::at(size_t i, type::Type* expectedType) {
+    TypeChecking::ExpectedInfo save = _checker->_expectedInfo;
+
+    visit(i, expectedType);
+
+    _checker->_expectedInfo = save;
 
     return _argExprs[i]->type();
 }
@@ -37,18 +38,22 @@ void ArgTypeEvaluator::evalAll(const std::vector<type::Type*>& expectedTypes) {
     TypeChecking::ExpectedInfo save = _checker->_expectedInfo;
 
     for (size_t i = 0; i < _argExprs.size(); ++i) {
-        if (!_evaluated[i]) {
-            if (expectedTypes.size() > i) {
-                _checker->_expectedInfo.node = _argExprs[i];
-                _checker->_expectedInfo.ret = expectedTypes[i];
-            }
-
-            _argExprs[i]->onVisit(_checker);
-            _evaluated[i] = true;
-        }
+        visit(i, (i < expectedTypes.size()) ? expectedTypes[i] : nullptr);
     }
 
     _checker->_expectedInfo = save;
+}
+
+void ArgTypeEvaluator::visit(size_t i, type::Type* expectedType) {
+    if (!_evaluated[i]) {
+        if (expectedType) {
+            _checker->_expectedInfo.node = _argExprs[i];
+            _checker->_expectedInfo.ret = expectedType;
+        }
+
+        _argExprs[i]->onVisit(_checker);
+        _evaluated[i] = true;
+    }
 }
 
 }

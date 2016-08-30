@@ -1,5 +1,0 @@
-module test {
-	using sfsl.lang
-	
-	def test: ()->int = x => x
-}

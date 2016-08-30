@@ -27,12 +27,14 @@ class ArgTypeEvaluator final {
 public:
     ArgTypeEvaluator(TypeChecking* checker, const std::vector<Expression*>& argExprs);
 
-    type::Type* at(size_t i);
+    type::Type* at(size_t i, type::Type* expectedType = nullptr);
     size_t size() const;
 
     void evalAll(const std::vector<type::Type*>& expectedTypes);
 
 private:
+
+    void visit(size_t i, type::Type* expectedType = nullptr);
 
     TypeChecking* _checker;
     std::vector<Expression*> _argExprs;

@@ -457,20 +457,25 @@ void TypeChecking::visit(FunctionCreation* func) {
             std::vector<sym::VariableSymbol*> params(ASTAssignmentChecker::getAssignedVars(func->getArgs(), _ctx));
 
             if (params.size() == args.size() && expectedValueConstructor->getArgTypes().size() == args.size()) {
+                isIncomplete = false;
+
                 for (size_t i = 0; i < params.size(); ++i) {
                     if (type::TypeToBeInferred* tbi = type::getIf<type::TypeToBeInferred>(params[i]->type())) {
                         tbi->assignInferredType(expectedValueConstructor->getArgTypes()[i]);
                         argTypes[i] = params[i]->type();
+
+                        if (argTypes[i]->getTypeKind() == type::TYPE_NYD) {
+                            isIncomplete = true;
+                            break;
+                        }
                     }
                 }
-
-                isIncomplete = false;
             }
         }
     }
 
     if (isIncomplete) {
-        _rep.error(*func->getArgs(), "Some of the function's parameters are not annotated with a type and not enough information are available to infer them");
+        _rep.error(*func->getArgs(), "Some of the function's parameters are not annotated with a type and not enough information is available to infer them");
         func->setType(type::Type::NotYetDefined());
         return;
     }

@@ -177,7 +177,7 @@ bool unify(const type::Type* ta, type::Type* tb, const std::vector<type::Type*>&
     for (size_t i = 0; i < params.size(); ++i) {
         if (ta == params[i]) {
             // unification fails if some parameter was already assigned to a different type
-            if (argTypes[i] && !argTypes[i]->equals(tb, ctx)) {
+            if (argTypes[i] != type::Type::NotYetDefined() && !argTypes[i]->equals(tb, ctx)) {
                 return false;
             }
             args[i] = typeExpressionFromType(tb->applyTCCallsOnly(ctx));
@@ -194,6 +194,7 @@ bool unify(const type::Type* ta, type::Type* tb, const std::vector<type::Type*>&
                     for (size_t i = 0; i < appA->getArgs().size(); ++i) {
                         if (!unify(appA->getArgs()[i], appB->getArgs()[i], params, args, argTypes, ctx)) {
                             ok = false;
+                            break;
                         }
                     }
                     if (ok) {
@@ -233,7 +234,7 @@ bool unify(const type::Type* ta, type::Type* tb, const std::vector<type::Type*>&
 
 bool checkArgumentsValidity(const std::vector<type::Type*>& args) {
     for (type::Type* arg : args) {
-        if (arg == nullptr) {
+        if (arg->getTypeKind() == type::TYPE_NYD) {
             return false;
         }
     }
@@ -278,7 +279,7 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
     if (typeParams.size() > 0 && args.size() == 0 && callArgTypes) {
         // Caller supplied 0 type arguments, so try to infer them
         argExprs.resize(typeParams.size(), nullptr);
-        argTypes.resize(typeParams.size(), nullptr);
+        argTypes.resize(typeParams.size(), type::Type::NotYetDefined());
 
         std::vector<type::Type*> typeParamTypes(typeParams.size());
         for (size_t i = 0; i < typeParams.size(); ++i) {
@@ -300,8 +301,11 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
         }
 
         for (size_t i = 0; i < paramTypes->size(); ++i) {
-            if (   !unify(paramTypes->at(i), callArgTypes->at(i), typeParamTypes, argExprs, argTypes, ctx) ||
-                    checkArgumentsValidity(argTypes)) {
+            type::Environment envSoFar(buildEnvironmentFromTypeParameterInstantiation(typeParams, argTypes, ctx));
+            type::Type* expectedType = paramTypes->at(i)->substitute(envSoFar, ctx);
+
+            if (  !unify(paramTypes->at(i), callArgTypes->at(i, expectedType), typeParamTypes, argExprs, argTypes, ctx) ||
+                   checkArgumentsValidity(argTypes)) {
                 break;
             }
         }
