@@ -1,0 +1,13 @@
+module test {
+	using sfsl.lang
+	
+	def f[A, B, C](unused_v1: A, unused_g: A->B, unused_h: B->C, unused_v2: C) => {}
+	
+	def tmp1(unused_x: int) => 3.4
+	def tmp2(unused_x: real) => "hello"
+	
+	def test1() => {
+		f(3, a => tmp1(a), b => tmp2(b), "hello");
+		f(12.2, x => x, x => x, 14.4);
+	}
+}

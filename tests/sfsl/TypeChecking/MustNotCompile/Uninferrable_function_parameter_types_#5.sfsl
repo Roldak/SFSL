@@ -1,0 +1,9 @@
+module test {
+	using sfsl.lang
+	
+	def f[T](unused_x: T->int) => {}
+	
+	def main() => {
+		f(x => x);
+	}
+}
