@@ -1,0 +1,13 @@
+module test {
+	using sfsl.lang
+	
+	def test1(x: int)->unit => { 42; }
+	
+	def test2: int->unit = (x: int) => { 42; }
+	
+	def test3: int->unit = (x: int)->unit => { 42; }
+	
+	def test4: int->unit = (x)->unit => { 42; }
+	
+	def test5: int->unit = x => { 42; }
+}

@@ -452,7 +452,7 @@ void TypeChecking::visit(FunctionCreation* func) {
         isIncomplete |= argTypes[i]->getTypeKind() == type::TYPE_TBI;
     }
 
-    if (isIncomplete && _expectedInfo.node == func && _expectedInfo.ret) {
+    if ((isIncomplete || !func->getReturnType()) && _expectedInfo.node == func && _expectedInfo.ret) {
         if (type::ValueConstructorType* expectedValueConstructor = type::getIf<type::ValueConstructorType>(_expectedInfo.ret->applyTCCallsOnly(_ctx))) {
             std::vector<sym::VariableSymbol*> params(ASTAssignmentChecker::getAssignedVars(func->getArgs(), _ctx));
 
@@ -471,6 +471,10 @@ void TypeChecking::visit(FunctionCreation* func) {
                     }
                 }
             }
+
+            if (expectedValueConstructor->getRetType()->getTypeKind() != type::TYPE_NYD) {
+                retType = expectedValueConstructor->getRetType();
+            }
         }
     }
 
@@ -487,7 +491,19 @@ void TypeChecking::visit(FunctionCreation* func) {
         }
     } else {
         _triggeringDef->setType(type::Type::NotYetDefined()); // in case of recursive call
-        func->getBody()->onVisit(this);
+
+        if (retType) { // coming from expected info
+            SAVE_MEMBER(_expectedInfo)
+            _expectedInfo.ret = retType;
+            _expectedInfo.node = func->getBody();
+
+            func->getBody()->onVisit(this);
+
+            RESTORE_MEMBER(_expectedInfo)
+        } else {
+            func->getBody()->onVisit(this);
+        }
+
         retType = func->getBody()->type();
     }
 
