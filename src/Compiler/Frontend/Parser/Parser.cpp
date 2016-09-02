@@ -92,6 +92,12 @@ bool Parser::expect(T type, const std::string& expected, bool fatal) {
 }
 
 template<typename T>
+T Parser::expectSemicolonAndReturn(T expr) {
+    expect(tok::OPER_SEMICOLON, "`;`");
+    return expr;
+}
+
+template<typename T>
 T* Parser::as() {
     return static_cast<T*>(_currentToken);
 }
@@ -170,9 +176,9 @@ ModuleDecl* Parser::parseModule() {
         if (accept(tok::KW_MODULE)) {
             mods.push_back(parseModule());
         } else if (accept(tok::KW_TPE)) {
-            types.push_back(parseType(false));
+            types.push_back(parseTypeDecl());
         } else if (accept(tok::KW_DEF)) {
-            decls.push_back(parseDef(false, false, consumeBool(isExtern), false));
+            decls.push_back(parseDef(false, consumeBool(isExtern), false));
         } else if (accept(tok::KW_USING)) {
             usings.push_back(parseUsing(keywordPos, false));
         } else {
@@ -196,7 +202,7 @@ ModuleDecl* Parser::parseModule() {
     return modDecl;
 }
 
-DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, bool isAbstract, Identifier* name) {
+DefineDecl* Parser::parseDef(bool isRedef, bool isExtern, bool isAbstract, Identifier* name) {
     std::vector<Annotation*> annots(std::move(consumeAnnotations()));
 
     Identifier* defName = (name ? name : parseIdentifier("Expected definition name"));
@@ -219,10 +225,6 @@ DefineDecl* Parser::parseDef(bool asStatement, bool isRedef, bool isExtern, bool
     } else {
         expect(tok::OPER_EQ, "`=`");
         expr = parseExpression();
-    }
-
-    if (asStatement) {
-        expect(tok::OPER_SEMICOLON, "`;`");
     }
 
     DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, typeSpecifier, expr, isRedef, isExtern, isAbstract);
@@ -271,17 +273,17 @@ ClassDecl* Parser::parseClass(bool isAbstractClass) {
             }
 
             if (accept(tok::KW_TPE)) {
-                tdecls.push_back(parseType(false));
+                tdecls.push_back(parseTypeDecl());
             } else if (accept(tok::KW_NEW)) {
                 Identifier* id = _mngr.New<Identifier>("new");
                 id->setPos(externElemPos);
-                defs.push_back(parseDef(false, false, consumeBool(isExtern), false, id));
+                defs.push_back(parseDef(false, consumeBool(isExtern), false, id));
             } else if (accept(tok::KW_DEF)) {
                 Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
-                defs.push_back(parseDef(false, false, consumeBool(isExtern), consumeBool(isAbstract), id));
+                defs.push_back(parseDef(false, consumeBool(isExtern), consumeBool(isAbstract), id));
             } else if (accept(tok::KW_REDEF)) {
                 Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
-                defs.push_back(parseDef(false, true, consumeBool(isExtern), consumeBool(isAbstract), id));
+                defs.push_back(parseDef(true, consumeBool(isExtern), consumeBool(isAbstract), id));
             } else {
                 Identifier* fieldName = parseIdentifier("Expected field name | def");
                 expect(tok::OPER_COLON, "`:`");
@@ -313,7 +315,7 @@ ClassDecl* Parser::parseClass(bool isAbstractClass) {
     return classDecl;
 }
 
-TypeDecl* Parser::parseType(bool asStatement) {
+TypeDecl* Parser::parseTypeDecl() {
     std::vector<Annotation*> annots(std::move(consumeAnnotations()));
 
     TypeIdentifier* typeName = parseTypeIdentifier("Expected type name");
@@ -325,10 +327,6 @@ TypeDecl* Parser::parseType(bool asStatement) {
     TypeExpression* expr = parseTypeExpression();
 
     _currentTypeName = lastTypeName;
-
-    if (asStatement) {
-        expect(tok::OPER_SEMICOLON, "`;`");
-    }
 
     TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr);
     typeDecl->setAnnotations(annots);
@@ -347,8 +345,8 @@ Expression* Parser::parseStatement() {
         accept();
 
         switch (kw) {
-        case tok::KW_DEF:   return parseDef(true, false, false, false);
-        case tok::KW_TPE:   return parseType(true);
+        case tok::KW_DEF:   return expectSemicolonAndReturn(parseDef(false, false, false));
+        case tok::KW_TPE:   return expectSemicolonAndReturn(parseTypeDecl());
         case tok::KW_IF:
             reportErroneousAnnotations();
             return parseIf(true);

@@ -79,6 +79,9 @@ private:
     bool expect(T type, const std::string& expected, bool fatal = false);
 
     template<typename T>
+    T expectSemicolonAndReturn(T expr);
+
+    template<typename T>
     T* as();
 
     void reportUnexpectedCurrentToken();
@@ -93,9 +96,9 @@ private:
 
     ast::Program* parseProgram();
     ast::ModuleDecl* parseModule();
-    ast::DefineDecl* parseDef(bool asStatement, bool isRedef, bool isExtern, bool isAbstract, ast::Identifier* name = nullptr);
+    ast::DefineDecl* parseDef(bool isRedef, bool isExtern, bool isAbstract, ast::Identifier* name = nullptr);
     ast::ClassDecl* parseClass(bool isAbstractClass);
-    ast::TypeDecl* parseType(bool asStatement);
+    ast::TypeDecl* parseTypeDecl();
 
         // statements
 
