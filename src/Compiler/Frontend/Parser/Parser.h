@@ -114,7 +114,6 @@ private:
 
     ast::Block* parseBlock();
     ast::IfExpression* parseIf(bool asStatement);
-    ast::This* parseThis(const common::Positionnable& pos);
 
     ast::Expression* parseSpecialBinaryContinuity(ast::Expression* left);
     ast::Tuple* parseTuple();
@@ -149,12 +148,17 @@ private:
     template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
     RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE>& exprs, const PARSING_FUNC& f);
 
+    ast::This* makeThis(const common::Positionnable& pos);
+
     ast::Expression* makeMethodCall(Expression* callee, const std::string& memberName, const std::vector<Expression*>& argExprs,
                                     const common::Positionnable& memberPos, const common::Positionnable& argsPos, TypeTuple* typeArgs = nullptr);
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
     ast::Identifier* parseOperatorsAsIdentifer();
 
+    ast::ClassDecl* parseClassBody(bool isAbstractClass, const std::string& className, const common::Positionnable& startPos);
+
     void desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std::vector<DefineDecl*>& defs);
+    TypeDecl* desugarTopLevelClassDecl(bool isAbstractClass);
 
     // Members
 
