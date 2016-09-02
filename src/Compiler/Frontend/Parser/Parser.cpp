@@ -744,7 +744,7 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
                     exprs[0] = createFunctionTypeDecl(static_cast<TypeTuple*>(exprs[0]), args, parseTypeExpression(allowTypeConstructor));
                     // - arrowNecessary will be false since expr.size() == 1,
                     // - accept(tok::OPER_THIN_ARROW) can't happen because it would have been parsed in ret type,
-                    // => so we're good normally. (ugly though)
+                    // => so we should be good. (ugly though)
                 }
             }
         } else if (accept(tok::OPER_L_PAREN)) {
@@ -1164,6 +1164,8 @@ ClassDecl* Parser::parseClassBody(bool isAbstractClass, const std::string& class
 
             if (accept(tok::KW_TPE)) {
                 tdecls.push_back(parseTypeDecl());
+            } else if (accept(tok::KW_CLASS)) {
+                tdecls.push_back(desugarTopLevelClassDecl(isAbstract));
             } else if (accept(tok::KW_NEW)) {
                 Identifier* id = _mngr.New<Identifier>("new");
                 id->setPos(externElemPos);
@@ -1262,7 +1264,17 @@ TypeDecl* Parser::desugarTopLevelClassDecl(bool isAbstractClass) {
     TypeIdentifier* typeName = parseTypeIdentifier("Expected type name");
     accept(tok::OPER_EQ);
 
-    TypeExpression* expr = parseClassBody(isAbstractClass, typeName->getValue(), *typeName);
+    TypeExpression* expr;
+
+    if (accept(tok::OPER_L_BRACKET)) {
+        TypeTuple* params = parseTypeParameters();
+        expr = _mngr.New<TypeConstructorCreation>(typeName->getValue(), params,
+                                                  parseClassBody(isAbstractClass, typeName->getValue(), *typeName));
+        expr->setPos(*params);
+        expr->setEndPos(_lastTokenEndPos);
+    } else {
+        expr = parseClassBody(isAbstractClass, typeName->getValue(), *typeName);
+    }
 
     TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr);
     typeDecl->setPos(*typeName);
