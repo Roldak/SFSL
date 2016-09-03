@@ -116,8 +116,24 @@ BEGIN_PRIVATE_DEF
 
 class COMPILER_IMPL_NAME final {
 public:
-    COMPILER_IMPL_NAME(CompCtx_Ptr ctx, common::AbstractPrimitiveNamer* namer)
-        : ctx(ctx), namer(namer) {}
+    COMPILER_IMPL_NAME(const CompilerConfig& config) : config(config) {
+        AbstractReporter* reporter = nullptr;
+        size_t initialChunkSize = 2048;
+
+        config.get<opt::InitialChunkSize>(initialChunkSize);
+
+        if (config.get<opt::Reporter>(reporter)) {
+            ctx = common::CompilationContext::CustomReporterCompilationContext(
+                        initialChunkSize,
+                        std::unique_ptr<ReporterAdapter>(new ReporterAdapter(reporter)));
+        } else {
+            ctx = common::CompilationContext::DefaultCompilationContext(initialChunkSize);
+        }
+
+        if (!config.get<opt::PrimitiveNamer>(namer)) {
+            namer = StandartPrimitiveNamer::DefaultPrimitiveNamer;
+        }
+    }
 
 
 #ifdef USER_API_PLUGIN_FEATURE
@@ -190,6 +206,7 @@ public:
 
 #endif
 
+    CompilerConfig config;
     CompCtx_Ptr ctx;
     common::AbstractPrimitiveNamer* namer;
 
@@ -393,26 +410,7 @@ namespace sfsl {
 // COMPILER
 
 Compiler::Compiler(const CompilerConfig& config) {
-    CompCtx_Ptr ctx;
-    AbstractReporter* reporter = nullptr;
-    common::AbstractPrimitiveNamer* namer;
-    size_t initialChunkSize = 2048;
-
-    config.get<opt::InitialChunkSize>(initialChunkSize);
-
-    if (config.get<opt::Reporter>(reporter)) {
-        ctx = common::CompilationContext::CustomReporterCompilationContext(
-                    initialChunkSize,
-                    std::unique_ptr<ReporterAdapter>(new ReporterAdapter(reporter)));
-    } else {
-        ctx = common::CompilationContext::DefaultCompilationContext(initialChunkSize);
-    }
-
-    if (!config.get<opt::PrimitiveNamer>(namer)) {
-        namer = StandartPrimitiveNamer::DefaultPrimitiveNamer;
-    }
-
-    _impl = NEW_COMPILER_IMPL(ctx, namer);
+    _impl = NEW_COMPILER_IMPL(config);
 }
 
 Compiler::~Compiler() {
@@ -470,19 +468,42 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
     // make the program builder invalid so that it can't be compiled again
     progBuilder._impl = nullptr;
 
+    opt::Frequency printMemoryUsageFrequency = opt::Frequency::Never;
+    opt::Frequency printCompilationTimeFrequency = opt::Frequency::Never;
+
+    _impl->config.get<opt::PrintMemoryUsage>(printMemoryUsageFrequency);
+    _impl->config.get<opt::PrintCompilationTime>(printCompilationTimeFrequency);
+
     try {
         std::set<std::shared_ptr<Phase>> phases(ppl.getPhases());
         std::vector<std::shared_ptr<Phase>> sortedPhases(sortPhases(phases));
+
+        clock_t compilationStart = clock();
 
         for (std::shared_ptr<Phase> phase : sortedPhases) {
 
             clock_t phaseStart = clock();
             bool success = phase->run(pctx);
-            std::cout << phase->getName() << " : " << (clock() - phaseStart)/(double)CLOCKS_PER_SEC << std::endl << std::endl;
+
+            if (printCompilationTimeFrequency == opt::Frequency::AfterEachPhase) {
+                std::cout << "Phase " << phase->getName() << " took " << (clock() - phaseStart)/(double)CLOCKS_PER_SEC << " seconds to complete" << std::endl;
+            }
+
+            if (printMemoryUsageFrequency == opt::Frequency::AfterEachPhase) {
+                std::cout << "Memory usage after phase " << phase->getName() << " : " << ctx->memoryManager().getInfos() << std::endl;
+            }
 
             if (!success) {
                 break;
             }
+        }
+
+        if (printCompilationTimeFrequency == opt::Frequency::AfterLastPhase) {
+            std::cout << "Compilation took " << (clock() - compilationStart)/(double)CLOCKS_PER_SEC << " seconds to complete" << std::endl;
+        }
+
+        if (printMemoryUsageFrequency == opt::Frequency::AfterLastPhase) {
+            std::cout << "Memory usage after compilation : " << ctx->memoryManager().getInfos() << std::endl;
         }
 
         collector.collect(pctx);

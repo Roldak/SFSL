@@ -13,9 +13,17 @@ namespace sfsl {
 
 namespace opt {
 
+enum class Frequency {
+    Never,
+    AfterEachPhase,
+    AfterLastPhase
+};
+
 DEF_OPTION(Reporter, AbstractReporter*)
 DEF_OPTION(PrimitiveNamer, common::AbstractPrimitiveNamer*)
 DEF_OPTION(InitialChunkSize, size_t)
+DEF_OPTION(PrintMemoryUsage, Frequency)
+DEF_OPTION(PrintCompilationTime, Frequency)
 
 }
 

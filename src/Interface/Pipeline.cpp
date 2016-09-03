@@ -33,8 +33,6 @@ public:
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
-        std::cerr << getName() << " : " << ctx->memoryManager().getInfos() << std::endl;
-
         ast::ScopeGeneration scopeGen(ctx);
         ast::TypeDependencyFixation typeDep(ctx);
         ast::SymbolAssignation symAssign(ctx);
@@ -58,8 +56,6 @@ public:
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
-        std::cerr << getName() << " : " << ctx->memoryManager().getInfos() << std::endl;
-
         ast::KindChecking kindCheck(ctx);
         prog->onVisit(&kindCheck);
 
@@ -79,8 +75,6 @@ public:
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
         common::AbstractPrimitiveNamer* namer = pctx.require<common::AbstractPrimitiveNamer>("namer");
         sym::SymbolResolver* res = pctx.require<sym::SymbolResolver>("res");
-
-        std::cerr << getName() << " : " << ctx->memoryManager().getInfos() << std::endl;
 
         ast::TopLevelTypeChecking topleveltypecheck(ctx, *namer, *res);
         ast::TypeChecking typeCheck(ctx, *namer, *res);
@@ -104,8 +98,6 @@ public:
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
-        std::cerr << getName() << " : " << ctx->memoryManager().getInfos() << std::endl;
-
         ast::UsageAnalysis usageAnalysis(ctx);
         prog->onVisit(&usageAnalysis);
 
@@ -125,8 +117,6 @@ public:
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
         common::AbstractPrimitiveNamer* namer = pctx.require<common::AbstractPrimitiveNamer>("namer");
         sym::SymbolResolver* res = pctx.require<sym::SymbolResolver>("res");
-
-        std::cerr << getName() << " : " << ctx->memoryManager().getInfos() << std::endl;
 
         ast::PreTransformAnalysis ptanalysis(ctx);
         ast::PreTransformImplementation ptimpl(ctx, *namer, *res);
@@ -155,8 +145,6 @@ public:
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
 
-        std::cerr << getName() << " : " << ctx->memoryManager().getInfos() << std::endl;
-
         bast::AST2BAST a2b(ctx);
         bast::BASTSimplifier simplifier;
         bast::BASTPrinter printer(std::cout);
@@ -180,9 +168,6 @@ public:
 
     virtual bool run(PhaseContext& pctx) {
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
-
-        std::cerr << getName() << " : " << ctx->memoryManager().getInfos() << std::endl;
-
         pctx.output("out", new out::LinkedListOutput<bc::BCInstruction*>(ctx));
         return ctx->reporter().getErrorCount() == 0;
     }

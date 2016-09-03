@@ -21,7 +21,7 @@
 namespace sfsl {
 
 class SFSL_API_PUBLIC CompilerConfig final {
-    typedef std::unique_ptr<void, std::function<void(void*)>> Optval;
+    typedef std::shared_ptr<void> Optval;
 
     struct get_helper final {
         template<int i, typename Value>

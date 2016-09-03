@@ -43,7 +43,11 @@ int main(int argc, char** argv) {
 
     clock_t exec = clock();
 
-    Compiler cmp(CompilerConfig().with<opt::Reporter>(StandartReporter::CerrReporter).with<opt::InitialChunkSize>(2048ULL));
+    Compiler cmp(CompilerConfig()
+                 .with<opt::Reporter>(StandartReporter::CerrReporter)
+                 .with<opt::PrintCompilationTime>(opt::Frequency::AfterEachPhase)
+                 .with<opt::PrintMemoryUsage>(opt::Frequency::AfterEachPhase));
+
     Pipeline ppl = Pipeline::createDefault();
 
     ByteCodeCollector bcc;
