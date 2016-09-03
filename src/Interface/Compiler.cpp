@@ -6,6 +6,8 @@
 //  Copyright (c) 2015 Romain Beguet. All rights reserved.
 //
 
+#include <ctime>
+
 #include "api/Compiler.h"
 #include "api/Errors.h"
 #include "api/StandartPrimitiveNamer.h"
@@ -392,19 +394,22 @@ namespace sfsl {
 
 Compiler::Compiler(const CompilerConfig& config) {
     CompCtx_Ptr ctx;
+    AbstractReporter* reporter = nullptr;
     common::AbstractPrimitiveNamer* namer;
+    size_t initialChunkSize = 2048;
 
-    if (config.getReporter() == nullptr) {
-        ctx = common::CompilationContext::DefaultCompilationContext(config.getChunkSize());
+    config.get<opt::InitialChunkSize>(initialChunkSize);
+
+    if (config.get<opt::Reporter>(reporter)) {
+        ctx = common::CompilationContext::CustomReporterCompilationContext(
+                    initialChunkSize,
+                    std::unique_ptr<ReporterAdapter>(new ReporterAdapter(reporter)));
     } else {
-        std::unique_ptr<ReporterAdapter> rep(new ReporterAdapter(config.getReporter()));
-        ctx = common::CompilationContext::CustomReporterCompilationContext(config.getChunkSize(), std::move(rep));
+        ctx = common::CompilationContext::DefaultCompilationContext(initialChunkSize);
     }
 
-    if (config.getPrimitiveNamer() == nullptr) {
+    if (!config.get<opt::PrimitiveNamer>(namer)) {
         namer = StandartPrimitiveNamer::DefaultPrimitiveNamer;
-    } else {
-        namer = config.getPrimitiveNamer();
     }
 
     _impl = NEW_COMPILER_IMPL(ctx, namer);
@@ -470,7 +475,12 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
         std::vector<std::shared_ptr<Phase>> sortedPhases(sortPhases(phases));
 
         for (std::shared_ptr<Phase> phase : sortedPhases) {
-            if (!phase->run(pctx)) {
+
+            clock_t phaseStart = clock();
+            bool success = phase->run(pctx);
+            std::cout << phase->getName() << " : " << (clock() - phaseStart)/(double)CLOCKS_PER_SEC << std::endl << std::endl;
+
+            if (!success) {
                 break;
             }
         }

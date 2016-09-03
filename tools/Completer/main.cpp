@@ -227,7 +227,7 @@ int main(int argc, char** argv) {
         source += f.get();
     }
 
-    Compiler cmp(CompilerConfig(StandartReporter::EmptyReporter));
+    Compiler cmp(CompilerConfig().with<opt::Reporter>(StandartReporter::EmptyReporter));
 
     ProgramBuilder prog = cmp.parse(sourceFile, source);
 

@@ -42,7 +42,10 @@ SymbolicTest::~SymbolicTest() {
 }
 
 bool SymbolicTest::run(AbstractTestLogger& logger) {
-    Compiler cmp(CompilerConfig(StandartReporter::EmptyReporter, StandartPrimitiveNamer::DefaultPrimitiveNamer, 2048));
+    Compiler cmp(CompilerConfig()
+                 .with<opt::Reporter>(StandartReporter::EmptyReporter)
+                 .with<opt::PrimitiveNamer>(StandartPrimitiveNamer::DefaultPrimitiveNamer)
+                 .with<opt::InitialChunkSize>(2048));
 
     try {
         ProgramBuilder builder = cmp.parse(_name, _source);

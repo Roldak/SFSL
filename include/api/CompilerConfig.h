@@ -11,31 +11,56 @@
 
 #include <iostream>
 #include <memory>
+#include <map>
+#include <functional>
 #include "SetVisibilities.h"
 #include "AbstractReporter.h"
 #include "AbstractPrimitiveNamer.h"
+#include "CompilerOption.h"
 
 namespace sfsl {
 
 class SFSL_API_PUBLIC CompilerConfig final {
+    typedef std::unique_ptr<void, std::function<void(void*)>> Optval;
+
+    struct get_helper final {
+        template<int i, typename Value>
+        static void assign(const Value& value) {}
+
+        template<int i, typename Value, typename Arg, typename ...Args>
+        static void assign(const Value& value, Arg& arg, Args&... args) {
+            arg = std::get<i>(value);
+            get_helper::assign<i + 1, Value, Args...>(value, args...);
+        }
+    };
+
 public:
-    CompilerConfig(AbstractReporter* rep = nullptr, common::AbstractPrimitiveNamer* namer = nullptr, size_t chunkSize = 2048);
-    ~CompilerConfig();
 
-    void setChunkSize(size_t chunkSize);
-    size_t getChunkSize() const;
+    template<typename Opt, typename ...Args>
+    typename std::enable_if<std::is_constructible<typename Opt::Params, Args...>::value, CompilerConfig&>::type
+    with(Args... args) {
+        static std::function<void(void*)> deleter = [](void* obj) {
+            delete static_cast<typename Opt::Params*>(obj);
+        };
+        _options[Opt::getName()] = Optval(new typename Opt::Params(args...), deleter);
+        return *this;
+    }
 
-    void setReporter(AbstractReporter* rep);
-    AbstractReporter* getReporter() const;
-
-    void setPrimitiveNamer(common::AbstractPrimitiveNamer* namer);
-    common::AbstractPrimitiveNamer* getPrimitiveNamer() const;
+    template<typename Opt, typename ...Args>
+    typename std::enable_if<std::is_constructible<typename Opt::Params, Args...>::value, bool>::type
+    get(Args&... args) const {
+        auto it = _options.find(Opt::getName());
+        if (it != _options.end()) {
+            const auto& value = *static_cast<typename Opt::Params*>(it->second.get());
+            get_helper::assign<0>(value, args...);
+            return true;
+        }
+        return false;
+    }
 
 private:
 
-    AbstractReporter* _rep;
-    common::AbstractPrimitiveNamer* _namer;
-    size_t _chunkSize;
+    std::map<std::string, Optval> _options;
 };
 
 }
