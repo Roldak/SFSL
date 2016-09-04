@@ -25,21 +25,6 @@ void ASTAssignmentChecker::visit(TypeSpecifier* tps) {
     tps->getSpecified()->onVisit(this);
 }
 
-void ASTAssignmentChecker::visit(IfExpression* ifexpr) {
-    ifexpr->getThen()->onVisit(this);
-    bool isThenValid = _isValid;
-
-    if (!ifexpr->getElse()) {
-        _isValid = false;
-        return;
-    }
-
-    ifexpr->getElse()->onVisit(this);
-    bool isElseValid = _isValid;
-
-    _isValid &= isThenValid & isElseValid;
-}
-
 void ASTAssignmentChecker::visit(MemberAccess* dot) {
     visitSymbolic(dot);
 }

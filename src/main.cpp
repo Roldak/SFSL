@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     bool checkOnly = false;
     int option;
 
-    while((option = getopt(argc, argv, "s:c")) != -1){
+    while((option = getopt(argc, argv, "s:c")) != -1) {
         switch (option) {
         case 's':
             sourceFile = optarg;

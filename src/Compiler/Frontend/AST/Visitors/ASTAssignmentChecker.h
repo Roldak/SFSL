@@ -31,7 +31,6 @@ public:
     virtual ~ASTAssignmentChecker();
 
     virtual void visit(TypeSpecifier* tps) override;
-    virtual void visit(IfExpression* ifexpr) override;
     virtual void visit(MemberAccess* dot) override;
     virtual void visit(Tuple* tuple) override;
     virtual void visit(Identifier* ident) override;
