@@ -16,14 +16,6 @@
 
 #define SAVE_POS(ident) const common::Positionnable ident = *_currentToken;
 
-struct Defer final {
-    Defer(std::function<void()>&& f) : _f(std::move(f)) {}
-    ~Defer() { _f(); }
-
-private:
-    std::function<void()> _f;
-};
-
 namespace sfsl {
 
 using namespace ast;
@@ -292,25 +284,6 @@ Expression* Parser::parseStatement() {
 
     parseAnnotations();
 
-    SAVE_POS(keywordPos)
-
-    bool isExtern = accept(tok::KW_EXTERN);
-    bool isAbstract = accept(tok::KW_ABSTRACT);
-    isExtern = isExtern || accept(tok::KW_EXTERN); // also handle `extern` being after `abstract`
-
-    SAVE_POS(externElemPos)
-
-    Defer([&](){
-        if (isExtern) {
-            _ctx->reporter().error(externElemPos, "Only classes can be declared extern");
-        }
-        if (isAbstract) {
-            _ctx->reporter().error(externElemPos, "Only classes can be declared abstract");
-        }
-
-        reportErroneousAnnotations();
-    });
-
     if (isType(tok::TOK_KW) && as<tok::Keyword>()->getKwType() != tok::KW_THIS) {
         tok::KW_TYPE kw = as<tok::Keyword>()->getKwType();
         accept();
@@ -318,14 +291,31 @@ Expression* Parser::parseStatement() {
         switch (kw) {
         case tok::KW_DEF:   return expectSemicolonAndReturn(parseDef(false, false, false));
         case tok::KW_TPE:   return expectSemicolonAndReturn(parseTypeDecl());
-        case tok::KW_CLASS: return expectSemicolonAndReturn(desugarTopLevelClassDecl(consumeBool(isExtern), consumeBool(isAbstract)));
+        case tok::KW_CLASS: return expectSemicolonAndReturn(desugarTopLevelClassDecl(false, false));
         case tok::KW_IF:    reportErroneousAnnotations(); return parseIf(true);
 
+        case tok::KW_ABSTRACT:
+        case tok::KW_EXTERN: {
+            bool isExtern = accept(tok::KW_EXTERN);
+            bool isAbstract = accept(tok::KW_ABSTRACT);
+            isExtern = isExtern || accept(tok::KW_EXTERN); // also handle `extern` being after `abstract`
+
+            SAVE_POS(externElemPos)
+
+            if (accept(tok::KW_CLASS)) {
+                return expectSemicolonAndReturn(desugarTopLevelClassDecl(isExtern, isAbstract));
+            }
+            _ctx->reporter().error(externElemPos, "Expected `class` keyword after `extern` or `abstract` flag");
+            return nullptr;
+        }
+
         case tok::KW_REDEF:
+            reportErroneousAnnotations();
             _ctx->reporter().error(startPos, "`" + tok::Keyword::KeywordTypeToString(kw) +
                                    "` keyword can only be used inside a class scope");
             return nullptr;
         default:
+            reportErroneousAnnotations();
             _ctx->reporter().error(startPos, "Unexpected keyword `" + tok::Keyword::KeywordTypeToString(kw) + "`");
             return nullptr;
         }
