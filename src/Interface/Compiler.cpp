@@ -298,9 +298,13 @@ public:
 class CLASSBUILDER_IMPL_NAME final {
 public:
     CLASSBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name)
-        : _mngr(mngr), _name(name), _isAbstract(false) { }
+        : _mngr(mngr), _name(name), _isExtern(true), _isAbstract(false) { }
 
     ~CLASSBUILDER_IMPL_NAME() { }
+
+    void setExtern(bool value) {
+        _isExtern = value;
+    }
 
     void setAbstract(bool value) {
         _isAbstract = value;
@@ -329,7 +333,7 @@ public:
     Type build() const {
         if (ast::ClassDecl* clss = _mngr.New<ast::ClassDecl>(_name, nullptr,
                                                              std::vector<ast::TypeDecl*>(),
-                                                             _fields, _defs, _isAbstract)) {
+                                                             _fields, _defs, _isExtern, _isAbstract)) {
             return Type(NEW_TYPE_IMPL(clss));
         } else {
             return MAKE_INVALID(Type);
@@ -341,6 +345,7 @@ private:
     common::AbstractMemoryManager& _mngr;
 
     std::string _name;
+    bool _isExtern;
     bool _isAbstract;
 
     std::vector<ast::TypeSpecifier*> _fields;

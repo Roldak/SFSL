@@ -464,7 +464,7 @@ void PreTransformImplementation::visit(ClassDecl* clss) {
         decls.push_back(static_cast<sym::DefinitionSymbol*>(initializer->getSymbol())->getDef());
     }
 
-    update(clss, clss->getName(), parent, types, fields, decls, clss->isAbstract());
+    update(clss, clss->getName(), parent, types, fields, decls, clss->isExtern(), clss->isAbstract());
 
     RESTORE_MEMBER(_curCapturedFields)
 }

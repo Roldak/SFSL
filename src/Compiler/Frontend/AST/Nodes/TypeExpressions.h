@@ -63,6 +63,7 @@ public:
             const std::vector<TypeDecl*>& tdecls,
             const std::vector<TypeSpecifier*>& fields,
             const std::vector<DefineDecl*>& defs,
+            bool isExtern,
             bool isAbstract);
 
     virtual ~ClassDecl();
@@ -95,6 +96,11 @@ public:
     const std::vector<DefineDecl*>& getDefs() const;
 
     /**
+     * @return True if the class is marked with the `extern` flag
+     */
+    bool isExtern() const;
+
+    /**
      * @return True if the class is marked with the `abstract` flag
      */
     bool isAbstract() const;
@@ -110,6 +116,7 @@ private:
     std::vector<TypeSpecifier*> _fields;
     std::vector<DefineDecl*> _defs;
 
+    bool _isExtern;
     bool _isAbstract;
 };
 
