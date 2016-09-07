@@ -111,7 +111,7 @@ void ASTDefaultTypeFromKindCreator::visit(ProperTypeKindSpecifier*) {
                                            std::vector<TypeDecl*>(),
                                            std::vector<TypeSpecifier*>(),
                                            std::vector<DefineDecl*>(),
-                                           false, false);
+                                           false);
 
     clss->setScope(_mngr.New<sym::Scope>(nullptr));
     clss->setParameters(_parameters);

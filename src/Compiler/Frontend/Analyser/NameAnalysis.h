@@ -66,7 +66,7 @@ private:
     bool isValidAbsolutePath() const;
     std::string absoluteName(const std::string& symName);
     void popPathPart();
-    void reportPotentiallyInvalidExternUsage(const common::Positionnable& pos) const;
+    void reportInvalidExternUsage(const common::Positionnable& pos) const;
 
     sym::Scope* _curScope;
 

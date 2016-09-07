@@ -49,7 +49,7 @@ void ASTTransformer::visit(ClassDecl* clss){
            transform<TypeDecl>(clss->getTypeDecls()),
            transform<TypeSpecifier>(clss->getFields()),
            transform<DefineDecl>(clss->getDefs()),
-           clss->isExtern(), clss->isAbstract());
+           clss->isAbstract());
 }
 
 void ASTTransformer::visit(DefineDecl* decl) {

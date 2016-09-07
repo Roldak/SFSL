@@ -794,7 +794,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
         typeArgs = func->getTypeArgs()->getExpressions();
         funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, false, false, false);
         funcClass   = _mngr.New<ClassDecl>(func->getName(), nullptr, std::vector<TypeDecl*>(),
-                                                          std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false, false);
+                                                          std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
 
         funcType = _mngr.New<type::FunctionType>(typeArgs, argTypes, retType, funcClass, env);
     } else {
@@ -812,7 +812,7 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
 
         funcDecl   = _mngr.New<DefineDecl>(_mngr.New<Identifier>("()"), nullptr, meth, true, false, false);
         funcClass   = _mngr.New<ClassDecl>(func->getName(), parentExpr, std::vector<TypeDecl*>(),
-                                                          std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false, false);
+                                                          std::vector<TypeSpecifier*>(), std::vector<DefineDecl*>{funcDecl}, false);
 
         funcType = _mngr.New<type::FunctionType>(typeArgs, argTypes, retType, funcClass, env);
 
