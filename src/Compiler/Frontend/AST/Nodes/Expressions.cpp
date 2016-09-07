@@ -76,7 +76,8 @@ bool DefineDecl::isAbstract() const {
 
 // TYPE DECLARATION
 
-TypeDecl::TypeDecl(TypeIdentifier *id, TypeExpression *exp) : _name(id), _exp(exp) {
+TypeDecl::TypeDecl(TypeIdentifier *id, TypeExpression *exp, bool isExtern)
+    : _name(id), _exp(exp), _isExtern(isExtern) {
 
 }
 
@@ -92,6 +93,10 @@ TypeIdentifier* TypeDecl::getName() const {
 
 TypeExpression* TypeDecl::getExpression() const {
     return _exp;
+}
+
+bool TypeDecl::isExtern() const {
+    return _isExtern;
 }
 
 // ASSIGNMENT EXPRESSION

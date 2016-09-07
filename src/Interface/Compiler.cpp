@@ -246,12 +246,12 @@ public:
         _ddecls.push_back(mngr.New<ast::DefineDecl>(nameId, defType._impl->_type, nullptr, false, true, false));
     }
 
-    void typeDef(const std::string& name, Type type) {
+    void typeDef(const std::string& name, Type type, bool isExtern) {
         if (!type) {
             throw CompileError("Type to typedef was not valid");
         }
 
-        _tdecls.push_back(mngr.New<ast::TypeDecl>(mngr.New<ast::TypeIdentifier>(name), type._impl->_type));
+        _tdecls.push_back(mngr.New<ast::TypeDecl>(mngr.New<ast::TypeIdentifier>(name), type._impl->_type, isExtern));
     }
 
     common::AbstractMemoryManager& mngr;
@@ -298,13 +298,9 @@ public:
 class CLASSBUILDER_IMPL_NAME final {
 public:
     CLASSBUILDER_IMPL_NAME(common::AbstractMemoryManager& mngr, const std::string& name)
-        : _mngr(mngr), _name(name), _isExtern(true), _isAbstract(false) { }
+        : _mngr(mngr), _name(name), _isAbstract(false) { }
 
     ~CLASSBUILDER_IMPL_NAME() { }
-
-    void setExtern(bool value) {
-        _isExtern = value;
-    }
 
     void setAbstract(bool value) {
         _isAbstract = value;
@@ -333,7 +329,7 @@ public:
     Type build() const {
         if (ast::ClassDecl* clss = _mngr.New<ast::ClassDecl>(_name, nullptr,
                                                              std::vector<ast::TypeDecl*>(),
-                                                             _fields, _defs, _isExtern, _isAbstract)) {
+                                                             _fields, _defs, _isAbstract)) {
             return Type(NEW_TYPE_IMPL(clss));
         } else {
             return MAKE_INVALID(Type);
@@ -345,7 +341,6 @@ private:
     common::AbstractMemoryManager& _mngr;
 
     std::string _name;
-    bool _isExtern;
     bool _isAbstract;
 
     std::vector<ast::TypeSpecifier*> _fields;
@@ -720,9 +715,15 @@ void Module::externDef(const std::string& defName, Type defType) {
     }
 }
 
+void Module::externTypeDef(const std::string& typeName, Type type) {
+    if (_impl) {
+        _impl->typeDef(typeName, type, true);
+    }
+}
+
 void Module::typeDef(const std::string& typeName, Type type) {
     if (_impl) {
-        _impl->typeDef(typeName, type);
+        _impl->typeDef(typeName, type, false);
     }
 }
 

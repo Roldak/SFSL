@@ -50,7 +50,9 @@ void AST2BAST::visit(ast::ModuleDecl* module) {
 }
 
 void AST2BAST::visit(ast::TypeDecl* tdecl) {
-    addDefinitionToProgram<GlobalDef>(tdecl->getSymbol(), transform(tdecl->getExpression()));
+    if (!tdecl->isExtern()) {
+        addDefinitionToProgram<GlobalDef>(tdecl->getSymbol(), transform(tdecl->getExpression()));
+    }
     makeUnit();
 }
 

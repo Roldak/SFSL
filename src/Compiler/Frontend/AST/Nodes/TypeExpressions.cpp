@@ -28,10 +28,9 @@ ClassDecl::ClassDecl(const std::string& name,
                      const std::vector<TypeDecl*>& tdecls,
                      const std::vector<TypeSpecifier*>& fields,
                      const std::vector<DefineDecl*>& defs,
-                     bool isExtern,
                      bool isAbstract)
 
-    : _name(name), _parent(parent), _tdecls(tdecls), _fields(fields), _defs(defs), _isExtern(isExtern), _isAbstract(isAbstract)
+    : _name(name), _parent(parent), _tdecls(tdecls), _fields(fields), _defs(defs), _isAbstract(isAbstract)
 {
 
 }
@@ -60,10 +59,6 @@ const std::vector<TypeSpecifier*>& ClassDecl::getFields() const {
 
 const std::vector<DefineDecl*>& ClassDecl::getDefs() const{
     return _defs;
-}
-
-bool ClassDecl::isExtern() const {
-    return _isExtern;
 }
 
 bool ClassDecl::isAbstract() const {

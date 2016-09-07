@@ -111,7 +111,7 @@ void ASTDefaultTypeFromKindCreator::visit(ProperTypeKindSpecifier*) {
                                            std::vector<TypeDecl*>(),
                                            std::vector<TypeSpecifier*>(),
                                            std::vector<DefineDecl*>(),
-                                           false, false);
+                                           false);
 
     clss->setScope(_mngr.New<sym::Scope>(nullptr));
     clss->setParameters(_parameters);
@@ -177,7 +177,7 @@ TypeDecl* ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(ASTNode* node
 
     type::Type* t = ASTTypeCreator::createType(expr, ctx);
 
-    TypeDecl* tdecl = ctx->memoryManager().New<TypeDecl>(ctx->memoryManager().New<TypeIdentifier>(name), expr);
+    TypeDecl* tdecl = ctx->memoryManager().New<TypeDecl>(ctx->memoryManager().New<TypeIdentifier>(name), expr, false);
 
     sym::TypeSymbol* ts = ctx->memoryManager().New<sym::TypeSymbol>(name, name, tdecl);
 

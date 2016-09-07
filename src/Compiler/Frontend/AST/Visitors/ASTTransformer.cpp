@@ -40,7 +40,8 @@ void ASTTransformer::visit(ModuleDecl* mod) {
 void ASTTransformer::visit(TypeDecl* tdecl) {
     update(tdecl,
            transform<TypeIdentifier>(tdecl->getName()),
-           transform<TypeExpression>(tdecl->getExpression()));
+           transform<TypeExpression>(tdecl->getExpression()),
+           tdecl->isExtern());
 }
 
 void ASTTransformer::visit(ClassDecl* clss){
@@ -49,7 +50,7 @@ void ASTTransformer::visit(ClassDecl* clss){
            transform<TypeDecl>(clss->getTypeDecls()),
            transform<TypeSpecifier>(clss->getFields()),
            transform<DefineDecl>(clss->getDefs()),
-           clss->isExtern(), clss->isAbstract());
+           clss->isAbstract());
 }
 
 void ASTTransformer::visit(DefineDecl* decl) {

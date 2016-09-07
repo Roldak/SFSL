@@ -75,21 +75,18 @@ void ScopeGeneration::visit(ModuleDecl* module) {
 
 void ScopeGeneration::visit(TypeDecl* tdecl) {
     createSymbol(tdecl);
+    if (tdecl->isExtern() && !isValidAbsolutePath()) {
+        reportInvalidExternUsage(*tdecl);
+    }
 
     pushScope(tdecl->getSymbol());
-    pushPathPart(tdecl->getName()->getValue(), false);
 
     ASTImplicitVisitor::visit(tdecl);
 
-    popPathPart();
     popScope();
 }
 
 void ScopeGeneration::visit(ClassDecl* clss) {
-    if (clss->isExtern()) {
-        reportPotentiallyInvalidExternUsage(*clss);
-    }
-
     pushScope(clss, _currentThis != nullptr);
     pushPathPart(clss->getName(), false);
 
@@ -105,8 +102,8 @@ void ScopeGeneration::visit(ClassDecl* clss) {
 
 void ScopeGeneration::visit(DefineDecl* def) {
     createSymbol(def, _currentThis);
-    if (def->isExtern()) {
-        reportPotentiallyInvalidExternUsage(*def);
+    if (def->isExtern() && !isValidAbsolutePath()) {
+        reportInvalidExternUsage(*def);
     }
 
     pushScope(def->getSymbol(), _currentThis == nullptr);
@@ -168,6 +165,8 @@ void ScopeGeneration::visit(TypeConstructorCreation* tc) {
     }
 
     generateTypeParametersSymbols(args, true);
+
+    //SAVE_MEMBER_AND_SET(_nextTypeExpr)
 
     tc->getBody()->onVisit(this);
 
@@ -353,10 +352,8 @@ void ScopeGeneration::popPathPart() {
     }
 }
 
-void ScopeGeneration::reportPotentiallyInvalidExternUsage(const common::Positionnable& pos) const {
-    if (!isValidAbsolutePath()) {
-        _ctx->reporter().error(pos, "extern can only be used for module-level declarations or inside classes that are declared at module-level");
-    }
+void ScopeGeneration::reportInvalidExternUsage(const common::Positionnable& pos) const {
+    _ctx->reporter().error(pos, "extern can only be used for module-level declarations or inside classes that are declared at module-level");
 }
 
 // TYPE DEPENDENCY FIXATION
