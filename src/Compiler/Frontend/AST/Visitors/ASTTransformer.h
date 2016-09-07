@@ -76,7 +76,7 @@ protected:
             if (!canReturnNull) {
                 _ctx->reporter().fatal(*node, "AST transformer produced nothing though it was no allowed to");
             }
-        } else if (!isNodeOfType<T>(static_cast<ASTNode*>(_created), _ctx)) {
+        } else if (!isNodeOfType<T>(_created, _ctx)) {
             _ctx->reporter().fatal(*node, "AST transformer produced wrong kind of node");
         }
 
@@ -94,7 +94,7 @@ protected:
         return newNodes;
     }
 
-    void set(void* node) {
+    void set(ASTNode* node) {
         _created = node;
     }
 
@@ -167,7 +167,7 @@ protected:
     IMPL_TRAIT_SAVER_RESTORER(Positionnable, common::Positionnable)
     IMPL_TEMPLATED_TRAIT_SAVER_RESTORER(Symbolic, sym::Symbolic)
 
-    void* _created;
+    ASTNode* _created;
 };
 
 }
