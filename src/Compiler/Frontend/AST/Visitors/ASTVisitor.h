@@ -13,11 +13,6 @@
 #include "../Nodes/Program.h"
 #include "../../../Common/CompilationContext.h"
 
-#define SAVE_SCOPE(expr)  \
-    sym::Scope* __last_scope__ = _curScope; \
-    _curScope = (expr)->getScope();
-#define RESTORE_SCOPE _curScope = __last_scope__;
-
 #define OLD(memberName) __old##memberName
 #define SAVE_MEMBER(memberName) auto OLD(memberName) = memberName;
 #define SAVE_MEMBER_AND_SET(memberName, value) \

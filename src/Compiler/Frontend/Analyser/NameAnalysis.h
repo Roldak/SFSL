@@ -21,40 +21,7 @@ namespace ast {
 /**
  * @brief
  */
-class ScopePossessorVisitor : public ASTImplicitVisitor {
-protected:
-    ScopePossessorVisitor(CompCtx_Ptr& ctx);
-    virtual ~ScopePossessorVisitor();
-
-    template<typename T, typename U>
-    T* createSymbol(U* node);
-
-    template<typename T, typename S>
-    void initCreated(T* id, S* s);
-
-    void buildUsingsFromPaths(const CanUseModules* canUseModules);
-
-    sym::DefinitionSymbol* createSymbol(DefineDecl* node, TypeExpression* currentThis);
-    sym::TypeSymbol* createSymbol(TypeDecl* node);
-
-    void tryAddSymbol(sym::Symbol* sym);
-
-    void pushPathPart(const std::string& nameSymbol, bool becomesInvalid);
-    bool isValidAbsolutePath() const;
-    std::string absoluteName(const std::string& symName);
-    void popPathPart();
-    void reportPotentiallyInvalidExternUsage(const common::Positionnable& pos) const;
-
-    std::vector<std::string> _symbolPath;
-    size_t _invalidFrom;
-
-    sym::Scope* _curScope;
-};
-
-/**
- * @brief
- */
-class ScopeGeneration : public ScopePossessorVisitor {
+class ScopeGeneration : public ASTImplicitVisitor {
 public:
 
     ScopeGeneration(CompCtx_Ptr& ctx);
@@ -84,6 +51,27 @@ private:
     void popScope();
 
     void generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams, bool allowVarianceAnnotations);
+
+    template<typename T, typename U>
+    T* createSymbol(U* node);
+    sym::DefinitionSymbol* createSymbol(DefineDecl* node, TypeExpression* currentThis);
+    sym::TypeSymbol* createSymbol(TypeDecl* node);
+
+    template<typename T, typename S>
+    void initCreated(T* id, S* s);
+
+    void tryAddSymbol(sym::Symbol* sym);
+
+    void pushPathPart(const std::string& nameSymbol, bool becomesInvalid);
+    bool isValidAbsolutePath() const;
+    std::string absoluteName(const std::string& symName);
+    void popPathPart();
+    void reportPotentiallyInvalidExternUsage(const common::Positionnable& pos) const;
+
+    sym::Scope* _curScope;
+
+    std::vector<std::string> _symbolPath;
+    size_t _invalidFrom;
 
     TypeExpression* _currentThis;
     FunctionTypeDecl* _nextMethodDecl;
@@ -119,7 +107,7 @@ private:
 /**
  * @brief
  */
-class SymbolAssignation : public ScopePossessorVisitor {
+class SymbolAssignation : public ASTImplicitVisitor {
 public:
 
     SymbolAssignation(CompCtx_Ptr& ctx);
@@ -144,6 +132,8 @@ public:
 
 private:
 
+    void buildUsingsFromPaths(const CanUseModules* canUseModules);
+
     template<typename T>
     void assignIdentifier(T* id);
 
@@ -157,6 +147,8 @@ private:
     void assignFromTypeScope(T* mac, type::Type* t);
 
     bool visitParent(ClassDecl* clss);
+
+    sym::Scope* _curScope;
 
     std::set<TypeExpression*> _temporarilyVisitedTypes;
     std::set<TypeExpression*> _visitedTypes;

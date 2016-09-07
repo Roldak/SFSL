@@ -15,100 +15,23 @@
 #include "../AST/Visitors/ASTKindCreator.h"
 #include "../AST/Visitors/ASTExpr2TypeExpr.h"
 
+#define SAVE_SCOPE(expr)  \
+    sym::Scope* __last_scope__ = _curScope; \
+    _curScope = (expr)->getScope();
+#define RESTORE_SCOPE _curScope = __last_scope__;
+
 //#define DEBUG_DEPENDENCIES
 
 namespace sfsl {
 
 namespace ast {
 
-// SCOPE POSSESSOR VISITOR
-
 const size_t size_t_max = std::numeric_limits<size_t>::max();
-
-ScopePossessorVisitor::ScopePossessorVisitor(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx), _invalidFrom(size_t_max), _curScope(nullptr) {
-
-}
-
-ScopePossessorVisitor::~ScopePossessorVisitor() {
-
-}
-
-void ScopePossessorVisitor::buildUsingsFromPaths(const CanUseModules* canUseModules) {
-    _curScope->buildUsingsFromPaths(_ctx, *canUseModules);
-}
-
-void ScopePossessorVisitor::tryAddSymbol(sym::Symbol* sym) {
-    if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
-        _ctx->reporter().error(*sym, std::string("Multiple definitions of symbol '") +
-                                     sym->getName() + "' were found.");
-        _ctx->reporter().info(*oldSymbol, "First instance here");
-    }
-}
-
-template<typename T, typename U>
-T* ScopePossessorVisitor::createSymbol(U* node) {
-    std::string symName = node->getName()->getValue();
-    T* sym = _mngr.New<T>(symName, absoluteName(symName));
-    initCreated(node, sym);
-    return sym;
-}
-
-sym::DefinitionSymbol* ScopePossessorVisitor::createSymbol(DefineDecl* node, TypeExpression* currentThis) {
-    std::string symName = node->getName()->getValue();
-    sym::DefinitionSymbol* sym = _mngr.New<sym::DefinitionSymbol>(symName, absoluteName(symName), node, currentThis);
-    initCreated(node, sym);
-    return sym;
-}
-
-sym::TypeSymbol* ScopePossessorVisitor::createSymbol(TypeDecl* node) {
-    std::string symName = node->getName()->getValue();
-    sym::TypeSymbol* sym = _mngr.New<sym::TypeSymbol>(symName, absoluteName(symName), node);
-    initCreated(node, sym);
-    return sym;
-}
-
-template<typename T, typename S>
-void ScopePossessorVisitor::initCreated(T* id, S* s) {
-    s->setPos(*id);
-    id->setSymbol(s);
-    tryAddSymbol(s);
-}
-
-void ScopePossessorVisitor::pushPathPart(const std::string& name, bool becomesInvalid) {
-    _symbolPath.push_back(name);
-    if (becomesInvalid) {
-        _invalidFrom = std::min(_invalidFrom, _symbolPath.size());
-    }
-}
-
-bool ScopePossessorVisitor::isValidAbsolutePath() const {
-    return _symbolPath.size() < _invalidFrom;
-}
-
-std::string ScopePossessorVisitor::absoluteName(const std::string& symName) {
-    if (isValidAbsolutePath()) {
-        return utils::join(_symbolPath, ".") + "." + symName;
-    } else {
-        return "";
-    }
-}
-
-void ScopePossessorVisitor::popPathPart() {
-    _symbolPath.pop_back();
-    if (isValidAbsolutePath()) {
-        _invalidFrom = size_t_max;
-    }
-}
-
-void ScopePossessorVisitor::reportPotentiallyInvalidExternUsage(const common::Positionnable& pos) const {
-    if (!isValidAbsolutePath()) {
-        _ctx->reporter().error(pos, "extern can only be used for module-level declarations or inside classes that are declared at module-level");
-    }
-}
 
 // SCOPE GENERATION
 
-ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx) : ScopePossessorVisitor(ctx), _currentThis(nullptr) {
+ScopeGeneration::ScopeGeneration(CompCtx_Ptr &ctx)
+    : ASTImplicitVisitor(ctx), _curScope(nullptr), _invalidFrom(size_t_max), _currentThis(nullptr) {
 }
 
 ScopeGeneration::~ScopeGeneration() {
@@ -367,6 +290,75 @@ void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpres
     }
 }
 
+template<typename T, typename U>
+T* ScopeGeneration::createSymbol(U* node) {
+    std::string symName = node->getName()->getValue();
+    T* sym = _mngr.New<T>(symName, absoluteName(symName));
+    initCreated(node, sym);
+    return sym;
+}
+
+sym::DefinitionSymbol* ScopeGeneration::createSymbol(DefineDecl* node, TypeExpression* currentThis) {
+    std::string symName = node->getName()->getValue();
+    sym::DefinitionSymbol* sym = _mngr.New<sym::DefinitionSymbol>(symName, absoluteName(symName), node, currentThis);
+    initCreated(node, sym);
+    return sym;
+}
+
+sym::TypeSymbol* ScopeGeneration::createSymbol(TypeDecl* node) {
+    std::string symName = node->getName()->getValue();
+    sym::TypeSymbol* sym = _mngr.New<sym::TypeSymbol>(symName, absoluteName(symName), node);
+    initCreated(node, sym);
+    return sym;
+}
+
+template<typename T, typename S>
+void ScopeGeneration::initCreated(T* id, S* s) {
+    s->setPos(*id);
+    id->setSymbol(s);
+    tryAddSymbol(s);
+}
+
+void ScopeGeneration::tryAddSymbol(sym::Symbol* sym) {
+    if (sym::Symbol* oldSymbol = _curScope->addSymbol(sym)) {
+        _ctx->reporter().error(*sym, std::string("Multiple definitions of symbol '") +
+                                     sym->getName() + "' were found.");
+        _ctx->reporter().info(*oldSymbol, "First instance here");
+    }
+}
+
+void ScopeGeneration::pushPathPart(const std::string& name, bool becomesInvalid) {
+    _symbolPath.push_back(name);
+    if (becomesInvalid) {
+        _invalidFrom = std::min(_invalidFrom, _symbolPath.size());
+    }
+}
+
+bool ScopeGeneration::isValidAbsolutePath() const {
+    return _symbolPath.size() < _invalidFrom;
+}
+
+std::string ScopeGeneration::absoluteName(const std::string& symName) {
+    if (isValidAbsolutePath()) {
+        return utils::join(_symbolPath, ".") + "." + symName;
+    } else {
+        return "";
+    }
+}
+
+void ScopeGeneration::popPathPart() {
+    _symbolPath.pop_back();
+    if (isValidAbsolutePath()) {
+        _invalidFrom = size_t_max;
+    }
+}
+
+void ScopeGeneration::reportPotentiallyInvalidExternUsage(const common::Positionnable& pos) const {
+    if (!isValidAbsolutePath()) {
+        _ctx->reporter().error(pos, "extern can only be used for module-level declarations or inside classes that are declared at module-level");
+    }
+}
+
 // TYPE DEPENDENCY FIXATION
 
 
@@ -495,7 +487,7 @@ void TypeDependencyFixation::debugDumpDependencies(const T* param) const {
 
 // SYMBOL ASSIGNATION
 
-SymbolAssignation::SymbolAssignation(CompCtx_Ptr& ctx) : ScopePossessorVisitor(ctx) {
+SymbolAssignation::SymbolAssignation(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx), _curScope(nullptr) {
 }
 
 SymbolAssignation::~SymbolAssignation() {
@@ -628,40 +620,8 @@ void SymbolAssignation::visit(Identifier* id) {
     assignIdentifier(id);
 }
 
-bool SymbolAssignation::visitParent(ClassDecl* clss) {
-    if (_temporarilyVisitedTypes.find(clss) != _temporarilyVisitedTypes.end()) {
-        _ctx->reporter().error(*clss, "Class " + clss->getName() + " is part of an inheritance cycle");
-        return false;
-    }
-
-    if (_visitedTypes.find(clss) == _visitedTypes.end()) { // if unmarked
-        auto it = _temporarilyVisitedTypes.insert(clss).first; // mark temporarily
-
-        if (clss->getParent()) {
-            SAVE_SCOPE(clss)
-
-            clss->getParent()->onVisit(this);
-            if (type::Type* parentType = ASTTypeCreator::createType(clss->getParent(), _ctx)) {
-                if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
-                    ClassDecl* parentClass = parent->getClass();
-
-                    if (visitParent(parentClass)) {
-                        _curScope->copySymbolsFrom(parentClass->getScope(), parent->getEnvironment(), sym::Scope::ExcludeConstructors);
-                        clss->addSuperType(parentClass, parent->getEnvironment());
-                    }
-                }
-            }
-
-            RESTORE_SCOPE
-        }
-
-        clss->addSpecialSuperType(clss, ASTTypeCreator::buildEnvironmentFromTypeParametrizable(clss));
-
-        _temporarilyVisitedTypes.erase(it); // unmark temporarily
-        _visitedTypes.insert(clss); // mark permantently
-    }
-
-    return true;
+void SymbolAssignation::buildUsingsFromPaths(const CanUseModules* canUseModules) {
+    _curScope->buildUsingsFromPaths(_ctx, *canUseModules);
 }
 
 template<typename T>
@@ -709,6 +669,42 @@ void SymbolAssignation::assignFromTypeScope(T* mac, type::Type* t) {
     } else {
         _ctx->reporter().error(*mac->getAccessed(), "Type " + t->toString() + " cannot have any members");
     }
+}
+
+bool SymbolAssignation::visitParent(ClassDecl* clss) {
+    if (_temporarilyVisitedTypes.find(clss) != _temporarilyVisitedTypes.end()) {
+        _ctx->reporter().error(*clss, "Class " + clss->getName() + " is part of an inheritance cycle");
+        return false;
+    }
+
+    if (_visitedTypes.find(clss) == _visitedTypes.end()) { // if unmarked
+        auto it = _temporarilyVisitedTypes.insert(clss).first; // mark temporarily
+
+        if (clss->getParent()) {
+            SAVE_SCOPE(clss)
+
+            clss->getParent()->onVisit(this);
+            if (type::Type* parentType = ASTTypeCreator::createType(clss->getParent(), _ctx)) {
+                if (type::ProperType* parent = type::getIf<type::ProperType>(parentType->apply(_ctx))) {
+                    ClassDecl* parentClass = parent->getClass();
+
+                    if (visitParent(parentClass)) {
+                        _curScope->copySymbolsFrom(parentClass->getScope(), parent->getEnvironment(), sym::Scope::ExcludeConstructors);
+                        clss->addSuperType(parentClass, parent->getEnvironment());
+                    }
+                }
+            }
+
+            RESTORE_SCOPE
+        }
+
+        clss->addSpecialSuperType(clss, ASTTypeCreator::buildEnvironmentFromTypeParametrizable(clss));
+
+        _temporarilyVisitedTypes.erase(it); // unmark temporarily
+        _visitedTypes.insert(clss); // mark permantently
+    }
+
+    return true;
 }
 
 }
