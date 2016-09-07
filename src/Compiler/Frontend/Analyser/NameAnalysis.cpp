@@ -75,13 +75,14 @@ void ScopeGeneration::visit(ModuleDecl* module) {
 
 void ScopeGeneration::visit(TypeDecl* tdecl) {
     createSymbol(tdecl);
+    if (tdecl->isExtern() && !isValidAbsolutePath()) {
+        reportInvalidExternUsage(*tdecl);
+    }
 
     pushScope(tdecl->getSymbol());
-    pushPathPart(tdecl->getName()->getValue(), false);
 
     ASTImplicitVisitor::visit(tdecl);
 
-    popPathPart();
     popScope();
 }
 
