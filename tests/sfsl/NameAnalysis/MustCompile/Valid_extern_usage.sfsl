@@ -1,0 +1,12 @@
+module test {
+	using sfsl.lang
+	class A {
+		extern def f: int
+		type T = class {
+			extern def g: int
+		}
+		extern class B {
+			
+		}
+	}
+}

@@ -1,0 +1,11 @@
+module test {
+	using sfsl.lang
+	
+	def test() => {
+		class A {
+			extern class B {
+				
+			}
+		};
+	}
+}

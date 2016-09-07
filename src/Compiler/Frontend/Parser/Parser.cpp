@@ -295,19 +295,11 @@ Expression* Parser::parseStatement() {
         case tok::KW_IF:    reportErroneousAnnotations(); return parseIf(true);
 
         case tok::KW_ABSTRACT:
-        case tok::KW_EXTERN: {
-            bool isExtern = accept(tok::KW_EXTERN);
-            bool isAbstract = accept(tok::KW_ABSTRACT);
-            isExtern = isExtern || accept(tok::KW_EXTERN); // also handle `extern` being after `abstract`
-
-            SAVE_POS(externElemPos)
-
             if (accept(tok::KW_CLASS)) {
-                return expectSemicolonAndReturn(desugarTopLevelClassDecl(isExtern, isAbstract));
+                return expectSemicolonAndReturn(desugarTopLevelClassDecl(false, true));
             }
-            _ctx->reporter().error(externElemPos, "Expected `class` keyword after `extern` or `abstract` flag");
+            _ctx->reporter().error(startPos, "Expected `class` keyword after `abstract` flag");
             return nullptr;
-        }
 
         case tok::KW_REDEF:
             reportErroneousAnnotations();

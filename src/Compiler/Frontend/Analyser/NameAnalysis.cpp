@@ -23,7 +23,9 @@ namespace ast {
 
 // SCOPE POSSESSOR VISITOR
 
-ScopePossessorVisitor::ScopePossessorVisitor(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx), _curScope(nullptr) {
+const size_t size_t_max = std::numeric_limits<size_t>::max();
+
+ScopePossessorVisitor::ScopePossessorVisitor(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx), _invalidFrom(size_t_max), _curScope(nullptr) {
 
 }
 
@@ -72,16 +74,36 @@ void ScopePossessorVisitor::initCreated(T* id, S* s) {
     tryAddSymbol(s);
 }
 
-void ScopePossessorVisitor::pushPathPart(const std::string& name) {
+void ScopePossessorVisitor::pushPathPart(const std::string& name, bool becomesInvalid) {
     _symbolPath.push_back(name);
+    if (becomesInvalid) {
+        _invalidFrom = std::min(_invalidFrom, _symbolPath.size());
+    }
+}
+
+bool ScopePossessorVisitor::isValidAbsolutePath() const {
+    return _symbolPath.size() < _invalidFrom;
 }
 
 std::string ScopePossessorVisitor::absoluteName(const std::string& symName) {
-    return utils::join(_symbolPath, ".") + "." + symName;
+    if (isValidAbsolutePath()) {
+        return utils::join(_symbolPath, ".") + "." + symName;
+    } else {
+        return "";
+    }
 }
 
 void ScopePossessorVisitor::popPathPart() {
     _symbolPath.pop_back();
+    if (isValidAbsolutePath()) {
+        _invalidFrom = size_t_max;
+    }
+}
+
+void ScopePossessorVisitor::reportPotentiallyInvalidExternUsage(const common::Positionnable& pos) const {
+    if (!isValidAbsolutePath()) {
+        _ctx->reporter().error(pos, "extern can only be used for module-level declarations or inside classes that are declared at module-level");
+    }
 }
 
 // SCOPE GENERATION
@@ -108,7 +130,7 @@ void ScopeGeneration::visit(ModuleDecl* module) {
         sym::Scope* last = _curScope;
         _curScope = mod->getScope();
 
-        pushPathPart(module->getName()->getValue());
+        pushPathPart(module->getName()->getValue(), false);
 
         ASTImplicitVisitor::visit(module);
 
@@ -119,7 +141,7 @@ void ScopeGeneration::visit(ModuleDecl* module) {
         createSymbol<sym::ModuleSymbol>(module);
 
         pushScope(module->getSymbol());
-        pushPathPart(module->getName()->getValue());
+        pushPathPart(module->getName()->getValue(), false);
 
         ASTImplicitVisitor::visit(module);
 
@@ -132,15 +154,21 @@ void ScopeGeneration::visit(TypeDecl* tdecl) {
     createSymbol(tdecl);
 
     pushScope(tdecl->getSymbol());
+    pushPathPart(tdecl->getName()->getValue(), false);
 
     ASTImplicitVisitor::visit(tdecl);
 
+    popPathPart();
     popScope();
 }
 
 void ScopeGeneration::visit(ClassDecl* clss) {
+    if (clss->isExtern()) {
+        reportPotentiallyInvalidExternUsage(*clss);
+    }
+
     pushScope(clss, _currentThis != nullptr);
-    pushPathPart(clss->getName());
+    pushPathPart(clss->getName(), false);
 
     SAVE_MEMBER_AND_SET(_currentThis, clss)
 
@@ -154,9 +182,12 @@ void ScopeGeneration::visit(ClassDecl* clss) {
 
 void ScopeGeneration::visit(DefineDecl* def) {
     createSymbol(def, _currentThis);
+    if (def->isExtern()) {
+        reportPotentiallyInvalidExternUsage(*def);
+    }
 
     pushScope(def->getSymbol(), _currentThis == nullptr);
-    pushPathPart(def->getName()->getValue());
+    pushPathPart(def->getName()->getValue(), true);
 
     if (_currentThis) {
         if (TypeExpression* texpr = def->getTypeSpecifier()) {

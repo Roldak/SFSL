@@ -39,11 +39,14 @@ protected:
 
     void tryAddSymbol(sym::Symbol* sym);
 
-    void pushPathPart(const std::string& nameSymbol);
+    void pushPathPart(const std::string& nameSymbol, bool becomesInvalid);
+    bool isValidAbsolutePath() const;
     std::string absoluteName(const std::string& symName);
     void popPathPart();
+    void reportPotentiallyInvalidExternUsage(const common::Positionnable& pos) const;
 
     std::vector<std::string> _symbolPath;
+    size_t _invalidFrom;
 
     sym::Scope* _curScope;
 };
