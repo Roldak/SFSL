@@ -150,7 +150,7 @@ public:
         bast::BASTPrinter printer(std::cout);
 
         bast::Program* bprog = a2b.transform(prog);
-        bprog->onVisit(&simplifier);
+        //bprog->onVisit(&simplifier);
         bprog->onVisit(&printer);
 
         pctx.output("bprog", bprog);

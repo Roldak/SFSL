@@ -135,7 +135,7 @@ class TypeDecl :
         public Annotable {
 public:
 
-    TypeDecl(TypeIdentifier* id, TypeExpression* exp);
+    TypeDecl(TypeIdentifier* id, TypeExpression* exp, bool isExtern);
     virtual ~TypeDecl();
 
     SFSL_AST_ON_VISIT_H
@@ -150,10 +150,16 @@ public:
      */
     TypeExpression* getExpression() const;
 
+    /**
+     * @return @return True if the type definition is marked with the `extern` flag
+     */
+    bool isExtern() const;
+
 private:
 
     TypeIdentifier* _name;
     TypeExpression* _exp;
+    bool _isExtern;
 };
 
 /**

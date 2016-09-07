@@ -246,12 +246,12 @@ public:
         _ddecls.push_back(mngr.New<ast::DefineDecl>(nameId, defType._impl->_type, nullptr, false, true, false));
     }
 
-    void typeDef(const std::string& name, Type type) {
+    void typeDef(const std::string& name, Type type, bool isExtern) {
         if (!type) {
             throw CompileError("Type to typedef was not valid");
         }
 
-        _tdecls.push_back(mngr.New<ast::TypeDecl>(mngr.New<ast::TypeIdentifier>(name), type._impl->_type));
+        _tdecls.push_back(mngr.New<ast::TypeDecl>(mngr.New<ast::TypeIdentifier>(name), type._impl->_type, isExtern));
     }
 
     common::AbstractMemoryManager& mngr;
@@ -715,9 +715,15 @@ void Module::externDef(const std::string& defName, Type defType) {
     }
 }
 
+void Module::externTypeDef(const std::string& typeName, Type type) {
+    if (_impl) {
+        _impl->typeDef(typeName, type, true);
+    }
+}
+
 void Module::typeDef(const std::string& typeName, Type type) {
     if (_impl) {
-        _impl->typeDef(typeName, type);
+        _impl->typeDef(typeName, type, false);
     }
 }
 

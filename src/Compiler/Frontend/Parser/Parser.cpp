@@ -182,9 +182,9 @@ ModuleDecl* Parser::parseModule() {
         if (accept(tok::KW_MODULE)) {
             mods.push_back(parseModule());
         } else if (accept(tok::KW_TPE)) {
-            types.push_back(parseTypeDecl());
+            types.push_back(parseTypeDecl(consumeBool(isExtern)));
         } else if (accept(tok::KW_CLASS)) {
-            types.push_back(desugarTopLevelClassDecl(consumeBool(isAbstract)));
+            types.push_back(desugarTopLevelClassDecl(consumeBool(isExtern), consumeBool(isAbstract)));
         } else if (accept(tok::KW_DEF)) {
             decls.push_back(parseDef(false, consumeBool(isExtern), false));
         } else if (accept(tok::KW_USING)) {
@@ -259,7 +259,7 @@ ClassDecl* Parser::parseClass(bool isAbstract) {
     return parseClassBody(isAbstract, className, startPos);
 }
 
-TypeDecl* Parser::parseTypeDecl() {
+TypeDecl* Parser::parseTypeDecl(bool isExtern) {
     std::vector<Annotation*> annots(std::move(consumeAnnotations()));
 
     TypeIdentifier* typeName = parseTypeIdentifier("Expected type name");
@@ -272,7 +272,7 @@ TypeDecl* Parser::parseTypeDecl() {
 
     _currentTypeName = lastTypeName;
 
-    TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr);
+    TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr, isExtern);
     typeDecl->setAnnotations(annots);
     typeDecl->setPos(*typeName);
     typeDecl->setEndPos(_lastTokenEndPos);
@@ -290,13 +290,13 @@ Expression* Parser::parseStatement() {
 
         switch (kw) {
         case tok::KW_DEF:   return expectSemicolonAndReturn(parseDef(false, false, false));
-        case tok::KW_TPE:   return expectSemicolonAndReturn(parseTypeDecl());
-        case tok::KW_CLASS: return expectSemicolonAndReturn(desugarTopLevelClassDecl(false));
+        case tok::KW_TPE:   return expectSemicolonAndReturn(parseTypeDecl(false));
+        case tok::KW_CLASS: return expectSemicolonAndReturn(desugarTopLevelClassDecl(false, false));
         case tok::KW_IF:    reportErroneousAnnotations(); return parseIf(true);
 
         case tok::KW_ABSTRACT:
             if (accept(tok::KW_CLASS)) {
-                return expectSemicolonAndReturn(desugarTopLevelClassDecl(true));
+                return expectSemicolonAndReturn(desugarTopLevelClassDecl(false, true));
             }
             _ctx->reporter().error(startPos, "Expected `class` keyword after `abstract` flag");
             return nullptr;
@@ -1169,9 +1169,9 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
             }
 
             if (accept(tok::KW_TPE)) {
-                tdecls.push_back(parseTypeDecl());
+                tdecls.push_back(parseTypeDecl(consumeBool(isExtern)));
             } else if (accept(tok::KW_CLASS)) {
-                tdecls.push_back(desugarTopLevelClassDecl(consumeBool(isAbstract)));
+                tdecls.push_back(desugarTopLevelClassDecl(consumeBool(isExtern), consumeBool(isAbstract)));
             } else if (accept(tok::KW_NEW)) {
                 Identifier* id = _mngr.New<Identifier>("new");
                 id->setPos(externElemPos);
@@ -1266,7 +1266,7 @@ void Parser::desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std:
     defs.push_back(constrDecl);
 }
 
-TypeDecl* Parser::desugarTopLevelClassDecl(bool isAbstract) {
+TypeDecl* Parser::desugarTopLevelClassDecl(bool isExtern, bool isAbstract) {
     TypeIdentifier* typeName = parseTypeIdentifier("Expected type name");
     accept(tok::OPER_EQ);
 
@@ -1282,7 +1282,7 @@ TypeDecl* Parser::desugarTopLevelClassDecl(bool isAbstract) {
         expr = parseClassBody(isAbstract, typeName->getValue(), *typeName);
     }
 
-    TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr);
+    TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr, isExtern);
     typeDecl->setPos(*typeName);
     typeDecl->setEndPos(_lastTokenEndPos);
     return typeDecl;

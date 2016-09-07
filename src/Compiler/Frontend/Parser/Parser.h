@@ -98,7 +98,7 @@ private:
     ast::ModuleDecl* parseModule();
     ast::DefineDecl* parseDef(bool isRedef, bool isExtern, bool isAbstract, ast::Identifier* name = nullptr);
     ast::ClassDecl* parseClass(bool isAbstract);
-    ast::TypeDecl* parseTypeDecl();
+    ast::TypeDecl* parseTypeDecl(bool isExtern);
 
         // statements
 
@@ -158,7 +158,7 @@ private:
     ast::ClassDecl* parseClassBody(bool isAbstract, const std::string& className, const common::Positionnable& startPos);
 
     void desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std::vector<DefineDecl*>& defs);
-    TypeDecl* desugarTopLevelClassDecl(bool isAbstract);
+    TypeDecl* desugarTopLevelClassDecl(bool isExtern, bool isAbstract);
 
     // Members
 
