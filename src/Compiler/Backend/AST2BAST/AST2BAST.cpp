@@ -358,14 +358,9 @@ bool AST2BAST::isVisibleDef(T* def) const {
 
 template<typename BAST_NODE, typename DEF, typename... BAST_ARGS_REST>
 void AST2BAST::addDefinitionToProgram(DEF* def, BAST_ARGS_REST... args) {
-    std::string defId = getDefId(def);
-    BAST_NODE* node = make<BAST_NODE>(defId, std::forward<BAST_ARGS_REST>(args)...);
+    BAST_NODE* node = make<BAST_NODE>(getDefId(def), std::forward<BAST_ARGS_REST>(args)...);
     if (isVisibleDef(def)) {
-        if (TRY_INSERT(_usedVisibleNames, defId)) {
-            _visibleDefs.push_back(node);
-        } else {
-            _ctx->reporter().error(*def, std::string("Duplicate symbol `") + defId + "`");
-        }
+        _visibleDefs.push_back(node);
     } else {
         _hiddenDefs.push_back(node);
     }

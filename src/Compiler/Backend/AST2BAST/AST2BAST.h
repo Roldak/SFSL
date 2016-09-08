@@ -9,8 +9,6 @@
 #ifndef __SFSL__AST2BAST__
 #define __SFSL__AST2BAST__
 
-#include <unordered_set>
-
 #include "../../Frontend/AST/Visitors/ASTExplicitVisitor.h"
 #include "../BAST/Visitors/BASTImplicitVisitor.h"
 #include "../BAST/Visitors/BASTExplicitVisitor.h"
@@ -105,7 +103,6 @@ private:
 
     std::vector<Definition*> _visibleDefs;
     std::vector<Definition*> _hiddenDefs;
-    std::unordered_set<std::string> _usedVisibleNames;
 
     common::AbstractReporter& _rep;
     BASTNode* _created;
