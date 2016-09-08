@@ -648,7 +648,8 @@ void UserDataAssignment::visit(TypeDecl* tdecl) {
     ASTImplicitVisitor::visit(tdecl);
     sym::TypeSymbol* tsym = tdecl->getSymbol();
 
-    tsym->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(tsym), visibilityFromAnnotable(tdecl)));
+    bool isVisible = visibilityFromAnnotable(tdecl) || tdecl->isExtern();
+    tsym->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(tsym, isVisible), isVisible));
 }
 
 void UserDataAssignment::visit(ClassDecl* clss) {
@@ -717,10 +718,12 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     ASTImplicitVisitor::visit(decl);
     sym::DefinitionSymbol* def = decl->getSymbol();
 
+    bool isVisible = visibilityFromAnnotable(decl) || decl->isExtern();
+
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
-        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromSymbol(def), visibilityFromAnnotable(decl)));
+        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromSymbol(def, isVisible), isVisible));
     } else {
-        def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def), visibilityFromAnnotable(decl)));
+        def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def, isVisible), isVisible));
     }
 
     RESTORE_MEMBER(_nextConstructorExpr)
@@ -746,9 +749,9 @@ std::string UserDataAssignment::freshName(const std::string& prefix) {
     return prefix + "$" + std::to_string(_freshId++);
 }
 
-std::string UserDataAssignment::nameFromSymbol(sym::Symbol* s) {
+std::string UserDataAssignment::nameFromSymbol(sym::Symbol* s, bool isVisible) {
     const std::string& name = s->getAbsoluteName();
-    if (name == "") {
+    if (!isVisible) {
         return freshName(name);
     } else {
         return name;

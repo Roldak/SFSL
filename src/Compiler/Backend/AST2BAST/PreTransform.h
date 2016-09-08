@@ -93,7 +93,7 @@ private:
 
     size_t _freshId;
     std::string freshName(const std::string& prefix);
-    std::string nameFromSymbol(sym::Symbol* s);
+    std::string nameFromSymbol(sym::Symbol* s, bool isVisible);
     bool visibilityFromAnnotable(Annotable* a);
 
     size_t _currentVarCount;
