@@ -725,7 +725,12 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
         def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromDefSymbol(def, isVisible, success), isVisible));
     } else {
-        def->setUserdata(_mngr.New<DefUserData>(nameFromDefSymbol(def, isVisible, success), isVisible));
+        bool isEntryPoint = false;
+        decl->matchAnnotation<>("entry", [&](){ isEntryPoint = true; });
+
+        std::string name = isEntryPoint ? "$ENTRY_POINT$" : nameFromDefSymbol(def, isVisible, success);
+
+        def->setUserdata(_mngr.New<DefUserData>(name, isVisible || isEntryPoint));
     }
 
     if (decl->getTypeSpecifier()) {
