@@ -9,6 +9,7 @@
 #include "PreTransform.h"
 #include "../../Frontend/AST/Visitors/ASTTypeCreator.h"
 #include "../../Frontend/AST/Visitors/ASTAssignmentChecker.h"
+#include "../../Frontend/AST/Visitors/ASTSignaturePrinter.h"
 #include "../../Frontend/Symbols/Scope.h"
 
 namespace sfsl {
@@ -719,11 +720,20 @@ void UserDataAssignment::visit(DefineDecl* decl) {
     sym::DefinitionSymbol* def = decl->getSymbol();
 
     bool isVisible = visibilityFromAnnotable(decl) || decl->isExtern();
+    bool success;
 
     if (def->type()->getTypeKind() == type::TYPE_METHOD) {
-        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromSymbol(def, isVisible), isVisible));
+        def->setUserdata(_mngr.New<VirtualDefUserData>(nameFromDefSymbol(def, isVisible, success), isVisible));
     } else {
-        def->setUserdata(_mngr.New<DefUserData>(nameFromSymbol(def, isVisible), isVisible));
+        def->setUserdata(_mngr.New<DefUserData>(nameFromDefSymbol(def, isVisible, success), isVisible));
+    }
+
+    if (decl->getTypeSpecifier()) {
+        if (isVisible && !success) {
+            _ctx->reporter().error(*decl->getTypeSpecifier(), "Type specifier contains type declarations that cannot be imported or exported");
+        }
+    } else if (isVisible) {
+        _ctx->reporter().error(*decl, "Imported or exported definitions must have their type manually specified");
     }
 
     RESTORE_MEMBER(_nextConstructorExpr)
@@ -751,8 +761,21 @@ std::string UserDataAssignment::freshName(const std::string& prefix) {
 
 std::string UserDataAssignment::nameFromSymbol(sym::Symbol* s, bool isVisible) {
     const std::string& name = s->getAbsoluteName();
+
     if (!isVisible) {
         return freshName(name);
+    } else {
+        return name;
+    }
+}
+
+std::string UserDataAssignment::nameFromDefSymbol(sym::DefinitionSymbol* s, bool isVisible, bool& signaturePrinterSuccess) {
+    const std::string& name = s->getAbsoluteName();
+
+    if (!isVisible) {
+        return freshName(name);
+    } else if (TypeExpression* tpe = s->getDef()->getTypeSpecifier()) {
+        return name + ":" + ASTSignaturePrinter::getSignatureOf(tpe, signaturePrinterSuccess, _ctx);
     } else {
         return name;
     }

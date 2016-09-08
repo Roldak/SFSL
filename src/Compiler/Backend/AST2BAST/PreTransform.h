@@ -94,6 +94,7 @@ private:
     size_t _freshId;
     std::string freshName(const std::string& prefix);
     std::string nameFromSymbol(sym::Symbol* s, bool isVisible);
+    std::string nameFromDefSymbol(sym::DefinitionSymbol* s, bool isVisible, bool& signaturePrinterSuccess);
     bool visibilityFromAnnotable(Annotable* a);
 
     size_t _currentVarCount;

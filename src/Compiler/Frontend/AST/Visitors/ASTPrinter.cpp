@@ -173,11 +173,12 @@ void ASTPrinter::visit(FunctionTypeDecl* ftdecl) {
         _ostream << "]";
     }
     _ostream << "(";
-    for (size_t i = 0; i < ftdecl->getArgTypes().size(); ++i) {
-        ftdecl->getArgTypes()[i]->onVisit(this);
-        if (i != ftdecl->getArgTypes().size() - 1) {
+    if (ftdecl->getArgTypes().size() > 0) {
+        for (size_t i = 0; i < ftdecl->getArgTypes().size() - 1; ++i) {
+            ftdecl->getArgTypes()[i]->onVisit(this);
             _ostream << ", ";
         }
+        ftdecl->getArgTypes().back()->onVisit(this);
     }
     _ostream << ")->";
     ftdecl->getRetType()->onVisit(this);
@@ -194,12 +195,9 @@ void ASTPrinter::visit(TypeMemberAccess* tdot) {
 void ASTPrinter::visit(TypeTuple* ttuple) {
     _ostream << "[";
 
-    const std::vector<TypeExpression*>& args(ttuple->getExpressions());
-
-    for (size_t i = 0, e = args.size(); i < e; ++i) {
-        args[i]->onVisit(this);
-
-        if (i != e - 1) {
+    if (ttuple->getExpressions().size() > 0) {
+        for (size_t i = 0; i < ttuple->getExpressions().size() - 1; ++i) {
+            ttuple->getExpressions()[i]->onVisit(this);
             _ostream << ", ";
         }
     }
