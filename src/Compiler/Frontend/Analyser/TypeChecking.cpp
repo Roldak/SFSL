@@ -801,10 +801,13 @@ void TypeChecking::assignFunctionType(FunctionCreation* func,
         std::vector<type::Type*> parentTypeArgs = argTypes;
         parentTypeArgs.push_back(retType);
 
-        std::string parentName = "Func" + utils::T_toString(argTypes.size());
-        std::string absoluteParentName = utils::join(_namer.Func(argTypes.size()), ".");
         type::Type* parentType = _mngr.New<type::ConstructorApplyType>(_res.Func(argTypes.size()), parentTypeArgs);
-        sym::TypeSymbol* parentSymbol = _mngr.New<sym::TypeSymbol>(parentName, absoluteParentName, nullptr);
+        sym::TypeSymbol* parentSymbol = sym::getIfSymbolOfType<sym::TypeSymbol>(_res.getSymbol(_namer.Func(argTypes.size())));
+        if (!parentSymbol) {
+            _ctx->reporter().fatal(*func, "Could not find Func symbol");
+        }
+
+        std::string parentName = "Func" + utils::T_toString(argTypes.size());
         TypeIdentifier* parentExpr = _mngr.New<TypeIdentifier>(parentName);
 
         parentExpr->setSymbol(parentSymbol);
