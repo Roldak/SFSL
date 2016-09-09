@@ -220,12 +220,11 @@ int main(int argc, char** argv) {
         return 2;
     }
 
-    std::string source;
-
     std::ifstream f(sourceFile);
-    while (f.good()) {
-        source += f.get();
-    }
+    std::stringstream buffer;
+    buffer << f.rdbuf();
+
+    std::string source = buffer.str();
 
     Compiler cmp(CompilerConfig().with<opt::Reporter>(StandartReporter::EmptyReporter));
 

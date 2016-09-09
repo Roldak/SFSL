@@ -23,16 +23,14 @@ namespace sfsl {
 class SFSL_API_PUBLIC CompilerConfig final {
     typedef std::shared_ptr<void> Optval;
 
-    struct get_helper final {
-        template<int i, typename Value>
-        static void assign(const Value& value) {}
+    template<int i, typename Value>
+    static void assign(const Value& value) {}
 
-        template<int i, typename Value, typename Arg, typename ...Args>
-        static void assign(const Value& value, Arg& arg, Args&... args) {
-            arg = std::get<i>(value);
-            get_helper::assign<i + 1, Value, Args...>(value, args...);
-        }
-    };
+    template<int i, typename Value, typename Arg, typename ...Args>
+    static void assign(const Value& value, Arg& arg, Args&... args) {
+        arg = std::get<i>(value);
+        assign<i + 1, Value, Args...>(value, args...);
+    }
 
 public:
 
@@ -52,7 +50,7 @@ public:
         auto it = _options.find(Opt::getName());
         if (it != _options.end()) {
             const auto& value = *static_cast<typename Opt::Params*>(it->second.get());
-            get_helper::assign<0>(value, args...);
+            assign<0>(value, args...);
             return true;
         }
         return false;

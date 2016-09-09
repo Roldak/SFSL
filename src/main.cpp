@@ -34,12 +34,11 @@ int main(int argc, char** argv) {
     if (!sourceFile)
         sourceFile = (char*)"Examples\\test.sfsl";
 
-    std::string source;
-
     std::ifstream f(sourceFile);
-    while (f.good()) {
-        source += f.get();
-    }
+    std::stringstream buffer;
+    buffer << f.rdbuf();
+
+    std::string source = buffer.str();
 
     clock_t exec = clock();
 

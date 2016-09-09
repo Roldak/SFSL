@@ -7,6 +7,7 @@
 //
 
 #include <fstream>
+#include <sstream>
 #include <algorithm>
 
 #include "FileSystemTestGenerator.h"
@@ -86,12 +87,12 @@ void FileSystemTestGenerator::createTestsForType(TestSuiteBuilder& builder, File
 
         if (isValidEntryName(testPath)) {
             std::string testName = testNameFromTestPath(testPath);
-            std::string source;
 
             std::ifstream f(path + "/" + testPath);
-            while (f.good()) {
-                source += f.get();
-            }
+            std::stringstream buffer;
+            buffer << f.rdbuf();
+
+            std::string source = buffer.str();
 
             switch (type) {
             case MUST_COMPILE:
