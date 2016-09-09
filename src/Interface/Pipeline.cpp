@@ -121,13 +121,11 @@ public:
         ast::PreTransformAnalysis ptanalysis(ctx);
         ast::PreTransformImplementation ptimpl(ctx, *namer, *res);
         ast::UserDataAssignment udassignment(ctx);
-        ast::AnnotationUsageWarner auwarner(ctx);
         ast::ASTPrinter printer(ctx, std::cout);
 
         prog->onVisit(&ptanalysis);
         prog->onVisit(&ptimpl);
         prog->onVisit(&udassignment);
-        prog->onVisit(&auwarner);
         prog->onVisit(&printer);
 
         return ctx->reporter().getErrorCount() == 0;
@@ -144,6 +142,9 @@ public:
     virtual bool run(PhaseContext& pctx) {
         ast::Program* prog = pctx.require<ast::Program>("prog");
         CompCtx_Ptr ctx = *pctx.require<CompCtx_Ptr>("ctx");
+
+        ast::AnnotationUsageWarner auwarner(ctx);
+        prog->onVisit(&auwarner);
 
         bast::AST2BAST a2b(ctx);
         bast::BASTSimplifier simplifier;

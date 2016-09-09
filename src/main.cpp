@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
 
         if (checkOnly) {
             col = &emc;
-            ppl.insert(Phase::StopRightBefore("CodeGen"));
+            ppl.insert(Phase::StopRightBefore("PreTransform"));
         } else {
             col = &bcc;
         }
