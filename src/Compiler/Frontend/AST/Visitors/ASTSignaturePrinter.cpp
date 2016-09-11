@@ -36,6 +36,8 @@ std::string ASTSignaturePrinter::getSignatureOf(ASTNode* node, bool& isValid, Co
 }
 
 void ASTSignaturePrinter::visit(FunctionTypeDecl* ftdecl) {
+    setValid();
+
     if (ftdecl->getTypeArgs().size() > 0) {
         _ostream << "[";
 
@@ -56,12 +58,12 @@ void ASTSignaturePrinter::visit(FunctionTypeDecl* ftdecl) {
         doVisit(ftdecl->getArgTypes().back());
     }
     _ostream << ")->";
-    ftdecl->getRetType()->onVisit(this);
-
-    setValid();
+    doVisit(ftdecl->getRetType());
 }
 
 void ASTSignaturePrinter::visit(TypeConstructorCall* tcall) {
+
+    setValid();
     doVisit(tcall->getCallee());
 
     _ostream << "[";
@@ -75,20 +77,18 @@ void ASTSignaturePrinter::visit(TypeConstructorCall* tcall) {
     }
 
     _ostream << "]";
-
-    setValid();
 }
 
 void ASTSignaturePrinter::visit(TypeMemberAccess* mac) {
-    _ostream << mac->getSymbol()->getAbsoluteName();
-
     setValid();
+
+    _ostream << mac->getSymbol()->getAbsoluteName();
 }
 
 void ASTSignaturePrinter::visit(TypeIdentifier* ident) {
-    _ostream << ident->getSymbol()->getAbsoluteName();
-
     setValid();
+
+    _ostream << ident->getSymbol()->getAbsoluteName();
 }
 
 bool ASTSignaturePrinter::doVisit(ASTNode* node) {
