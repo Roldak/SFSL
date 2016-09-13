@@ -220,28 +220,49 @@ Expression* FieldAssignmentExpression::getValue() const {
     return _value;
 }
 
-// METHOD CALL
+// DYNAMIC METHOD CALL
 
-MethodCall::MethodCall(Expression* callee, size_t virtualId, const std::vector<Expression*>& args)
+DynamicMethodCall::DynamicMethodCall(Expression* callee, size_t virtualId, const std::vector<Expression*>& args)
     : _callee(callee), _virtualId(virtualId), _args(args) {
 
 }
 
-MethodCall::~MethodCall() {
+DynamicMethodCall::~DynamicMethodCall() {
 
 }
 
-SFSL_BAST_ON_VISIT_CPP(MethodCall)
+SFSL_BAST_ON_VISIT_CPP(DynamicMethodCall)
 
-Expression* MethodCall::getCallee() const {
+Expression* DynamicMethodCall::getCallee() const {
     return _callee;
 }
 
-size_t MethodCall::getVirtualId() const {
+size_t DynamicMethodCall::getVirtualId() const {
     return _virtualId;
 }
 
-const std::vector<Expression*>& MethodCall::getArgs() const {
+const std::vector<Expression*>& DynamicMethodCall::getArgs() const {
+    return _args;
+}
+
+// STATIC METHOD CALL
+
+StaticMethodCall::StaticMethodCall(DefIdentifier* callee, const std::vector<Expression*>& args)
+    : _callee(callee), _args(args) {
+
+}
+
+StaticMethodCall::~StaticMethodCall() {
+
+}
+
+SFSL_BAST_ON_VISIT_CPP(StaticMethodCall)
+
+DefIdentifier* StaticMethodCall::getCallee() const {
+    return _callee;
+}
+
+const std::vector<Expression*>& StaticMethodCall::getArgs() const {
     return _args;
 }
 

@@ -76,7 +76,11 @@ void BASTExplicitVisitor::visit(IfExpression* ifexpr) {
 
 }
 
-void BASTExplicitVisitor::visit(MethodCall* methcall) {
+void BASTExplicitVisitor::visit(DynamicMethodCall* dmethcall) {
+
+}
+
+void BASTExplicitVisitor::visit(StaticMethodCall* smethcall) {
 
 }
 

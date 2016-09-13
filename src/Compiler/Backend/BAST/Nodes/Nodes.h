@@ -302,13 +302,13 @@ private:
 };
 
 /**
- * @brief Represents a function call.
+ * @brief Represents a dynamic method call (i.e. x.f()).
  */
-class MethodCall : public Expression {
+class DynamicMethodCall : public Expression {
 public:
 
-    MethodCall(Expression* callee, size_t virtualId, const std::vector<Expression*>& args);
-    virtual ~MethodCall();
+    DynamicMethodCall(Expression* callee, size_t virtualId, const std::vector<Expression*>& args);
+    virtual ~DynamicMethodCall();
 
     SFSL_BAST_ON_VISIT_H
 
@@ -323,7 +323,7 @@ public:
     size_t getVirtualId() const;
 
     /**
-     * @return The arguments by extracting them directly from the tuple
+     * @return The call arguments (without the `this` argument)
      */
     const std::vector<Expression*>& getArgs() const;
 
@@ -331,6 +331,33 @@ private:
 
     Expression* _callee;
     size_t _virtualId;
+    std::vector<Expression*> _args;
+};
+
+/**
+ * @brief Represents a static method call (i.e. A.f())
+ */
+class StaticMethodCall : public Expression {
+public:
+
+    StaticMethodCall(DefIdentifier* callee, const std::vector<Expression*>& args);
+    virtual ~StaticMethodCall();
+
+    SFSL_BAST_ON_VISIT_H
+
+    /**
+     * @return The method identifier
+     */
+    DefIdentifier* getCallee() const;
+
+    /**
+     * @return The call arguments (with `this` as the first argument)
+     */
+    const std::vector<Expression*>& getArgs() const;
+
+private:
+
+    DefIdentifier* _callee;
     std::vector<Expression*> _args;
 };
 

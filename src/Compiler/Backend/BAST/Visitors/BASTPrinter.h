@@ -38,7 +38,8 @@ public:
     virtual void visit(FieldAssignmentExpression* fassign) override;
     virtual void visit(VarAssignmentExpression* vassign) override;
     virtual void visit(IfExpression* ifexpr) override;
-    virtual void visit(MethodCall* methcall) override;
+    virtual void visit(DynamicMethodCall* dmethcall) override;
+    virtual void visit(StaticMethodCall* smethcall) override;
     virtual void visit(Instantiation* inst) override;
 
     virtual void visit(UnitLiteral* unitlit) override;

@@ -148,16 +148,30 @@ void BASTPrinter::visit(IfExpression* ifexpr) {
     _ostream << ")";
 }
 
-void BASTPrinter::visit(MethodCall* methcall) {
+void BASTPrinter::visit(DynamicMethodCall* dmethcall) {
     _ostream << "(";
-    methcall->getCallee()->onVisit(this);
-    _ostream << ")" << "[" << methcall->getVirtualId() << "](";
-    if (methcall->getArgs().size() > 0) {
-        for (size_t i = 0; i < methcall->getArgs().size() - 1; ++i) {
-            methcall->getArgs()[i]->onVisit(this);
+    dmethcall->getCallee()->onVisit(this);
+    _ostream << ")" << "[" << dmethcall->getVirtualId() << "](";
+    if (dmethcall->getArgs().size() > 0) {
+        for (size_t i = 0; i < dmethcall->getArgs().size() - 1; ++i) {
+            dmethcall->getArgs()[i]->onVisit(this);
             _ostream << ", ";
         }
-        methcall->getArgs().back()->onVisit(this);
+        dmethcall->getArgs().back()->onVisit(this);
+    }
+    _ostream << ")";
+}
+
+void BASTPrinter::visit(StaticMethodCall* smethcall) {
+    _ostream << "(";
+    smethcall->getCallee()->onVisit(this);
+    _ostream << ")(";
+    if (smethcall->getArgs().size() > 0) {
+        for (size_t i = 0; i < smethcall->getArgs().size() - 1; ++i) {
+            smethcall->getArgs()[i]->onVisit(this);
+            _ostream << ", ";
+        }
+        smethcall->getArgs().back()->onVisit(this);
     }
     _ostream << ")";
 }

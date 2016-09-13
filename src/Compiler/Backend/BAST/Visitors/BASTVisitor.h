@@ -46,7 +46,8 @@ public:
     virtual void visit(FieldAssignmentExpression* fassign) = 0;
     virtual void visit(VarAssignmentExpression* vassign) = 0;
     virtual void visit(IfExpression* ifexpr) = 0;
-    virtual void visit(MethodCall* methcall) = 0;
+    virtual void visit(DynamicMethodCall* dmethcall) = 0;
+    virtual void visit(StaticMethodCall* smethcall) = 0;
     virtual void visit(Instantiation* inst) = 0;
 
     virtual void visit(UnitLiteral* unitlit) = 0;

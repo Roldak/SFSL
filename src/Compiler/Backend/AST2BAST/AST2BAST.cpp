@@ -243,7 +243,7 @@ void AST2BAST::visit(ast::FunctionCall* call) {
             args.push_back(transform(expr));
         }
 
-        make<MethodCall>(callee, virtualLoc, args);
+        make<DynamicMethodCall>(callee, virtualLoc, args);
     } else {
         _rep.fatal(*call->getCallee(), "At this stage, only methods are supposed to be called");
         makeBad();

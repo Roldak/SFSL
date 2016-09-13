@@ -95,9 +95,16 @@ void BASTImplicitVisitor::visit(IfExpression* ifexpr) {
     ifexpr->getElse()->onVisit(this);
 }
 
-void BASTImplicitVisitor::visit(MethodCall* methcall) {
-    methcall->getCallee()->onVisit(this);
-    for (Expression* arg : methcall->getArgs()) {
+void BASTImplicitVisitor::visit(DynamicMethodCall* dmethcall) {
+    dmethcall->getCallee()->onVisit(this);
+    for (Expression* arg : dmethcall->getArgs()) {
+        arg->onVisit(this);
+    }
+}
+
+void BASTImplicitVisitor::visit(StaticMethodCall* smethcall) {
+    smethcall->getCallee()->onVisit(this);
+    for (Expression* arg : smethcall->getArgs()) {
         arg->onVisit(this);
     }
 }
