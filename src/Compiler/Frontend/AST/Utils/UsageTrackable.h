@@ -12,6 +12,8 @@
 #include <iostream>
 #include <type_traits>
 
+#include "../../../../Utils/Utils.h"
+
 #include "../../../Common/Positionnable.h"
 
 namespace sfsl {
@@ -25,33 +27,6 @@ enum class UsageProperty : char {
     USED        = 1 << 3,
     MUTABLE     = 1 << 4
 };
-
-// thanks http://programmers.stackexchange.com/questions/194412/using-scoped-enums-for-bit-flags-in-c
-
-inline UsageProperty operator|(UsageProperty lhs, UsageProperty rhs) {
-    typedef std::underlying_type<UsageProperty>::type T;
-    return static_cast<UsageProperty>(static_cast<T>(lhs) | static_cast<T>(rhs));
-}
-
-inline UsageProperty& operator|=(UsageProperty& lhs, UsageProperty rhs) {
-    lhs = lhs | rhs;
-    return lhs;
-}
-
-inline UsageProperty operator&(UsageProperty lhs, UsageProperty rhs) {
-    typedef std::underlying_type<UsageProperty>::type T;
-    return static_cast<UsageProperty>(static_cast<T>(lhs) & static_cast<T>(rhs));
-}
-
-inline UsageProperty& operator&=(UsageProperty& lhs, UsageProperty rhs) {
-    lhs = lhs & rhs;
-    return lhs;
-}
-
-inline UsageProperty operator~(UsageProperty prop) {
-    typedef std::underlying_type<UsageProperty>::type T;
-    return static_cast<UsageProperty>(~static_cast<T>(prop));
-}
 
 /**
  * @brief An interface to keep track of
@@ -73,6 +48,11 @@ private:
 };
 
 }
+
+template<>
+struct enable_bitmask_operators<ast::UsageProperty> {
+    static constexpr bool enable = true;
+};
 
 }
 

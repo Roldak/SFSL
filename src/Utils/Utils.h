@@ -176,6 +176,47 @@ inline bool isSymbol(char c) {
 
 // NOT IN THE utils NAMESPACE ANYMORE
 
+// credits: https://www.justsoftwaresolutions.co.uk/cplusplus/using-enum-classes-as-bitfields.html
+template<typename E>
+struct enable_bitmask_operators {
+    static constexpr bool enable = false;
+};
+
+template<typename E>
+inline typename std::enable_if<enable_bitmask_operators<E>::enable, E>::type
+operator |(E lhs, E rhs) {
+    typedef typename std::underlying_type<E>::type T;
+    return static_cast<E>(static_cast<T>(lhs) | static_cast<T>(rhs));
+}
+
+template<typename E>
+inline typename std::enable_if<enable_bitmask_operators<E>::enable, E&>::type
+operator |=(E& lhs, E rhs) {
+    lhs = lhs | rhs;
+    return lhs;
+}
+
+template<typename E>
+inline typename std::enable_if<enable_bitmask_operators<E>::enable, E>::type
+operator &(E lhs, E rhs) {
+    typedef typename std::underlying_type<E>::type T;
+    return static_cast<E>(static_cast<T>(lhs) & static_cast<T>(rhs));
+}
+
+template<typename E>
+inline typename std::enable_if<enable_bitmask_operators<E>::enable, E&>::type
+operator &=(E& lhs, E rhs) {
+    lhs = lhs & rhs;
+    return lhs;
+}
+
+template<typename E>
+inline typename std::enable_if<enable_bitmask_operators<E>::enable, E>::type
+operator ~(E prop) {
+    typedef typename std::underlying_type<E>::type T;
+    return static_cast<E>(~static_cast<T>(prop));
+}
+
 /**
  * @brief The Boolean type adapted to the host architecture
  */
