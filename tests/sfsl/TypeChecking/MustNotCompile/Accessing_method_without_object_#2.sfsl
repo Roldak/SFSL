@@ -1,0 +1,11 @@
+module test {
+	using sfsl.lang
+	
+	class B[T] {
+		def f() => {}
+	}
+	
+	def test() => {
+		B[int].f;
+	}
+}

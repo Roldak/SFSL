@@ -420,6 +420,11 @@ void TypeChecking::visit(MemberAccess* dot) {
     }
 
     tryAssigningTypeToSymbolic(dot);
+    if (dot->type() && dot->type()->getTypeKind() == type::TYPE_METHOD) {
+        _ctx->reporter().error(*dot, std::string("Method ") + dot->getMember()->getValue() +
+                               " of class " + type::getIf<type::MethodType>(dot->type())->getOwner()->getName() +
+                               " can only be accessed from an instance of that class");
+    }
 }
 
 void TypeChecking::visit(Tuple* tuple) {
