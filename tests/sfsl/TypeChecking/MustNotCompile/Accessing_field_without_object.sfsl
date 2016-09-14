@@ -1,0 +1,11 @@
+module test {
+	using sfsl.lang
+	
+	class A {
+		x: int;
+	}
+	
+	def test() => {
+		A.x;
+	}
+}

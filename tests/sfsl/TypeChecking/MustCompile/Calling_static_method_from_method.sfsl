@@ -2,8 +2,9 @@ module test {
 	using sfsl.lang
 	
 	class A(a: int) {
-		static def f(x: int) => x
+		static def f(x: int) => h(x)
 		def g() => f(a)
+		static def h(x: int) => x
 	}
 	
 	def main() => {

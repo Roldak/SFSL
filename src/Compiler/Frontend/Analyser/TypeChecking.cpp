@@ -420,7 +420,10 @@ void TypeChecking::visit(MemberAccess* dot) {
     }
 
     tryAssigningTypeToSymbolic(dot);
-    if (dot->type() && dot->type()->getTypeKind() == type::TYPE_METHOD) {
+    if (dot->getSymbol() && dot->getSymbol()->getSymbolType() == sym::SYM_VAR) {
+        _ctx->reporter().error(*dot, std::string("Field ") + dot->getMember()->getValue() +
+                               " can only be accessed from an instance of its class");
+    } else if (dot->type() && dot->type()->getTypeKind() == type::TYPE_METHOD) {
         _ctx->reporter().error(*dot, std::string("Method ") + dot->getMember()->getValue() +
                                " of class " + type::getIf<type::MethodType>(dot->type())->getOwner()->getName() +
                                " can only be accessed from an instance of that class");
