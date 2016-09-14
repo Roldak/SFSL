@@ -546,7 +546,11 @@ Block* Parser::parseBlock() {
 IfExpression* Parser::parseIf(bool asStatement) {
     SAVE_POS(startPos)
 
+    expect(tok::OPER_L_PAREN, "`(`");
+
     Expression* cond = parseExpression();
+
+    expect(tok::OPER_R_PAREN, "`)`");
 
     Expression* then = asStatement ? parseStatement() : parseExpression();
     Expression* els = nullptr;

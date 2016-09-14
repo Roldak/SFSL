@@ -2,7 +2,7 @@ module test {
 	using sfsl.lang
 	def test() => {
 		x: int;
-		if true {
+		if (true) {
 			x = 2;
 			();
 		}
