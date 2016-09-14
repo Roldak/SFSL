@@ -175,7 +175,7 @@ struct InitializerBuilder final {
                           nullptr, type::Environment::Empty));
 
         Identifier* initIdent = _mngr.New<Identifier>(name);
-        DefineDecl* initDef = _mngr.New<DefineDecl>(initIdent, nullptr, func, false, false, false);
+        DefineDecl* initDef = _mngr.New<DefineDecl>(initIdent, nullptr, func, DefFlags::NONE);
 
         sym::DefinitionSymbol* initSym = _mngr.New<sym::DefinitionSymbol>(initIdent->getValue(), "", initDef, _clss);
         initIdent->setSymbol(initSym);
@@ -474,7 +474,7 @@ void PreTransformImplementation::visit(DefineDecl* decl) {
     update(decl, decl->getName(),
            transform<TypeExpression>(decl->getTypeSpecifier()),
            transform<Expression>(decl->getValue()),
-           decl->isRedef(), decl->isExtern(), decl->isAbstract());
+           decl->getFlags());
 }
 
 void PreTransformImplementation::visit(MemberAccess* dot) {

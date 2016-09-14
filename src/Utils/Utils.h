@@ -217,6 +217,13 @@ operator ~(E prop) {
     return static_cast<E>(~static_cast<T>(prop));
 }
 
+template<typename E>
+inline typename std::enable_if<enable_bitmask_operators<E>::enable, bool>::type
+operator %(E lhs, E rhs) {
+    typedef typename std::underlying_type<E>::type T;
+    return static_cast<bool>(static_cast<T>(lhs) & static_cast<T>(rhs));
+}
+
 /**
  * @brief The Boolean type adapted to the host architecture
  */

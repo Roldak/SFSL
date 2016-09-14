@@ -96,9 +96,9 @@ private:
 
     ast::Program* parseProgram();
     ast::ModuleDecl* parseModule();
-    ast::DefineDecl* parseDef(bool isRedef, bool isExtern, bool isAbstract, ast::Identifier* name = nullptr);
+    ast::DefineDecl* parseDef(DefFlags flags, ast::Identifier* name = nullptr);
     ast::ClassDecl* parseClass(bool isAbstract);
-    ast::TypeDecl* parseTypeDecl(bool isExtern);
+    ast::TypeDecl* parseTypeDecl(DefFlags flags);
 
         // statements
 
@@ -148,6 +148,8 @@ private:
     template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
     RETURN_TYPE* parseTuple(std::vector<ELEMENT_TYPE>& exprs, const PARSING_FUNC& f);
 
+    DefFlags parseDefFlags();
+
     ast::This* makeThis(const common::Positionnable& pos);
 
     ast::Expression* makeMethodCall(Expression* callee, const std::string& memberName, const std::vector<Expression*>& argExprs,
@@ -158,7 +160,7 @@ private:
     ast::ClassDecl* parseClassBody(bool isAbstract, const std::string& className, const common::Positionnable& startPos);
 
     void desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std::vector<DefineDecl*>& defs);
-    TypeDecl* desugarTopLevelClassDecl(bool isExtern, bool isAbstract);
+    TypeDecl* desugarTopLevelClassDecl(DefFlags flags);
 
     // Members
 

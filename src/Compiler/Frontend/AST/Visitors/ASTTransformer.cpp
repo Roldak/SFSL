@@ -58,7 +58,7 @@ void ASTTransformer::visit(DefineDecl* decl) {
            transform<Identifier>(decl->getName()),
            transform<TypeExpression>(decl->getTypeSpecifier()),
            transform<Expression>(decl->getValue()),
-           decl->isRedef(), decl->isExtern(), decl->isAbstract());
+           decl->getFlags());
 }
 
 void ASTTransformer::visit(ProperTypeKindSpecifier* ptks) {

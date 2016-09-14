@@ -136,6 +136,12 @@ bool consumeBool(bool& val) {
     return tmp;
 }
 
+DefFlags consumeDefFlags(DefFlags& flags, DefFlags toConsume) {
+    DefFlags val = flags & toConsume;
+    flags &= ~toConsume;
+    return val;
+}
+
 // Parsing
 
 Program* Parser::parseProgram() {
@@ -173,20 +179,18 @@ ModuleDecl* Parser::parseModule() {
 
         SAVE_POS(keywordPos)
 
-        bool isExtern = accept(tok::KW_EXTERN);
-        bool isAbstract = accept(tok::KW_ABSTRACT);
-        isExtern = isExtern || accept(tok::KW_EXTERN); // also handle `extern` being after `abstract`
+        DefFlags flags = parseDefFlags();
 
         SAVE_POS(externElemPos)
 
         if (accept(tok::KW_MODULE)) {
             mods.push_back(parseModule());
         } else if (accept(tok::KW_TPE)) {
-            types.push_back(parseTypeDecl(consumeBool(isExtern)));
+            types.push_back(parseTypeDecl(consumeDefFlags(flags, DefFlags::EXTERN)));
         } else if (accept(tok::KW_CLASS)) {
-            types.push_back(desugarTopLevelClassDecl(consumeBool(isExtern), consumeBool(isAbstract)));
+            types.push_back(desugarTopLevelClassDecl(consumeDefFlags(flags, DefFlags::EXTERN | DefFlags::ABSTRACT)));
         } else if (accept(tok::KW_DEF)) {
-            decls.push_back(parseDef(false, consumeBool(isExtern), false));
+            decls.push_back(parseDef(consumeDefFlags(flags, DefFlags::EXTERN)));
         } else if (accept(tok::KW_USING)) {
             usings.push_back(parseUsing(keywordPos, false));
         } else {
@@ -194,10 +198,10 @@ ModuleDecl* Parser::parseModule() {
             break;
         }
 
-        if (isExtern) {
+        if (flags % DefFlags::EXTERN) {
             _ctx->reporter().error(externElemPos, "Modules or type declarations cannot be declared extern");
         }
-        if (isAbstract) {
+        if (flags % DefFlags::ABSTRACT) {
             _ctx->reporter().error(externElemPos, "Only classes can be declared abstract");
         }
 
@@ -213,7 +217,7 @@ ModuleDecl* Parser::parseModule() {
     return modDecl;
 }
 
-DefineDecl* Parser::parseDef(bool isRedef, bool isExtern, bool isAbstract, Identifier* name) {
+DefineDecl* Parser::parseDef(DefFlags flags, Identifier* name) {
     std::vector<Annotation*> annots(std::move(consumeAnnotations()));
 
     Identifier* defName = (name ? name : parseIdentifier("Expected definition name"));
@@ -221,7 +225,7 @@ DefineDecl* Parser::parseDef(bool isRedef, bool isExtern, bool isAbstract, Ident
     TypeExpression* typeSpecifier = nullptr;
     Expression* expr = nullptr;
 
-    if (isExtern || isAbstract) {
+    if (flags % DefFlags::EXTERN || flags % DefFlags::ABSTRACT) {
         // Case: extern def f: int->int
         expect(tok::OPER_COLON, "`:`");
         typeSpecifier = parseTypeExpression();
@@ -238,7 +242,7 @@ DefineDecl* Parser::parseDef(bool isRedef, bool isExtern, bool isAbstract, Ident
         expr = parseExpression();
     }
 
-    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, typeSpecifier, expr, isRedef, isExtern, isAbstract);
+    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, typeSpecifier, expr, flags);
     defDecl->setAnnotations(annots);
     defDecl->setPos(*defName);
     defDecl->setEndPos(_lastTokenEndPos);
@@ -259,7 +263,7 @@ ClassDecl* Parser::parseClass(bool isAbstract) {
     return parseClassBody(isAbstract, className, startPos);
 }
 
-TypeDecl* Parser::parseTypeDecl(bool isExtern) {
+TypeDecl* Parser::parseTypeDecl(DefFlags flags) {
     std::vector<Annotation*> annots(std::move(consumeAnnotations()));
 
     TypeIdentifier* typeName = parseTypeIdentifier("Expected type name");
@@ -272,7 +276,7 @@ TypeDecl* Parser::parseTypeDecl(bool isExtern) {
 
     _currentTypeName = lastTypeName;
 
-    TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr, isExtern);
+    TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr, flags % DefFlags::EXTERN);
     typeDecl->setAnnotations(annots);
     typeDecl->setPos(*typeName);
     typeDecl->setEndPos(_lastTokenEndPos);
@@ -289,14 +293,14 @@ Expression* Parser::parseStatement() {
         accept();
 
         switch (kw) {
-        case tok::KW_DEF:   return expectSemicolonAndReturn(parseDef(false, false, false));
-        case tok::KW_TPE:   return expectSemicolonAndReturn(parseTypeDecl(false));
-        case tok::KW_CLASS: return expectSemicolonAndReturn(desugarTopLevelClassDecl(false, false));
+        case tok::KW_DEF:   return expectSemicolonAndReturn(parseDef(DefFlags::NONE));
+        case tok::KW_TPE:   return expectSemicolonAndReturn(parseTypeDecl(DefFlags::NONE));
+        case tok::KW_CLASS: return expectSemicolonAndReturn(desugarTopLevelClassDecl(DefFlags::NONE));
         case tok::KW_IF:    reportErroneousAnnotations(); return parseIf(true);
 
         case tok::KW_ABSTRACT:
             if (accept(tok::KW_CLASS)) {
-                return expectSemicolonAndReturn(desugarTopLevelClassDecl(false, true));
+                return expectSemicolonAndReturn(desugarTopLevelClassDecl(DefFlags::ABSTRACT));
             }
             _ctx->reporter().error(startPos, "Expected `class` keyword after `abstract` flag");
             return nullptr;
@@ -979,6 +983,26 @@ CanUseModules::ModulePath Parser::parseUsing(const common::Positionnable& usingp
     return mpath;
 }
 
+DefFlags Parser::parseDefFlags() {
+    DefFlags toRet = DefFlags::NONE;
+
+    while (isType(tok::TOK_KW)){
+        DefFlags flag;
+
+        switch (as<tok::Keyword>()->getKwType()) {
+        case tok::KW_EXTERN:    flag = DefFlags::EXTERN; break;
+        case tok::KW_ABSTRACT:  flag = DefFlags::ABSTRACT; break;
+        //case tok::KW_STATIC:    flag = DefFlags::STATIC; break;
+        default:                return toRet;
+        }
+
+        accept();
+        toRet |= flag;
+    }
+
+    return toRet;
+}
+
 template<typename RETURN_TYPE, tok::OPER_TYPE R_DELIM, typename ELEMENT_TYPE, typename PARSING_FUNC>
 RETURN_TYPE* Parser::parseTuple(std::vector<ELEMENT_TYPE>& exprs, const PARSING_FUNC& f) {
 
@@ -1158,30 +1182,28 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
         while (!accept(tok::OPER_R_BRACE) && !accept(tok::TOK_EOF)) {
             parseAnnotations();
 
-            bool isExtern = accept(tok::KW_EXTERN);
-            bool isAbstract = accept(tok::KW_ABSTRACT);
-            isExtern = isExtern || accept(tok::KW_EXTERN); // also handle `extern` being after `abstract`
+            DefFlags flags = parseDefFlags();
 
             SAVE_POS(externElemPos);
 
-            if (isExtern && isAbstract) {
+            if (flags % DefFlags::EXTERN && flags % DefFlags::ABSTRACT) {
                 _ctx->reporter().error(externElemPos, "`extern` and `abstract` flags are exclusive");
             }
 
             if (accept(tok::KW_TPE)) {
-                tdecls.push_back(parseTypeDecl(consumeBool(isExtern)));
+                tdecls.push_back(parseTypeDecl(consumeDefFlags(flags, DefFlags::EXTERN)));
             } else if (accept(tok::KW_CLASS)) {
-                tdecls.push_back(desugarTopLevelClassDecl(consumeBool(isExtern), consumeBool(isAbstract)));
+                tdecls.push_back(desugarTopLevelClassDecl(consumeDefFlags(flags, DefFlags::EXTERN | DefFlags::ABSTRACT)));
             } else if (accept(tok::KW_NEW)) {
                 Identifier* id = _mngr.New<Identifier>("new");
                 id->setPos(externElemPos);
-                defs.push_back(parseDef(false, consumeBool(isExtern), false, id));
+                defs.push_back(parseDef(consumeDefFlags(flags, DefFlags::EXTERN), id));
             } else if (accept(tok::KW_DEF)) {
                 Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
-                defs.push_back(parseDef(false, consumeBool(isExtern), consumeBool(isAbstract), id));
+                defs.push_back(parseDef(consumeDefFlags(flags, DefFlags::EXTERN | DefFlags::ABSTRACT), id));
             } else if (accept(tok::KW_REDEF)) {
                 Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
-                defs.push_back(parseDef(true, consumeBool(isExtern), consumeBool(isAbstract), id));
+                defs.push_back(parseDef(DefFlags::REDEF | consumeDefFlags(flags, DefFlags::EXTERN | DefFlags::ABSTRACT), id));
             } else {
                 Identifier* fieldName = parseIdentifier("Expected field name | def");
                 expect(tok::OPER_COLON, "`:`");
@@ -1195,10 +1217,10 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
                 fields.push_back(field);
             }
 
-            if (isExtern) {
+            if (flags % DefFlags::EXTERN) {
                 _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared extern");
             }
-            if (isAbstract) {
+            if (flags % DefFlags::ABSTRACT) {
                 _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared abstract");
             }
 
@@ -1255,7 +1277,7 @@ void Parser::desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std:
 
     FunctionCreation* func = _mngr.New<FunctionCreation>("new", nullptr, _mngr.New<Tuple>(args), _mngr.New<Block>(body), nullptr);
     Identifier* constrName = _mngr.New<Identifier>("new");
-    DefineDecl* constrDecl = _mngr.New<DefineDecl>(constrName, nullptr, func, false, false, false);
+    DefineDecl* constrDecl = _mngr.New<DefineDecl>(constrName, nullptr, func, DefFlags::NONE);
 
     common::Positionnable constrPos(startPos.getStartPosition(), _lastTokenEndPos, startPos.getSourceName());
 
@@ -1266,7 +1288,7 @@ void Parser::desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std:
     defs.push_back(constrDecl);
 }
 
-TypeDecl* Parser::desugarTopLevelClassDecl(bool isExtern, bool isAbstract) {
+TypeDecl* Parser::desugarTopLevelClassDecl(DefFlags flags) {
     TypeIdentifier* typeName = parseTypeIdentifier("Expected type name");
     accept(tok::OPER_EQ);
 
@@ -1275,14 +1297,14 @@ TypeDecl* Parser::desugarTopLevelClassDecl(bool isExtern, bool isAbstract) {
     if (accept(tok::OPER_L_BRACKET)) {
         TypeTuple* params = parseTypeParameters();
         expr = _mngr.New<TypeConstructorCreation>(typeName->getValue(), params,
-                                                  parseClassBody(isAbstract, typeName->getValue(), *typeName));
+                                                  parseClassBody(flags % DefFlags::ABSTRACT, typeName->getValue(), *typeName));
         expr->setPos(*params);
         expr->setEndPos(_lastTokenEndPos);
     } else {
-        expr = parseClassBody(isAbstract, typeName->getValue(), *typeName);
+        expr = parseClassBody(flags % DefFlags::ABSTRACT, typeName->getValue(), *typeName);
     }
 
-    TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr, isExtern);
+    TypeDecl* typeDecl = _mngr.New<TypeDecl>(typeName, expr, flags % DefFlags::EXTERN);
     typeDecl->setPos(*typeName);
     typeDecl->setEndPos(_lastTokenEndPos);
     return typeDecl;

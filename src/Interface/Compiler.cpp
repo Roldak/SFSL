@@ -243,7 +243,7 @@ public:
         }
 
         ast::Identifier* nameId = mngr.New<ast::Identifier>(defName);
-        _ddecls.push_back(mngr.New<ast::DefineDecl>(nameId, defType._impl->_type, nullptr, false, true, false));
+        _ddecls.push_back(mngr.New<ast::DefineDecl>(nameId, defType._impl->_type, nullptr, ast::DefFlags::EXTERN));
     }
 
     void typeDef(const std::string& name, Type type, bool isExtern) {
@@ -316,14 +316,14 @@ public:
         _fields.push_back(_mngr.New<ast::TypeSpecifier>(id, tpe));
     }
 
-    void addDef(const std::string& defName, Type defType, bool isRedef, bool isExtern, bool isAbstract) {
+    void addDef(const std::string& defName, Type defType, ast::DefFlags flags) {
         if (!defType) {
             throw CompileError("Type of definition was not valid");
         }
 
         ast::Identifier* id = _mngr.New<ast::Identifier>(defName);
         ast::TypeExpression* tpe = defType._impl->_type;
-        _defs.push_back(_mngr.New<ast::DefineDecl>(id, tpe, nullptr, isRedef, isExtern, isAbstract));
+        _defs.push_back(_mngr.New<ast::DefineDecl>(id, tpe, nullptr, flags));
     }
 
     Type build() const {
@@ -617,14 +617,14 @@ ClassBuilder& ClassBuilder::addField(const std::string& fieldName, Type fieldTyp
 
 ClassBuilder& ClassBuilder::addExternDef(const std::string& defName, Type defType, bool isRedef) {
     if (_impl) {
-        _impl->addDef(defName, defType, isRedef, true, false);
+        _impl->addDef(defName, defType, ast::DefFlags::EXTERN | (isRedef ? ast::DefFlags::REDEF : ast::DefFlags::NONE));
     }
     return *this;
 }
 
 ClassBuilder& ClassBuilder::addAbstractDef(const std::string& defName, Type defType) {
     if (_impl) {
-        _impl->addDef(defName, defType, false, false, true);
+        _impl->addDef(defName, defType, ast::DefFlags::ABSTRACT);
     }
     return *this;
 }

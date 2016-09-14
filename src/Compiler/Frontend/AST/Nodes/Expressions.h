@@ -70,6 +70,14 @@ private:
 
 };
 
+enum class DefFlags : char {
+    NONE        = 0,
+    REDEF       = 1 << 0,
+    EXTERN      = 1 << 1,
+    ABSTRACT    = 1 << 2,
+    STATIC      = 1 << 3
+};
+
 /**
  * @brief The Define Declaration AST
  * Contains :
@@ -82,7 +90,7 @@ class DefineDecl :
         public Annotable {
 public:
 
-    DefineDecl(Identifier* name, TypeExpression* tp, Expression* value, bool isRedef, bool isExtern, bool isAbstract);
+    DefineDecl(Identifier* name, TypeExpression* tp, Expression* value, DefFlags flags);
     virtual ~DefineDecl();
 
     SFSL_AST_ON_VISIT_H
@@ -103,7 +111,12 @@ public:
     Expression* getValue() const;
 
     /**
-     * @return True if the definition is supposed to override another one
+     * @return The flags that are marked to this definition
+     */
+    DefFlags getFlags() const;
+
+    /**
+     * @return True if the definition is marked with the `redef` flag
      */
     bool isRedef() const;
 
@@ -117,16 +130,18 @@ public:
      */
     bool isAbstract() const;
 
+    /**
+     * @return True if the definition is marked with the `static` flag
+     */
+    bool isStatic() const;
+
 private:
 
     Identifier* _name;
     TypeExpression* _typeSpecifier;
     Expression* _value;
 
-    bool _isRedef;
-    bool _isExtern;
-    bool _isAbstract;
-
+    DefFlags _flags;
 };
 
 class TypeDecl :
@@ -559,6 +574,11 @@ private:
 };
 
 }
+
+template<>
+struct enable_bitmask_operators<ast::DefFlags> {
+    static constexpr bool enable = true;
+};
 
 }
 

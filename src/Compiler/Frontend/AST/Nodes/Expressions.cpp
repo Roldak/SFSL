@@ -39,8 +39,8 @@ Expression *ExpressionStatement::getExpression() const {
 
 // DEFINE DECLARATION
 
-DefineDecl::DefineDecl(Identifier* name, TypeExpression* typeSpecifier, Expression* value, bool isRedef, bool isExtern, bool isAbstract)
-    : _name(name), _typeSpecifier(typeSpecifier), _value(value), _isRedef(isRedef), _isExtern(isExtern), _isAbstract(isAbstract) {
+DefineDecl::DefineDecl(Identifier* name, TypeExpression* typeSpecifier, Expression* value, DefFlags flags)
+    : _name(name), _typeSpecifier(typeSpecifier), _value(value), _flags(flags) {
 
 }
 
@@ -62,16 +62,24 @@ Expression* DefineDecl::getValue() const {
     return _value;
 }
 
+DefFlags DefineDecl::getFlags() const {
+    return _flags;
+}
+
 bool DefineDecl::isRedef() const {
-    return _isRedef;
+    return static_cast<bool>(_flags & DefFlags::REDEF);
 }
 
 bool DefineDecl::isExtern() const {
-    return _isExtern;
+    return static_cast<bool>(_flags & DefFlags::EXTERN);
 }
 
 bool DefineDecl::isAbstract() const {
-    return _isAbstract;
+    return static_cast<bool>(_flags & DefFlags::ABSTRACT);
+}
+
+bool DefineDecl::isStatic() const {
+    return static_cast<bool>(_flags & DefFlags::STATIC);
 }
 
 // TYPE DECLARATION
