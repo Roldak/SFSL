@@ -67,19 +67,23 @@ DefFlags DefineDecl::getFlags() const {
 }
 
 bool DefineDecl::isRedef() const {
-    return static_cast<bool>(_flags & DefFlags::REDEF);
+    return _flags % DefFlags::REDEF;
 }
 
 bool DefineDecl::isExtern() const {
-    return static_cast<bool>(_flags & DefFlags::EXTERN);
+    return _flags % DefFlags::EXTERN;
 }
 
 bool DefineDecl::isAbstract() const {
-    return static_cast<bool>(_flags & DefFlags::ABSTRACT);
+    return _flags % DefFlags::ABSTRACT;
 }
 
 bool DefineDecl::isStatic() const {
-    return static_cast<bool>(_flags & DefFlags::STATIC);
+    return _flags % DefFlags::STATIC;
+}
+
+bool DefineDecl::isConstructor() const {
+    return _flags % DefFlags::CONSTRUCTOR;
 }
 
 // TYPE DECLARATION

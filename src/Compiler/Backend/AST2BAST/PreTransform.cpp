@@ -715,7 +715,7 @@ void UserDataAssignment::visit(ClassDecl* clss) {
 void UserDataAssignment::visit(DefineDecl* decl) {
     SAVE_MEMBER(_nextConstructorExpr)
 
-    if (decl->getName()->getValue() == "new") {
+    if (decl->isConstructor()) {
         _nextConstructorExpr = decl->getValue();
     }
 

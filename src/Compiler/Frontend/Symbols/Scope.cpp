@@ -7,6 +7,7 @@
 //
 
 #include "Scope.h"
+#include "../AST/Nodes/Expressions.h"
 
 namespace sfsl {
 
@@ -136,7 +137,17 @@ bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& 
     return false;
 }
 
-const Scope::SymbolExcluder* const Scope::ExcludeConstructors = new Scope::ByNameSymbolExcluder("new");
+struct ConstructorExcluder : public Scope::SymbolExcluder {
+    virtual ~ConstructorExcluder() {}
+    virtual bool exclude(const SymbolData s) const override {
+        if (sym::DefinitionSymbol* decl = sym::getIfSymbolOfType<sym::DefinitionSymbol>(s.symbol)) {
+            return decl->getDef()->isConstructor();
+        }
+        return false;
+    }
+};
+
+const Scope::SymbolExcluder* const Scope::ExcludeConstructors = new ConstructorExcluder();
 const Scope::SymbolExcluder* const Scope::KeepAll = nullptr;
 
 Scope::SymbolExcluder::~SymbolExcluder() {

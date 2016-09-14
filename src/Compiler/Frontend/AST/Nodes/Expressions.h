@@ -75,7 +75,8 @@ enum class DefFlags : char {
     REDEF       = 1 << 0,
     EXTERN      = 1 << 1,
     ABSTRACT    = 1 << 2,
-    STATIC      = 1 << 3
+    STATIC      = 1 << 3,
+    CONSTRUCTOR = 1 << 4,
 };
 
 /**
@@ -134,6 +135,11 @@ public:
      * @return True if the definition is marked with the `static` flag
      */
     bool isStatic() const;
+
+    /**
+     * @return True if the definition corresponds to a constructor
+     */
+    bool isConstructor() const;
 
 private:
 

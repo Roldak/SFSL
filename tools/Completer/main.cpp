@@ -139,7 +139,7 @@ private:
             symType = var->type();
             kindOfSym = K_ATTRIBUTE_ID;
         } else if (sym::DefinitionSymbol* def = sym::getIfSymbolOfType<sym::DefinitionSymbol>(data.symbol)) {
-            if (!def->getDef()->isRedef() && def->getName() != "new") {
+            if (!def->getDef()->isRedef() && !def->getDef()->isConstructor()) {
                 symType = def->type();
                 kindOfSym = K_METHOD_ID;
             }

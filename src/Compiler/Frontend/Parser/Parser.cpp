@@ -1198,7 +1198,7 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
             } else if (accept(tok::KW_NEW)) {
                 Identifier* id = _mngr.New<Identifier>("new");
                 id->setPos(externElemPos);
-                defs.push_back(parseDef(consumeDefFlags(flags, DefFlags::EXTERN), id));
+                defs.push_back(parseDef(DefFlags::CONSTRUCTOR | consumeDefFlags(flags, DefFlags::EXTERN), id));
             } else if (accept(tok::KW_DEF)) {
                 Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
                 defs.push_back(parseDef(consumeDefFlags(flags, DefFlags::EXTERN | DefFlags::ABSTRACT | DefFlags::STATIC), id));
@@ -1281,7 +1281,7 @@ void Parser::desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std:
 
     FunctionCreation* func = _mngr.New<FunctionCreation>("new", nullptr, _mngr.New<Tuple>(args), _mngr.New<Block>(body), nullptr);
     Identifier* constrName = _mngr.New<Identifier>("new");
-    DefineDecl* constrDecl = _mngr.New<DefineDecl>(constrName, nullptr, func, DefFlags::NONE);
+    DefineDecl* constrDecl = _mngr.New<DefineDecl>(constrName, nullptr, func, DefFlags::CONSTRUCTOR);
 
     common::Positionnable constrPos(startPos.getStartPosition(), _lastTokenEndPos, startPos.getSourceName());
 

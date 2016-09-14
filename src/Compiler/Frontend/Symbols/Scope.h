@@ -109,7 +109,7 @@ public:
     };
 
     /**
-     * @brief Symbol excluder which excludes all constructors (symbols named "new")
+     * @brief Symbol excluder which excludes all constructors
      */
     static const SymbolExcluder* const ExcludeConstructors;
 

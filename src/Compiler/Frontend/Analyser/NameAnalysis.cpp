@@ -122,7 +122,7 @@ void ScopeGeneration::visit(DefineDecl* def) {
     _currentThis = nullptr;
 
     // check that the RHS of a constructor definition is a function creation
-    if (def->getName()->getValue() == "new" &&
+    if (def->isConstructor() &&
         def->getValue() &&
         !isNodeOfType<FunctionCreation>(def->getValue(), _ctx)) {
         _ctx->reporter().error(*def, "A constructor must be a function");
