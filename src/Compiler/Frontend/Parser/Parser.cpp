@@ -130,12 +130,6 @@ TypeIdentifier* Parser::parseTypeIdentifier(const std::string& errMsg) {
     return parseIdentifierHelper<TypeIdentifier>(errMsg);
 }
 
-bool consumeBool(bool& val) {
-    bool tmp = val;
-    val = false;
-    return tmp;
-}
-
 DefFlags consumeDefFlags(DefFlags& flags, DefFlags toConsume) {
     DefFlags val = flags & toConsume;
     flags &= ~toConsume;
@@ -203,6 +197,9 @@ ModuleDecl* Parser::parseModule() {
         }
         if (flags % DefFlags::ABSTRACT) {
             _ctx->reporter().error(externElemPos, "Only classes can be declared abstract");
+        }
+        if (flags % DefFlags::STATIC) {
+            _ctx->reporter().error(externElemPos, "Static is not a valid flag in this context");
         }
 
         reportErroneousAnnotations();
@@ -306,6 +303,7 @@ Expression* Parser::parseStatement() {
             return nullptr;
 
         case tok::KW_REDEF:
+        case tok::KW_STATIC:
             reportErroneousAnnotations();
             _ctx->reporter().error(startPos, "`" + tok::Keyword::KeywordTypeToString(kw) +
                                    "` keyword can only be used inside a class scope");
@@ -992,7 +990,7 @@ DefFlags Parser::parseDefFlags() {
         switch (as<tok::Keyword>()->getKwType()) {
         case tok::KW_EXTERN:    flag = DefFlags::EXTERN; break;
         case tok::KW_ABSTRACT:  flag = DefFlags::ABSTRACT; break;
-        //case tok::KW_STATIC:    flag = DefFlags::STATIC; break;
+        case tok::KW_STATIC:    flag = DefFlags::STATIC; break;
         default:                return toRet;
         }
 
@@ -1189,6 +1187,9 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
             if (flags % DefFlags::EXTERN && flags % DefFlags::ABSTRACT) {
                 _ctx->reporter().error(externElemPos, "`extern` and `abstract` flags are exclusive");
             }
+            if (flags % DefFlags::STATIC && flags % DefFlags::ABSTRACT) {
+                _ctx->reporter().error(externElemPos, "`static` and `abstract` flags are exclusive");
+            }
 
             if (accept(tok::KW_TPE)) {
                 tdecls.push_back(parseTypeDecl(consumeDefFlags(flags, DefFlags::EXTERN)));
@@ -1200,7 +1201,7 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
                 defs.push_back(parseDef(consumeDefFlags(flags, DefFlags::EXTERN), id));
             } else if (accept(tok::KW_DEF)) {
                 Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
-                defs.push_back(parseDef(consumeDefFlags(flags, DefFlags::EXTERN | DefFlags::ABSTRACT), id));
+                defs.push_back(parseDef(consumeDefFlags(flags, DefFlags::EXTERN | DefFlags::ABSTRACT | DefFlags::STATIC), id));
             } else if (accept(tok::KW_REDEF)) {
                 Identifier* id = isType(tok::TOK_OPER) ? parseOperatorsAsIdentifer() : nullptr;
                 defs.push_back(parseDef(DefFlags::REDEF | consumeDefFlags(flags, DefFlags::EXTERN | DefFlags::ABSTRACT), id));
@@ -1222,6 +1223,9 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
             }
             if (flags % DefFlags::ABSTRACT) {
                 _ctx->reporter().error(externElemPos, "Class fields or inner type declarations cannot be declared abstract");
+            }
+            if (flags % DefFlags::STATIC) {
+                _ctx->reporter().error(externElemPos, "Class fields, inner type declarations or abstract members cannot be declared static");
             }
 
             reportErroneousAnnotations();
