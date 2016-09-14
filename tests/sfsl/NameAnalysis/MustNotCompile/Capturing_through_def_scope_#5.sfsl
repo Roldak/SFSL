@@ -1,0 +1,9 @@
+module test {
+	using sfsl.lang
+	
+	class A(a: int) {
+		static def f(x: int) => {
+			a = x;
+		}
+	}
+}

@@ -1,0 +1,13 @@
+module test {
+	using sfsl.lang
+	
+	class A() {
+		static def f(x: int) => x
+	}
+	
+	def apply(f: int->int, x: int) => f(x)
+	
+	def main() => {
+		apply(A.f, 3);
+	}
+}
