@@ -101,6 +101,8 @@ void ScopeGeneration::visit(ClassDecl* clss) {
 }
 
 void ScopeGeneration::visit(DefineDecl* def) {
+    SAVE_MEMBER_AND_SET(_currentThis, def->isStatic() ? nullptr : _currentThis)
+
     createSymbol(def, _currentThis);
     if (def->isExtern() && !isValidAbsolutePath()) {
         reportInvalidExternUsage(*def);
@@ -117,7 +119,7 @@ void ScopeGeneration::visit(DefineDecl* def) {
         }
     }
 
-    SAVE_MEMBER_AND_SET(_currentThis, nullptr)
+    _currentThis = nullptr;
 
     // check that the RHS of a constructor definition is a function creation
     if (def->getName()->getValue() == "new" &&
@@ -624,7 +626,7 @@ void SymbolAssignation::buildUsingsFromPaths(const CanUseModules* canUseModules)
 template<typename T>
 void SymbolAssignation::assignIdentifier(T* id) {
     if (!_curScope->assignSymbolic<sym::Symbol>(*id, id->getValue())) {
-        _ctx->reporter().error(*id, "Undefined symbol '" + id->getValue() + "'");
+        _ctx->reporter().error(*id, "Undefined or unreachable symbol '" + id->getValue() + "'");
     }
 }
 

@@ -685,6 +685,9 @@ void UserDataAssignment::visit(ClassDecl* clss) {
 
         for (size_t i = 0; i < localDecls.size(); ++i) {
             localDecls[i]->onVisit(this);
+            if (localDecls[i]->isStatic()) {
+                continue;
+            }
 
             sym::DefinitionSymbol* defsym = localDecls[i]->getSymbol();
             size_t virtualLoc;
