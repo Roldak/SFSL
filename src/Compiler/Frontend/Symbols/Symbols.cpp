@@ -117,6 +117,12 @@ SYM_TYPE VariableSymbol::getSymbolType() const {
     return SYM_VAR;
 }
 
+// SYMBOL DATA
+
+SymbolData::SymbolData(Symbol* s, const type::Environment& e) : symbol(s), env(e) {
+
+}
+
 }
 
 }

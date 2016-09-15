@@ -142,6 +142,8 @@ public:
 };
 
 struct SymbolData final {
+    SymbolData(sym::Symbol* s, const type::Environment& e);
+
     sym::Symbol* symbol;
     type::Environment env;
 };

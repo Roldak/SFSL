@@ -24,7 +24,7 @@ Scope::~Scope() {
 Symbol* Scope::addSymbol(Symbol* sym) {
     auto pos = _symbols.find(sym->getName());
     if (pos == _symbols.end() || pos->second.symbol->isOverloadableWith(sym)) {
-        _symbols.insert(pos, make_pair(sym->getName(), SymbolData{.symbol = sym}));
+        _symbols.insert(pos, make_pair(sym->getName(), SymbolData(sym, type::Environment::Empty)));
         return nullptr;
     } else {
         return pos->second.symbol;
@@ -114,7 +114,7 @@ bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& 
         for (auto it = itPair.first; it != itPair.second; ++it) {
             const SymbolData& data = it->second;
             if (!traversedDefScope || data.symbol->getSymbolType() != sym::SYM_VAR) {
-                symbolic._symbols.push_back(Symbolic<Symbol>::SymbolData{.symbol = data.symbol, .env = &data.env});
+                symbolic._symbols.push_back(Symbolic<Symbol>::SymbolData(data.symbol, data.env));
             }
         }
         return symbolic.getSymbolCount() > 0;
