@@ -14,7 +14,7 @@ namespace sfsl {
 
 namespace type {
 
-Environment Environment::Empty = type::Environment();
+Environment const Environment::Empty = type::Environment();
 
 Environment::Substitution::Substitution()
     : varianceType(common::VAR_T_NONE), key(nullptr), value(nullptr) {

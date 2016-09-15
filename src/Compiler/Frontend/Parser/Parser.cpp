@@ -1032,6 +1032,20 @@ This* Parser::makeThis(const common::Positionnable& pos) {
     return ths;
 }
 
+DefineDecl* Parser::makeFunctionDef(const std::string& name, const std::vector<Expression*>& params, const std::vector<Expression*>& body,
+                              const common::Positionnable& pos, DefFlags flags) {
+
+    FunctionCreation* func = _mngr.New<FunctionCreation>(name, nullptr, _mngr.New<Tuple>(params), _mngr.New<Block>(body), nullptr);
+    Identifier* defName = _mngr.New<Identifier>(name);
+    DefineDecl* defDecl = _mngr.New<DefineDecl>(defName, nullptr, func, flags);
+
+    func->setPos(pos);
+    defName->setPos(pos);
+    defDecl->setPos(pos);
+
+    return defDecl;
+}
+
 Expression* Parser::makeMethodCall(Expression* callee, const std::string& memberName, const std::vector<Expression*>& argExprs,
                                   const common::Positionnable& memberPos, const common::Positionnable& argsPos, TypeTuple* typeArgs) {
     Identifier* id = _mngr.New<Identifier>(memberName);
@@ -1169,6 +1183,7 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
     std::vector<TypeDecl*> tdecls;
     std::vector<TypeSpecifier*> fields;
     std::vector<DefineDecl*> defs;
+    std::vector<Expression*> staticExprs;
 
     TypeExpression* parent = nullptr;
 
@@ -1213,6 +1228,14 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
                 Identifier* fieldName = parseIdentifier("Expected field name | def");
                 expect(tok::OPER_COLON, "`:`");
                 TypeExpression* type = parseTypeExpression();
+
+                if (accept(tok::OPER_EQ)) {
+                    AssignmentExpression* assignment = _mngr.New<AssignmentExpression>(fieldName, parseExpression());
+                    assignment->setPos(*fieldName);
+                    assignment->setEndPos(_lastTokenEndPos);
+                    staticExprs.push_back(assignment);
+                }
+
                 expect(tok::OPER_SEMICOLON, "`;`");
 
                 TypeSpecifier* field = _mngr.New<TypeSpecifier>(fieldName, type);
@@ -1237,10 +1260,21 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
     }
 
     // check that the RHS of method definitions are function creations
+    // and add static expressions (default initalizations, etc.) in every constructor
     for (DefineDecl* def : defs) {
         if (def->getValue() && !def->isStatic()) {
             if (!isNodeOfType<FunctionCreation>(def->getValue(), _ctx)) {
                 _ctx->reporter().error(*def, "A method definition must be a function expression");
+            } else if (def->isConstructor() && staticExprs.size() > 0) {
+                FunctionCreation* constr = static_cast<FunctionCreation*>(def->getValue());
+                Annotable savedAnnot = *constr;
+
+                std::vector<Expression*> newBody(staticExprs);
+                newBody.push_back(constr->getBody());
+
+                *constr = FunctionCreation(constr->getName(), constr->getTypeArgs(), constr->getArgs(), _mngr.New<Block>(newBody), constr->getReturnType());
+
+                *static_cast<Annotable*>(constr) = savedAnnot;
             }
         }
     }
@@ -1256,7 +1290,7 @@ void Parser::desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std:
     // desugaring
     SAVE_POS(startPos)
 
-    std::vector<Expression*> args;
+    std::vector<Expression*> params;
     std::vector<Expression*> body;
 
     if (!accept(tok::OPER_R_PAREN)) {
@@ -1273,36 +1307,29 @@ void Parser::desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std:
 
             fields.push_back(field);
 
-            // CREATE ARG
+            // CREATE PARAM
 
-            Identifier* argName = _mngr.New<Identifier>(fieldName->getValue() + "$arg");
-            argName->setPos(*fieldName);
+            Identifier* paramName = _mngr.New<Identifier>(fieldName->getValue() + "$arg");
+            paramName->setPos(*fieldName);
 
-            TypeSpecifier* arg = _mngr.New<TypeSpecifier>(argName, tp);
-            arg->setPos(*field);
+            TypeSpecifier* param = _mngr.New<TypeSpecifier>(paramName, tp);
+            param->setPos(*field);
 
-            args.push_back(arg);
+            params.push_back(param);
 
             // CREATE ASSIGNMENT
 
-            body.push_back(_mngr.New<AssignmentExpression>(fieldName, argName));
+            body.push_back(_mngr.New<AssignmentExpression>(fieldName, paramName));
 
         } while (accept(tok::OPER_COMMA) && !accept(tok::TOK_EOF));
 
         expect(tok::OPER_R_PAREN, "`)`");
     }
 
-    FunctionCreation* func = _mngr.New<FunctionCreation>("new", nullptr, _mngr.New<Tuple>(args), _mngr.New<Block>(body), nullptr);
-    Identifier* constrName = _mngr.New<Identifier>("new");
-    DefineDecl* constrDecl = _mngr.New<DefineDecl>(constrName, nullptr, func, DefFlags::CONSTRUCTOR);
+    common::Positionnable constrPos = startPos;
+    constrPos.setEndPos(_lastTokenEndPos);
 
-    common::Positionnable constrPos(startPos.getStartPosition(), _lastTokenEndPos, startPos.getSourceName());
-
-    func->setPos(constrPos);
-    constrName->setPos(constrPos);
-    constrDecl->setPos(constrPos);
-
-    defs.push_back(constrDecl);
+    defs.push_back(makeFunctionDef("new", params, body, constrPos, DefFlags::CONSTRUCTOR));
 }
 
 TypeDecl* Parser::desugarTopLevelClassDecl(DefFlags flags) {

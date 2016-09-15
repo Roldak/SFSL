@@ -60,7 +60,7 @@ public:
 
     std::string toString() const;
 
-    static Environment Empty;
+    static const Environment Empty;
 
 private:
 

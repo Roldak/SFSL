@@ -152,8 +152,12 @@ private:
 
     ast::This* makeThis(const common::Positionnable& pos);
 
+    ast::DefineDecl* makeFunctionDef(const std::string& name, const std::vector<Expression*>& params, const std::vector<Expression*>& body,
+                                const common::Positionnable& pos, DefFlags flags);
+
     ast::Expression* makeMethodCall(Expression* callee, const std::string& memberName, const std::vector<Expression*>& argExprs,
                                     const common::Positionnable& memberPos, const common::Positionnable& argsPos, TypeTuple* typeArgs = nullptr);
+
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
     ast::Identifier* parseOperatorsAsIdentifer();
 
