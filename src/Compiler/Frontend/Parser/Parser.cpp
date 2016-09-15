@@ -1236,6 +1236,15 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
         }
     }
 
+    // check that the RHS of method definitions are function creations
+    for (DefineDecl* def : defs) {
+        if (def->getValue() && !def->isStatic()) {
+            if (!isNodeOfType<FunctionCreation>(def->getValue(), _ctx)) {
+                _ctx->reporter().error(*def, "A method definition must be a function expression");
+            }
+        }
+    }
+
     ClassDecl* classDecl = _mngr.New<ClassDecl>(className, parent, tdecls, fields, defs, isAbstract);
     classDecl->setAnnotations(annots);
     classDecl->setPos(startPos);
