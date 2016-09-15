@@ -1186,9 +1186,12 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
     std::vector<Expression*> staticExprs;
 
     TypeExpression* parent = nullptr;
+    DefineDecl* trivialConstructor = nullptr;
 
     if (accept(tok::OPER_L_PAREN)) {
-        desugarTrivialConstructor(fields, defs);
+        trivialConstructor = desugarTrivialConstructor(fields, defs);
+        // no need to add manually trivialConstructor to defs, it is
+        // already done in desugarTrivialConstructor.
     }
 
     if (accept(tok::OPER_COLON)) {
@@ -1270,7 +1273,7 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
                 Annotable savedAnnot = *constr;
 
                 std::vector<Expression*> newBody(staticExprs);
-                newBody.push_back(constr->getBody());
+                newBody.insert(def == trivialConstructor ? newBody.begin() : newBody.end(), constr->getBody());
 
                 *constr = FunctionCreation(constr->getName(), constr->getTypeArgs(), constr->getArgs(), _mngr.New<Block>(newBody), constr->getReturnType());
 
@@ -1286,7 +1289,7 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
     return classDecl;
 }
 
-void Parser::desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std::vector<DefineDecl*>& defs) {
+DefineDecl* Parser::desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std::vector<DefineDecl*>& defs) {
     // desugaring
     SAVE_POS(startPos)
 
@@ -1329,7 +1332,10 @@ void Parser::desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std:
     common::Positionnable constrPos = startPos;
     constrPos.setEndPos(_lastTokenEndPos);
 
-    defs.push_back(makeFunctionDef("new", params, body, constrPos, DefFlags::CONSTRUCTOR));
+    DefineDecl* constr = makeFunctionDef("new", params, body, constrPos, DefFlags::CONSTRUCTOR);
+    defs.push_back(constr);
+
+    return constr;
 }
 
 TypeDecl* Parser::desugarTopLevelClassDecl(DefFlags flags) {

@@ -163,7 +163,7 @@ private:
 
     ast::ClassDecl* parseClassBody(bool isAbstract, const std::string& className, const common::Positionnable& startPos);
 
-    void desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std::vector<DefineDecl*>& defs);
+    DefineDecl* desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std::vector<DefineDecl*>& defs);
     TypeDecl* desugarTopLevelClassDecl(DefFlags flags);
 
     // Members
