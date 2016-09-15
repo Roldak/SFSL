@@ -113,9 +113,19 @@ bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& 
     if (itPair.first != itPair.second) {
         for (auto it = itPair.first; it != itPair.second; ++it) {
             const SymbolData& data = it->second;
-            if (!traversedDefScope || data.symbol->getSymbolType() != sym::SYM_VAR) {
-                symbolic._symbols.push_back(Symbolic<Symbol>::SymbolData(data.symbol, data.env));
+
+            // if we traversed a def scope, we can't access vars and method
+            if (traversedDefScope) {
+                if (data.symbol->getSymbolType() == sym::SYM_VAR) {
+                    continue;
+                } else if (sym::DefinitionSymbol* defsym = sym::getIfSymbolOfType<sym::DefinitionSymbol>(data.symbol)) {
+                    if (defsym->getOwner() != nullptr) {
+                        continue;
+                    }
+                }
             }
+
+            symbolic._symbols.push_back(Symbolic<Symbol>::SymbolData(data.symbol, data.env));
         }
         return symbolic.getSymbolCount() > 0;
     } else if (searchUsings) {
