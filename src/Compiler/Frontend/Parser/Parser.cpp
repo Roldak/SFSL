@@ -285,7 +285,7 @@ Expression* Parser::parseStatement() {
 
     parseAnnotations();
 
-    if (isType(tok::TOK_KW) && as<tok::Keyword>()->getKwType() != tok::KW_THIS) {
+    if (isType(tok::TOK_KW)) {
         tok::KW_TYPE kw = as<tok::Keyword>()->getKwType();
         accept();
 
@@ -294,6 +294,8 @@ Expression* Parser::parseStatement() {
         case tok::KW_TPE:   return expectSemicolonAndReturn(parseTypeDecl(DefFlags::NONE));
         case tok::KW_CLASS: return expectSemicolonAndReturn(desugarTopLevelClassDecl(DefFlags::NONE));
         case tok::KW_IF:    reportErroneousAnnotations(); return parseIf(true);
+        case tok::KW_THIS:  return expectSemicolonAndReturn(makeThis(startPos));
+        case tok::KW_NEW:   return expectSemicolonAndReturn(parseNew(startPos));
 
         case tok::KW_ABSTRACT:
             if (accept(tok::KW_CLASS)) {
@@ -481,6 +483,8 @@ Expression* Parser::parsePrimary() {
             toRet = parseIf(false);
         } else if (accept(tok::KW_THIS)) {
             toRet = makeThis(startPos);
+        } else if (accept(tok::KW_NEW)) {
+            toRet = parseNew(startPos);
         } else {
             _ctx->reporter().error(*_currentToken, "Unexpected keyword `" + _currentToken->toString() + "`");
             accept();
@@ -1178,7 +1182,7 @@ Identifier* Parser::parseOperatorsAsIdentifer() {
     return id;
 }
 
-ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className, const common::Positionnable& startPos) {
+ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className, const common::Positionnable& startPos, bool forAnonymousInstantiation) {
     std::vector<Annotation*> annots(std::move(consumeAnnotations()));
     std::vector<TypeDecl*> tdecls;
     std::vector<TypeSpecifier*> fields;
@@ -1188,14 +1192,25 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
     TypeExpression* parent = nullptr;
     DefineDecl* trivialConstructor = nullptr;
 
-    if (accept(tok::OPER_L_PAREN)) {
-        trivialConstructor = desugarTrivialConstructor(fields, defs);
-        // no need to add manually trivialConstructor to defs, it is
-        // already done in desugarTrivialConstructor.
-    }
+    if (forAnonymousInstantiation) {
+        defs.push_back(makeFunctionDef("new", {}, {}, startPos, DefFlags::CONSTRUCTOR));
 
-    if (accept(tok::OPER_COLON)) {
-        parent = parseTypeExpression();
+        if (!isType(tok::TOK_OPER) || as<tok::Operator>()->getOpType() != tok::OPER_L_BRACE) {
+            parent = parseTypeExpression();
+        }
+        if (!isType(tok::TOK_OPER) || as<tok::Operator>()->getOpType() != tok::OPER_L_BRACE) {
+            expect(tok::OPER_L_BRACE, "`{`");
+        }
+    } else {
+        if (accept(tok::OPER_L_PAREN)) {
+            trivialConstructor = desugarTrivialConstructor(fields, defs);
+            // no need to add manually trivialConstructor to defs, it is
+            // already done in desugarTrivialConstructor.
+        }
+
+        if (accept(tok::OPER_COLON)) {
+            parent = parseTypeExpression();
+        }
     }
 
     if (accept(tok::OPER_L_BRACE)) {
@@ -1271,6 +1286,7 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
             } else if (def->isConstructor() && staticExprs.size() > 0) {
                 FunctionCreation* constr = static_cast<FunctionCreation*>(def->getValue());
                 Annotable savedAnnot = *constr;
+                common::Positionnable savedPos = *constr;
 
                 std::vector<Expression*> newBody(staticExprs);
                 newBody.insert(def == trivialConstructor ? newBody.begin() : newBody.end(), constr->getBody());
@@ -1278,6 +1294,7 @@ ClassDecl* Parser::parseClassBody(bool isAbstract, const std::string& className,
                 *constr = FunctionCreation(constr->getName(), constr->getTypeArgs(), constr->getArgs(), _mngr.New<Block>(newBody), constr->getReturnType());
 
                 *static_cast<Annotable*>(constr) = savedAnnot;
+                constr->setPos(savedPos);
             }
         }
     }
@@ -1358,6 +1375,19 @@ TypeDecl* Parser::desugarTopLevelClassDecl(DefFlags flags) {
     typeDecl->setPos(*typeName);
     typeDecl->setEndPos(_lastTokenEndPos);
     return typeDecl;
+}
+
+Expression* Parser::parseNew(const common::Positionnable& newPos) {
+    SAVE_POS(classPos)
+
+    Instantiation* inst = _mngr.New<Instantiation>(parseClassBody(false, AnonymousClassName, classPos, true));
+    FunctionCall* call = _mngr.New<FunctionCall>(inst, nullptr, _mngr.New<Tuple>(std::vector<Expression*>()));
+
+    inst->setPos(newPos);
+    inst->setEndPos(_lastTokenEndPos);
+    call->setPos(*inst);
+
+    return call;
 }
 
 }

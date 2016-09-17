@@ -120,6 +120,7 @@ bool Scope::_assignSymbolic(sym::Symbolic<Symbol>& symbolic, const std::string& 
                     continue;
                 } else if (sym::DefinitionSymbol* defsym = sym::getIfSymbolOfType<sym::DefinitionSymbol>(data.symbol)) {
                     if (defsym->getOwner() != nullptr) {
+                        // means we must capture `this` which is also not possible
                         continue;
                     }
                 }

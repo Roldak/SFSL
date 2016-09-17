@@ -161,10 +161,12 @@ private:
     ast::Expression* makeBinary(Expression* left, Expression* right, tok::Operator* oper);
     ast::Identifier* parseOperatorsAsIdentifer();
 
-    ast::ClassDecl* parseClassBody(bool isAbstract, const std::string& className, const common::Positionnable& startPos);
+    ast::ClassDecl* parseClassBody(bool isAbstract, const std::string& className,
+                                   const common::Positionnable& startPos, bool forAnonymousInstantiation = false);
 
     DefineDecl* desugarTrivialConstructor(std::vector<TypeSpecifier*>& fields, std::vector<DefineDecl*>& defs);
     TypeDecl* desugarTopLevelClassDecl(DefFlags flags);
+    Expression* parseNew(const common::Positionnable& newPos);
 
     // Members
 

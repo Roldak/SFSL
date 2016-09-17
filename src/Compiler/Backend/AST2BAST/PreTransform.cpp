@@ -273,7 +273,7 @@ private:
     common::AbstractMemoryManager& _mngr;
 };
 
-// CAPTURES ANALYZER
+// PRE-TRANSFORM ANALYSIS
 
 PreTransformAnalysis::PreTransformAnalysis(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx) {
 
@@ -415,7 +415,7 @@ void PreTransformAnalysis::visit(Identifier* ident) {
     }
 }
 
-// PRETRANSFORM
+// PRE-TRANSFORM IMPLEMENTATION
 
 PreTransformImplementation::PreTransformImplementation(
         CompCtx_Ptr& ctx,
