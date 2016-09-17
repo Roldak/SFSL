@@ -32,15 +32,16 @@ public:
      * was already defined, in which case this symbol is returned
      *
      * @param sym The symbol to add
-     * @return The symbol of the same name in the current scope if any, otherwise nullptr
+     * @return A non-overloadable symbol of the same name in the current scope if any, otherwise nullptr
      */
     Symbol* addSymbol(Symbol* sym);
 
     /**
      * @brief Copies all the symbols from the given scope into this one
      * @param other The scope from which to copy the symbol
+     * @return A non-overloadable symbol of the same name in the current scope if any, otherwise nullptr
      */
-    void copySymbolsFrom(const Scope* other, const type::Environment& env, const SymbolExcluder* exluder);
+    Symbol* copySymbolsFrom(const Scope* other, const type::Environment& env, const SymbolExcluder* exluder);
 
     template<typename T>
     /**
@@ -119,6 +120,8 @@ public:
     static const SymbolExcluder* const KeepAll;
 
 private:
+
+    SymbolData& addEntry(const std::pair<std::string, SymbolData>& entry);
 
     Symbol* _getSymbol(const std::string& name, SYM_TYPE symType, bool recursive, bool searchUsings) const;
     bool _assignSymbolicPrologue(Symbolic<Symbol>& symbolic, const std::string& id, bool searchUsings) const;

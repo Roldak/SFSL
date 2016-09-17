@@ -681,7 +681,11 @@ bool SymbolAssignation::visitParent(ClassDecl* clss) {
                     ClassDecl* parentClass = parent->getClass();
 
                     if (visitParent(parentClass)) {
-                        _curScope->copySymbolsFrom(parentClass->getScope(), parent->getEnvironment(), sym::Scope::ExcludeConstructors);
+                        if (sym::Symbol* s = _curScope->copySymbolsFrom(
+                                    parentClass->getScope(), parent->getEnvironment(), sym::Scope::ExcludeConstructors)) {
+                            _ctx->reporter().error(*s, std::string("Field `") + s->getName() + "` is declared here " +
+                                                   "but it is already inherited from class `" + parentClass->getName() + "`");
+                        }
                         clss->addSuperType(parentClass, parent->getEnvironment());
                     }
                 }

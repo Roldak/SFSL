@@ -22,24 +22,28 @@ Scope::~Scope() {
 }
 
 Symbol* Scope::addSymbol(Symbol* sym) {
-    auto pos = _symbols.find(sym->getName());
-    if (pos == _symbols.end() || pos->second.symbol->isOverloadableWith(sym)) {
-        _symbols.insert(pos, make_pair(sym->getName(), SymbolData(sym, type::Environment::Empty)));
+    SymbolData& data = addEntry(make_pair(sym->getName(), SymbolData(sym, type::Environment::Empty)));
+    if (data.symbol == sym) {
         return nullptr;
     } else {
-        return pos->second.symbol;
+        return data.symbol;
     }
 }
 
-void Scope::copySymbolsFrom(const Scope* other, const type::Environment& env, const SymbolExcluder* excluder) {
+Symbol* Scope::copySymbolsFrom(const Scope* other, const type::Environment& env, const SymbolExcluder* excluder) {
     for (const std::pair<std::string, SymbolData>& entry : other->getAllSymbols()) {
         if (excluder && excluder->exclude(entry.second)) {
             continue;
         }
-        auto it = _symbols.insert(entry);
-        it->second.env.substituteAll(env);
-        it->second.env.insert(env.begin(), env.end());
+        SymbolData& data = addEntry(entry);
+        if (data.symbol == entry.second.symbol) {
+            data.env.substituteAll(env);
+            data.env.insert(env.begin(), env.end());
+        } else {
+            return data.symbol;
+        }
     }
+    return nullptr;
 }
 
 Scope* Scope::getParent() const {
@@ -75,6 +79,15 @@ void Scope::buildUsingsFromPaths(CompCtx_Ptr& ctx, const ast::CanUseModules& obj
         if (ok) {
             _usedScopes.push_back(curMod->getScope());
         }
+    }
+}
+
+SymbolData& Scope::addEntry(const std::pair<std::string, SymbolData>& entry) {
+    auto pos = _symbols.find(entry.first);
+    if (pos == _symbols.end() || pos->second.symbol->isOverloadableWith(entry.second.symbol)) {
+        return _symbols.insert(pos, entry)->second;
+    } else {
+        return pos->second;
     }
 }
 
