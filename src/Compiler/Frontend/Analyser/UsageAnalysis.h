@@ -32,10 +32,12 @@ public:
     virtual void visit(DefineDecl* def) override;
 
     virtual void visit(FunctionCreation* func) override;
+    virtual void visit(Instantiation* inst) override;
 
 private:
 
     std::map<sym::VariableSymbol*, std::vector<Identifier*>> _undeclaredVars;
+    TypeExpression* _nextInstantiatedExpression;
 };
 
 }

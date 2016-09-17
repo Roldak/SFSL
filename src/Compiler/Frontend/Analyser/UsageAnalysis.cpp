@@ -235,7 +235,8 @@ protected:
     obj->setUserdata(_mngr.New<CapturesUserData>(_undeclaredVars)); \
     _undeclaredVars.insert(OLD(_undeclaredVars).cbegin(), OLD(_undeclaredVars).cend());
 
-UsageAnalysis::UsageAnalysis(CompCtx_Ptr& ctx) : ASTImplicitVisitor(ctx) {
+UsageAnalysis::UsageAnalysis(CompCtx_Ptr& ctx)
+    : ASTImplicitVisitor(ctx), _nextInstantiatedExpression(nullptr) {
 
 }
 
@@ -264,6 +265,11 @@ void UsageAnalysis::visit(ClassDecl* clss) {
 
     ASTImplicitVisitor::visit(clss);
 
+    if (_undeclaredVars.size() > 0 && _nextInstantiatedExpression != clss) {
+        _ctx->reporter().error(*clss, std::string("Class `") + clss->getName() + "` cannot have any captures " +
+                               "because it is not instantiated immediatly");
+    }
+
     SET_CAPTURES_AND_UPDATE_UNDECLARED_VARS(clss)
 }
 
@@ -283,6 +289,14 @@ void UsageAnalysis::visit(FunctionCreation* func) {
     analyser.analyse(func);
 
     SET_CAPTURES_AND_UPDATE_UNDECLARED_VARS(func)
+}
+
+void UsageAnalysis::visit(Instantiation* inst) {
+    SAVE_MEMBER_AND_SET(_nextInstantiatedExpression, inst->getInstantiatedExpression())
+
+    ASTImplicitVisitor::visit(inst);
+
+    RESTORE_MEMBER(_nextInstantiatedExpression)
 }
 
 }
