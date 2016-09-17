@@ -619,6 +619,8 @@ void TypeChecking::visit(FunctionCall* call) {
 }
 
 void TypeChecking::visit(Instantiation* inst) {
+    ASTImplicitVisitor::visit(inst);
+
     type::Type* instType = ASTTypeCreator::createType(inst->getInstantiatedExpression(), _ctx);
     if (type::ProperType* pt = type::getIf<type::ProperType>(instType->applyTCCallsOnly(_ctx))) {
         if (pt->getClass()->isAbstract()) {
