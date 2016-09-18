@@ -629,6 +629,10 @@ TypeExpression* Parser::parseTypeExpression(bool allowTypeConstructor) {
 }
 
 TypeExpression* Parser::parseTypeBinary(TypeExpression* left, int precedence, bool allowTypeConstructor) {
+    if (!left) {
+        return nullptr;
+    }
+
     while (isType(tok::TOK_OPER)) {
         tok::Operator* op = as<tok::Operator>();
         int newOpPrec = op->getPrecedence();
@@ -769,7 +773,7 @@ TypeExpression* Parser::parseTypePrimary(bool allowTypeConstructor) {
             exprs.push_back(createFunctionTypeDecl(nullptr, {}, parseTypeExpression(allowTypeConstructor)));
         } else {
             reportUnexpectedCurrentToken();
-            accept();
+            return nullptr;
         }
         break;
 
