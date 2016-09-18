@@ -1,0 +1,12 @@
+module test {
+	using sfsl.lang
+	
+	def main() => {
+		x := 2;
+		class A() {
+			def f() => x
+		};
+		class B() : A;
+		() => B().f();
+	}
+}

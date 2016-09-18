@@ -144,9 +144,14 @@ protected:
     }
 
     virtual void visit(Instantiation* inst) override {
-        if (type::Type* tp = ASTTypeCreator::createType(inst->getInstantiatedExpression(), _ctx)) {
-            if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
-                useCapturedVarsOnInstantiation(pt->getClass(), *inst);
+        TypeExpression* instantiatedExpr = inst->getInstantiatedExpression();
+
+        while (instantiatedExpr != nullptr) {
+            if (type::Type* tp = ASTTypeCreator::createType(instantiatedExpr, _ctx)) {
+                if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
+                    useCapturedVarsOnInstantiation(pt->getClass(), *inst);
+                    instantiatedExpr = pt->getClass()->getParent();
+                }
             }
         }
     }
@@ -266,7 +271,13 @@ void UsageAnalysis::visit(Program* prog) {
 
                 for (InstantiationInfo info : inst.second) {
                     if (info.instUnit != unitDeclaredIn) {
-                        _ctx->reporter().error(*info.instNode, std::string("Class `") + inst.first->getName() +
+                        // because the actual name of the instantiated class can be different
+                        // from inst.first in case of inheritance
+                        std::string className = type::getIf<type::ProperType>(
+                                    ASTTypeCreator::createType(info.instNode->getInstantiatedExpression(), _ctx)
+                                    ->applyTCCallsOnly(_ctx))->getClass()->getName();
+
+                        _ctx->reporter().error(*info.instNode, std::string("Class `") + className +
                                                "` cannot be instantiated here because it captures variables " +
                                                "from its declaration scope which are not available in this context");
                     }
@@ -319,9 +330,14 @@ void UsageAnalysis::visit(FunctionCreation* func) {
 void UsageAnalysis::visit(Instantiation* inst) {
     ASTImplicitVisitor::visit(inst);
 
-    if (type::Type* tp = ASTTypeCreator::createType(inst->getInstantiatedExpression(), _ctx)) {
-        if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
-            _classInstantiationsToUnits[pt->getClass()].push_back(InstantiationInfo(inst, _currentUnit));
+    TypeExpression* instantiatedExpr = inst->getInstantiatedExpression();
+
+    while (instantiatedExpr != nullptr) {
+        if (type::Type* tp = ASTTypeCreator::createType(instantiatedExpr, _ctx)) {
+            if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
+                _classInstantiationsToUnits[pt->getClass()].push_back(InstantiationInfo(inst, _currentUnit));
+                instantiatedExpr = pt->getClass()->getParent();
+            }
         }
     }
 }
