@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <map>
+#include <vector>
 #include "../AST/Visitors/ASTImplicitVisitor.h"
 
 namespace sfsl {
@@ -36,8 +37,18 @@ public:
 
 private:
 
+    struct InstantiationInfo {
+        InstantiationInfo(Instantiation* instNode, ASTNode* instUnit);
+
+        Instantiation* instNode;
+        ASTNode* instUnit;
+    };
+
     std::map<sym::VariableSymbol*, std::vector<Identifier*>> _undeclaredVars;
     TypeExpression* _nextInstantiatedExpression;
+
+    ASTNode* _currentUnit;
+    std::map<ClassDecl*, std::vector<InstantiationInfo>> _classInstantiationsToUnits;
 };
 
 }

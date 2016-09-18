@@ -18,10 +18,11 @@ namespace ast {
 // CAPTURES USER DATA
 
 struct CapturesUserData : common::MemoryManageable {
-    CapturesUserData(const std::map<sym::VariableSymbol*, std::vector<Identifier*>>& captures)
-        : captures(captures) {}
+    CapturesUserData(const std::map<sym::VariableSymbol*, std::vector<Identifier*>>& captures, ASTNode* unitDeclaredIn)
+        : captures(captures), unitDeclaredIn(unitDeclaredIn) {}
 
     std::map<sym::VariableSymbol*, std::vector<Identifier*>> captures;
+    ASTNode* unitDeclaredIn;
 };
 
 // USAGE ANALYSIS
@@ -144,7 +145,7 @@ protected:
 
     virtual void visit(Instantiation* inst) override {
         if (type::Type* tp = ASTTypeCreator::createType(inst->getInstantiatedExpression(), _ctx)) {
-            if (type::ProperType* pt = type::getIf<type::ProperType>(tp)) {
+            if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
                 useCapturedVarsOnInstantiation(pt->getClass(), *inst);
             }
         }
@@ -231,12 +232,14 @@ protected:
 // USAGE ANALYSIS
 
 #define SAVE_UNDECLARED_VARS SAVE_MEMBER_AND_SET(_undeclaredVars, {})
-#define SET_CAPTURES_AND_UPDATE_UNDECLARED_VARS(obj) \
-    obj->setUserdata(_mngr.New<CapturesUserData>(_undeclaredVars)); \
-    _undeclaredVars.insert(OLD(_undeclaredVars).cbegin(), OLD(_undeclaredVars).cend());
+#define SET_CAPTURES(obj, captures, unit) obj->setUserdata(_mngr.New<CapturesUserData>(captures, unit));
+#define SET_CAPTURES_AND_UPDATE_UNDECLARED_VARS(obj) {\
+    SET_CAPTURES(obj, _undeclaredVars, _currentUnit) \
+    _undeclaredVars.insert(OLD(_undeclaredVars).cbegin(), OLD(_undeclaredVars).cend()); \
+}
 
 UsageAnalysis::UsageAnalysis(CompCtx_Ptr& ctx)
-    : ASTImplicitVisitor(ctx), _nextInstantiatedExpression(nullptr) {
+    : ASTImplicitVisitor(ctx), _currentUnit(nullptr) {
 
 }
 
@@ -252,6 +255,22 @@ void UsageAnalysis::visit(Program* prog) {
             _ctx->reporter().error(*ident, "Variable `" + var.first->getName() + "` is used or assigned before being declared");
         }
     }
+
+    for (const std::pair<ClassDecl*, std::vector<InstantiationInfo>>& inst : _classInstantiationsToUnits) {
+        if (CapturesUserData* capturesData = inst.first->getUserdata<CapturesUserData>()) {
+            if (capturesData->captures.size() > 0) {
+                ASTNode* unitDeclaredIn = capturesData->unitDeclaredIn;
+
+                for (InstantiationInfo info : inst.second) {
+                    if (info.instUnit != unitDeclaredIn) {
+                        _ctx->reporter().error(*info.instNode, std::string("Class `") + inst.first->getName() +
+                                               "` cannot be instantiated here because it captures variables " +
+                                               "from its declaration scope which are not available in this context");
+                    }
+                }
+            }
+        }
+    }
 }
 
 void UsageAnalysis::visit(ClassDecl* clss) {
@@ -265,16 +284,15 @@ void UsageAnalysis::visit(ClassDecl* clss) {
 
     ASTImplicitVisitor::visit(clss);
 
-    if (_undeclaredVars.size() > 0 && _nextInstantiatedExpression != clss) {
-        _ctx->reporter().error(*clss, std::string("Class `") + clss->getName() + "` cannot have any captures " +
-                               "because it is not instantiated immediatly");
-    }
-
     SET_CAPTURES_AND_UPDATE_UNDECLARED_VARS(clss)
 }
 
 void UsageAnalysis::visit(DefineDecl* def) {
+    SAVE_MEMBER_AND_SET(_currentUnit, def)
+
     ASTImplicitVisitor::visit(def);
+
+    RESTORE_MEMBER(_currentUnit)
 
     LocalUsageAnalysis analyser(_ctx, _undeclaredVars);
     analyser.analyse(def);
@@ -283,7 +301,11 @@ void UsageAnalysis::visit(DefineDecl* def) {
 void UsageAnalysis::visit(FunctionCreation* func) {
     SAVE_UNDECLARED_VARS
 
+    SAVE_MEMBER_AND_SET(_currentUnit, func)
+
     ASTImplicitVisitor::visit(func);
+
+    RESTORE_MEMBER(_currentUnit)
 
     LocalUsageAnalysis analyser(_ctx, _undeclaredVars);
     analyser.analyse(func);
@@ -292,11 +314,18 @@ void UsageAnalysis::visit(FunctionCreation* func) {
 }
 
 void UsageAnalysis::visit(Instantiation* inst) {
-    SAVE_MEMBER_AND_SET(_nextInstantiatedExpression, inst->getInstantiatedExpression())
-
     ASTImplicitVisitor::visit(inst);
 
-    RESTORE_MEMBER(_nextInstantiatedExpression)
+    if (type::Type* tp = ASTTypeCreator::createType(inst->getInstantiatedExpression(), _ctx)) {
+        if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
+            _classInstantiationsToUnits[pt->getClass()].push_back(InstantiationInfo(inst, _currentUnit));
+        }
+    }
+}
+
+UsageAnalysis::InstantiationInfo::InstantiationInfo(Instantiation* instNode, ASTNode* instUnit)
+    : instNode(instNode), instUnit(instUnit) {
+
 }
 
 }

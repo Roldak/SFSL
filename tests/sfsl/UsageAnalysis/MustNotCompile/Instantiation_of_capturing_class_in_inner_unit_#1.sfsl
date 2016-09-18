@@ -1,0 +1,9 @@
+module test {
+    def main() => {
+        x := 2;
+        class A () {
+            def f() => x
+        };
+        () => A().f();
+    }
+}
