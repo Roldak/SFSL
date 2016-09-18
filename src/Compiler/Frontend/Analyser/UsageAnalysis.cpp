@@ -146,13 +146,17 @@ protected:
     virtual void visit(Instantiation* inst) override {
         TypeExpression* instantiatedExpr = inst->getInstantiatedExpression();
 
-        while (instantiatedExpr != nullptr) {
+        while (true) {
             if (type::Type* tp = ASTTypeCreator::createType(instantiatedExpr, _ctx)) {
                 if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
                     useCapturedVarsOnInstantiation(pt->getClass(), *inst);
-                    instantiatedExpr = pt->getClass()->getParent();
+                    if ((instantiatedExpr = pt->getClass()->getParent())) {
+                        continue;
+                    }
                 }
             }
+
+            break;
         }
     }
 
@@ -332,13 +336,16 @@ void UsageAnalysis::visit(Instantiation* inst) {
 
     TypeExpression* instantiatedExpr = inst->getInstantiatedExpression();
 
-    while (instantiatedExpr != nullptr) {
+    while (true) {
         if (type::Type* tp = ASTTypeCreator::createType(instantiatedExpr, _ctx)) {
             if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
                 _classInstantiationsToUnits[pt->getClass()].push_back(InstantiationInfo(inst, _currentUnit));
-                instantiatedExpr = pt->getClass()->getParent();
+                if ((instantiatedExpr = pt->getClass()->getParent())) {
+                    continue;
+                }
             }
         }
+        break;
     }
 }
 

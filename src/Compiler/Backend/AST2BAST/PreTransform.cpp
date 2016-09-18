@@ -511,29 +511,45 @@ void PreTransformImplementation::visit(TypeSpecifier* tps) {
 void PreTransformImplementation::visit(Instantiation* inst) {
     ASTTransformer::visit(inst);
 
-    if (type::ProperType* tp = type::getIf<type::ProperType>(inst->type()->applyTCCallsOnly(_ctx))) {
-        ClassPatch* classPatch = tp->getClass()->getUserdata<ClassPatch>();
+    TypeExpression* instantiatedExpr = inst->getInstantiatedExpression();
+    Expression* res = inst;
 
-        if (Identifier* initializer = classPatch->getInitializer()) {
-            MemberAccess* dot = make<MemberAccess>(inst, initializer);
-            dot->setSymbol(initializer->getSymbol());
-            dot->setType(initializer->type());
+    while (true) {
+        if (type::Type* tp = ASTTypeCreator::createType(instantiatedExpr, _ctx)) {
+            if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
+                ClassPatch* classPatch = pt->getClass()->getUserdata<ClassPatch>();
 
-            std::vector<Expression*> args;
-            for (Change change : classPatch->getChanges()) {
-                if (isCapturedLocalMutableVar(change.initializerArg->getSymbol())) {
-                    // If the capture was a local mutable variable, we want to send the
-                    // boxed value, therefore we don't take the transform<Expression> path.
-                    args.push_back(change.initializerArg);
-                } else {
-                    args.push_back(transform<Expression>(change.initializerArg));
+                if (Identifier* initializer = classPatch->getInitializer()) {
+                    MemberAccess* dot = make<MemberAccess>(res, initializer);
+                    dot->setSymbol(initializer->getSymbol());
+                    dot->setType(initializer->type());
+
+                    std::vector<Expression*> args;
+                    for (Change change : classPatch->getChanges()) {
+                        if (isCapturedLocalMutableVar(change.initializerArg->getSymbol())) {
+                            // If the capture was a local mutable variable, we want to send the
+                            // boxed value, therefore we don't take the transform<Expression> path.
+                            args.push_back(change.initializerArg);
+                        } else {
+                            args.push_back(transform<Expression>(change.initializerArg));
+                        }
+                    }
+
+                    FunctionCall* call = make<FunctionCall>(dot, nullptr, make<Tuple>(args));
+                    call->setType(inst->type());
+                    res = call;
+                }
+
+                if ((instantiatedExpr = pt->getClass()->getParent())) {
+                    continue;
                 }
             }
-
-            FunctionCall* call = make<FunctionCall>(dot, nullptr, make<Tuple>(args));
-            call->setType(inst->type());
         }
+
+        break;
     }
+
+    set(res);
 }
 
 void PreTransformImplementation::visit(Identifier* ident) {
