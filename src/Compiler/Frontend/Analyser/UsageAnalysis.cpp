@@ -232,10 +232,13 @@ protected:
 // USAGE ANALYSIS
 
 #define SAVE_UNDECLARED_VARS SAVE_MEMBER_AND_SET(_undeclaredVars, {})
-#define SET_CAPTURES(obj, captures, unit) obj->setUserdata(_mngr.New<CapturesUserData>(captures, unit));
 #define SET_CAPTURES_AND_UPDATE_UNDECLARED_VARS(obj) {\
-    SET_CAPTURES(obj, _undeclaredVars, _currentUnit) \
-    _undeclaredVars.insert(OLD(_undeclaredVars).cbegin(), OLD(_undeclaredVars).cend()); \
+    if (_undeclaredVars.size() > 0) { \
+        obj->setUserdata(_mngr.New<CapturesUserData>(_undeclaredVars, _currentUnit)); \
+        _undeclaredVars.insert(OLD(_undeclaredVars).cbegin(), OLD(_undeclaredVars).cend()); \
+    } else { \
+        RESTORE_MEMBER(_undeclaredVars) \
+    } \
 }
 
 UsageAnalysis::UsageAnalysis(CompCtx_Ptr& ctx)
