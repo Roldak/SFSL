@@ -9,6 +9,7 @@
 #include "Environment.h"
 #include "Types.h"
 #include <algorithm>
+#include <numeric>
 
 namespace sfsl {
 
