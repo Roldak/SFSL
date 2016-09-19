@@ -372,14 +372,6 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
     RESTORE_MEMBER(_usedVars)
 }
 
-void PreTransformAnalysis::visit(AssignmentExpression* aex) {
-    ASTImplicitVisitor::visit(aex);
-
-    if (Identifier* ident = getIfNodeOfType<Identifier>(aex->getLhs(), _ctx)) {
-        getVariableInfo(ident->getSymbol())->setMutable();
-    }
-}
-
 void PreTransformAnalysis::visit(TypeSpecifier* tps) {
     if (tps->getSpecified()->getSymbol()) {
         if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(tps->getSpecified()->getSymbol())) {
@@ -403,6 +395,11 @@ void PreTransformAnalysis::visit(Identifier* ident) {
         VariableInfo* info = getVariableInfo(ident->getSymbol());
         if (!info) {
             info = setVariableInfo(ident->getSymbol(), _mngr.New<LocalInfo>());
+            if (sym::VariableSymbol* var = sym::getIfSymbolOfType<sym::VariableSymbol>(ident->getSymbol())) {
+                if (var->hasProperty(UsageProperty::MUTABLE)) {
+                    info->setMutable();
+                }
+            }
         }
 
         if (info) {

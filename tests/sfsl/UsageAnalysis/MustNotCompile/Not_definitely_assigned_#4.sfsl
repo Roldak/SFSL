@@ -1,0 +1,11 @@
+module test {
+	using sfsl.lang
+	
+	def main() => {
+		x: int;
+		f := () => {
+			x = 3;
+		};
+		x;
+	}
+}

@@ -25,7 +25,8 @@ enum class UsageProperty : char {
     INITIALIZED = 1 << 1,
     USABLE      = 1 << 2,
     USED        = 1 << 3,
-    MUTABLE     = 1 << 4
+    MUTABLE     = 1 << 4,
+    ASSIGNED    = 1 << 5
 };
 
 /**

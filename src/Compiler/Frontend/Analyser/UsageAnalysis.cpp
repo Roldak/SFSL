@@ -44,12 +44,17 @@ public:
         func->getBody()->onVisit(this);
 
         warnForUnusedVariable();
+
+        uninit(_initCurScope);
     }
 
     void analyse(DefineDecl* def) {
         if (def->getValue()) {
             def->getValue()->onVisit(this);
+
             warnForUnusedVariable();
+
+            uninit(_initCurScope);
         }
     }
 
@@ -69,6 +74,7 @@ protected:
 
         for (sym::VariableSymbol* var : assignedVars) {
             var->unsetProperty(UsageProperty::USABLE);
+            var->setProperty(UsageProperty::ASSIGNED);
         }
 
         aex->getLhs()->onVisit(this);
@@ -175,6 +181,13 @@ protected:
 
         for (Identifier* ident : _locallyUndeclaredVars[var]) {
             _ctx->reporter().error(*ident, "Variable `" + var->getName() + "` is used or assigned before being declared");
+        }
+
+        // if it was assigned before being declared, either it is an error
+        // which is dealt with above, or it must be that it was assigned in an
+        // inner class or function, in which the case it means that the var is mutable
+        if (var->hasProperty(UsageProperty::ASSIGNED)) {
+            var->setProperty(UsageProperty::MUTABLE);
         }
     }
 

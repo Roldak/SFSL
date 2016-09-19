@@ -25,7 +25,6 @@ public:
     virtual ~PreTransformAnalysis();
 
     virtual void visit(ClassDecl* clss) override;
-    virtual void visit(AssignmentExpression* aex) override;
     virtual void visit(TypeSpecifier* tps) override;
     virtual void visit(FunctionCreation* func) override;
     virtual void visit(Identifier* ident) override;
