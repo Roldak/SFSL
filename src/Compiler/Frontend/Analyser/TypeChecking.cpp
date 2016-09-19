@@ -961,6 +961,11 @@ TypeChecking::AnySymbolicData TypeChecking::resolveOverload(
         return {nullptr, nullptr};
     }
 
+    if (!_expectedInfo.args) {
+        _ctx->reporter().error(*triggerer, "Missing expected argument types");
+        return {nullptr, nullptr};
+    }
+
     // Register potential candidates
 
     std::vector<OverloadedDefSymbolCandidate> candidates;
