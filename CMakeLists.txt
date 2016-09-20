@@ -154,9 +154,9 @@ endif()
 ###################################
 
 if (STDLIB_BUILD_TYPE STREQUAL debug)
-    set(DEF_STDLIB_NAME "\\\"lib${STDLIB_OUTPUT_NAME}-d\\\"")
+    set(DEF_STDLIB_NAME "\"\\\"lib${STDLIB_OUTPUT_NAME}-d\\\"\"")
 else()
-    set(DEF_STDLIB_NAME "\\\"lib${STDLIB_OUTPUT_NAME}\\\"")
+    set(DEF_STDLIB_NAME "\"\\\"lib${STDLIB_OUTPUT_NAME}\\\"\"")
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
