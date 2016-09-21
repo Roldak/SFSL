@@ -60,9 +60,9 @@ public:
         buildTestFromTestDescription(testDescr);
     }
 
-    virtual ~PhaseGraphTest() { }
+    ~PhaseGraphTest() { }
 
-    virtual bool run(AbstractTestLogger& logger) override {
+    bool run(AbstractTestLogger& logger) override {
         std::string message;
         bool success = !(checkExecutionOrder(message) ^ _shouldPass);
         logger.result(_name, success, message);

@@ -1,6 +1,7 @@
 #include "AbstractTestLogger.h"
 #include "FileSystemTestGenerator.h"
 #include "PhaseGraphTests.h"
+#include "CanSubtypeTests.h"
 #include "sfsl.h"
 
 using namespace sfsl;
@@ -58,5 +59,6 @@ int main() {
     CoutLogger logger;
     test::buildPhaseGraphTests()->run(logger);
     test::FileSystemTestGenerator("sfsl").findAndGenerate()->run(logger);
+    test::buildCanSubtypeTests()->run(logger);
     return 0;
 }
