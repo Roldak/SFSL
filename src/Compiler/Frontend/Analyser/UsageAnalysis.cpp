@@ -74,13 +74,13 @@ protected:
 
         for (sym::VariableSymbol* var : assignedVars) {
             var->unsetProperty(UsageProperty::USABLE);
-            var->setProperty(UsageProperty::ASSIGNED);
         }
 
         aex->getLhs()->onVisit(this);
 
         for (sym::VariableSymbol* var : assignedVars) {
             var->setProperty(UsageProperty::USABLE);
+            var->setProperty(UsageProperty::ASSIGNED);
             if (var->hasProperty(UsageProperty::INITIALIZED)) {
                 var->setProperty(UsageProperty::MUTABLE);
             } else {
