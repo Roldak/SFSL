@@ -101,11 +101,14 @@ protected:
 
     virtual void visit(TypeMemberAccess* mac) override;
     virtual void visit(TypeIdentifier* ident) override;
+    virtual void visit(MemberAccess *mac) override;
     virtual void visit(Identifier* ident) override;
 
     type::Type* createType(ASTNode* node);
     void doVisit(ASTNode* node);
 
+    template<typename T>
+    void createTypeFromMemberAccess(T* mac);
     void createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos);
 
     type::Type* _created;

@@ -1,0 +1,13 @@
+module test {
+	using sfsl.lang
+	
+	class A {
+		class B {
+			class test_C
+			static def test_f = 42
+		}
+	}
+	
+	def test1 = assert_same_sym("test_C_0", A.B.test_C)
+	def test2 = assert_same_sym("test_f_0", A.B.test_f)
+}

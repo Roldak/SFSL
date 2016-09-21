@@ -85,25 +85,15 @@ void ASTTypeCreator::visit(TypeConstructorCall* tcall) {
 }
 
 void ASTTypeCreator::visit(TypeMemberAccess* mac) {
-    doVisit(mac->getAccessed());
-
-    if (_created) {
-        if (type::ProperType* pt = type::getIf<type::ProperType>(_created->applyTCCallsOnly(_ctx))) {
-            sym::Scope* classScope = pt->getClass()->getScope();
-            if (classScope->assignSymbolic(*mac->getMember(), mac->getMember()->getValue())) {
-                doVisit(mac->getMember());
-                if (_created) {
-                    _created = _created->substitute(pt->getEnvironment(), _ctx);
-                }
-            }
-        }
-    } else {
-        createTypeFromSymbolic(mac, *mac);
-    }
+    createTypeFromMemberAccess(mac);
 }
 
 void ASTTypeCreator::visit(TypeIdentifier* ident) {
     createTypeFromSymbolic(ident, *ident);
+}
+
+void ASTTypeCreator::visit(MemberAccess* mac) {
+    createTypeFromMemberAccess(mac);
 }
 
 void ASTTypeCreator::visit(Identifier* ident) {
@@ -331,6 +321,25 @@ type::Type* ASTTypeCreator::evalFunctionConstructor(type::Type* fc, const std::v
     created = created->substitute(callEnv, ctx);
 
     return created;
+}
+
+template<typename T>
+void ASTTypeCreator::createTypeFromMemberAccess(T* mac) {
+    doVisit(mac->getAccessed());
+
+    if (_created) {
+        if (type::ProperType* pt = type::getIf<type::ProperType>(_created->applyTCCallsOnly(_ctx))) {
+            sym::Scope* classScope = pt->getClass()->getScope();
+            if (classScope->assignSymbolic(*mac->getMember(), mac->getMember()->getValue())) {
+                doVisit(mac->getMember());
+                if (_created) {
+                    _created = _created->substitute(pt->getEnvironment(), _ctx);
+                }
+            }
+        }
+    } else {
+        createTypeFromSymbolic(mac, *mac);
+    }
 }
 
 void ASTTypeCreator::createTypeFromSymbolic(sym::Symbolic<sym::Symbol>* symbolic, common::Positionnable& pos) {
