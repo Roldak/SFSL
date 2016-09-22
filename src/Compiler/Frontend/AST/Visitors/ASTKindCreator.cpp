@@ -132,7 +132,7 @@ void ASTDefaultTypeFromKindCreator::visit(TypeConstructorKindSpecifier* tcks) {
 
         args[i] = _mngr.New<TypeParameter>(tcksParam.varianceType, tdecl->getName(), tcksParam.kindExpr);
         dependencies[i].varianceType = tcksParam.varianceType;
-        dependencies[i].symbol = tdecl->getSymbol();
+        dependencies[i].tpe = tdecl->type();
     }
 
     pushTypeParameters(dependencies);

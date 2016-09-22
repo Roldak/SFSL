@@ -380,7 +380,7 @@ type::Environment ASTTypeCreator::buildEnvironmentFromTypeParametrizable(type::T
     const std::vector<type::TypeParametrizable::Parameter>& syms(param->getParameters());
 
     for (type::TypeParametrizable::Parameter ts : syms) {
-        env.insert(type::Environment::Substitution(ts.varianceType, ts.symbol->type(), ts.symbol->type()));
+        env.insert(type::Environment::Substitution(ts.varianceType, ts.tpe, ts.tpe));
     }
 
     return env;
