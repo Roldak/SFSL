@@ -70,15 +70,28 @@ public:
         return this;
     }
 
-    SubTypingTest* assertIsSubtype(char a, char b) {
-        bool subtypes = !clazz(a)->subTypeInstances(clazz(b)).empty();
+    SubTypingTest* assertIsSubtype(char a, char b, size_t expectedInstances = 0) {
+        size_t subtypeInstances = clazz(a)->subTypeInstances(clazz(b)).size();
+
         _log += charToString(a) + " <? " + charToString(b) + ": ";
-        if (subtypes) {
-            _log += "true; ";
+        if (expectedInstances == 0) {
+            if (subtypeInstances > 0) {
+                _log += "true; ";
+            } else {
+                _log += "false; ";
+                _success = false;
+            }
         } else {
-            _log += "false; ";
-            _success = false;
+            if (subtypeInstances == expectedInstances) {
+                _log += "true";
+            } else {
+                _log += "false";
+                _success = false;
+            }
+            _log += " (expected " + std::to_string(expectedInstances)
+                    + ", found " + std::to_string(subtypeInstances) + "); ";
         }
+
         return this;
     }
 
@@ -137,13 +150,21 @@ TestRunner* buildCanSubtypeTests() {
     trans.addTest(SubTypingTest::make("Transitivity #2", 3)->subs('B', 'C')->subs('A', 'B')
                   ->assertIsSubtype('A', 'C'));
 
+    trans.addTest(SubTypingTest::make("Deep Hierarchy", 9)
+                  ->subs('A', 'B')->subs('B', 'C')->subs('C', 'D')->subs('D', 'E')
+                  ->subs('E', 'F')->subs('F', 'G')->subs('G', 'H')->subs('H', 'I')
+                  ->assertIsSubtype('A', 'I')->assertIsSubtype('D', 'G')
+                  ->assertIsNotSubtype('G', 'B')->assertIsNotSubtype('I', 'H'));
+
     TestSuiteBuilder multi("MultipleInheritance");
 
     multi.addTest(SubTypingTest::make("Multiple #1", 3)->subs('A', 'B')->subs('A', 'C')
                   ->assertIsSubtype('A', 'B')->assertIsSubtype('A', 'C')
                   ->assertIsNotSubtype('B', 'A')->assertIsNotSubtype('C', 'A'));
 
-    multi.addTest(SubTypingTest::make("Multiple #2", 3)->subs());
+    multi.addTest(SubTypingTest::make("Diamond", 4)
+                  ->subs('A', 'B')->subs('A', 'C')->subs('B', 'D')->subs('C', 'D')
+                  ->assertIsSubtype('A', 'B')->assertIsSubtype('A', 'C')->assertIsSubtype('A', 'D', 2));
 
     return new TestRunner("CanSubtypeTests", {basic.build(), trans.build(), multi.build()});
 }
