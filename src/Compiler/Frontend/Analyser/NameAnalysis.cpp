@@ -27,6 +27,7 @@ namespace sfsl {
 namespace ast {
 
 const size_t size_t_max = std::numeric_limits<size_t>::max();
+sym::Scope emptyScope(nullptr);
 
 // SCOPE GENERATION
 
@@ -128,42 +129,36 @@ void ScopeGeneration::visit(DefineDecl* def) {
     popPathPart();
     popScope();
 }
-/*
+
 void ScopeGeneration::visit(ProperTypeKindSpecifier* ptks) {
-    ClassDecl* clss = _mngr.New<ClassDecl>(_name, nullptr,
+    ASTImplicitVisitor::visit(ptks);
+
+    ClassDecl* clss = _mngr.New<ClassDecl>("$T$", nullptr,
                                            std::vector<TypeDecl*>(),
                                            std::vector<TypeSpecifier*>(),
                                            std::vector<DefineDecl*>(),
                                            false);
 
-    clss->setScope(_mngr.New<sym::Scope>(nullptr));
+    clss->setScope(&emptyScope);
+
+    ptks->setUserdata<TypeExpression>(clss);
 }
 
 void ScopeGeneration::visit(TypeConstructorKindSpecifier* tcks) {
+    ASTImplicitVisitor::visit(tcks);
+
     std::vector<TypeExpression*> args(tcks->getArgs().size());
-    std::vector<Parameter> dependencies(tcks->getArgs().size());
-    TypeExpression* ret;
-
     for (size_t i = 0; i < args.size(); ++i) {
-        const TypeConstructorKindSpecifier::Parameter& tcksParam(tcks->getArgs()[i]);
-        TypeDecl* tdecl = createDefaultTypeFromKind(tcksParam.kindExpr, _name + "Arg" + utils::T_toString(i), _parameters, _ctx);
-
-        args[i] = _mngr.New<TypeParameter>(tcksParam.varianceType, tdecl->getName(), tcksParam.kindExpr);
-        dependencies[i].varianceType = tcksParam.varianceType;
-        dependencies[i].symbol = tdecl->getSymbol();
+        args[i] = tcks->getArgs()[i].kindExpr->getUserdata<TypeExpression>();
     }
 
-    pushTypeParameters(dependencies);
+    TypeExpression* ret = tcks->getRet()->getUserdata<TypeExpression>();
 
-    ret = createDefaultTypeFromKind(tcks->getRet(), _name + "Ret", _parameters, _ctx)->getName();
+    TypeConstructorCreation* tcc = _mngr.New<TypeConstructorCreation>("$F$", _mngr.New<TypeTuple>(args), ret);
+    tcc->setScope(&emptyScope);
 
-    popTypeParameters(dependencies.size());
-
-    TypeTuple* tt = _mngr.New<TypeTuple>(args);
-
-    TypeConstructorCreation* tcc = _mngr.New<TypeConstructorCreation>(_name, tt, ret);
-    tcc->setScope(_mngr.New<sym::Scope>(nullptr));
-}*/
+    tcks->setUserdata<TypeExpression>(tcc);
+}
 
 void ScopeGeneration::visit(FunctionTypeDecl* ftdecl) {
     if (_nextMethodDecl != ftdecl && !ftdecl->getTypeArgs().empty()) {
@@ -197,16 +192,15 @@ void ScopeGeneration::visit(TypeConstructorCreation* tc) {
 
     generateTypeParametersSymbols(args, true);
 
-    //SAVE_MEMBER_AND_SET(_nextTypeExpr)
-
     tc->getBody()->onVisit(this);
 
     popScope();
 }
 
 void ScopeGeneration::visit(TypeParameter* tparam) {
-    TypeDecl* defaultType = ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
-                tparam->getKindNode(), tparam->getSpecified()->getValue(), _ctx);
+    tparam->getKindNode()->onVisit(this);
+
+    TypeDecl* defaultType = makeTypeDecl(tparam->getSpecified()->getValue(), tparam->getKindNode()->getUserdata<TypeExpression>());
 
     createProperType(tparam->getSpecified(), defaultType);
 }
@@ -291,6 +285,22 @@ void ScopeGeneration::createProperType(TypeIdentifier* id, TypeDecl* defaultType
     initCreated(id, defaultType->getSymbol());
 }
 
+TypeDecl* ScopeGeneration::makeTypeDecl(const std::string& name, TypeExpression* expr) {
+    type::Type* t = ASTTypeCreator::createType(expr, _ctx);
+
+    TypeDecl* tdecl = _mngr.New<TypeDecl>(_mngr.New<TypeIdentifier>(name), expr, false);
+
+    sym::TypeSymbol* ts = _mngr.New<sym::TypeSymbol>(name, name, tdecl);
+
+    tdecl->setType(t);
+    ts->setType(t);
+
+    tdecl->getName()->setSymbol(ts);
+    tdecl->setSymbol(ts);
+
+    return tdecl;
+}
+
 void ScopeGeneration::pushScope(sym::Scoped* scoped, bool isDefScope) {
     _curScope = _mngr.New<sym::Scope>(_curScope, isDefScope);
     if (scoped != nullptr) {
@@ -305,8 +315,9 @@ void ScopeGeneration::popScope() {
 void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams, bool allowVarianceAnnotations) {
     for (TypeExpression* typeParam : typeParams) {
         if (TypeIdentifier* tident = getIfNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
-            createProperType(tident, ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
-                                 _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(typeParam)->getValue(), _ctx));
+            static ProperTypeKindSpecifier ptks;
+            ptks.onVisit(this);
+            createProperType(tident, makeTypeDecl(tident->getValue(), ptks.getUserdata<TypeExpression>()));
         } else if(TypeParameter* tparam = getIfNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `T: kind`
             // The type var is already going to be created by the TypeParameter Node
             typeParam->onVisit(this);

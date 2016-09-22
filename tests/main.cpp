@@ -58,7 +58,7 @@ private:
 int main() {
     CoutLogger logger;
     test::buildPhaseGraphTests()->run(logger);
-    //test::FileSystemTestGenerator("sfsl").findAndGenerate()->run(logger);
     test::buildCanSubtypeTests()->run(logger);
+    test::FileSystemTestGenerator("sfsl").findAndGenerate()->run(logger);
     return 0;
 }

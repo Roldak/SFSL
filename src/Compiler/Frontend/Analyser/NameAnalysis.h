@@ -33,8 +33,11 @@ public:
     virtual void visit(TypeDecl* tdecl) override;
     virtual void visit(ClassDecl* clss) override;
     virtual void visit(DefineDecl* decl) override;
-    virtual void visit(FunctionTypeDecl* ftdecl) override;
 
+    virtual void visit(ProperTypeKindSpecifier* ptks) override;
+    virtual void visit(TypeConstructorKindSpecifier* tcks) override;
+
+    virtual void visit(FunctionTypeDecl* ftdecl) override;
     virtual void visit(TypeConstructorCreation* tc) override;
     virtual void visit(TypeParameter* tparam) override;
 
@@ -46,6 +49,7 @@ private:
 
     void createVar(Identifier* id);
     void createProperType(TypeIdentifier* id, TypeDecl* defaultType);
+    TypeDecl* makeTypeDecl(const std::string& name, TypeExpression* expr);
 
     void pushScope(sym::Scoped* scoped = nullptr, bool isDefScope = false);
     void popScope();
