@@ -162,9 +162,34 @@ TestRunner* buildCanSubtypeTests() {
                   ->assertIsSubtype('A', 'B')->assertIsSubtype('A', 'C')
                   ->assertIsNotSubtype('B', 'A')->assertIsNotSubtype('C', 'A'));
 
-    multi.addTest(SubTypingTest::make("Diamond", 4)
+    multi.addTest(SubTypingTest::make("Diamond #1", 4)
                   ->subs('A', 'B')->subs('A', 'C')->subs('B', 'D')->subs('C', 'D')
                   ->assertIsSubtype('A', 'B')->assertIsSubtype('A', 'C')->assertIsSubtype('A', 'D', 2));
+
+    multi.addTest(SubTypingTest::make("Diamond #2", 4)
+                  ->subs('C', 'D')->subs('A', 'C')->subs('B', 'D')->subs('A', 'B')
+                  ->assertIsSubtype('A', 'B')->assertIsSubtype('A', 'C')->assertIsSubtype('A', 'D', 2));
+
+    multi.addTest(SubTypingTest::make("Double Diamond #1", 7)
+                  ->subs('A', 'B')->subs('A', 'C')->subs('B', 'D')->subs('C', 'D')
+                  ->subs('D', 'E')->subs('D', 'F')->subs('E', 'G')->subs('F', 'G')
+                  ->assertIsSubtype('A', 'B')->assertIsSubtype('A', 'C')->assertIsSubtype('A', 'D', 2)
+                  ->assertIsSubtype('D', 'E')->assertIsSubtype('D', 'F')->assertIsSubtype('D', 'G', 2)
+                  ->assertIsSubtype('A', 'E', 2)->assertIsSubtype('A', 'F', 2)->assertIsSubtype('A', 'G', 4));
+
+    multi.addTest(SubTypingTest::make("Double Diamond #2", 7)
+                  ->subs('D', 'E')->subs('D', 'F')->subs('E', 'G')->subs('F', 'G')
+                  ->subs('A', 'B')->subs('A', 'C')->subs('B', 'D')->subs('C', 'D')
+                  ->assertIsSubtype('A', 'B')->assertIsSubtype('A', 'C')->assertIsSubtype('A', 'D', 2)
+                  ->assertIsSubtype('D', 'E')->assertIsSubtype('D', 'F')->assertIsSubtype('D', 'G', 2)
+                  ->assertIsSubtype('A', 'E', 2)->assertIsSubtype('A', 'F', 2)->assertIsSubtype('A', 'G', 4));
+
+    multi.addTest(SubTypingTest::make("Double Diamond #3", 7)
+                  ->subs('A', 'C')->subs('F', 'G')->subs('B', 'D')->subs('D', 'F')
+                  ->subs('C', 'D')->subs('D', 'E')->subs('E', 'G')->subs('A', 'B')
+                  ->assertIsSubtype('A', 'B')->assertIsSubtype('A', 'C')->assertIsSubtype('A', 'D', 2)
+                  ->assertIsSubtype('D', 'E')->assertIsSubtype('D', 'F')->assertIsSubtype('D', 'G', 2)
+                  ->assertIsSubtype('A', 'E', 2)->assertIsSubtype('A', 'F', 2)->assertIsSubtype('A', 'G', 4));
 
     return new TestRunner("CanSubtypeTests", {basic.build(), trans.build(), multi.build()});
 }
