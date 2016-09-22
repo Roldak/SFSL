@@ -42,7 +42,7 @@ std::string charToString(char c) {
 class SubTypingTest final : public AbstractTest {
 public:
     SubTypingTest(const std::string& name, size_t clazzCount)
-        : AbstractTest(name), _clazzes(clazzCount), _success(true), _assertionsPrepared(false) {
+        : AbstractTest(name), _clazzes(clazzCount), _success(true) {
         for (size_t i = 0; i < clazzCount; ++i) {
             _clazzes[i] = new Clazz(charToString(nameFrom(i)));
             _clazzes[i]->addSpecialSuperType(_clazzes[i], Environment::Empty);
@@ -59,40 +59,18 @@ public:
     }
 
     SubTypingTest* subs(char a, char b) {
-        if (_assertionsPrepared) {
-            throw new std::runtime_error("Cannot add subtyping relations when assertions are already prepared");
-        }
-
         clazz(a)->addSuperType(clazz(b), Environment::Empty);
         _log += charToString(a) + " <! " + charToString(b) + "; ";
         return this;
     }
 
     SubTypingTest* specialSubs(char a, char b) {
-        if (_assertionsPrepared) {
-            throw new std::runtime_error("Cannot add subtyping relations when assertions are already prepared");
-        }
-
         clazz(a)->addSpecialSuperType(clazz(b), Environment::Empty);
         _log += charToString(a) + " <-! " + charToString(b) + "; ";
         return this;
     }
 
-    SubTypingTest* prepareAssertions() {
-        if (_assertionsPrepared) {
-            throw new std::runtime_error("Assertions already prepared");
-        }
-
-        _assertionsPrepared = true;
-
-        return this;
-    }
-
     SubTypingTest* assertIsSubtype(char a, char b) {
-        if (!_assertionsPrepared) {
-            throw new std::runtime_error("Cannot add assertions while assertions are not prepared");
-        }
-
         bool subtypes = !clazz(a)->subTypeInstances(clazz(b)).empty();
         _log += charToString(a) + " <? " + charToString(b) + ": ";
         if (subtypes) {
@@ -105,17 +83,13 @@ public:
     }
 
     SubTypingTest* assertIsNotSubtype(char a, char b) {
-        if (!_assertionsPrepared) {
-            throw new std::runtime_error("Cannot add assertions while assertions are not prepared");
-        }
-
         bool subtypes = !clazz(a)->subTypeInstances(clazz(b)).empty();
-        _log += charToString(a) + " not <? " + charToString(b) + ": ";
+        _log += charToString(a) + " <? " + charToString(b) + ": ";
         if (subtypes) {
-            _log += "false; ";
+            _log += "true; ";
             _success = false;
         } else {
-            _log += "true; ";
+            _log += "false; ";
         }
         return this;
     }
@@ -146,25 +120,32 @@ private:
     std::vector<Clazz*> _clazzes;
     std::string _log;
     bool _success;
-    bool _assertionsPrepared;
 };
 
 TestRunner* buildCanSubtypeTests() {
     TestSuiteBuilder basic("Basic");
 
-    basic.addTest(SubTypingTest::make("Subtype of self", 1)->prepareAssertions()->assertIsSubtype('A', 'A'));
+    basic.addTest(SubTypingTest::make("Subtype of self", 1)->assertIsSubtype('A', 'A'));
     basic.addTest(SubTypingTest::make("Basic #1", 2)->subs('A', 'B')
-                  ->prepareAssertions()->assertIsSubtype('A', 'B')->assertIsNotSubtype('B', 'A'));
+                  ->assertIsSubtype('A', 'B')->assertIsNotSubtype('B', 'A'));
 
     TestSuiteBuilder trans("Transitivity");
 
     trans.addTest(SubTypingTest::make("Transitivity #1", 3)->subs('A', 'B')->subs('B', 'C')
-                  ->prepareAssertions()->assertIsSubtype('A', 'C'));
+                  ->assertIsSubtype('A', 'C'));
 
     trans.addTest(SubTypingTest::make("Transitivity #2", 3)->subs('B', 'C')->subs('A', 'B')
-                  ->prepareAssertions()->assertIsSubtype('A', 'C'));
+                  ->assertIsSubtype('A', 'C'));
 
-    return new TestRunner("CanSubtypeTests", {basic.build(), trans.build()});
+    TestSuiteBuilder multi("MultipleInheritance");
+
+    multi.addTest(SubTypingTest::make("Multiple #1", 3)->subs('A', 'B')->subs('A', 'C')
+                  ->assertIsSubtype('A', 'B')->assertIsSubtype('A', 'C')
+                  ->assertIsNotSubtype('B', 'A')->assertIsNotSubtype('C', 'A'));
+
+    multi.addTest(SubTypingTest::make("Multiple #2", 3)->subs());
+
+    return new TestRunner("CanSubtypeTests", {basic.build(), trans.build(), multi.build()});
 }
 
 }
