@@ -672,6 +672,8 @@ bool SymbolAssignation::visitParent(ClassDecl* clss) {
     if (_visitedTypes.find(clss) == _visitedTypes.end()) { // if unmarked
         auto it = _temporarilyVisitedTypes.insert(clss).first; // mark temporarily
 
+        clss->addSpecialSuperType(clss, ASTTypeCreator::buildEnvironmentFromTypeParametrizable(clss));
+
         if (clss->getParent()) {
             SAVE_SCOPE(clss)
 
@@ -693,8 +695,6 @@ bool SymbolAssignation::visitParent(ClassDecl* clss) {
 
             RESTORE_SCOPE
         }
-
-        clss->addSpecialSuperType(clss, ASTTypeCreator::buildEnvironmentFromTypeParametrizable(clss));
 
         _temporarilyVisitedTypes.erase(it); // unmark temporarily
         _visitedTypes.insert(clss); // mark permantently

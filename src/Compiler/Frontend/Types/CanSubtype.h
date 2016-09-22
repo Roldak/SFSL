@@ -22,32 +22,32 @@ class CanSubtype {
 private:
 
     struct Entry {
-        Entry(Type t, const std::vector<Environment>& e) : tpe(t), envs(e) {}
+        Entry(Type t, const std::vector<Environment>& e) : _tpe(t), _envs(e) {}
 
         inline bool operator <(Type t) const {
-            return tpe < t;
+            return _tpe < t;
         }
 
         inline bool correspondsTo(Type t) const {
-            return tpe == t;
+            return _tpe == t;
         }
 
         inline void addInstance(const Environment& env) {
-            envs.push_back(env);
+            _envs.push_back(env);
         }
 
         inline Type getType() const {
-            return tpe;
+            return _tpe;
         }
 
         inline const std::vector<Environment>& getInstances() const {
-            return envs;
+            return _envs;
         }
 
     private:
 
-        Type tpe;
-        std::vector<Environment> envs;
+        Type _tpe;
+        std::vector<Environment> _envs;
     };
 
     typedef typename std::vector<Entry>::iterator EntryIterator;
@@ -80,13 +80,12 @@ private:
 
     void recursivelyAddSuperType(Type t, const Environment& env) {
         for (const Entry& e : t->_superTypes) {
-            std::vector<Environment> envs;
+            EntryIterator entry = findOrAddSuperType(e.getType());
             for (const Environment& inst : e.getInstances()) {
                 Environment subInst = inst;
                 subInst.substituteAll(env);
-                envs.push_back(subInst);
+                entry->addInstance(subInst);
             }
-            _superTypes.push_back(Entry(e.getType(), envs));
         }
 
         for (std::pair<CanSubtype<Type>*, Environment>& sub : getImmediateSubTypes()) {

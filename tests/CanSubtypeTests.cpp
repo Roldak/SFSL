@@ -64,10 +64,7 @@ public:
         }
 
         clazz(a)->addSuperType(clazz(b), Environment::Empty);
-        _log += a;
-        _log += " <! ";
-        _log += b;
-        _log += "; ";
+        _log += charToString(a) + " <! " + charToString(b) + "; ";
         return this;
     }
 
@@ -77,10 +74,7 @@ public:
         }
 
         clazz(a)->addSpecialSuperType(clazz(b), Environment::Empty);
-        _log += a;
-        _log += " <-! ";
-        _log += b;
-        _log += "; ";
+        _log += charToString(a) + " <-! " + charToString(b) + "; ";
         return this;
     }
 
@@ -91,8 +85,6 @@ public:
 
         _assertionsPrepared = true;
 
-        for (Clazz* clazz : _clazzes) {
-        }
         return this;
     }
 
@@ -102,10 +94,7 @@ public:
         }
 
         bool subtypes = !clazz(a)->subTypeInstances(clazz(b)).empty();
-        _log += a;
-        _log += " <? ";
-        _log += b;
-        _log += ": ";
+        _log += charToString(a) + " <? " + charToString(b) + ": ";
         if (subtypes) {
             _log += "true; ";
         } else {
@@ -121,10 +110,7 @@ public:
         }
 
         bool subtypes = !clazz(a)->subTypeInstances(clazz(b)).empty();
-        _log += a;
-        _log += " not <? ";
-        _log += b;
-        _log += ": ";
+        _log += charToString(a) + " not <? " + charToString(b) + ": ";
         if (subtypes) {
             _log += "false; ";
             _success = false;
@@ -167,7 +153,8 @@ TestRunner* buildCanSubtypeTests() {
     TestSuiteBuilder basic("Basic");
 
     basic.addTest(SubTypingTest::make("Subtype of self", 1)->prepareAssertions()->assertIsSubtype('A', 'A'));
-    basic.addTest(SubTypingTest::make("Basic #1", 2)->subs('A', 'B')->prepareAssertions()->assertIsSubtype('A', 'B'));
+    basic.addTest(SubTypingTest::make("Basic #1", 2)->subs('A', 'B')
+                  ->prepareAssertions()->assertIsSubtype('A', 'B')->assertIsNotSubtype('B', 'A'));
 
     TestSuiteBuilder trans("Transitivity");
 
