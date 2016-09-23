@@ -410,7 +410,16 @@ bool FunctionType::equals(const Type* other, CompCtx_Ptr& ctx) const {
 }
 
 std::string FunctionType::toString(CompCtx_Ptr* shouldApply) const {
-    std::string toRet = "(";
+    std::string toRet;
+    if (_typeArgs.size() > 0) {
+        toRet += "[";
+        for (size_t i = 0; i < _typeArgs.size() - 1; ++i) {
+            toRet += _typeArgs[i]->kind()->toString(true, shouldApply) + ", ";
+        }
+        toRet += _typeArgs.back()->kind()->toString(true, shouldApply) + "]";
+    }
+
+    toRet += "(";
 
     if (_argTypes.size() > 0) {
         for (size_t i = 0; i < _argTypes.size() - 1; ++i) {
@@ -461,6 +470,9 @@ TYPE_KIND MethodType::getTypeKind() const {
 
 bool MethodType::isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const {
     if (MethodType* m = getIf<MethodType>(other)) {
+        std::cerr << "Function subtyping : "
+                  << toString(&ctx) << _env.toString() << ", "
+                  << other->toString(&ctx) << other->getEnvironment().toString() << std::endl;
         return isSubTypeOfValueConstructor(m, ctx);
     }
 
@@ -476,7 +488,16 @@ bool MethodType::equals(const Type* other, CompCtx_Ptr& ctx) const {
 }
 
 std::string MethodType::toString(CompCtx_Ptr* shouldApply) const {
-    std::string toRet = "([" + _owner->getName() + "]";
+    std::string toRet;
+    if (_typeArgs.size() > 0) {
+        toRet += "[";
+        for (size_t i = 0; i < _typeArgs.size() - 1; ++i) {
+            toRet += _typeArgs[i]->kind()->toString(true, shouldApply) + ", ";
+        }
+        toRet += _typeArgs.back()->kind()->toString(true, shouldApply) + "]";
+    }
+
+    toRet += "([" + _owner->getName() + "]";
 
     for (size_t i = 0; i < _argTypes.size(); ++i) {
         toRet += ", " + _argTypes[i]->toString(shouldApply);
