@@ -142,7 +142,7 @@ void ScopeGeneration::visit(ProperTypeKindSpecifier* ptks) {
 
     clss->setScope(_mngr.New<sym::Scope>(_curScope, true));
 
-    ptks->setUserdata<TypeExpression>(clss);
+    ptks->setDefaultType(clss);
 }
 
 void ScopeGeneration::visit(TypeConstructorKindSpecifier* tcks) {
@@ -156,7 +156,7 @@ void ScopeGeneration::visit(TypeConstructorKindSpecifier* tcks) {
 
         RESTORE_MEMBER(_curDefaultTypeName)
 
-        TypeDecl* tdecl = makeTypeDecl(_curDefaultTypeName, tcksParam.kindExpr->getUserdata<TypeExpression>());
+        TypeDecl* tdecl = makeTypeDecl(_curDefaultTypeName, tcksParam.kindExpr->getDefaultType());
 
         params[i] = _mngr.New<TypeParameter>(tcksParam.varianceType, tdecl->getName(), tcksParam.kindExpr);
     }
@@ -167,12 +167,12 @@ void ScopeGeneration::visit(TypeConstructorKindSpecifier* tcks) {
 
     RESTORE_MEMBER(_curDefaultTypeName)
 
-    TypeExpression* ret = tcks->getRet()->getUserdata<TypeExpression>();
+    TypeExpression* ret = tcks->getRet()->getDefaultType();
 
     TypeConstructorCreation* tcc = _mngr.New<TypeConstructorCreation>(_curDefaultTypeName, _mngr.New<TypeTuple>(params), ret);
     tcc->setScope(&emptyScope);
 
-    tcks->setUserdata<TypeExpression>(tcc);
+    tcks->setDefaultType(tcc);
 }
 
 void ScopeGeneration::visit(FunctionTypeDecl* ftdecl) {
@@ -216,7 +216,7 @@ void ScopeGeneration::visit(TypeParameter* tparam) {
     _curDefaultTypeName = tparam->getSpecified()->getValue();
     tparam->getKindNode()->onVisit(this);
 
-    TypeDecl* defaultType = makeTypeDecl(tparam->getSpecified()->getValue(), tparam->getKindNode()->getUserdata<TypeExpression>());
+    TypeDecl* defaultType = makeTypeDecl(tparam->getSpecified()->getValue(), tparam->getKindNode()->getDefaultType());
 
     createProperType(tparam->getSpecified(), defaultType);
 }
@@ -333,7 +333,7 @@ void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpres
         if (TypeIdentifier* tident = getIfNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
             _curDefaultTypeName = tident->getValue();
             defaultPtks.onVisit(this);
-            createProperType(tident, makeTypeDecl(tident->getValue(), defaultPtks.getUserdata<TypeExpression>()));
+            createProperType(tident, makeTypeDecl(tident->getValue(), defaultPtks.getDefaultType()));
         } else if(TypeParameter* tparam = getIfNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `T: kind`
             // The type var is already going to be created by the TypeParameter Node
             typeParam->onVisit(this);
@@ -438,12 +438,12 @@ void TypeDependencyFixation::visit(ClassDecl* clss) {
 void TypeDependencyFixation::visit(ProperTypeKindSpecifier* ptks) {
     ASTImplicitVisitor::visit(ptks);
 
-    ClassDecl* clss = static_cast<ClassDecl*>(ptks->getUserdata<TypeExpression>());
+    ClassDecl* clss = static_cast<ClassDecl*>(ptks->getDefaultType());
     clss->setParameters(_parameters);
 }
 
 void TypeDependencyFixation::visit(TypeConstructorKindSpecifier* tcks) {
-    TypeConstructorCreation* tcc = static_cast<TypeConstructorCreation*>(tcks->getUserdata<TypeExpression>());
+    TypeConstructorCreation* tcc = static_cast<TypeConstructorCreation*>(tcks->getDefaultType());
     tcc->setParameters(_parameters);
 
     std::vector<Parameter> params(tcks->getArgs().size());
@@ -453,7 +453,7 @@ void TypeDependencyFixation::visit(TypeConstructorKindSpecifier* tcks) {
         tcksParam.kindExpr->onVisit(this);
 
         params[i].varianceType = tcksParam.varianceType;
-        params[i].tpe = ASTTypeCreator::createType(tcksParam.kindExpr->getUserdata<TypeExpression>(), _ctx);
+        params[i].tpe = ASTTypeCreator::createType(tcksParam.kindExpr->getDefaultType(), _ctx);
     }
 
     _parameters.insert(_parameters.end(), params.begin(), params.end());
@@ -647,7 +647,7 @@ void SymbolAssignation::visit(DefineDecl* def) {
 void SymbolAssignation::visit(ProperTypeKindSpecifier* ptks) {
     ASTImplicitVisitor::visit(ptks);
 
-    ClassDecl* clss = static_cast<ClassDecl*>(ptks->getUserdata<TypeExpression>());
+    ClassDecl* clss = static_cast<ClassDecl*>(ptks->getDefaultType());
 
     visitParent(clss);
 }

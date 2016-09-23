@@ -142,17 +142,14 @@ Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
 
     // if not, add it
 
-    ast::KindSpecifyingExpression* kse;
+    type::Type* res = nullptr;
 
     if (ast::TypeParameter* tparam = ast::getIfNodeOfType<ast::TypeParameter>(tpe, ctx)) {
-        kse = tparam->getKindNode();
+        res = ast::ASTTypeCreator::createType(tparam->getKindNode()->getDefaultType(), ctx);
+        holder->cacheDefaultGeneric(tpeKind, res);
     } else {
         ctx->reporter().fatal(*tpe, "Is supposed to be a type parameter");
     }
-
-    type::Type* res = ast::ASTTypeCreator::createType(kse->getUserdata<ast::TypeExpression>(), ctx);
-
-    holder->cacheDefaultGeneric(tpeKind, res);
 
     return res;
 }

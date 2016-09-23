@@ -48,6 +48,38 @@ private:
     type::Type* _cached;
 };
 
+class TypeExpression;
+
+/**
+ * @brief An interface for ast nodes which can hold
+ * default types, i.e. KindSpecifyingExpressions, which
+ * are created during NameAnalysis
+ */
+class CanHoldDefaultType {
+public:
+    CanHoldDefaultType();
+    virtual ~CanHoldDefaultType();
+
+    /**
+     * @return True if the default type has already been created and is held by this object
+     */
+    bool holdsDefaultType() const;
+
+    /**
+     * @return The default type that this object holds
+     */
+    TypeExpression* getDefaultType() const;
+
+    /**
+     * @param texpr The default type to have this object hold
+     */
+    void setDefaultType(TypeExpression* texpr);
+
+private:
+
+    TypeExpression* _defaultType;
+};
+
 }
 
 }
