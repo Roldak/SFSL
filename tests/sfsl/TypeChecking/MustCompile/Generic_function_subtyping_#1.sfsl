@@ -23,6 +23,7 @@ module test {
 		redef f[U](a: U, b: U) => a
 		redef g[X, B, C](a: X, b: B) => c: C
 		redef h[X, Y, Z](a: X) => (b: Y) => c: Z
+		redef i[G: *->*, K](f: G[K]) => x: K
 		redef j[V: [[*, *]->*]->*, D: [*, *]->[*, *]->*, X, Y]() => res: V[D[X, Y]]
 	}
 	

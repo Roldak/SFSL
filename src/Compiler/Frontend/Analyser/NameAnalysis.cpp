@@ -515,8 +515,6 @@ void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
 }
 
 void TypeDependencyFixation::visit(FunctionCreation* func) {
-    func->setParameters(_parameters);
-
     size_t pushed = 0;
 
     if (func->getTypeArgs()) {
@@ -530,6 +528,8 @@ void TypeDependencyFixation::visit(FunctionCreation* func) {
 
         pushed = pushTypeParameters(func->getTypeArgs()->getExpressions());
     }
+
+    func->setParameters(_parameters);
 
     func->getArgs()->onVisit(this);
 
