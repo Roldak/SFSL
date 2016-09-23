@@ -91,6 +91,10 @@ public:
     virtual ~TypeDependencyFixation();
 
     virtual void visit(ClassDecl* clss) override;
+
+    virtual void visit(ProperTypeKindSpecifier* ptks) override;
+    virtual void visit(TypeConstructorKindSpecifier* tcks) override;
+
     virtual void visit(FunctionTypeDecl* ftdecl) override;
     virtual void visit(TypeConstructorCreation* tc) override;
     virtual void visit(FunctionCreation* func) override;
@@ -121,8 +125,10 @@ public:
     virtual void visit(TypeDecl* tdecl) override;
     virtual void visit(ClassDecl* clss) override;
     virtual void visit(DefineDecl* decl) override;
-    virtual void visit(FunctionTypeDecl* ftdecl) override;
 
+    virtual void visit(ProperTypeKindSpecifier* ptks) override;
+
+    virtual void visit(FunctionTypeDecl* ftdecl) override;
     virtual void visit(TypeMemberAccess* tdot) override;
     virtual void visit(TypeConstructorCreation* typeconstructor) override;
     virtual void visit(TypeIdentifier* tident) override;

@@ -27,6 +27,7 @@ namespace sfsl {
 namespace ast {
 
 const size_t size_t_max = std::numeric_limits<size_t>::max();
+ProperTypeKindSpecifier defaultPtks(nullptr, nullptr);
 sym::Scope emptyScope(nullptr);
 
 // SCOPE GENERATION
@@ -147,14 +148,17 @@ void ScopeGeneration::visit(ProperTypeKindSpecifier* ptks) {
 void ScopeGeneration::visit(TypeConstructorKindSpecifier* tcks) {
     ASTImplicitVisitor::visit(tcks);
 
-    std::vector<TypeExpression*> args(tcks->getArgs().size());
-    for (size_t i = 0; i < args.size(); ++i) {
-        args[i] = tcks->getArgs()[i].kindExpr->getUserdata<TypeExpression>();
+    std::vector<TypeExpression*> params(tcks->getArgs().size());
+    for (size_t i = 0; i < params.size(); ++i) {
+        const TypeConstructorKindSpecifier::Parameter& tcksParam(tcks->getArgs()[i]);
+        TypeDecl* tdecl = makeTypeDecl("$A$", tcksParam.kindExpr->getUserdata<TypeExpression>());
+
+        params[i] = _mngr.New<TypeParameter>(tcksParam.varianceType, tdecl->getName(), tcksParam.kindExpr);
     }
 
     TypeExpression* ret = tcks->getRet()->getUserdata<TypeExpression>();
 
-    TypeConstructorCreation* tcc = _mngr.New<TypeConstructorCreation>("$F$", _mngr.New<TypeTuple>(args), ret);
+    TypeConstructorCreation* tcc = _mngr.New<TypeConstructorCreation>("$F$", _mngr.New<TypeTuple>(params), ret);
     tcc->setScope(&emptyScope);
 
     tcks->setUserdata<TypeExpression>(tcc);
@@ -315,9 +319,8 @@ void ScopeGeneration::popScope() {
 void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams, bool allowVarianceAnnotations) {
     for (TypeExpression* typeParam : typeParams) {
         if (TypeIdentifier* tident = getIfNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
-            static ProperTypeKindSpecifier ptks;
-            ptks.onVisit(this);
-            createProperType(tident, makeTypeDecl(tident->getValue(), ptks.getUserdata<TypeExpression>()));
+            defaultPtks.onVisit(this);
+            createProperType(tident, makeTypeDecl(tident->getValue(), defaultPtks.getUserdata<TypeExpression>()));
         } else if(TypeParameter* tparam = getIfNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `T: kind`
             // The type var is already going to be created by the TypeParameter Node
             typeParam->onVisit(this);
@@ -419,7 +422,43 @@ void TypeDependencyFixation::visit(ClassDecl* clss) {
 #endif
 }
 
+void TypeDependencyFixation::visit(ProperTypeKindSpecifier* ptks) {
+    ASTImplicitVisitor::visit(ptks);
+
+    ClassDecl* clss = static_cast<ClassDecl*>(ptks->getUserdata<TypeExpression>());
+    clss->setParameters(_parameters);
+}
+
+void TypeDependencyFixation::visit(TypeConstructorKindSpecifier* tcks) {
+    TypeConstructorCreation* tcc = static_cast<TypeConstructorCreation*>(tcks->getUserdata<TypeExpression>());
+    tcc->setParameters(_parameters);
+
+    std::vector<Parameter> params(tcks->getArgs().size());
+
+    for (size_t i = 0; i < tcks->getArgs().size(); ++i) {
+        const TypeConstructorKindSpecifier::Parameter& tcksParam(tcks->getArgs()[i]);
+        tcksParam.kindExpr->onVisit(this);
+
+        params[i].varianceType = tcksParam.varianceType;
+        params[i].tpe = ASTTypeCreator::createType(tcksParam.kindExpr->getUserdata<TypeExpression>(), _ctx);
+    }
+
+    _parameters.insert(_parameters.end(), params.begin(), params.end());
+
+    tcks->getRet()->onVisit(this);
+
+    _parameters.resize(_parameters.size() - params.size());
+}
+
 void TypeDependencyFixation::visit(FunctionTypeDecl* ftdecl) {
+    SAVE_MEMBER_AND_SET(_parameters, {})
+
+    for (TypeExpression* typeParam : ftdecl->getTypeArgs()) {
+        typeParam->onVisit(this);
+    }
+
+    RESTORE_MEMBER(_parameters)
+
     size_t pushed = pushTypeParameters(ftdecl->getTypeArgs());
 
     for (TypeExpression* arg : ftdecl->getArgTypes()) {
@@ -435,15 +474,23 @@ void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
     tc->setParameters(_parameters);
 
     TypeExpression* expr = tc->getArgs();
-    std::vector<TypeExpression*> args;
+    std::vector<TypeExpression*> typeParams;
 
     if (TypeTuple* ttuple = getIfNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
-        args = ttuple->getExpressions();
+        typeParams = ttuple->getExpressions();
     } else { // form is `exp => ...` or `[exp] => ...`
-        args.push_back(expr);
+        typeParams.push_back(expr);
     }
 
-    size_t pushed = pushTypeParameters(args);
+    SAVE_MEMBER_AND_SET(_parameters, {})
+
+    for (TypeExpression* typeParam : typeParams) {
+        typeParam->onVisit(this);
+    }
+
+    RESTORE_MEMBER(_parameters)
+
+    size_t pushed = pushTypeParameters(typeParams);
 
     tc->getBody()->onVisit(this);
 
@@ -460,7 +507,14 @@ void TypeDependencyFixation::visit(FunctionCreation* func) {
     size_t pushed = 0;
 
     if (func->getTypeArgs()) {
-        func->getTypeArgs()->onVisit(this);
+        SAVE_MEMBER_AND_SET(_parameters, {})
+
+        for (TypeExpression* typeParam : func->getTypeArgs()->getExpressions()) {
+            typeParam->onVisit(this);
+        }
+
+        RESTORE_MEMBER(_parameters)
+
         pushed = pushTypeParameters(func->getTypeArgs()->getExpressions());
     }
 
@@ -575,6 +629,13 @@ void SymbolAssignation::visit(DefineDecl* def) {
     ASTImplicitVisitor::visit(def);
 
     RESTORE_SCOPE
+}
+
+void SymbolAssignation::visit(ProperTypeKindSpecifier* ptks) {
+    ASTImplicitVisitor::visit(ptks);
+
+    ClassDecl* clss = static_cast<ClassDecl*>(ptks->getUserdata<TypeExpression>());
+    clss->addSpecialSuperType(clss, ASTTypeCreator::buildEnvironmentFromTypeParametrizable(clss));
 }
 
 void SymbolAssignation::visit(FunctionTypeDecl* ftdecl) {
