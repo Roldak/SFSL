@@ -129,8 +129,6 @@ private:
 };
 
 Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
-    static ast::ProperTypeKindSpecifier proper;
-
     DefaultGenericTypeHolder* holder = ctx->retrieveContextUserData<DefaultGenericTypeHolder>(DEFAULT_GENERIC_TYPE_HOLDER_ENTRY_NAME);
 
     // check if already exists (not an optimization, but a needed operation)
@@ -149,10 +147,10 @@ Type* Type::DefaultGenericType(ast::TypeExpression* tpe, CompCtx_Ptr& ctx) {
     if (ast::TypeParameter* tparam = ast::getIfNodeOfType<ast::TypeParameter>(tpe, ctx)) {
         kse = tparam->getKindNode();
     } else {
-        kse = &proper;
+        ctx->reporter().fatal(*tpe, "Is supposed to be a type parameter");
     }
 
-    type::Type* res = ast::ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(kse, ctx);
+    type::Type* res = ast::ASTTypeCreator::createType(kse->getUserdata<ast::TypeExpression>(), ctx);
 
     holder->cacheDefaultGeneric(tpeKind, res);
 
@@ -290,7 +288,8 @@ bool ValueConstructorType::isSubTypeOfValueConstructor(const ValueConstructorTyp
     }
 
     for (size_t i = 0; i < _typeArgs.size(); ++i) {
-        if (!oTypeArgs[i]->kind()->isSubKindOf(_typeArgs[i]->kind(), ctx, true)) {
+        if (!oTypeArgs[i]->kind()->substitute(other->getValueConstructorEnvironment(), ctx)->apply(ctx)
+                ->isSubKindOf(_typeArgs[i]->kind()->substitute(getValueConstructorEnvironment(), ctx)->apply(ctx), ctx, true)) {
             return false;
         }
     }
@@ -329,7 +328,7 @@ bool ValueConstructorType::equalsValueConstructor(const ValueConstructorType* ot
 }
 
 ValueConstructorType* ValueConstructorType::substituteValueConstructor(const Environment& substitutions, CompCtx_Ptr& ctx) const {
-    Environment currentEnvCopy(getValueConstructorSubstitutionTable());
+    Environment currentEnvCopy(getValueConstructorEnvironment());
     currentEnvCopy.substituteAll(substitutions);
 
     std::vector<Type*> substitued(_argTypes.size());
@@ -361,7 +360,7 @@ ValueConstructorType* ValueConstructorType::applyValueConstructor(CompCtx_Ptr& c
         applied[i] = self->_argTypes[i]->apply(ctx);
     }
 
-    return _cachedApplied = rebuildValueConstructor(self->_typeArgs, applied, self->_retType->apply(ctx), self->getValueConstructorSubstitutionTable(), ctx);
+    return _cachedApplied = rebuildValueConstructor(self->_typeArgs, applied, self->_retType->apply(ctx), self->getValueConstructorEnvironment(), ctx);
 }
 
 const std::vector<ast::TypeExpression*>& ValueConstructorType::getTypeArgs() const {
@@ -447,7 +446,7 @@ FunctionType* FunctionType::rebuildValueConstructor(
     return ctx->memoryManager().New<FunctionType>(typeArgs, argTypes, retType, _class, substitutionTable);
 }
 
-const Environment& FunctionType::getValueConstructorSubstitutionTable() const {
+const Environment& FunctionType::getValueConstructorEnvironment() const {
     return _env;
 }
 
@@ -470,9 +469,6 @@ TYPE_KIND MethodType::getTypeKind() const {
 
 bool MethodType::isSubTypeOf(const Type* other, CompCtx_Ptr& ctx) const {
     if (MethodType* m = getIf<MethodType>(other)) {
-        std::cerr << "Function subtyping : "
-                  << toString(&ctx) << _env.toString() << ", "
-                  << other->toString(&ctx) << other->getEnvironment().toString() << std::endl;
         return isSubTypeOfValueConstructor(m, ctx);
     }
 
@@ -530,7 +526,7 @@ MethodType* MethodType::fromFunctionType(const FunctionType* ft, ast::ClassDecl*
     return ctx->memoryManager().New<MethodType>(owner, ft->getTypeArgs(), ft->getArgTypes(), ft->getRetType(), ft->getEnvironment());
 }
 
-const Environment& MethodType::getValueConstructorSubstitutionTable() const {
+const Environment& MethodType::getValueConstructorEnvironment() const {
     return _env;
 }
 

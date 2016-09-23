@@ -127,7 +127,7 @@ protected:
 
     ValueConstructorType(const std::vector<ast::TypeExpression*>& typeArgs, const std::vector<Type*>& argTypes, Type* retType);
 
-    virtual const Environment& getValueConstructorSubstitutionTable() const = 0;
+    virtual const Environment& getValueConstructorEnvironment() const = 0;
 
     std::vector<ast::TypeExpression*> _typeArgs;
     std::vector<Type*> _argTypes;
@@ -158,7 +158,7 @@ public:
 protected:
 
     virtual FunctionType* substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const override;
-    virtual const Environment& getValueConstructorSubstitutionTable() const override;
+    virtual const Environment& getValueConstructorEnvironment() const override;
 };
 
 class MethodType : public Type, public ValueConstructorType {
@@ -187,7 +187,7 @@ public:
 protected:
 
     virtual MethodType* substituteDeep(const Environment& env, CompCtx_Ptr& ctx) const override;
-    virtual const Environment& getValueConstructorSubstitutionTable() const override;
+    virtual const Environment& getValueConstructorEnvironment() const override;
 
 private:
 

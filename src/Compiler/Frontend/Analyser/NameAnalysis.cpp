@@ -150,7 +150,7 @@ void ScopeGeneration::visit(TypeConstructorKindSpecifier* tcks) {
     for (size_t i = 0; i < params.size(); ++i) {
         const TypeConstructorKindSpecifier::Parameter& tcksParam(tcks->getArgs()[i]);
 
-        SAVE_MEMBER_AND_SET(_curDefaultTypeName, _curDefaultTypeName + ".Arg#" + std::to_string(i));
+        SAVE_MEMBER_AND_SET(_curDefaultTypeName, _curDefaultTypeName + ".Arg(" + std::to_string(i) + ")");
 
         tcksParam.kindExpr->onVisit(this);
 
