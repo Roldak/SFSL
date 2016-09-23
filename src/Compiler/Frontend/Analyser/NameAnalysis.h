@@ -77,6 +77,8 @@ private:
     std::vector<std::string> _symbolPath;
     size_t _invalidFrom;
 
+    std::string _curDefaultTypeName;
+
     TypeExpression* _currentThis;
     FunctionTypeDecl* _nextMethodDecl;
 };

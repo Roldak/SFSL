@@ -134,7 +134,7 @@ void ScopeGeneration::visit(DefineDecl* def) {
 void ScopeGeneration::visit(ProperTypeKindSpecifier* ptks) {
     ASTImplicitVisitor::visit(ptks);
 
-    ClassDecl* clss = _mngr.New<ClassDecl>("$T$", ptks->getUpperBoundExpr(),
+    ClassDecl* clss = _mngr.New<ClassDecl>(_curDefaultTypeName, ptks->getUpperBoundExpr(),
                                            std::vector<TypeDecl*>(),
                                            std::vector<TypeSpecifier*>(),
                                            std::vector<DefineDecl*>(),
@@ -146,19 +146,30 @@ void ScopeGeneration::visit(ProperTypeKindSpecifier* ptks) {
 }
 
 void ScopeGeneration::visit(TypeConstructorKindSpecifier* tcks) {
-    ASTImplicitVisitor::visit(tcks);
-
     std::vector<TypeExpression*> params(tcks->getArgs().size());
     for (size_t i = 0; i < params.size(); ++i) {
         const TypeConstructorKindSpecifier::Parameter& tcksParam(tcks->getArgs()[i]);
-        TypeDecl* tdecl = makeTypeDecl("$A$", tcksParam.kindExpr->getUserdata<TypeExpression>());
+
+        SAVE_MEMBER_AND_SET(_curDefaultTypeName, _curDefaultTypeName + ".Arg#" + std::to_string(i));
+
+        tcksParam.kindExpr->onVisit(this);
+
+        RESTORE_MEMBER(_curDefaultTypeName)
+
+        TypeDecl* tdecl = makeTypeDecl(_curDefaultTypeName, tcksParam.kindExpr->getUserdata<TypeExpression>());
 
         params[i] = _mngr.New<TypeParameter>(tcksParam.varianceType, tdecl->getName(), tcksParam.kindExpr);
     }
 
+    SAVE_MEMBER_AND_SET(_curDefaultTypeName, _curDefaultTypeName + ".Ret")
+
+    tcks->getRet()->onVisit(this);
+
+    RESTORE_MEMBER(_curDefaultTypeName)
+
     TypeExpression* ret = tcks->getRet()->getUserdata<TypeExpression>();
 
-    TypeConstructorCreation* tcc = _mngr.New<TypeConstructorCreation>("$F$", _mngr.New<TypeTuple>(params), ret);
+    TypeConstructorCreation* tcc = _mngr.New<TypeConstructorCreation>(_curDefaultTypeName, _mngr.New<TypeTuple>(params), ret);
     tcc->setScope(&emptyScope);
 
     tcks->setUserdata<TypeExpression>(tcc);
@@ -202,6 +213,7 @@ void ScopeGeneration::visit(TypeConstructorCreation* tc) {
 }
 
 void ScopeGeneration::visit(TypeParameter* tparam) {
+    _curDefaultTypeName = tparam->getSpecified()->getValue();
     tparam->getKindNode()->onVisit(this);
 
     TypeDecl* defaultType = makeTypeDecl(tparam->getSpecified()->getValue(), tparam->getKindNode()->getUserdata<TypeExpression>());
@@ -319,6 +331,7 @@ void ScopeGeneration::popScope() {
 void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams, bool allowVarianceAnnotations) {
     for (TypeExpression* typeParam : typeParams) {
         if (TypeIdentifier* tident = getIfNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
+            _curDefaultTypeName = tident->getValue();
             defaultPtks.onVisit(this);
             createProperType(tident, makeTypeDecl(tident->getValue(), defaultPtks.getUserdata<TypeExpression>()));
         } else if(TypeParameter* tparam = getIfNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `T: kind`
