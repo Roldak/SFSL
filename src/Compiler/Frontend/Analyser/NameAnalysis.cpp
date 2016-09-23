@@ -134,13 +134,13 @@ void ScopeGeneration::visit(DefineDecl* def) {
 void ScopeGeneration::visit(ProperTypeKindSpecifier* ptks) {
     ASTImplicitVisitor::visit(ptks);
 
-    ClassDecl* clss = _mngr.New<ClassDecl>("$T$", nullptr,
+    ClassDecl* clss = _mngr.New<ClassDecl>("$T$", ptks->getUpperBoundExpr(),
                                            std::vector<TypeDecl*>(),
                                            std::vector<TypeSpecifier*>(),
                                            std::vector<DefineDecl*>(),
                                            false);
 
-    clss->setScope(&emptyScope);
+    clss->setScope(_mngr.New<sym::Scope>(_curScope, true));
 
     ptks->setUserdata<TypeExpression>(clss);
 }
@@ -635,7 +635,8 @@ void SymbolAssignation::visit(ProperTypeKindSpecifier* ptks) {
     ASTImplicitVisitor::visit(ptks);
 
     ClassDecl* clss = static_cast<ClassDecl*>(ptks->getUserdata<TypeExpression>());
-    clss->addSpecialSuperType(clss, ASTTypeCreator::buildEnvironmentFromTypeParametrizable(clss));
+
+    visitParent(clss);
 }
 
 void SymbolAssignation::visit(FunctionTypeDecl* ftdecl) {
