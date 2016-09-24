@@ -141,6 +141,7 @@ void ScopeGeneration::visit(ProperTypeKindSpecifier* ptks) {
                                            false);
 
     clss->setScope(_mngr.New<sym::Scope>(_curScope, true));
+    clss->setPos(*ptks);
 
     ptks->setDefaultType(clss);
 }
@@ -171,6 +172,7 @@ void ScopeGeneration::visit(TypeConstructorKindSpecifier* tcks) {
 
     TypeConstructorCreation* tcc = _mngr.New<TypeConstructorCreation>(_curDefaultTypeName, _mngr.New<TypeTuple>(params), ret);
     tcc->setScope(&emptyScope);
+    tcc->setPos(*tcks);
 
     tcks->setDefaultType(tcc);
 }
@@ -656,7 +658,7 @@ void SymbolAssignation::visit(ProperTypeKindSpecifier* ptks) {
             if (type::ProperType* lbpt = type::getIf<type::ProperType>(lbt)) {
                 visitParent(lbpt->getClass());
 
-                lbpt->getClass()->addSpecialSuperTypeRecursively(clss, {});
+                lbpt->getClass()->carefullyAddSuperTypeDownward(clss, {});
             }
         }
     }

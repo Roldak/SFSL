@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <set>
 #include "Environment.h"
 
 namespace sfsl {
@@ -61,18 +62,14 @@ public:
         recursivelyAddSuperType(t, env);
     }
 
-    void addSpecialSuperType(Type t, const Environment& env) {
-        findOrAddSuperType(t)->addInstance(env);
+    void carefullyAddSuperTypeDownward(Type t, const Environment& env) {
+        t->addImmediateSubType(this, env);
+        std::set<CanSubtype<Type>*> visited;
+        recursivelyAndCarefullyAddSuperTypeDownward(t, env, visited);
     }
 
-    void addSpecialSuperTypeRecursively(Type t, const Environment& env) {
+    void addSpecialSuperType(Type t, const Environment& env) {
         findOrAddSuperType(t)->addInstance(env);
-
-        for (std::pair<CanSubtype<Type>*, Environment>& sub : getImmediateSubTypes()) {
-            Environment substitued = env;
-            substitued.substituteAll(sub.second);
-            sub.first->addSpecialSuperTypeRecursively(t, substitued);
-        }
     }
 
     const std::vector<Environment>& subTypeInstances(Type t) {
@@ -102,6 +99,18 @@ private:
             Environment substitued = env;
             substitued.substituteAll(sub.second);
             sub.first->recursivelyAddSuperType(t, substitued);
+        }
+    }
+
+    void recursivelyAndCarefullyAddSuperTypeDownward(Type t, const Environment &env, std::set<CanSubtype<Type>*>& visited) {
+        if (visited.insert(this).second) {
+            findOrAddSuperType(t)->addInstance(env);
+
+            for (std::pair<CanSubtype<Type>*, Environment>& sub : getImmediateSubTypes()) {
+                Environment substitued = env;
+                substitued.substituteAll(sub.second);
+                sub.first->recursivelyAndCarefullyAddSuperTypeDownward(t, substitued, visited);
+            }
         }
     }
 
