@@ -65,6 +65,16 @@ public:
         findOrAddSuperType(t)->addInstance(env);
     }
 
+    void addSpecialSuperTypeRecursively(Type t, const Environment& env) {
+        findOrAddSuperType(t)->addInstance(env);
+
+        for (std::pair<CanSubtype<Type>*, Environment>& sub : getImmediateSubTypes()) {
+            Environment substitued = env;
+            substitued.substituteAll(sub.second);
+            sub.first->addSpecialSuperTypeRecursively(t, substitued);
+        }
+    }
+
     const std::vector<Environment>& subTypeInstances(Type t) {
         static const std::vector<Environment> None = {};
 

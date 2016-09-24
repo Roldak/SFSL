@@ -650,6 +650,16 @@ void SymbolAssignation::visit(ProperTypeKindSpecifier* ptks) {
     ClassDecl* clss = static_cast<ClassDecl*>(ptks->getDefaultType());
 
     visitParent(clss);
+
+    if (TypeExpression* lb = ptks->getLowerBoundExpr()) {
+        if (type::Type* lbt = ASTTypeCreator::createType(lb, _ctx)) {
+            if (type::ProperType* lbpt = type::getIf<type::ProperType>(lbt)) {
+                visitParent(lbpt->getClass());
+
+                lbpt->getClass()->addSpecialSuperTypeRecursively(clss, {});
+            }
+        }
+    }
 }
 
 void SymbolAssignation::visit(FunctionTypeDecl* ftdecl) {
