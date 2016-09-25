@@ -647,13 +647,13 @@ void SymbolAssignation::visit(DefineDecl* def) {
 }
 
 void SymbolAssignation::visit(ProperTypeKindSpecifier* ptks) {
-    ASTImplicitVisitor::visit(ptks);
-
     ClassDecl* clss = static_cast<ClassDecl*>(ptks->getDefaultType());
 
-    visitParent(clss);
+    visitParent(clss); // upper bound expression will get visited therein
 
     if (TypeExpression* lb = ptks->getLowerBoundExpr()) {
+        lb->onVisit(this);
+
         if (type::Type* lbt = ASTTypeCreator::createType(lb, _ctx)) {
             if (type::ProperType* lbpt = type::getIf<type::ProperType>(lbt)) {
                 visitParent(lbpt->getClass());
