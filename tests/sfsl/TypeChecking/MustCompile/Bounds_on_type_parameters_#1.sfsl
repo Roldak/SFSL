@@ -1,0 +1,15 @@
+module test {
+	using sfsl.lang
+	
+	class A {
+		def f() => {}
+	}
+	
+	def a[T < A](x: T) => x.f()
+	def b[T < V, V < A](x: T) => x.f()
+	def c[F: *->* < A](x: F[int]) => x.f()
+	def d[F: *->* < T, T < A](x: F[int]) => x.f()
+	def e[F: *->* < G[A], G: *->* < A](x: F[int]) => x.f()
+	def f[T: *->* < F[int], F: *->* < A](x: T[real]) => x.f()
+	def g[T: *->* < F[A], F: [* < A]->* < A](x: T[real]) => x.f()
+}

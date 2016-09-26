@@ -52,7 +52,7 @@ void KindChecking::visit(ClassDecl* clss) {
     clss->setKind(createProperKindWithBounds(clss, clss));
 
     if (_mustDefer) {
-        _deferredExpressions.emplace(clss);
+        _deferredExpressions.insert(clss);
     } else {
         _mustDefer = true;
         ASTImplicitVisitor::visit(clss);
@@ -294,10 +294,10 @@ kind::ProperKind* KindChecking::createProperKindWithBounds(TypeExpression* lb, T
 
 void KindChecking::visitDeferredExpressions() {
     while (!_deferredExpressions.empty()) {
-        std::set<TypeExpression*> copy = _deferredExpressions;
+        std::set<TypeExpression*> orig = std::move(_deferredExpressions);
         _deferredExpressions.clear();
 
-        for (TypeExpression* expr : copy) {
+        for (TypeExpression* expr : orig) {
             _mustDefer = false;
             expr->onVisit(this);
         }
