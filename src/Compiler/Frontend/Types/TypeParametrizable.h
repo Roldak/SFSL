@@ -20,6 +20,8 @@ class TypeSymbol;
 
 namespace type {
 
+class Type;
+
 /**
  * @brief Interface which represents an object that can depend on type parameters.
  * Concrete implementations are: ClassDecl, TypeConstructorCreation and FunctionCreation.
@@ -28,10 +30,10 @@ class TypeParametrizable {
 public:
     struct Parameter {
         Parameter();
-        Parameter(common::VARIANCE_TYPE varianceType, sym::TypeSymbol* symbol);
+        Parameter(common::VARIANCE_TYPE varianceType, Type* tpe);
 
         common::VARIANCE_TYPE varianceType;
-        sym::TypeSymbol* symbol;
+        Type* tpe;
     };
 
     virtual ~TypeParametrizable();
@@ -48,7 +50,7 @@ public:
 
 private:
 
-    std::vector<Parameter> _types;
+    std::vector<Parameter> _params;
 };
 
 }

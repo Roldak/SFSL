@@ -27,6 +27,8 @@ namespace sfsl {
 namespace ast {
 
 const size_t size_t_max = std::numeric_limits<size_t>::max();
+ProperTypeKindSpecifier defaultPtks(nullptr, nullptr);
+sym::Scope emptyScope(nullptr);
 
 // SCOPE GENERATION
 
@@ -129,6 +131,52 @@ void ScopeGeneration::visit(DefineDecl* def) {
     popScope();
 }
 
+void ScopeGeneration::visit(ProperTypeKindSpecifier* ptks) {
+    ASTImplicitVisitor::visit(ptks);
+
+    ClassDecl* clss = _mngr.New<ClassDecl>(_curDefaultTypeName, ptks->getUpperBoundExpr(),
+                                           std::vector<TypeDecl*>(),
+                                           std::vector<TypeSpecifier*>(),
+                                           std::vector<DefineDecl*>(),
+                                           false);
+
+    clss->setScope(_mngr.New<sym::Scope>(_curScope, true));
+    clss->setPos(*ptks);
+
+    ptks->setDefaultType(clss);
+}
+
+void ScopeGeneration::visit(TypeConstructorKindSpecifier* tcks) {
+    std::vector<TypeExpression*> params(tcks->getArgs().size());
+    for (size_t i = 0; i < params.size(); ++i) {
+        const TypeConstructorKindSpecifier::Parameter& tcksParam(tcks->getArgs()[i]);
+
+        SAVE_MEMBER_AND_SET(_curDefaultTypeName, _curDefaultTypeName + ".Arg(" + std::to_string(i) + ")");
+
+        tcksParam.kindExpr->onVisit(this);
+
+        RESTORE_MEMBER(_curDefaultTypeName)
+
+        TypeDecl* tdecl = makeTypeDecl(_curDefaultTypeName, tcksParam.kindExpr->getDefaultType());
+
+        params[i] = _mngr.New<TypeParameter>(tcksParam.varianceType, tdecl->getName(), tcksParam.kindExpr);
+    }
+
+    SAVE_MEMBER_AND_SET(_curDefaultTypeName, _curDefaultTypeName + ".Ret")
+
+    tcks->getRet()->onVisit(this);
+
+    RESTORE_MEMBER(_curDefaultTypeName)
+
+    TypeExpression* ret = tcks->getRet()->getDefaultType();
+
+    TypeConstructorCreation* tcc = _mngr.New<TypeConstructorCreation>(_curDefaultTypeName, _mngr.New<TypeTuple>(params), ret);
+    tcc->setScope(&emptyScope);
+    tcc->setPos(*tcks);
+
+    tcks->setDefaultType(tcc);
+}
+
 void ScopeGeneration::visit(FunctionTypeDecl* ftdecl) {
     if (_nextMethodDecl != ftdecl && !ftdecl->getTypeArgs().empty()) {
         _ctx->reporter().error(*ftdecl, "Function type cannot be declared generic in this context");
@@ -161,16 +209,16 @@ void ScopeGeneration::visit(TypeConstructorCreation* tc) {
 
     generateTypeParametersSymbols(args, true);
 
-    //SAVE_MEMBER_AND_SET(_nextTypeExpr)
-
     tc->getBody()->onVisit(this);
 
     popScope();
 }
 
 void ScopeGeneration::visit(TypeParameter* tparam) {
-    TypeDecl* defaultType = ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
-                tparam->getKindNode(), tparam->getSpecified()->getValue(), _ctx);
+    _curDefaultTypeName = tparam->getSpecified()->getValue();
+    tparam->getKindNode()->onVisit(this);
+
+    TypeDecl* defaultType = makeTypeDecl(tparam->getSpecified()->getValue(), tparam->getKindNode()->getDefaultType());
 
     createProperType(tparam->getSpecified(), defaultType);
 }
@@ -255,6 +303,22 @@ void ScopeGeneration::createProperType(TypeIdentifier* id, TypeDecl* defaultType
     initCreated(id, defaultType->getSymbol());
 }
 
+TypeDecl* ScopeGeneration::makeTypeDecl(const std::string& name, TypeExpression* expr) {
+    type::Type* t = ASTTypeCreator::createType(expr, _ctx);
+
+    TypeDecl* tdecl = _mngr.New<TypeDecl>(_mngr.New<TypeIdentifier>(name), expr, false);
+
+    sym::TypeSymbol* ts = _mngr.New<sym::TypeSymbol>(name, name, tdecl);
+
+    tdecl->setType(t);
+    ts->setType(t);
+
+    tdecl->getName()->setSymbol(ts);
+    tdecl->setSymbol(ts);
+
+    return tdecl;
+}
+
 void ScopeGeneration::pushScope(sym::Scoped* scoped, bool isDefScope) {
     _curScope = _mngr.New<sym::Scope>(_curScope, isDefScope);
     if (scoped != nullptr) {
@@ -269,8 +333,9 @@ void ScopeGeneration::popScope() {
 void ScopeGeneration::generateTypeParametersSymbols(const std::vector<TypeExpression*>& typeParams, bool allowVarianceAnnotations) {
     for (TypeExpression* typeParam : typeParams) {
         if (TypeIdentifier* tident = getIfNodeOfType<TypeIdentifier>(typeParam, _ctx)) { // arg of the form `T`
-            createProperType(tident, ASTDefaultTypeFromKindCreator::createDefaultTypeFromKind(
-                                 _mngr.New<ProperTypeKindSpecifier>(), static_cast<TypeIdentifier*>(typeParam)->getValue(), _ctx));
+            _curDefaultTypeName = tident->getValue();
+            defaultPtks.onVisit(this);
+            createProperType(tident, makeTypeDecl(tident->getValue(), defaultPtks.getDefaultType()));
         } else if(TypeParameter* tparam = getIfNodeOfType<TypeParameter>(typeParam, _ctx)) { // arg of the form `T: kind`
             // The type var is already going to be created by the TypeParameter Node
             typeParam->onVisit(this);
@@ -372,7 +437,43 @@ void TypeDependencyFixation::visit(ClassDecl* clss) {
 #endif
 }
 
+void TypeDependencyFixation::visit(ProperTypeKindSpecifier* ptks) {
+    ASTImplicitVisitor::visit(ptks);
+
+    ClassDecl* clss = static_cast<ClassDecl*>(ptks->getDefaultType());
+    clss->setParameters(_parameters);
+}
+
+void TypeDependencyFixation::visit(TypeConstructorKindSpecifier* tcks) {
+    TypeConstructorCreation* tcc = static_cast<TypeConstructorCreation*>(tcks->getDefaultType());
+    tcc->setParameters(_parameters);
+
+    std::vector<Parameter> params(tcks->getArgs().size());
+
+    for (size_t i = 0; i < tcks->getArgs().size(); ++i) {
+        const TypeConstructorKindSpecifier::Parameter& tcksParam(tcks->getArgs()[i]);
+        tcksParam.kindExpr->onVisit(this);
+
+        params[i].varianceType = tcksParam.varianceType;
+        params[i].tpe = ASTTypeCreator::createType(tcksParam.kindExpr->getDefaultType(), _ctx);
+    }
+
+    _parameters.insert(_parameters.end(), params.begin(), params.end());
+
+    tcks->getRet()->onVisit(this);
+
+    _parameters.resize(_parameters.size() - params.size());
+}
+
 void TypeDependencyFixation::visit(FunctionTypeDecl* ftdecl) {
+    SAVE_MEMBER_AND_SET(_parameters, {})
+
+    for (TypeExpression* typeParam : ftdecl->getTypeArgs()) {
+        typeParam->onVisit(this);
+    }
+
+    RESTORE_MEMBER(_parameters)
+
     size_t pushed = pushTypeParameters(ftdecl->getTypeArgs());
 
     for (TypeExpression* arg : ftdecl->getArgTypes()) {
@@ -388,15 +489,23 @@ void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
     tc->setParameters(_parameters);
 
     TypeExpression* expr = tc->getArgs();
-    std::vector<TypeExpression*> args;
+    std::vector<TypeExpression*> typeParams;
 
     if (TypeTuple* ttuple = getIfNodeOfType<TypeTuple>(expr, _ctx)) { // form is `[] => ...` or `[exp, exp] => ...`, ...
-        args = ttuple->getExpressions();
+        typeParams = ttuple->getExpressions();
     } else { // form is `exp => ...` or `[exp] => ...`
-        args.push_back(expr);
+        typeParams.push_back(expr);
     }
 
-    size_t pushed = pushTypeParameters(args);
+    SAVE_MEMBER_AND_SET(_parameters, {})
+
+    for (TypeExpression* typeParam : typeParams) {
+        typeParam->onVisit(this);
+    }
+
+    RESTORE_MEMBER(_parameters)
+
+    size_t pushed = pushTypeParameters(typeParams);
 
     tc->getBody()->onVisit(this);
 
@@ -408,14 +517,21 @@ void TypeDependencyFixation::visit(TypeConstructorCreation* tc) {
 }
 
 void TypeDependencyFixation::visit(FunctionCreation* func) {
-    func->setParameters(_parameters);
-
     size_t pushed = 0;
 
     if (func->getTypeArgs()) {
-        func->getTypeArgs()->onVisit(this);
+        SAVE_MEMBER_AND_SET(_parameters, {})
+
+        for (TypeExpression* typeParam : func->getTypeArgs()->getExpressions()) {
+            typeParam->onVisit(this);
+        }
+
+        RESTORE_MEMBER(_parameters)
+
         pushed = pushTypeParameters(func->getTypeArgs()->getExpressions());
     }
+
+    func->setParameters(_parameters);
 
     func->getArgs()->onVisit(this);
 
@@ -449,7 +565,7 @@ size_t TypeDependencyFixation::pushTypeParameters(const std::vector<TypeExpressi
         }
 
         if (sym::TypeSymbol* tpsym = sym::getIfSymbolOfType<sym::TypeSymbol>(id->getSymbol())) {
-            _parameters.push_back(Parameter(vt, tpsym));
+            _parameters.push_back(Parameter(vt, tpsym->type()));
             ++pushed;
         } else {
             _ctx->reporter().fatal(*typeParam, "Is supposed to be a TypeSymbol");
@@ -528,6 +644,24 @@ void SymbolAssignation::visit(DefineDecl* def) {
     ASTImplicitVisitor::visit(def);
 
     RESTORE_SCOPE
+}
+
+void SymbolAssignation::visit(ProperTypeKindSpecifier* ptks) {
+    ClassDecl* clss = static_cast<ClassDecl*>(ptks->getDefaultType());
+
+    visitParent(clss); // upper bound expression will get visited therein
+
+    if (TypeExpression* lb = ptks->getLowerBoundExpr()) {
+        lb->onVisit(this);
+
+        if (type::Type* lbt = ASTTypeCreator::createType(lb, _ctx)) {
+            if (type::ProperType* lbpt = type::getIf<type::ProperType>(lbt)) {
+                visitParent(lbpt->getClass());
+
+                lbpt->getClass()->carefullyAddSuperTypeDownward(clss, {});
+            }
+        }
+    }
 }
 
 void SymbolAssignation::visit(FunctionTypeDecl* ftdecl) {

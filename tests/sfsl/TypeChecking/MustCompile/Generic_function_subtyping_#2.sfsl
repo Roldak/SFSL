@@ -1,0 +1,31 @@
+module test {
+	using sfsl.lang
+
+	type A[T] => class {
+		def a[K < T](x: int) => x
+		def b[K < T](x: K) => 2
+		def c[K < T](x: int) => y: K
+		def d[K > T](x: K) => x
+		def e[K > T](a: K, b: int) => b
+		def f[K > T](a: K, b: K) => a
+		def g[A < T, B < A, C < B](a: A, b: B) => c: C
+		def h[A < B, B < T, C < A](a: A) => (b: B) => c: C
+		def i[F: [* < T]->* < K, K < T](f: F[K]) => x: K
+		def j[F: [[* < T, * < int]->*]->*, G: [*, *]->[* < T, * < int]->*, A, B]() => res: F[G[A, B]]
+		def k[F: *->*, X < F[T]](x: X) => x
+	}
+	
+	type B = class : A[int] {
+		redef a[U < int](x: int) => x
+		redef b[U < int](x: U) => 3
+		redef c[U < int](x: int) => y: U
+		redef d[U > int](x: U) => x
+		redef e[U > int](a: U, b: int) => b
+		redef f[U > int](a: U, b: U) => a
+		redef g[X < int, B < X, C < B](a: X, b: B) => c: C
+		redef h[X < Y, Y < int, Z < X](a: X) => (b: Y) => c: Z
+		redef i[F: [* < int]->* < K, K < int](f: F[K]) => x: K
+		redef j[V: [[* < int, * < int]->*]->*, D: [*, *]->[* < int, * < int]->*, X, Y]() => res: V[D[X, Y]]
+		redef k[G: *->*, A < G[int]](x: A) => x
+	}
+}

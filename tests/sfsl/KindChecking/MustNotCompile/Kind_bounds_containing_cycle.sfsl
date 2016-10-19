@@ -1,0 +1,3 @@
+module test {
+    type H[T: * < K, K: * < T] => class
+}

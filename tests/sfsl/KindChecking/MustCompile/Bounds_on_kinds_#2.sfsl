@@ -4,7 +4,7 @@ module test {
     
     type F[T, K: * < T] => class {}
     type G[T: * < K, K] => class {}
-    type H[T: * < K, K: * < T] => class {}
+    type H[A: *, B: A < * < A] => class {}
     
     type Test1 = F[A, A]
     type Test2 = F[A, B]

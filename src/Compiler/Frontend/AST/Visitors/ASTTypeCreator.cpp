@@ -67,21 +67,19 @@ void ASTTypeCreator::visit(TypeConstructorCreation* typeconstructor) {
 }
 
 void ASTTypeCreator::visit(TypeConstructorCall* tcall) {
-    doVisit(tcall->getCallee());
-    type::Type* ctr = _created;
+    if (type::Type* ctr = createType(tcall->getCallee())) {
+        const std::vector<TypeExpression*>& found = tcall->getArgs();
+        std::vector<type::Type*> args(found.size());
 
-    const std::vector<TypeExpression*>& found = tcall->getArgs();
-    std::vector<type::Type*> args(found.size());
-
-    for (size_t i = 0; i < found.size(); ++i) {
-        if (!(args[i] = createType(found[i]))) {
-            _ctx->reporter().fatal(*found[i], "failed to create type");
-            _created = nullptr;
-            return;
+        for (size_t i = 0; i < found.size(); ++i) {
+            if (!(args[i] = createType(found[i]))) {
+                _created = nullptr;
+                return;
+            }
         }
-    }
 
-    _created = _mngr.New<type::ConstructorApplyType>(ctr, args);
+        _created = _mngr.New<type::ConstructorApplyType>(ctr, args);
+    }
 }
 
 void ASTTypeCreator::visit(TypeMemberAccess* mac) {
@@ -380,7 +378,7 @@ type::Environment ASTTypeCreator::buildEnvironmentFromTypeParametrizable(type::T
     const std::vector<type::TypeParametrizable::Parameter>& syms(param->getParameters());
 
     for (type::TypeParametrizable::Parameter ts : syms) {
-        env.insert(type::Environment::Substitution(ts.varianceType, ts.symbol->type(), ts.symbol->type()));
+        env.insert(type::Environment::Substitution(ts.varianceType, ts.tpe, ts.tpe));
     }
 
     return env;

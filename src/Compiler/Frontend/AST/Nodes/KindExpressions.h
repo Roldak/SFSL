@@ -15,6 +15,7 @@
 
 #include "../../Kinds/Kinds.h"
 #include "../../Common/Miscellaneous.h"
+#include "../Utils/HasCacheableCreatedType.h"
 
 namespace sfsl {
 
@@ -28,7 +29,7 @@ class TypeIdentifier;
  * Cannot be constructed. This class is there just to provide
  * a lower upper bound for all the kind expressions than ASTNode
  */
-class KindSpecifyingExpression : public ASTNode, public kind::Kinded {
+class KindSpecifyingExpression : public ASTNode, public kind::Kinded, public CanHoldDefaultType {
 public:
 
     virtual ~KindSpecifyingExpression();

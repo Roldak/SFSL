@@ -64,8 +64,8 @@ public:
         return this;
     }
 
-    SubTypingTest* specialSubs(char a, char b) {
-        clazz(a)->addSpecialSuperType(clazz(b), Environment::Empty);
+    SubTypingTest* subsDownward(char a, char b) {
+        clazz(a)->carefullyAddSuperTypeDownward(clazz(b), Environment::Empty);
         _log += charToString(a) + " <-! " + charToString(b) + "; ";
         return this;
     }
@@ -155,6 +155,11 @@ TestRunner* buildCanSubtypeTests() {
                   ->subs('E', 'F')->subs('F', 'G')->subs('G', 'H')->subs('H', 'I')
                   ->assertIsSubtype('A', 'I')->assertIsSubtype('D', 'G')
                   ->assertIsNotSubtype('G', 'B')->assertIsNotSubtype('I', 'H'));
+
+    trans.addTest(SubTypingTest::make("Special Subtype", 3)
+                  ->subsDownward('A', 'B')->subsDownward('B', 'C')
+                  ->assertIsSubtype('A', 'B')->assertIsSubtype('B', 'C')
+                  ->assertIsSubtype('A', 'C'));
 
     TestSuiteBuilder multi("MultipleInheritance");
 
