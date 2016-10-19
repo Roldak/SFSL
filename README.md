@@ -26,6 +26,7 @@ module test {
 		abstract def foreach: (T->unit)->unit
 		
 		class Node(x: T, xs: List[T]) : List[T] {
+			// redef is used to indicate an override def
 			redef foreach(f: T->unit) => {
 				f(x);
 				xs.foreach(f);
@@ -48,9 +49,18 @@ module test {
 	@entry def main() => {
 		x := List[int].Leaf().prepend(2).prepend(12).prepend(14);
 		
-		// notice type argument inference (no need to write x.map[int])
+		// Notice type argument inference (no need to write x.map[int])
 		// as well as parameter type inference (no need to write (x: int) => ...)
 		x.map(x => something(x, 3)).map(toString).foreach(println);
 	}
 }
 ```
+
+##Compiling and Running SFSL source code##
+
+* Compiling: `sfslc -s source.sfsl` (only single source file for now)
+* Running: no interpreter / VM on this repo. I have a basic interpreter running on the backend AST, but running is not the priority for me yet.
+
+##Building the projects##
+
+The compiler *library*, *user api*, *compiler executable*, *compiler tests*, *completer executable* and *sandard library* are all defined in the `CMakeLists.txt`. It shouldn't be too hard to build them since they only depend on the C++ standard library. (Need a compiler with C++11 support)
