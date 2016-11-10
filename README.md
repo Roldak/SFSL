@@ -1,6 +1,6 @@
 SFSL
 ====
-*(Temporary name to compensate for the lack of inspiration)*
+*(To be renamed Soon™)*
 
 A statically typed and functionnal scripting language.
 
@@ -204,4 +204,45 @@ Compilation steps:
 
 This is another type of AST that can be either interpreted directly, or compiled down to some homemade bytecode. (WIP)
 
-**TODO: add example of interoperability with C++**
+###Tutorial###
+
+Now let's see how to integrate *SFSL* to your C++ project:
+The first step is of course to include `sfsl.h` (you can copy the `include` directory of the SFSL project to your project or simply add this directory as an include directory in your project's build configuration).
+
+You will then be able to instantiate an `sfsl::Compiler` object:
+```
+Compiler cmp(CompilerConfig().with<opt::Reporter>(StandartReporter::CerrReporter));
+```
+Several options can be given to `CompilerConfig` to: print memory usage, print compilation time, etc.
+
+We can now use our `Compiler` object to parse the source code that you want:
+```
+ProgramBuilder builder = cmp.parse(sourceName, sourceContent);
+```
+The `ProgramBuilder` object allows your to navigate through modules of your source, define extern functions, define classes, etc. Let's try to add a function `f` of type `int->int` in module `example`:
+```
+builder.openModule("example").externDef("f", cmp.parseType("int->int"));
+```
+Function `f` is then available at path `example.f` in the source code! This means that in `sourceContent`, we could have somewhere `println(example.f(2));` which will compile and typecheck correctly. An error would of course have been reported if we had not define `example.f` neither directly in the source code nor from the C++ `ProgramBuilder`.
+
+We now need to define a compilation pipeline, through which the program will flow:
+```
+Pipeline ppl = Pipeline::createDefault();
+```
+You can either start with a default pipeline (which does the typical *Name analysis*, *Type checking*, etc., or an empty one if you want to build it from scratch. At this point, you can insert your own phases into the pipeline. Check out `samples/API/SamplePhases.cpp` for examples of custom phases.
+Now we must create a *collector* object which will collect the output of the compilation. There will soon be the *VMCollector* which will basically create the default SFSL virtual machine from the output bytecode. For now, let's use an `EmptyCollector`, which does not collect anything.
+```
+EmptyCollector emc;
+```
+We are now ready to compile!
+```
+cmp.compile(builder, emc, ppl);
+```
+Well, we will have nothing to retrieve from our collector, but it's coming soon! :)
+The interface will probably look like:
+```
+vm.link(example_f_symbol, [](ExecCtx& ctx) { return ctx.pushInt(2 * ctx.popInt(0)); });
+...
+vm.call(program_main_symbol, ...);
+```
+Where `example_f_symbol` and `program_main_symbol` are strings that fully qualify a *def* symbol. Their format is:  `"path_to_def_symbol:type_of_def_symbol"`. For example, `example_f_symbol` is `"example.f:(sfsl.lang.int)->sfsl.lang.int"`. Of course you won't have to write them yourselves, they will be provided to you someway when you call `externDef` & co.
