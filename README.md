@@ -79,48 +79,7 @@ VISIBLE {
 }
 
 HIDDEN {
-    class unit$0(0 fields) {
-    }
-    class bool$2(0 fields) {
-    }
-    class int$4(0 fields) {
-    }
-    class real$6(0 fields) {
-    }
-    class string$8(0 fields) {
-    }
-    class Box$10(1 fields) {
-    }
-    class Func0$13(0 fields) {
-        meth $ABSTRACT_METHOD$
-    }
-    class Func1$16(0 fields) {
-        meth $ABSTRACT_METHOD$
-    }
-    class Func2$19(0 fields) {
-        meth $ABSTRACT_METHOD$
-    }
-    class Func3$22(0 fields) {
-        meth $ABSTRACT_METHOD$
-    }
-    class Func4$25(0 fields) {
-        meth $ABSTRACT_METHOD$
-    }
-    class Func5$28(0 fields) {
-        meth $ABSTRACT_METHOD$
-    }
-    class Func6$31(0 fields) {
-        meth $ABSTRACT_METHOD$
-    }
-    class Func7$34(0 fields) {
-        meth $ABSTRACT_METHOD$
-    }
-    class Func8$37(0 fields) {
-        meth $ABSTRACT_METHOD$
-    }
-    class Func9$40(0 fields) {
-        meth $ABSTRACT_METHOD$
-    }
+    [...]
     class Mappable$43(0 fields) {
         meth $ABSTRACT_METHOD$
     }
@@ -210,37 +169,37 @@ Now let's see how to integrate *SFSL* to your C++ project:
 The first step is of course to include `sfsl.h` (you can copy the `include` directory of the SFSL project to your project or simply add this directory as an include directory in your project's build configuration).
 
 You will then be able to instantiate an `sfsl::Compiler` object:
-```
+```cpp
 Compiler cmp(CompilerConfig().with<opt::Reporter>(StandartReporter::CerrReporter));
 ```
 Several options can be given to `CompilerConfig` to: print memory usage, print compilation time, etc.
 
 We can now use our `Compiler` object to parse the source code that you want:
-```
+```cpp
 ProgramBuilder builder = cmp.parse(sourceName, sourceContent);
 ```
 The `ProgramBuilder` object allows your to navigate through modules of your source, define extern functions, define classes, etc. Let's try to add a function `f` of type `int->int` in module `example`:
-```
+```cpp
 builder.openModule("example").externDef("f", cmp.parseType("int->int"));
 ```
 Function `f` is then available at path `example.f` in the source code! This means that in `sourceContent`, we could have somewhere `println(example.f(2));` which will compile and typecheck correctly. An error would of course have been reported if we had not define `example.f` neither directly in the source code nor from the C++ `ProgramBuilder`.
 
 We now need to define a compilation pipeline, through which the program will flow:
-```
+```cpp
 Pipeline ppl = Pipeline::createDefault();
 ```
 You can either start with a default pipeline (which does the typical *Name analysis*, *Type checking*, etc., or an empty one if you want to build it from scratch. At this point, you can insert your own phases into the pipeline. Check out `samples/API/SamplePhases.cpp` for examples of custom phases.
 Now we must create a *collector* object which will collect the output of the compilation. There will soon be the *VMCollector* which will basically create the default SFSL virtual machine from the output bytecode. For now, let's use an `EmptyCollector`, which does not collect anything.
-```
+```cpp
 EmptyCollector emc;
 ```
 We are now ready to compile!
-```
+```cpp
 cmp.compile(builder, emc, ppl);
 ```
 Well, we will have nothing to retrieve from our collector, but it's coming soon! :)
 The interface will probably look like:
-```
+```cpp
 vm.link(example_f_symbol, [](ExecCtx& ctx) { return ctx.pushInt(2 * ctx.popInt(0)); });
 ...
 vm.call(program_main_symbol, ...);
