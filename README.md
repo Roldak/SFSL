@@ -6,7 +6,7 @@ A statically typed and functionnal scripting language.
 
 ##Compiling and Running SFSL source code##
 
-* Compiling: `sfslc -s source.sfsl` (only single source file for now)
+* Compiling: `sfslc source.sfsl` (only single source file for now)
 * Running: no interpreter / VM on this repo. I have a basic interpreter running on the backend AST, but running is not the priority for me yet.
 
 ##Building the projects##

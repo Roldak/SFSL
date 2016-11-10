@@ -18,21 +18,23 @@ int main(int argc, char** argv) {
     bool checkOnly = false;
     int option;
 
-    while((option = getopt(argc, argv, "s:c")) != -1) {
+    while((option = getopt(argc, argv, "c")) != -1) {
         switch (option) {
-        case 's':
-            sourceFile = optarg;
-            break;
         case 'c':
             checkOnly = true;
             break;
         default:
             std::cerr << "unexpected program argument : " << option << std::endl;
+            break;
         }
     }
 
-    if (!sourceFile)
-        sourceFile = (char*)"Examples\\test.sfsl";
+    if (optind < argc) {
+        sourceFile = argv[optind++];
+    } else {
+        std::cerr << "missing source file" << std::endl;
+        return 1;
+    }
 
     std::ifstream f(sourceFile);
     std::stringstream buffer;
