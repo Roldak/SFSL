@@ -468,11 +468,11 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
     // make the program builder invalid so that it can't be compiled again
     progBuilder._impl = nullptr;
 
-    opt::Frequency printMemoryUsageFrequency = opt::Frequency::Never;
-    opt::Frequency printCompilationTimeFrequency = opt::Frequency::Never;
+    opt::AfterEachPhase::ReportingFunction afterEachPhaseRep;
+    opt::AtEnd::ReportingFunction atEndRep;
 
-    _impl->config.get<opt::PrintMemoryUsage>(printMemoryUsageFrequency);
-    _impl->config.get<opt::PrintCompilationTime>(printCompilationTimeFrequency);
+    _impl->config.get<opt::AfterEachPhase>(afterEachPhaseRep);
+    _impl->config.get<opt::AtEnd>(atEndRep);
 
     try {
         std::set<std::shared_ptr<Phase>> phases(ppl.getPhases());
@@ -485,12 +485,8 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
             clock_t phaseStart = clock();
             bool success = phase->run(pctx);
 
-            if (printCompilationTimeFrequency == opt::Frequency::AfterEachPhase) {
-                std::cout << "Phase " << phase->getName() << " took " << (clock() - phaseStart)/(double)CLOCKS_PER_SEC << " seconds to complete" << std::endl;
-            }
-
-            if (printMemoryUsageFrequency == opt::Frequency::AfterEachPhase) {
-                std::cout << "Memory usage after phase " << phase->getName() << " : " << ctx->memoryManager().getInfos() << std::endl;
+            if (afterEachPhaseRep) {
+                afterEachPhaseRep(phase->getName(), (clock() - phaseStart) / (double) CLOCKS_PER_SEC, ctx->memoryManager().getInfos());
             }
 
             if (!success) {
@@ -498,12 +494,8 @@ void Compiler::compile(ProgramBuilder progBuilder, AbstractOutputCollector& coll
             }
         }
 
-        if (printCompilationTimeFrequency == opt::Frequency::AfterLastPhase) {
-            std::cout << "Compilation took " << (clock() - compilationStart)/(double)CLOCKS_PER_SEC << " seconds to complete" << std::endl;
-        }
-
-        if (printMemoryUsageFrequency == opt::Frequency::AfterLastPhase) {
-            std::cout << "Memory usage after compilation : " << ctx->memoryManager().getInfos() << std::endl;
+        if (atEndRep) {
+            atEndRep((clock() - compilationStart) / (double) CLOCKS_PER_SEC, ctx->memoryManager().getInfos());
         }
 
         collector.collect(pctx);
