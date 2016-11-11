@@ -3,12 +3,12 @@ module test {
 	
 	def test1() => {
 		x := 42;
-		f := @captures("x", 0) () => x;
+		f := @captures("x", false) () => x;
 	}
 	
 	def test2() => {
 		x := 42;
-		f := @captures("x", 1) () => x;
+		f := @captures("x", true) () => x;
 		x = 31415;
 	}
 }

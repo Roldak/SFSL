@@ -1,0 +1,13 @@
+module test {
+	def test() => {
+		x := 42;
+		f := 
+			@captures("x", false) () => 
+			@captures("x", false) () =>
+			@captures("x", false) () =>
+			@captures("x", false) () =>
+			@captures("x", false) new { def f() =>
+				@captures("x", false) () => 
+				@captures("x", false) () => x };
+	}
+}
