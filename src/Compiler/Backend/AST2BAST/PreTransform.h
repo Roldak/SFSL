@@ -122,6 +122,33 @@ private:
     common::AbstractReporter& _rep;
 };
 
+struct Change {
+    Change(Identifier* nf, Identifier* ia);
+
+    sym::VariableSymbol* getNewFieldSymbol() const;
+
+    Identifier* newField;
+    Identifier* initializerArg;
+};
+
+class ClassPatch final : public common::MemoryManageable {
+public:
+    ClassPatch(Identifier* initializer, const std::vector<Change>& changes,
+               const std::map<Identifier*, sym::Symbol*>& fieldCaptures);
+
+    virtual ~ClassPatch();
+
+    Identifier* getInitializer() const;
+    const std::vector<Change>& getChanges() const;
+    const std::map<Identifier*, sym::Symbol*>& getFieldCaptures() const;
+
+private:
+
+    Identifier* _initalizer;
+    std::vector<Change> _changes;
+    std::map<Identifier*, sym::Symbol*> _fieldCaptures;
+};
+
 class DefUserData : public common::MemoryManageable {
 public:
     DefUserData(const std::string& defId, bool isVisible);

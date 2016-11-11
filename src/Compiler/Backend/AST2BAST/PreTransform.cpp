@@ -197,40 +197,34 @@ private:
     common::AbstractMemoryManager& _mngr;
 };
 
-struct Change {
-    Change(Identifier* nf, Identifier* ia) : newField(nf), initializerArg(ia) {}
+// CHANGE
 
-    sym::VariableSymbol* getNewFieldSymbol() const {
-        return sym::getIfSymbolOfType<sym::VariableSymbol>(newField->getSymbol());
-    }
+Change::Change(Identifier* nf, Identifier* ia) : newField(nf), initializerArg(ia) {}
 
-    Identifier* newField;
-    Identifier* initializerArg;
-};
+sym::VariableSymbol* Change::getNewFieldSymbol() const {
+    return sym::getIfSymbolOfType<sym::VariableSymbol>(newField->getSymbol());
+}
 
-struct ClassPatch final : public common::MemoryManageable {
-    ClassPatch(Identifier* initializer, const std::vector<Change>& changes, const std::map<Identifier*, sym::Symbol*>& fieldCaptures)
-        : _initalizer(initializer), _changes(changes), _fieldCaptures(fieldCaptures) {}
-    virtual ~ClassPatch() {}
+// CLASS PATH
 
-    Identifier* getInitializer() const {
-        return _initalizer;
-    }
+ClassPatch::ClassPatch(Identifier* initializer, const std::vector<Change>& changes, const std::map<Identifier*, sym::Symbol*>& fieldCaptures)
+    : _initalizer(initializer), _changes(changes), _fieldCaptures(fieldCaptures) {}
 
-    const std::vector<Change>& getChanges() const {
-        return _changes;
-    }
+ClassPatch::~ClassPatch() {}
 
-    const std::map<Identifier*, sym::Symbol*>& getFieldCaptures() const {
-        return _fieldCaptures;
-    }
+Identifier* ClassPatch::getInitializer() const {
+    return _initalizer;
+}
 
-private:
+const std::vector<Change>& ClassPatch::getChanges() const {
+    return _changes;
+}
 
-    Identifier* _initalizer;
-    std::vector<Change> _changes;
-    std::map<Identifier*, sym::Symbol*> _fieldCaptures;
-};
+const std::map<Identifier*, sym::Symbol*>& ClassPatch::getFieldCaptures() const {
+    return _fieldCaptures;
+}
+
+// CLASS PATCHER
 
 struct ClassPatcher final {
     ClassPatcher(ClassDecl* clss, CompCtx_Ptr& ctx)
@@ -312,13 +306,13 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
     // Assign the FieldInfo to every field of the class
     for (const auto& pair : clss->getScope()->getAllSymbols()) {
         if (sym::Symbol* s = pair.second.symbol) {
-            if (VariableInfo* info = getVariableInfo(s)) {
+            /*if (VariableInfo* info = getVariableInfo(s)) {
                 if (FieldInfo* field = FieldInfo::from(info)) {
                     _boundVars.push_back(field->thisClassSymbol);
                 }
-            } else {
+            } else {*/
                 setVariableInfo(s, _mngr.New<FieldInfo>(thisClassSymbol));
-            }
+            //}
         }
     }
 

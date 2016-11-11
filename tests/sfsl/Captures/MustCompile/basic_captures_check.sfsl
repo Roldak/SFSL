@@ -1,0 +1,14 @@
+module test {
+	using sfsl.lang
+	
+	def test1() => {
+		x := 42;
+		f := @captures("x", 0) () => x;
+	}
+	
+	def test2() => {
+		x := 42;
+		f := @captures("x", 1) () => x;
+		x = 31415;
+	}
+}
