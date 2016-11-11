@@ -27,7 +27,7 @@ bool CompilationTest::run(AbstractTestLogger& logger) {
     bool success;
 
     Compiler cmp(CompilerConfig()
-                 .with<opt::Reporter>(StandartReporter::EmptyReporter)
+                 .with<opt::Reporter>(_shouldCompile ? StandartReporter::CerrReporter : StandartReporter::EmptyReporter)
                  .with<opt::PrimitiveNamer>(StandartPrimitiveNamer::DefaultPrimitiveNamer)
                  .with<opt::InitialChunkSize>(2048));
     try {

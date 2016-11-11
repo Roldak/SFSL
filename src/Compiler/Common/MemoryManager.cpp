@@ -84,10 +84,10 @@ std::string ChunkedMemoryManager::getInfos() const {
         totalChunkSize += cur->getChunkSize();
     }
 
-    toRet += utils::T_toString(chunkCount) + " chunks containing ";
-    toRet += utils::T_toString(_allocated.size()) + " objects for a total of ";
-    toRet += utils::T_toString(totalUsedSize) + " bytes used on ";
-    toRet += utils::T_toString(totalChunkSize) + " bytes allocated}";
+    toRet += utils::T_toString(chunkCount) + " chunks; ";
+    toRet += utils::T_toString(_allocated.size()) + " objects; ";
+    toRet += utils::T_toString(totalUsedSize) + "/";
+    toRet += utils::T_toString(totalChunkSize) + " bytes}";
     return toRet;
 }
 
