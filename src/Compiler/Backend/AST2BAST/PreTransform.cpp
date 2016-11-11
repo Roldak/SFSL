@@ -312,7 +312,11 @@ void PreTransformAnalysis::visit(ClassDecl* clss) {
     // Assign the FieldInfo to every field of the class
     for (const auto& pair : clss->getScope()->getAllSymbols()) {
         if (sym::Symbol* s = pair.second.symbol) {
-            if (!getVariableInfo(s)) {
+            if (VariableInfo* info = getVariableInfo(s)) {
+                if (FieldInfo* field = FieldInfo::from(info)) {
+                    _boundVars.push_back(field->thisClassSymbol);
+                }
+            } else {
                 setVariableInfo(s, _mngr.New<FieldInfo>(thisClassSymbol));
             }
         }
