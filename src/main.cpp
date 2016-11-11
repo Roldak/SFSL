@@ -2,7 +2,6 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <ctime>
 #include <memory>
 #include "unistd.h"
 #include "sfsl.h"
@@ -18,21 +17,23 @@ int main(int argc, char** argv) {
     bool checkOnly = false;
     int option;
 
-    while((option = getopt(argc, argv, "s:c")) != -1) {
+    while((option = getopt(argc, argv, "c")) != -1) {
         switch (option) {
-        case 's':
-            sourceFile = optarg;
-            break;
         case 'c':
             checkOnly = true;
             break;
         default:
             std::cerr << "unexpected program argument : " << option << std::endl;
+            break;
         }
     }
 
-    if (!sourceFile)
-        sourceFile = (char*)"Examples\\test.sfsl";
+    if (optind < argc) {
+        sourceFile = argv[optind++];
+    } else {
+        std::cerr << "missing source file" << std::endl;
+        return 1;
+    }
 
     std::ifstream f(sourceFile);
     std::stringstream buffer;
@@ -40,12 +41,10 @@ int main(int argc, char** argv) {
 
     std::string source = buffer.str();
 
-    clock_t exec = clock();
-
     Compiler cmp(CompilerConfig()
                  .with<opt::Reporter>(StandartReporter::CerrReporter)
-                 .with<opt::PrintCompilationTime>(opt::Frequency::AfterEachPhase)
-                 .with<opt::PrintMemoryUsage>(opt::Frequency::AfterEachPhase));
+                 .with<opt::AfterEachPhase>(opt::AfterEachPhase::print(std::cout, opt::AfterEachPhase::ExecutionTime | opt::AfterEachPhase::MemoryInfos))
+                 .with<opt::AtEnd>(opt::AtEnd::print(std::cout, opt::AtEnd::CompilationTime | opt::AtEnd::MemoryInfos)));
 
     Pipeline ppl = Pipeline::createDefault();
 
@@ -71,8 +70,6 @@ int main(int argc, char** argv) {
             for (const std::string& i : bcc.get()) {
                 std::cout << i << std::endl;
             }
-
-            std::cout << "Compilation Time : " << (clock() - exec)/(double)CLOCKS_PER_SEC << std::endl << std::endl;
         }
 
     } catch(const CompileError& ex) {

@@ -1,11 +1,15 @@
 #include <iostream>
+#include <functional>
 #include "AbstractReporter.h"
 #include "AbstractPrimitiveNamer.h"
 
-#define DEF_OPTION(name, ...) \
-    struct name { \
-        typedef std::tuple<__VA_ARGS__> Params; \
-        static std::string getName() { return #name; } \
+#define SFSL_OPTION_BODY(name, ...) \
+    typedef std::tuple<__VA_ARGS__> Params; \
+    static std::string getName() { return #name; }
+
+#define SFSL_DEF_OPTION(name, ...) \
+    struct SFSL_API_PUBLIC name { \
+        SFSL_OPTION_BODY(name, __VA_ARGS__) \
     }; \
 
 
@@ -13,17 +17,33 @@ namespace sfsl {
 
 namespace opt {
 
-enum class Frequency {
-    Never,
-    AfterEachPhase,
-    AfterLastPhase
+SFSL_DEF_OPTION(Reporter, AbstractReporter*)
+SFSL_DEF_OPTION(PrimitiveNamer, common::AbstractPrimitiveNamer*)
+SFSL_DEF_OPTION(InitialChunkSize, size_t)
+
+struct SFSL_API_PUBLIC AfterEachPhase {
+    enum PrintOption {
+        ExecutionTime   = 1 << 0,
+        MemoryInfos     = 1 << 1
+    };
+
+    typedef std::function<void(const std::string&, double, const std::string&)> ReportingFunction;
+    SFSL_OPTION_BODY(AfterEachPhase, ReportingFunction)
+
+    static ReportingFunction print(std::ostream& stream, int printOptions);
 };
 
-DEF_OPTION(Reporter, AbstractReporter*)
-DEF_OPTION(PrimitiveNamer, common::AbstractPrimitiveNamer*)
-DEF_OPTION(InitialChunkSize, size_t)
-DEF_OPTION(PrintMemoryUsage, Frequency)
-DEF_OPTION(PrintCompilationTime, Frequency)
+struct SFSL_API_PUBLIC AtEnd {
+    enum PrintOption {
+        CompilationTime = 1 << 0,
+        MemoryInfos     = 1 << 1
+    };
+
+    typedef std::function<void(double, const std::string&)> ReportingFunction;
+    SFSL_OPTION_BODY(AtEnd, ReportingFunction)
+
+    static ReportingFunction print(std::ostream& stream, int printOptions);
+};
 
 }
 
