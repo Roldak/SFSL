@@ -3,7 +3,7 @@ module test {
 	def test1() => {
 		x: int;
 		x = 2;
-		f := () => {
+		unused_f := () => {
 			x;
 		};
 	}
@@ -34,10 +34,10 @@ module test {
 	
 	def test4 = {
 		x := 2;
-		f := () => {
+		unused_f := () => {
 			type A = class () {
 				def f() => {
-					g := () => () => {
+					unused_g := () => () => {
 						x;
 					};
 				}

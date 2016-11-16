@@ -1,0 +1,11 @@
+module test {
+	class A {
+		def test() => 2
+		def lala() => @captures("A.this", false) () => test()
+	}
+	
+	class B {
+		static def test() => 2
+		def lala() => () => test() // no capture
+	}
+}
