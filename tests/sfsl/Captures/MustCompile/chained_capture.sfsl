@@ -1,4 +1,5 @@
 module test {
+	using sfsl.lang
 	def test() => {
 		x := 42;
 		f := 
@@ -9,5 +10,9 @@ module test {
 			@captures("x", false) new { def f() =>
 				@captures("x", false) () => 
 				@captures("x", false) () => x };
+		
+		g := 
+			@captures("x", false) (y: int) =>
+			@captures("x", false) @captures("y", false) (z: int) => {x; y; z;};
 	}
 }
