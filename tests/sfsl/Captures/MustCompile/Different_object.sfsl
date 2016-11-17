@@ -1,0 +1,13 @@
+module test {
+	def test1() => {
+		class A() {
+			def f() => {}
+		};
+		class B() : A {
+			def g() => {
+				x := A();
+				x.f();
+			}
+		};
+	}
+}

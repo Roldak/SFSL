@@ -1,0 +1,59 @@
+module test {
+	using sfsl.lang
+	
+	def test1() => {
+		class A(x: int);
+		
+		y := 2;
+		@captures("y", false) 
+		class B() : A {
+			def f() => y
+		};
+	}
+	
+	def test2() => {
+		y := 2;
+		
+		@captures("y", false)
+		class A() {
+			def f() => y
+		};
+		
+		class B() : A;
+		
+		z := 3;
+		
+		@captures("z", false)
+		class C() : A {
+			def g() => z
+		};
+	}
+
+	def test3() => {
+		y := 2;
+		@captures("y", false) 
+		class B() : A {
+			def f() => y
+		};
+		
+		class A(x: int);
+	}
+	
+	def test4() => {
+		z := 3;
+		
+		@captures("z", false)
+		class C() : A {
+			def g() => z
+		};
+		
+		class B() : A;
+		
+		y := 2;
+		
+		@captures("y", false)
+		class A() {
+			def f() => y
+		};
+	}
+}

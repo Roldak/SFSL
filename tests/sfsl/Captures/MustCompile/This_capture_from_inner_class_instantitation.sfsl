@@ -1,0 +1,8 @@
+module test {
+	using sfsl.lang
+	
+	class A {
+		class Inner()
+		def f() => () => Inner() // no A.this capture
+	}
+}

@@ -31,9 +31,12 @@ public:
 
 private:
     void visitClassDecl(ClassDecl* clss);
+    ClassDecl* getParentMostClass(ClassDecl* clss);
 
     std::map<sym::VariableSymbol*, std::vector<Identifier*>> _usedVars;
     std::vector<sym::VariableSymbol*> _boundVars;
+
+    std::map<ClassDecl*, sym::VariableSymbol*> _classThisSymbols;
 };
 
 class PreTransformImplementation : public ASTTransformer {

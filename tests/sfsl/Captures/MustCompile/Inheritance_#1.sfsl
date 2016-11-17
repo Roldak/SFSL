@@ -1,0 +1,55 @@
+module test {
+	def test1() => {
+		class A() {
+			def f() => {}
+		};
+		class B() : A {
+			def g() => {}
+		};
+	}
+	
+	def test2() => {
+		class A() {
+			def f() => {}
+		};
+		class B() : A {
+			redef f() => {}
+		};
+	}
+	
+	def test3() => {
+		class A() {
+			def f() => {}
+		};
+		class B() : A {
+			def f() => {}
+		};
+	}
+
+	def test4() => {
+		class B() : A {
+			def g() => {}
+		};
+		class A() {
+			def f() => {}
+		};
+	}
+	
+	def test5() => {
+		class B() : A {
+			redef f() => {}
+		};
+		class A() {
+			def f() => {}
+		};
+	}
+	
+	def test6() => {
+		class B() : A {
+			def f() => {}
+		};
+		class A() {
+			def f() => {}
+		};
+	}
+}
