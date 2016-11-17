@@ -427,7 +427,7 @@ void Compiler::unloadPlugin(const std::string& pathToPluginDll) {
 
 ProgramBuilder Compiler::parse(const std::string& srcName, const std::string& srcContent) {
     try {
-        common::ChunkedMemoryManager lexerMemMngr(srcContent.size() * sizeof(tok::Identifier) / 3); // random heuristic :D
+        common::ChunkedMemoryManager lexerMemMngr(srcContent.size() * sizeof(tok::Identifier) / 3 + 40); // random heuristic :D
 
         src::StringSource source(src::InputSourceName::make(_impl->ctx, srcName), srcContent);
         lex::Lexer lexer(lexerMemMngr, _impl->ctx->reporter(), source);
