@@ -428,7 +428,9 @@ Expression* Parser::parsePrimary() {
 
     case tok::TOK_OPER:
         if (accept(tok::OPER_L_PAREN)) {
+            std::vector<Annotation*> annots(std::move(consumeAnnotations()));
             Tuple* tuple = static_cast<Tuple*>(toRet = parseTuple());
+            _parsedAnnotations = std::move(annots);
 
             if (tuple->getExpressions().size() == 1) {
                 toRet = tuple->getExpressions()[0];

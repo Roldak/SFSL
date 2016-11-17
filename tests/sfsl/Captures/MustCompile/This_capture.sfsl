@@ -1,0 +1,18 @@
+module test {
+	using sfsl.lang
+	
+	class A {
+		x: int;
+		y: int;
+		
+		def f() => @captures("A.this", false) () => x
+		def g() => @captures("A.this", false) () => y
+		def h() => {
+			@captures("A.this", false)
+			class B() {
+				def f() => @captures("A.this", false) () => x
+			};
+			B();
+		}
+	}
+}

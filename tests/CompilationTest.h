@@ -27,7 +27,7 @@ public:
 
     virtual bool run(AbstractTestLogger& logger) override;
 
-private:
+protected:
 
     const std::string _source;
     bool _shouldCompile;

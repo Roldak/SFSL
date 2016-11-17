@@ -197,40 +197,34 @@ private:
     common::AbstractMemoryManager& _mngr;
 };
 
-struct Change {
-    Change(Identifier* nf, Identifier* ia) : newField(nf), initializerArg(ia) {}
+// CHANGE
 
-    sym::VariableSymbol* getNewFieldSymbol() const {
-        return sym::getIfSymbolOfType<sym::VariableSymbol>(newField->getSymbol());
-    }
+Change::Change(Identifier* nf, Identifier* ia) : newField(nf), initializerArg(ia) {}
 
-    Identifier* newField;
-    Identifier* initializerArg;
-};
+sym::VariableSymbol* Change::getNewFieldSymbol() const {
+    return sym::getIfSymbolOfType<sym::VariableSymbol>(newField->getSymbol());
+}
 
-struct ClassPatch final : public common::MemoryManageable {
-    ClassPatch(Identifier* initializer, const std::vector<Change>& changes, const std::map<Identifier*, sym::Symbol*>& fieldCaptures)
-        : _initalizer(initializer), _changes(changes), _fieldCaptures(fieldCaptures) {}
-    virtual ~ClassPatch() {}
+// CLASS PATH
 
-    Identifier* getInitializer() const {
-        return _initalizer;
-    }
+ClassPatch::ClassPatch(Identifier* initializer, const std::vector<Change>& changes, const std::map<Identifier*, sym::Symbol*>& fieldCaptures)
+    : _initalizer(initializer), _changes(changes), _fieldCaptures(fieldCaptures) {}
 
-    const std::vector<Change>& getChanges() const {
-        return _changes;
-    }
+ClassPatch::~ClassPatch() {}
 
-    const std::map<Identifier*, sym::Symbol*>& getFieldCaptures() const {
-        return _fieldCaptures;
-    }
+Identifier* ClassPatch::getInitializer() const {
+    return _initalizer;
+}
 
-private:
+const std::vector<Change>& ClassPatch::getChanges() const {
+    return _changes;
+}
 
-    Identifier* _initalizer;
-    std::vector<Change> _changes;
-    std::map<Identifier*, sym::Symbol*> _fieldCaptures;
-};
+const std::map<Identifier*, sym::Symbol*>& ClassPatch::getFieldCaptures() const {
+    return _fieldCaptures;
+}
+
+// CLASS PATCHER
 
 struct ClassPatcher final {
     ClassPatcher(ClassDecl* clss, CompCtx_Ptr& ctx)
@@ -284,36 +278,65 @@ PreTransformAnalysis::~PreTransformAnalysis() {
 }
 
 void PreTransformAnalysis::visitClassDecl(ClassDecl* clss) {
-    /* Do as ASTImplicitVisitor::visit(clss), but don't visit TypeSpecifiers' Identifiers,
-     * so that they are dealt with in the following for loop.
-     */
     if (clss->getParent()) {
         clss->getParent()->onVisit(this);
     }
     for (TypeDecl* tdecl: clss->getTypeDecls()) {
-        tdecl->onVisit(this);
+        tdecl->getExpression()->onVisit(this);
     }
     for (TypeSpecifier* field : clss->getFields()) {
         field->getTypeNode()->onVisit(this);
     }
-    for (DefineDecl* def : clss->getDefs()) {
-        def->onVisit(this);
+    for (DefineDecl* decl : clss->getDefs()) {
+        if (TypeExpression* expr = decl->getTypeSpecifier()) {
+            expr->onVisit(this);
+        }
+        if (Expression* val = decl->getValue()) {
+            val->onVisit(this);
+        }
     }
+}
+
+ClassDecl* PreTransformAnalysis::getParentMostClass(ClassDecl* clss) {
+    ClassDecl* parentMost = clss;
+
+    while (TypeExpression* parent = parentMost->getParent()) {
+        if (type::Type* tp = ASTTypeCreator::createType(parent, _ctx)) {
+            if (type::ProperType* pt = type::getIf<type::ProperType>(tp->applyTCCallsOnly(_ctx))) {
+                parentMost = pt->getClass();
+                continue;
+            }
+        }
+        break;
+    }
+
+    return parentMost;
 }
 
 void PreTransformAnalysis::visit(ClassDecl* clss) {
     SAVE_MEMBER_AND_SET(_usedVars, {})
     SAVE_MEMBER_AND_SET(_boundVars, {})
 
-    // Create the `this` class symbol
-    sym::VariableSymbol* thisClassSymbol = _mngr.New<sym::VariableSymbol>(clss->getName() + ".this", "");
-    setVariableInfo(thisClassSymbol, _mngr.New<ThisInfo>());
+    ClassDecl* parentMost = getParentMostClass(clss);
+    sym::VariableSymbol*& thisClassSymbol = _classThisSymbols[parentMost];
+
+    if (!thisClassSymbol) {
+        // Create the `this` class symbol
+        thisClassSymbol = _mngr.New<sym::VariableSymbol>(parentMost->getName() + ".this", "");
+        setVariableInfo(thisClassSymbol, _mngr.New<ThisInfo>());
+    }
 
     // Assign the FieldInfo to every field of the class
     for (const auto& pair : clss->getScope()->getAllSymbols()) {
         if (sym::Symbol* s = pair.second.symbol) {
             if (!getVariableInfo(s)) {
-                setVariableInfo(s, _mngr.New<FieldInfo>(thisClassSymbol));
+                // If not a static member, assign it a FieldInfo
+                if (!(sym::getIfSymbolOfType<sym::TypeSymbol>(s) ||
+                       (sym::getIfSymbolOfType<sym::DefinitionSymbol>(s) &&
+                        sym::getIfSymbolOfType<sym::DefinitionSymbol>(s)->getDef()->isStatic())
+                    )) {
+                    setVariableInfo(s, _mngr.New<FieldInfo>(thisClassSymbol));
+                }
             }
         }
     }
@@ -871,7 +894,9 @@ bool DefUserData::isVisible() const {
 
 // CLASS USER DATA
 
-ClassUserData::ClassUserData(const std::string& defId, bool isHidden, const std::vector<sym::VariableSymbol*>& fields, const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract)
+ClassUserData::ClassUserData(const std::string& defId, bool isHidden,
+                             const std::vector<sym::VariableSymbol*>& fields,
+                             const std::vector<sym::DefinitionSymbol*>& defs, bool isAbstract)
     : DefUserData(defId, isHidden), _fields(fields), _defs(defs), _isAbstract(isAbstract) {
 
 }

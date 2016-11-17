@@ -1,0 +1,20 @@
+module test {
+	using sfsl.lang
+	
+	def test1() => {
+		x := 42;
+		@captures("x", false)
+		class A() {
+			def f() => x
+		};
+	}
+	
+	def test2() => {
+		x := 42;
+		@captures("x", true)
+		class A() {
+			def f() => x
+		};
+		x = 31415;
+	}
+}

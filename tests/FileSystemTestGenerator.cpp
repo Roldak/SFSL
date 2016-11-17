@@ -13,6 +13,7 @@
 #include "FileSystemTestGenerator.h"
 #include "CompilationTest.h"
 #include "SymbolicTest.h"
+#include "CapturesTest.h"
 
 namespace sfsl {
 
@@ -94,19 +95,12 @@ void FileSystemTestGenerator::createTestsForType(TestSuiteBuilder& builder, File
 
             std::string source = buffer.str();
 
-            switch (type) {
-            case MUST_COMPILE:
-                if (builder.getName() == "NameAnalysis") {
-                    builder.addTest(new SymbolicTest(testName, source));
-                } else {
-                    builder.addTest(new CompilationTest(testName, source, true, builder.getName()));
-                }
-                break;
-            case MUST_NOT_COMPILE:
-                builder.addTest(new CompilationTest(testName, source, false, builder.getName()));
-                break;
-            default:
-                break;
+            if (builder.getName() == "NameAnalysis" && type == MUST_COMPILE) {
+                builder.addTest(new SymbolicTest(testName, source));
+            } else if (builder.getName() == "Captures") {
+                builder.addTest(new CapturesTest(testName, source, type == MUST_COMPILE));
+            } else {
+                builder.addTest(new CompilationTest(testName, source, type == MUST_COMPILE, builder.getName()));
             }
         }
     }
